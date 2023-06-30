@@ -36,7 +36,7 @@ Deno.test("sendDMandImages", async (t) => {
     }
     await Promise.all(ps);
 
-    const path = await Deno.realPath("../UI/deploy/logo.png");
+    const path = await Deno.realPath("UI/deploy/logo-white.png");
     console.log(path);
     const data = await Deno.readFile(path);
 
