@@ -1,0 +1,11 @@
+{
+    "compilerOptions": {
+        "checkJs": false,
+        "lib": [
+            "DOM",
+            "ESNEXT"
+        ],
+        "noImplicitAny": true
+    },
+    "lock": "./deno.lock"
+}

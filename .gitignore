@@ -1,0 +1,9 @@
+# Debug
+private-key.ts
+test.ts
+*.log
+# Bundle
+*.mjs
+cov_profile*
+Elm
+DevOps/stats.sqlite

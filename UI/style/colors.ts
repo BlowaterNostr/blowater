@@ -1,0 +1,13 @@
+export const PrimaryBackgroundColor = "#18181B";
+export const SecondaryBackgroundColor = "#27272A";
+export const PrimaryTextColor = "#FFFFFF";
+export const SecondaryTextColor = "#8B8B8D";
+export const HintTextColor = "#A9A9AA";
+export const DividerBackgroundColor = "#3F3F46";
+export const PlaceholderColor = "#7D7D7F";
+export const HintLinkColor = "#C039E0";
+export const HoverButtonBackgroudColor = "#52525B";
+export const SuccessColor = "#22C55E";
+export const WarnColor = "#EAB308";
+export const ErrorColor = "#EF4444";
+export const TitleIconColor = "#FF772B";

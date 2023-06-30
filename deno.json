@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+        "checkJs": false
+    },
+    "lint": {
+        "rules": {
+            "tags": [
+                "recommended"
+            ],
+            "exclude": [
+                "prefer-const",
+                "no-unused-vars",
+                "no-inferrable-types",
+                "require-await"
+            ]
+        }
+    },
+    "fmt": {
+        "exclude": ["UI/vendor/", "vendor"]
+    }
+}

@@ -1,0 +1,16 @@
+{
+    "id": "Blowater2.0",
+    "name": "Blowater",
+    "short_name": "Blowater",
+    "start_url": "./",
+    "scope": "./",
+    "display": "standalone",
+    "theme_color": "#313338",
+    "background_color": "#313338",
+    "description": "Blowater is a delightful Nostr client that focuses on DM.",
+    "icons": [{
+        "src": "./logo.png",
+        "sizes": "48x48 72x72 96x96 128x128 256x256 512x512",
+        "type": "image/png"
+    }]
+}
