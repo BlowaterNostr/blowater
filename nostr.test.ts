@@ -21,15 +21,11 @@ import {
     reassembleBase64ImageFromEvents,
 } from "./nostr.ts";
 import { LamportTime } from "./time.ts";
-import {
-    generatePrivateKeyHex,
-    PrivateKey,
-    toPublicKeyHex,
-} from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
+import { PrivateKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 
 Deno.test("prepareNostrImageEvents", async (t) => {
     const pri = PrivateKey.Generate();
-    const pub = toPublicKeyHex(pri.hex);
+    const pub = pri.toPublicKey().hex;
 
     let randomData = new Uint8Array(1024 * 48); // 48KB raw data
     for (let i = 0; i < randomData.length; i++) {
@@ -80,7 +76,7 @@ Deno.test("prepareNostrImageEvents", async (t) => {
 
 Deno.test("groupImageEvents", async () => {
     const pri = PrivateKey.Generate();
-    const pub = toPublicKeyHex(pri.hex);
+    const pub = pri.toPublicKey().hex;
 
     let randomData = new Uint8Array(1024 * 17);
     for (let i = 0; i < randomData.length; i++) {
@@ -141,7 +137,7 @@ Deno.test("Generate reply event", async () => {
     ) as NostrEvent;
 
     assertEquals(replyMessage1WithText.kind, message1.kind);
-    assertEquals(replyMessage1WithText.pubkey, toPublicKeyHex(userAPrivateKey.hex));
+    assertEquals(replyMessage1WithText.pubkey, userAPrivateKey.toPublicKey().hex);
     assertEquals(replyMessage1WithText.tags, [[
         "e",
         message1.id,
@@ -191,7 +187,7 @@ Deno.test("Group reply messages", async (t) => {
             "text message 5, text message 3's reply",
         ) as NostrEvent;
 
-        const message6LeadEventID = generatePrivateKeyHex();
+        const message6LeadEventID = PrivateKey.Generate().hex;
         const message6 = await prepareNormalNostrEvent(
             userBContext,
             NostrKind.DIRECT_MESSAGE,
@@ -234,7 +230,7 @@ Deno.test("Group reply messages", async (t) => {
             ],
             "image message 8",
         );
-        const message9LeadEventID = generatePrivateKeyHex();
+        const message9LeadEventID = PrivateKey.Generate().hex;
         const message9 = await prepareReplyEvent(
             userAContext,
             message6,
@@ -335,7 +331,7 @@ Deno.test("Group reply messages", async (t) => {
             "text message 1",
         );
 
-        const message2LeadEventID = generatePrivateKeyHex();
+        const message2LeadEventID = PrivateKey.Generate().hex;
         const message2 = await prepareNormalNostrEvent(
             userBContext,
             NostrKind.DIRECT_MESSAGE,
@@ -428,7 +424,7 @@ Deno.test("Group reply messages", async (t) => {
             notUsed,
             [[
                 "image",
-                generatePrivateKeyHex(),
+                PrivateKey.Generate().hex,
                 "1",
                 "0",
             ]],

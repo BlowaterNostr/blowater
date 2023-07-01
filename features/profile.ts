@@ -97,7 +97,7 @@ export function getProfilesByName(db: Database, name: string): ProfileEvent[] {
     for (const events of profilesPerUser.values()) {
         events.sort((e1, e2) => e2.created_at - e1.created_at);
         const p = ProfileFromNostrEvent(events[0]);
-        if (p.content.name?.toLocaleLowerCase().indexOf(name.toLowerCase()) != -1) {
+        if (p.content.name && p.content.name?.toLocaleLowerCase().indexOf(name.toLowerCase()) != -1) {
             result.push(p);
         }
     }

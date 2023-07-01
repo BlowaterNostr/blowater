@@ -3,7 +3,6 @@ import {
     PrivateKey,
     PublicKey,
     publicKeyHexFromNpub,
-    toPublicKeyHex,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 import {
     InMemoryAccountContext,
@@ -163,15 +162,4 @@ export function GetLocalStorageAccountContext() {
         return undefined;
     }
     return undefined;
-}
-
-function isPrivateKey(privateKey: string) {
-    if (privateKey.length !== 64) {
-        return false;
-    }
-    const publicKey = toPublicKeyHex(privateKey);
-    if (publicKeyHexFromNpub(publicKey).length === 64) {
-        return true;
-    }
-    return false;
 }

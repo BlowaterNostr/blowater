@@ -9,16 +9,15 @@ import {
     prepareEncryptedNostrEvent,
     prepareNormalNostrEvent,
     RelayResponse_Event,
-    RelayResponse_REQ_Message,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 import {
     ConnectionPool,
     newSubID,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
-import { getTags, prepareNostrImageEvents, Tag } from "../nostr.ts";
+import { prepareNostrImageEvents, Tag } from "../nostr.ts";
 import {
+    PrivateKey,
     publicKeyHexFromNpub,
-    toPublicKeyHex,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 
 export async function sendDMandImages(args: {
@@ -234,9 +233,10 @@ async function* messagesSendByMeTo(
     limit: number,
 ) {
     receiverPubKey = publicKeyHexFromNpub(receiverPubKey);
+    const myPri = PrivateKey.FromHex(myPriKey) as PrivateKey;
     for await (
         let { res: relayResponse } of getEncryptedMessagesBetween(
-            toPublicKeyHex(myPriKey),
+            myPri.toPublicKey().hex,
             receiverPubKey,
             relay,
             limit,
@@ -253,10 +253,11 @@ async function* messagesSendToMeBy(
     limit: number,
 ) {
     senderPubKey = publicKeyHexFromNpub(senderPubKey);
+    const myPri = PrivateKey.FromHex(myPriKey) as PrivateKey;
     for await (
         let { res: relayResponse } of getEncryptedMessagesBetween(
             senderPubKey,
-            toPublicKeyHex(myPriKey),
+            myPri.toPublicKey().hex,
             relay,
             limit,
         )

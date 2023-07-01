@@ -9,25 +9,19 @@ import { EventBus } from "../event-bus.ts";
 
 import { UI_Interaction_Event } from "./app_update.ts";
 import { getContactPubkeysOf } from "../features/dm.ts";
-import { DM_EditorModel } from "./editor.tsx";
 import {
     ConnectionPool,
     SingleRelayConnection,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
-import {
-    generatePrivateKeyHex,
-    PrivateKey,
-    toPublicKeyHex,
-} from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
+import { PrivateKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 import { InMemoryAccountContext } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 import { AsyncWebSocket } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/websocket.ts";
 import { relays } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay-list.test.ts";
 
 const start = Date.now();
 
-// const url = "wss://relay.damus.io";
 const myPrivateKey = PrivateKey.Generate();
-const myPublicKey = toPublicKeyHex(generatePrivateKeyHex());
+const myPublicKey = PrivateKey.Generate().hex;
 
 const relayPool = new ConnectionPool();
 for (let url of relays.slice(0, 1)) {

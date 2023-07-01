@@ -2,7 +2,7 @@
     Extension to common Nostr types
 */
 import {
-    generatePrivateKeyHex,
+    PrivateKey,
     publicKeyHexFromNpub,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 import * as nostr from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
@@ -88,7 +88,7 @@ export async function prepareNostrImageEvents(
     const chunkSize = 32 * 1024;
     const chunkCount = Math.ceil(binaryContent.length / chunkSize);
     const events: nostr.NostrEvent[] = [];
-    let groupLeadEventID = generatePrivateKeyHex();
+    let groupLeadEventID = PrivateKey.Generate().hex;
     for (let i = 0; i < chunkCount; i++) {
         const chunk = binaryContent.slice(i * chunkSize, (i + 1) * chunkSize);
         // encryption
