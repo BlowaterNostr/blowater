@@ -12,8 +12,6 @@ db.execute(`
   )
 `);
 
-// const relay = SingleRelayConnection.New("wss://relay.damus.io", AsyncWebSocket.New);
-
 const pool = new ConnectionPool();
 const urls = [
     "wss://relay.damus.io",
@@ -37,19 +35,16 @@ if (r instanceof Error) {
     throw r;
 }
 
-const set = new Set();
-let i = 0;
-for await (const [e, url] of r) {
+for await (const { res: e, url } of r) {
     console.log(url);
-    if (e[0] != "EVENT") {
+    if (e.type != "EVENT") {
         continue;
     }
-    // console.log(e);
-    const pub = e[2].pubkey;
-    const index = [pub, e[2].id];
-    try {
-        db.query("INSERT INTO stats (pubkey, eventID) VALUES (?, ?)", [pub, e[2].id]);
-    } catch (e) {}
-}
 
-// const query2: SQL = "SELECT C From X"
+    const pub = e.event.pubkey;
+    try {
+        db.query("INSERT INTO stats (pubkey, eventID) VALUES (?, ?)", [pub, e.event.id]);
+    } catch (e) {
+        console.log(e.message);
+    }
+}
