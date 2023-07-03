@@ -201,10 +201,10 @@ export function Editor(props: {
                             {props.model.files.map((file, index) => {
                                 return (
                                     <li
-                                        class={tw`relative mx-2 min-w-[10rem] w-[10rem]  h-[10rem] p-2 bg-[${PrimaryBackgroundColor}] rounded-2xl ${CenterClass}`}
+                                        class={tw`relative mx-2 min-w-[10rem] w-[10rem]  h-[10rem] p-2 bg-[${PrimaryBackgroundColor}] rounded ${CenterClass}`}
                                     >
                                         <button
-                                            class={tw`w-[2rem] h-[2rem] absolute top-0 right-0 ${CenterClass} ${NoOutlineClass}`}
+                                            class={tw`w-[2rem] h-[2rem] absolute top-1 right-1 rounded-[50%] hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
                                             onClick={() => {
                                                 removeFile(index);
                                             }}

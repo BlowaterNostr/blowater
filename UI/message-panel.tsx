@@ -273,7 +273,7 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
                     />
                 </button>
                 <ul
-                    class={tw`w-full h-full overflow-y-auto overflow-x-hidden py-4 px-2 flex flex-col-reverse`}
+                    class={tw`w-full h-full overflow-y-auto overflow-x-hidden py-8 px-2 flex flex-col-reverse`}
                     ref={this.messagesULElement}
                     onScroll={this.onScroll}
                 >
