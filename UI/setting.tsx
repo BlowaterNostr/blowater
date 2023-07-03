@@ -78,7 +78,7 @@ export const Setting: FunctionComponent<SettingProps> = (props: SettingProps) =>
                 />
             </div>
             <button
-                class={tw`w-full p-[0.75rem] mt-[1.5rem] rounded-lg ${NoOutlineClass} text-[${PrimaryTextColor}] ${CenterClass} ${LinearGradientsClass}`}
+                class={tw`w-full p-[0.75rem] mt-[1.5rem] rounded-lg ${NoOutlineClass} text-[${PrimaryTextColor}] ${CenterClass} ${LinearGradientsClass}  hover:bg-gradient-to-l`}
                 onClick={props.logout}
             >
                 Logout
