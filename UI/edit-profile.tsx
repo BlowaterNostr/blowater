@@ -305,7 +305,7 @@ export function EditProfile(props: {
             <div class={tw`${DividerClass}`}></div>
             <div class={tw`mt-[1.5rem] flex justify-end`}>
                 <button
-                    class={tw`w-full p-[0.75rem] rounded-lg ${NoOutlineClass} text-[${PrimaryTextColor}] ${CenterClass} ${LinearGradientsClass}`}
+                    class={tw`w-full p-[0.75rem] rounded-lg ${NoOutlineClass} text-[${PrimaryTextColor}] ${CenterClass} ${LinearGradientsClass}  hover:bg-gradient-to-l`}
                     onClick={async () => {
                         if (props.myProfile) {
                             props.eventEmitter.emit({
