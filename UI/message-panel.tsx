@@ -446,8 +446,7 @@ export function ParseMessageContent(message: ChatMessage, db: Database) {
                     const profile = getProfileEvent(db, pubkey);
                     console.log(profile);
                     if (profile) {
-                        vnode.push(<p>{profile.content.name}</p>);
-                        vnode.push(<p>{profile.content.about}</p>);
+                        vnode.push(ProfileCard(profile.content));
                     }
                     break;
                 case "tag":
@@ -457,6 +456,16 @@ export function ParseMessageContent(message: ChatMessage, db: Database) {
         }
     }
     return vnode;
+}
+
+function ProfileCard(profile: ProfileData) {
+    return (
+        <div>
+            <p>{profile.name}</p>
+            <p>{profile.about}</p>
+            <Avatar picture={profile.picture}></Avatar>
+        </div>
+    );
 }
 
 type RightPanelProps = {
