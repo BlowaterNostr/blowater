@@ -23,10 +23,11 @@ import {
     NostrKind,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 import { PinContact, UnpinContact } from "../nostr.ts";
-import { ProfileData } from "../features/profile.ts";
+import { getProfileEvent, ProfileData } from "../features/profile.ts";
 import { MessageThread } from "./dm.tsx";
 import { UserDetail } from "./user-detail.tsx";
 import { MessageThreadPanel } from "./message-thread-panel.tsx";
+import { Database } from "../database.ts";
 
 interface DirectMessagePanelProps {
     myPublicKey: PublicKey;
@@ -45,6 +46,7 @@ interface DirectMessagePanelProps {
 
     rightPanelModel: RightPanelModel;
 
+    db: Database;
     eventEmitter: EventEmitter<
         EditorEvent | DirectMessagePanelUpdate | PinContact | UnpinContact
     >;
@@ -91,6 +93,7 @@ export function MessagePanel(props: DirectMessagePanelProps) {
                         eventEmitter={props.eventEmitter}
                         messages={[props.focusedContent.data.root, ...props.focusedContent.data.replies]}
                         myPublicKey={props.myPublicKey}
+                        db={props.db}
                         editorModel={props.focusedContent.editor}
                     />
                 );
@@ -127,6 +130,7 @@ export function MessagePanel(props: DirectMessagePanelProps) {
                         myPublicKey={props.myPublicKey}
                         threads={props.messages}
                         eventEmitter={props.eventEmitter}
+                        db={props.db}
                     />
                 }
                 {
@@ -170,6 +174,7 @@ export function MessagePanel(props: DirectMessagePanelProps) {
 interface MessageListProps {
     myPublicKey: PublicKey;
     threads: MessageThread[];
+    db: Database;
     eventEmitter?: EventEmitter<DirectMessagePanelUpdate>;
 }
 
@@ -241,6 +246,7 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
                     }),
                     myPublicKey: this.props.myPublicKey,
                     eventEmitter: this.props.eventEmitter,
+                    db: this.props.db,
                 }),
             );
         }
@@ -292,6 +298,7 @@ function MessageBoxGroup(props: {
         replyCount: number;
     }[];
     myPublicKey: PublicKey;
+    db: Database;
     eventEmitter?: EventEmitter<DirectMessagePanelUpdate | ViewUserDetail>;
 }) {
     // const t = Date.now();
@@ -333,7 +340,7 @@ function MessageBoxGroup(props: {
                             <pre
                                 class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto`}
                             >
-                                {ParseMessageContent(msg.msg)}
+                                {ParseMessageContent(msg.msg, props.db)}
                             </pre>
                             {msg.replyCount > 0
                                 ? (
@@ -419,7 +426,7 @@ export function NameAndTime(message: ChatMessage, index: number, myPublicKey: Pu
     }
 }
 
-export function ParseMessageContent(message: ChatMessage) {
+export function ParseMessageContent(message: ChatMessage, db: Database) {
     let vnode: VNode | VNode[];
     if (isImage(message)) {
         vnode = <img src={message.content} />;
@@ -427,15 +434,21 @@ export function ParseMessageContent(message: ChatMessage) {
         const items = Array.from(parseContent(message.content));
         vnode = [<p>{message.content}</p>];
         for (const item of items) {
+            const itemStr = message.content.slice(item.start, item.end + 1);
             switch (item.type) {
                 case "url":
-                    const url = message.content.slice(item.start, item.end + 1);
-                    if (urlIsImage(url)) {
-                        vnode.push(<img src={url} />);
+                    if (urlIsImage(itemStr)) {
+                        vnode.push(<img src={itemStr} />);
                     }
                     break;
                 case "npub":
-                    // todo
+                    const pubkey = PublicKey.FromBech32(itemStr);
+                    const profile = getProfileEvent(db, pubkey);
+                    console.log(profile);
+                    if (profile) {
+                        vnode.push(<p>{profile.content.name}</p>);
+                        vnode.push(<p>{profile.content.about}</p>);
+                    }
                     break;
                 case "tag":
                     // todo
@@ -443,7 +456,6 @@ export function ParseMessageContent(message: ChatMessage) {
             }
         }
     }
-
     return vnode;
 }
 

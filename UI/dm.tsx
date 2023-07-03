@@ -45,7 +45,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
         for (const [v, editor] of props.editors.entries()) {
             if (v == currentConversation.hex) {
                 currentEditorModel = editor;
-                const profile = getProfileEvent(props.db, currentConversation.hex);
+                const profile = getProfileEvent(props.db, currentConversation);
                 currentEditorModel.target.receiver = {
                     pubkey: currentConversation,
                     name: profile?.content.name,
@@ -106,6 +106,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
             eventEmitter: props.eventEmitter,
             editorModel: currentEditorModel,
             focusedContent: focusedContent,
+            db: props.db,
         });
     }
 

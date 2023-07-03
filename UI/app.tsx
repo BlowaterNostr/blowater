@@ -354,6 +354,7 @@ export function AppComponent(props: {
                     myPublicKey={myAccountCtx.publicKey}
                     messages={socialPosts}
                     rightPanelModel={app.model.rightPanelModel}
+                    db={app.database}
                     eventEmitter={app.eventBus}
                 />
             </div>

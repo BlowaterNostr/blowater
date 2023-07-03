@@ -72,9 +72,9 @@ export async function saveProfile(
     pool.sendEvent(event);
 }
 
-export function getProfileEvent(db: Database, pubkey: string): ProfileEvent | undefined {
+export function getProfileEvent(db: Database, pubkey: PublicKey): ProfileEvent | undefined {
     const events = Array.from(db.filterEvents((e) => {
-        return e.kind === NostrKind.META_DATA && e.pubkey === pubkey;
+        return e.kind === NostrKind.META_DATA && e.pubkey === pubkey.hex;
     }));
     if (events.length == 0) {
         return undefined;
@@ -110,7 +110,7 @@ export function getProfiles(
 ): Map<string, /*pubkey*/ ProfileEvent | undefined> {
     const contacts: Map<string, ProfileEvent | undefined> = new Map();
     for (const key of pubkeys) {
-        const event = getProfileEvent(db, key);
+        const event = getProfileEvent(db, PublicKey.FromHex(key) as PublicKey);
         contacts.set(key, event);
     }
     return contacts;
