@@ -72,7 +72,7 @@ export function isImage(message: ChatMessage) {
 export function urlIsImage(url: string) {
     const trimmed = url.trim();
     const parts = trimmed.split(".");
-    return ["png", "jpg", "jpeg", "gif"].includes(parts[parts.length - 1]);
+    return ["png", "jpg", "jpeg", "gif", "webp"].includes(parts[parts.length - 1]);
 }
 
 export function* groupContinuousMessages<T>(
