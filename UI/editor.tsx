@@ -191,7 +191,7 @@ export function Editor(props: {
                 class={tw`hidden`}
             />
             <div
-                class={tw`mx-2 p-[0.75rem] bg-[${DividerBackgroundColor}] rounded-lg flex flex-col flex-1 relative overflow-hidden`}
+                class={tw`mx-2 p-[0.75rem] bg-[${DividerBackgroundColor}] rounded-lg flex flex-col flex-1 overflow-hidden`}
             >
                 {props.model.files.length > 0
                     ? (
@@ -235,7 +235,7 @@ export function Editor(props: {
                     }}
                     value={props.model.text}
                     rows={1}
-                    class={tw`flex-1 mr-[4.5rem] bg-transparent focus-visible:outline-none placeholder-[${PrimaryTextColor}4D] text-[0.8rem] text-[#D2D3D5] whitespace-nowrap resize-none overflow-x-hidden overflow-y-auto`}
+                    class={tw`flex-1 bg-transparent focus-visible:outline-none placeholder-[${PrimaryTextColor}4D] text-[0.8rem] text-[#D2D3D5] whitespace-nowrap resize-none overflow-x-hidden overflow-y-auto`}
                     placeholder={props.placeholder}
                     onInput={(e) => {
                         props.eventEmitter.emit({
@@ -282,11 +282,6 @@ export function Editor(props: {
                     }}
                 >
                 </textarea>
-                <span
-                    class={tw`absolute block right-[0.5rem] bottom-[0.3rem] p-[0.5rem] text-[${PrimaryTextColor}B2] text-[0.75rem]`}
-                >
-                    Ctrl+Enter
-                </span>
             </div>
 
             <div class={tw`w-[5rem] h-[2.5rem] rounded-lg ${LinearGradientsClass} ${CenterClass}`}>
@@ -298,7 +293,7 @@ export function Editor(props: {
                     }}
                 >
                     <SendIcon
-                        class={tw`h-[1.25rem] w-[1.25rem] mr-[0.5rem]`}
+                        class={tw`h-[1.25rem] w-[1.25rem] mr-[0.1rem]`}
                         style={{
                             stroke: PrimaryTextColor,
                             fill: "none",
