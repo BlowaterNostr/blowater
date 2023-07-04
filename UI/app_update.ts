@@ -276,7 +276,12 @@ export async function* UI_Interaction_Update(
         //
         // DM
         //
-        else if (event.type == "ToggleRightPanel") {
+        else if (event.type == "SubscripProfile") {
+            if (!app.model.dm.subscribeProfiles.includes(event.pubkey.hex)) {
+                app.model.dm.subscribeProfiles.push(event.pubkey.hex);
+                await profileSyncer.add(event.pubkey.hex);
+            }
+        } else if (event.type == "ToggleRightPanel") {
             app.model.rightPanelModel.show = event.show;
         } else if (event.type == "ViewThread") {
             if (app.model.navigationModel.activeNav == "Social") {

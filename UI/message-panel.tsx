@@ -56,11 +56,17 @@ export type DirectMessagePanelUpdate =
         show: boolean;
     }
     | ViewThread
-    | ViewUserDetail;
+    | ViewUserDetail
+    | SubscripProfile;
 
 export type ViewThread = {
     type: "ViewThread";
     root: NostrEvent;
+};
+
+export type SubscripProfile = {
+    type: "SubscripProfile";
+    pubkey: PublicKey;
 };
 
 export type ViewUserDetail = {
@@ -293,7 +299,7 @@ function MessageBoxGroup(props: {
     }[];
     myPublicKey: PublicKey;
     db: Database;
-    eventEmitter?: EventEmitter<DirectMessagePanelUpdate | ViewUserDetail>;
+    eventEmitter?: EventEmitter<DirectMessagePanelUpdate | ViewUserDetail | SubscripProfile>;
 }) {
     // const t = Date.now();
     const vnode = (
@@ -334,7 +340,7 @@ function MessageBoxGroup(props: {
                             <pre
                                 class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto`}
                             >
-                                {ParseMessageContent(msg.msg, props.db)}
+                                {ParseMessageContent(msg.msg, props.db, props.eventEmitter)}
                             </pre>
                             {msg.replyCount > 0
                                 ? (
@@ -420,7 +426,11 @@ export function NameAndTime(message: ChatMessage, index: number, myPublicKey: Pu
     }
 }
 
-export function ParseMessageContent(message: ChatMessage, db: Database) {
+export function ParseMessageContent(
+    message: ChatMessage,
+    db: Database,
+    eventEmitter?: EventEmitter<SubscripProfile>,
+) {
     if (message.type == "image") {
         return <img src={message.content} />;
     }
@@ -437,9 +447,13 @@ export function ParseMessageContent(message: ChatMessage, db: Database) {
             case "npub":
                 const pubkey = PublicKey.FromBech32(itemStr);
                 const profile = getProfileEvent(db, pubkey);
-                console.log(profile);
                 if (profile) {
                     vnode.push(ProfileCard(profile.content, profile.pubkey));
+                } else {
+                    eventEmitter?.emit({
+                        type: "SubscripProfile",
+                        pubkey,
+                    });
                 }
                 break;
             case "tag":

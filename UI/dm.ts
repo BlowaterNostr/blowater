@@ -16,6 +16,7 @@ export type DM_Container_Model = {
     currentSelectedContact: PublicKey | undefined;
     focusedContent: Map<string, NostrEvent /* thread root event */ | PublicKey /* selected user profile */>;
     hasNewMessages: Set<string>;
+    subscribeProfiles: string[];
 };
 
 export function convertEventsToChatMessages(
