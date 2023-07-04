@@ -7,7 +7,7 @@ export function* parseContent(content: string) {
     yield* match(/https?:\/\/[^\s]+/g, content, "url");
 
     // npubs
-    yield* match(/nostr:npub[0-9a-z]{59}/g, content, "npub");
+    yield* match(/npub[0-9a-z]{59}/g, content, "npub");
 
     // tags
     yield* match(/#\[[0-9]+\]/g, content, "tag");

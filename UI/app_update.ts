@@ -109,7 +109,7 @@ export async function* UI_Interaction_Update(
             const pubkey = PublicKey.FromString(event.text);
             if (pubkey instanceof PublicKey) {
                 await profileSyncer.add(pubkey.hex);
-                const profile = getProfileEvent(app.database, pubkey.hex);
+                const profile = getProfileEvent(app.database, pubkey);
                 app.model.dm.search.searchResults = [{
                     pubkey: pubkey,
                     profile: profile?.content,
@@ -430,7 +430,7 @@ export async function* Database_Update(
                     if (model.dm.search.searchResults.length > 0) {
                         const previous = model.dm.search.searchResults;
                         model.dm.search.searchResults = previous.map((profile) => {
-                            const profileEvent = getProfileEvent(database, profile.pubkey.hex);
+                            const profileEvent = getProfileEvent(database, profile.pubkey);
                             return {
                                 pubkey: profile.pubkey,
                                 profile: profileEvent?.content,
@@ -439,14 +439,19 @@ export async function* Database_Update(
                     }
                     // my profile update
                     if (ctx && e.pubkey == ctx.publicKey.hex) {
-                        const newProfile = getProfileEvent(database, ctx.publicKey.hex);
+                        const newProfile = getProfileEvent(database, ctx.publicKey);
                         if (newProfile == undefined) {
                             throw new Error("impossible");
                         }
                         model.myProfile = newProfile.content;
                     }
                 } else if (e.kind == NostrKind.DIRECT_MESSAGE) {
-                    const author = getProfileEvent(database, e.pubkey);
+                    const pubkey = PublicKey.FromHex(e.pubkey);
+                    if (pubkey instanceof Error) {
+                        console.error(pubkey);
+                        continue;
+                    }
+                    const author = getProfileEvent(database, pubkey);
                     if (e.pubkey != ctx.publicKey.hex) {
                         notify(
                             author?.content.name ? author.content.name : "",

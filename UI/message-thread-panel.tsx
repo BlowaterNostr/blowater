@@ -11,11 +11,13 @@ import {
 import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 import { ChatMessage, groupContinuousMessages } from "./message.ts";
 import { Editor, EditorEvent, EditorModel } from "./editor.tsx";
+import { Database } from "../database.ts";
 
 interface MessageThreadProps {
     eventEmitter: EventEmitter<DirectMessagePanelUpdate | EditorEvent>;
     messages: ChatMessage[];
     myPublicKey: PublicKey;
+    db: Database;
     editorModel: EditorModel;
 }
 
@@ -36,6 +38,7 @@ export function MessageThreadPanel(props: MessageThreadProps) {
                 <MessageThreadList
                     myPublicKey={props.myPublicKey}
                     messages={props.messages}
+                    db={props.db}
                 />
             </div>
 
@@ -52,6 +55,7 @@ export function MessageThreadPanel(props: MessageThreadProps) {
 function MessageThreadList(props: {
     myPublicKey: PublicKey;
     messages: ChatMessage[];
+    db: Database;
 }) {
     let groups = groupContinuousMessages(props.messages, (pre, cur) => {
         const sameAuthor = pre.event.pubkey == cur.event.pubkey;
@@ -64,6 +68,7 @@ function MessageThreadList(props: {
             <MessageThreadBoxGroup
                 messages={group}
                 myPublicKey={props.myPublicKey}
+                db={props.db}
             />,
         );
     }
@@ -79,6 +84,7 @@ function MessageThreadList(props: {
 function MessageThreadBoxGroup(props: {
     messages: ChatMessage[];
     myPublicKey: PublicKey;
+    db: Database;
 }) {
     const vnode = (
         <ul class={tw`py-2`}>
@@ -96,7 +102,7 @@ function MessageThreadBoxGroup(props: {
                             <pre
                                 class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto`}
                             >
-                                {ParseMessageContent(msg)}
+                                {ParseMessageContent(msg, props.db)}
                             </pre>
                         </div>
                     </li>
