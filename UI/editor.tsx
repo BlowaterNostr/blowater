@@ -293,7 +293,7 @@ export function Editor(props: {
                     }}
                 >
                     <SendIcon
-                        class={tw`h-[1.25rem] w-[1.25rem] mr-[0.5rem]`}
+                        class={tw`h-[1.25rem] w-[1.25rem] mr-[0.1rem]`}
                         style={{
                             stroke: PrimaryTextColor,
                             fill: "none",
