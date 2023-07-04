@@ -5,7 +5,7 @@ import { Editor, EditorEvent, EditorModel } from "./editor.tsx";
 
 import { CloseIcon, LeftArrowIcon, ReplyIcon } from "./icons/mod.tsx";
 import { Avatar } from "./components/avatar.tsx";
-import { IconButtonClass } from "./components/tw.ts";
+import { DividerClass, IconButtonClass } from "./components/tw.ts";
 import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { EventEmitter } from "../event-bus.ts";
 
@@ -28,6 +28,7 @@ import { MessageThread } from "./dm.tsx";
 import { UserDetail } from "./user-detail.tsx";
 import { MessageThreadPanel } from "./message-thread-panel.tsx";
 import { Database } from "../database.ts";
+import { DividerBackgroundColor, PrimaryBackgroundColor, PrimaryTextColor } from "./style/colors.ts";
 
 interface DirectMessagePanelProps {
     myPublicKey: PublicKey;
@@ -446,7 +447,7 @@ export function ParseMessageContent(message: ChatMessage, db: Database) {
                     const profile = getProfileEvent(db, pubkey);
                     console.log(profile);
                     if (profile) {
-                        vnode.push(ProfileCard(profile.content));
+                        vnode.push(ProfileCard(profile.content, profile.pubkey));
                     }
                     break;
                 case "tag":
@@ -458,12 +459,15 @@ export function ParseMessageContent(message: ChatMessage, db: Database) {
     return vnode;
 }
 
-function ProfileCard(profile: ProfileData) {
+function ProfileCard(profile: ProfileData, pubkey: string) {
     return (
-        <div>
-            <p>{profile.name}</p>
-            <p>{profile.about}</p>
-            <Avatar picture={profile.picture}></Avatar>
+        <div class={tw`px-4 py-2 border-2 border-[${PrimaryTextColor}4D] rounded-lg`}>
+            <div class={tw`flex`}>
+                <Avatar class={tw`w-10 h-10`} picture={profile.picture}></Avatar>
+                <p class={tw`text-[1.2rem] font-blod leading-10 truncate ml-2`}>{profile.name || pubkey}</p>
+            </div>
+            <div class={tw`${DividerClass} my-[0.5rem]`}></div>
+            <p class={tw`text-[0.8rem]`}>{profile.about}</p>
         </div>
     );
 }
