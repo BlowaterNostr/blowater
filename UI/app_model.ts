@@ -53,7 +53,6 @@ export function initialModel(): Model {
             focusedContent: new Map(),
             hasNewMessages: new Set(),
             currentSelectedContact: undefined,
-            subscribeProfiles: [],
         },
         editors: editors,
         newProfileField: {

@@ -30,6 +30,7 @@ export interface UserInfo {
 
 export class ProfilesSyncer {
     readonly userSet = new Set<string>();
+    private syncedProfiles = new Set<string>();
 
     private chan = new Channel<string[]>();
 
@@ -61,9 +62,23 @@ export class ProfilesSyncer {
     }
 
     async add(...users: string[]) {
-        const err = await this.chan.put(users);
-        if (err instanceof Error) {
-            throw err; // impossible
+        const needsToAdd = users.filter((user) => {
+            if (!this.syncedProfiles.has(user)) {
+                this.syncedProfiles.add(user);
+                return true;
+            }
+
+            return false;
+        });
+        if (needsToAdd.length > 0) {
+            const err = await this.chan.put(users);
+            if (err instanceof Error) {
+                throw err; // impossible
+            }
+
+            return true;
+        } else {
+            return false;
         }
     }
 }

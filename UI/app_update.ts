@@ -277,9 +277,9 @@ export async function* UI_Interaction_Update(
         // DM
         //
         else if (event.type == "SubscripProfile") {
-            if (!app.model.dm.subscribeProfiles.includes(event.pubkey.hex)) {
-                app.model.dm.subscribeProfiles.push(event.pubkey.hex);
-                await profileSyncer.add(event.pubkey.hex);
+            const addSuccessfully = await profileSyncer.add(event.pubkey.hex);
+            if (!addSuccessfully) {
+                continue;
             }
         } else if (event.type == "ToggleRightPanel") {
             app.model.rightPanelModel.show = event.show;
