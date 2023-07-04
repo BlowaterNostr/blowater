@@ -9,14 +9,7 @@ import { DividerClass, IconButtonClass } from "./components/tw.ts";
 import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { EventEmitter } from "../event-bus.ts";
 
-import {
-    ChatMessage,
-    groupContinuousMessages,
-    isImage,
-    parseContent,
-    sortMessage,
-    urlIsImage,
-} from "./message.ts";
+import { ChatMessage, groupContinuousMessages, parseContent, sortMessage, urlIsImage } from "./message.ts";
 import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 import {
     NostrEvent,
@@ -428,10 +421,11 @@ export function NameAndTime(message: ChatMessage, index: number, myPublicKey: Pu
 }
 
 export function ParseMessageContent(message: ChatMessage, db: Database) {
-    let vnode: VNode | VNode[];
-
+    if (message.type == "image") {
+        return <img src={message.content} />;
+    }
     const items = Array.from(parseContent(message.content));
-    vnode = [<p>{message.content}</p>];
+    const vnode = [<p>{message.content}</p>];
     for (const item of items) {
         const itemStr = message.content.slice(item.start, item.end + 1);
         switch (item.type) {

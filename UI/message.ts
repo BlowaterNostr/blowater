@@ -53,22 +53,6 @@ export interface ChatMessage {
     content: string;
 }
 
-export function isImage(message: ChatMessage) {
-    if (message.type === "image") {
-        return true;
-    }
-    const trimmed = message.content.trim();
-    try {
-        new URL(trimmed); // is URL otherwise throw a TypeError
-        if (!urlIsImage(trimmed)) {
-            return false;
-        }
-        return true;
-    } catch (e) {
-        return false;
-    }
-}
-
 export function urlIsImage(url: string) {
     const trimmed = url.trim();
     const parts = trimmed.split(".");
