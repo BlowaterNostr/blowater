@@ -429,33 +429,31 @@ export function NameAndTime(message: ChatMessage, index: number, myPublicKey: Pu
 
 export function ParseMessageContent(message: ChatMessage, db: Database) {
     let vnode: VNode | VNode[];
-    if (isImage(message)) {
-        vnode = <img src={message.content} />;
-    } else {
-        const items = Array.from(parseContent(message.content));
-        vnode = [<p>{message.content}</p>];
-        for (const item of items) {
-            const itemStr = message.content.slice(item.start, item.end + 1);
-            switch (item.type) {
-                case "url":
-                    if (urlIsImage(itemStr)) {
-                        vnode.push(<img src={itemStr} />);
-                    }
-                    break;
-                case "npub":
-                    const pubkey = PublicKey.FromBech32(itemStr);
-                    const profile = getProfileEvent(db, pubkey);
-                    console.log(profile);
-                    if (profile) {
-                        vnode.push(ProfileCard(profile.content, profile.pubkey));
-                    }
-                    break;
-                case "tag":
-                    // todo
-                    break;
-            }
+
+    const items = Array.from(parseContent(message.content));
+    vnode = [<p>{message.content}</p>];
+    for (const item of items) {
+        const itemStr = message.content.slice(item.start, item.end + 1);
+        switch (item.type) {
+            case "url":
+                if (urlIsImage(itemStr)) {
+                    vnode.push(<img src={itemStr} />);
+                }
+                break;
+            case "npub":
+                const pubkey = PublicKey.FromBech32(itemStr);
+                const profile = getProfileEvent(db, pubkey);
+                console.log(profile);
+                if (profile) {
+                    vnode.push(ProfileCard(profile.content, profile.pubkey));
+                }
+                break;
+            case "tag":
+                // todo
+                break;
         }
     }
+
     return vnode;
 }
 
