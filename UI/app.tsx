@@ -19,7 +19,7 @@ import { Database } from "../database.ts";
 import { getAllUsersInformation, ProfilesSyncer, UserInfo } from "./contact-list.ts";
 import { RelayConfig } from "./setting.ts";
 import { new_DM_EditorModel } from "./editor.tsx";
-import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { Channel, sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { initialModel, Model } from "./app_model.ts";
 import {
     Database_Update,
@@ -153,6 +153,7 @@ export class App {
     myAccountContext: NostrAccountContext | undefined;
     eventBus = new EventBus<UI_Interaction_Event>();
     model: Model;
+    profileSyncer!: ProfilesSyncer;
 
     static async Start(database: Database) {
         console.log("Start the application");
@@ -213,6 +214,7 @@ export class App {
         console.log("App.signIn");
         const { pool, profilesSyncer } = await initApp(accountContext, this.database);
         console.log("App init done");
+        this.profileSyncer = profilesSyncer;
         this.relayPool = pool;
         this.myAccountContext = accountContext;
 
@@ -356,6 +358,7 @@ export function AppComponent(props: {
                     rightPanelModel={app.model.rightPanelModel}
                     db={app.database}
                     eventEmitter={app.eventBus}
+                    profilesSyncer={app.profileSyncer}
                 />
             </div>
         );
@@ -411,6 +414,7 @@ export function AppComponent(props: {
                         db: app.database,
                         pool: props.app.relayPool,
                         allUserInfo: allUserInfo,
+                        profilesSyncer: app.profileSyncer,
                     })}
                 </div>
             );

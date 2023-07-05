@@ -276,12 +276,7 @@ export async function* UI_Interaction_Update(
         //
         // DM
         //
-        else if (event.type == "subscribeProfile") {
-            const addSuccessfully = await profileSyncer.add(event.pubkey.hex);
-            if (!addSuccessfully) {
-                continue;
-            }
-        } else if (event.type == "ToggleRightPanel") {
+        else if (event.type == "ToggleRightPanel") {
             app.model.rightPanelModel.show = event.show;
         } else if (event.type == "ViewThread") {
             if (app.model.navigationModel.activeNav == "Social") {

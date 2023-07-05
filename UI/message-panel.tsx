@@ -22,6 +22,7 @@ import { UserDetail } from "./user-detail.tsx";
 import { MessageThreadPanel } from "./message-thread-panel.tsx";
 import { Database } from "../database.ts";
 import { DividerBackgroundColor, PrimaryBackgroundColor, PrimaryTextColor } from "./style/colors.ts";
+import { ProfilesSyncer } from "./contact-list.ts";
 
 interface DirectMessagePanelProps {
     myPublicKey: PublicKey;
@@ -44,6 +45,7 @@ interface DirectMessagePanelProps {
     eventEmitter: EventEmitter<
         EditorEvent | DirectMessagePanelUpdate | PinContact | UnpinContact
     >;
+    profilesSyncer: ProfilesSyncer;
 }
 
 export type RightPanelModel = {
@@ -56,17 +58,11 @@ export type DirectMessagePanelUpdate =
         show: boolean;
     }
     | ViewThread
-    | ViewUserDetail
-    | subscribeProfile;
+    | ViewUserDetail;
 
 export type ViewThread = {
     type: "ViewThread";
     root: NostrEvent;
-};
-
-export type subscribeProfile = {
-    type: "subscribeProfile";
-    pubkey: PublicKey;
 };
 
 export type ViewUserDetail = {
@@ -95,6 +91,7 @@ export function MessagePanel(props: DirectMessagePanelProps) {
                         myPublicKey={props.myPublicKey}
                         db={props.db}
                         editorModel={props.focusedContent.editor}
+                        profilesSyncer={props.profilesSyncer}
                     />
                 );
             } else if (props.focusedContent.type == "ProfileData") {
@@ -131,6 +128,7 @@ export function MessagePanel(props: DirectMessagePanelProps) {
                         threads={props.messages}
                         eventEmitter={props.eventEmitter}
                         db={props.db}
+                        profilesSyncer={props.profilesSyncer}
                     />
                 }
                 {
@@ -176,6 +174,7 @@ interface MessageListProps {
     threads: MessageThread[];
     db: Database;
     eventEmitter: EventEmitter<DirectMessagePanelUpdate>;
+    profilesSyncer: ProfilesSyncer;
 }
 
 interface MessageListState {
@@ -247,6 +246,7 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
                     myPublicKey: this.props.myPublicKey,
                     eventEmitter: this.props.eventEmitter,
                     db: this.props.db,
+                    profilesSyncer: this.props.profilesSyncer,
                 }),
             );
         }
@@ -299,7 +299,8 @@ function MessageBoxGroup(props: {
     }[];
     myPublicKey: PublicKey;
     db: Database;
-    eventEmitter: EventEmitter<DirectMessagePanelUpdate | ViewUserDetail | subscribeProfile>;
+    eventEmitter: EventEmitter<DirectMessagePanelUpdate | ViewUserDetail>;
+    profilesSyncer: ProfilesSyncer;
 }) {
     // const t = Date.now();
     const vnode = (
@@ -340,7 +341,7 @@ function MessageBoxGroup(props: {
                             <pre
                                 class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto`}
                             >
-                                {ParseMessageContent(msg.msg, props.db, props.eventEmitter)}
+                                {ParseMessageContent(msg.msg, props.db, props.profilesSyncer)}
                             </pre>
                             {msg.replyCount > 0
                                 ? (
@@ -429,7 +430,7 @@ export function NameAndTime(message: ChatMessage, index: number, myPublicKey: Pu
 export function ParseMessageContent(
     message: ChatMessage,
     db: Database,
-    eventEmitter: EventEmitter<subscribeProfile>,
+    profilesSyncer: ProfilesSyncer,
 ) {
     if (message.type == "image") {
         return <img src={message.content} />;
@@ -450,10 +451,7 @@ export function ParseMessageContent(
                 if (profile) {
                     vnode.push(ProfileCard(profile.content, profile.pubkey));
                 } else {
-                    eventEmitter?.emit({
-                        type: "subscribeProfile",
-                        pubkey,
-                    });
+                    profilesSyncer.add(pubkey.hex);
                 }
                 break;
             case "tag":
