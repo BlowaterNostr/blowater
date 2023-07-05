@@ -9,6 +9,9 @@ export function* parseContent(content: string) {
     // npubs
     yield* match(/npub[0-9a-z]{59}/g, content, "npub");
 
+    // notes
+    yield* match(/note[0-9a-z]{59}/g, content, "note");
+
     // tags
     yield* match(/#\[[0-9]+\]/g, content, "tag");
 }
@@ -32,7 +35,7 @@ function* match(regex: RegExp, content: string, type: ItemType): Generator<Conte
     }
 }
 
-type ItemType = "url" | "npub" | "tag";
+type ItemType = "url" | "npub" | "tag" | "note";
 export type ContentItem = {
     type: ItemType;
     start: number;

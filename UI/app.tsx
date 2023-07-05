@@ -21,13 +21,7 @@ import { RelayConfig } from "./setting.ts";
 import { new_DM_EditorModel } from "./editor.tsx";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { initialModel, Model } from "./app_model.ts";
-import {
-    Database_Update,
-    getConversationMessages,
-    Relay_Update,
-    UI_Interaction_Event,
-    UI_Interaction_Update,
-} from "./app_update.ts";
+import { Database_Update, Relay_Update, UI_Interaction_Event, UI_Interaction_Update } from "./app_update.ts";
 import { getSocialPosts } from "../features/social.ts";
 import * as time from "../time.ts";
 import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
@@ -45,16 +39,16 @@ import {
     SingleRelayConnection,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
 import { setSignInState, SignIn, signIn, signInWithExtension, signInWithPrivateKey } from "./signIn.tsx";
-import { getProfileEvent, ProfileData } from "../features/profile.ts";
 import { AppList } from "./app-list.tsx";
 import { SecondaryBackgroundColor } from "./style/colors.ts";
+import { EventSyncer } from "./event_syncer.ts";
 
 async function initApp(
+    pool: ConnectionPool,
     accountContext: NostrAccountContext,
     database: db.Database,
 ) {
     const myPublicKey = accountContext.publicKey;
-    const pool = new ConnectionPool();
 
     ////////////////////
     // Init Core Data //
@@ -145,15 +139,16 @@ async function initApp(
         );
     }
 
-    return { pool, profilesSyncer };
+    return { profilesSyncer };
 }
 
 export class App {
-    relayPool!: ConnectionPool;
+    relayPool: ConnectionPool;
     myAccountContext: NostrAccountContext | undefined;
     eventBus = new EventBus<UI_Interaction_Event>();
     model: Model;
     profileSyncer!: ProfilesSyncer;
+    eventSyncer: EventSyncer;
 
     static async Start(database: Database) {
         console.log("Start the application");
@@ -208,14 +203,15 @@ export class App {
         public readonly database: Database,
     ) {
         this.model = initialModel();
+        this.relayPool = new ConnectionPool();
+        this.eventSyncer = new EventSyncer(this.relayPool, this.database);
     }
 
     signIn = async (accountContext: NostrAccountContext) => {
         console.log("App.signIn");
-        const { pool, profilesSyncer } = await initApp(accountContext, this.database);
+        const { profilesSyncer } = await initApp(this.relayPool, accountContext, this.database);
         console.log("App init done");
         this.profileSyncer = profilesSyncer;
-        this.relayPool = pool;
         this.myAccountContext = accountContext;
 
         const loginEvent = await prepareCustomAppDataEvent(accountContext, {
@@ -224,7 +220,7 @@ export class App {
         if (loginEvent instanceof Error) {
             return loginEvent;
         }
-        pool.sendEvent(loginEvent);
+        this.relayPool.sendEvent(loginEvent);
 
         const allUsersInfo = getAllUsersInformation(this.database, this.myAccountContext);
         console.log("App allUsersInfo");
@@ -359,6 +355,7 @@ export function AppComponent(props: {
                     db={app.database}
                     eventEmitter={app.eventBus}
                     profilesSyncer={app.profileSyncer}
+                    eventSyncer={app.eventSyncer}
                 />
             </div>
         );
@@ -415,6 +412,7 @@ export function AppComponent(props: {
                         pool: props.app.relayPool,
                         allUserInfo: allUserInfo,
                         profilesSyncer: app.profileSyncer,
+                        eventSyncer: app.eventSyncer,
                     })}
                 </div>
             );

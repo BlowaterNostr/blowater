@@ -23,6 +23,8 @@ import { MessageThreadPanel } from "./message-thread-panel.tsx";
 import { Database } from "../database.ts";
 import { DividerBackgroundColor, PrimaryBackgroundColor, PrimaryTextColor } from "./style/colors.ts";
 import { ProfilesSyncer } from "./contact-list.ts";
+import { NoteID } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nip19.ts";
+import { EventSyncer } from "./event_syncer.ts";
 
 interface DirectMessagePanelProps {
     myPublicKey: PublicKey;
@@ -46,6 +48,7 @@ interface DirectMessagePanelProps {
         EditorEvent | DirectMessagePanelUpdate | PinContact | UnpinContact
     >;
     profilesSyncer: ProfilesSyncer;
+    eventSyncer: EventSyncer;
 }
 
 export type RightPanelModel = {
@@ -92,6 +95,7 @@ export function MessagePanel(props: DirectMessagePanelProps) {
                         db={props.db}
                         editorModel={props.focusedContent.editor}
                         profilesSyncer={props.profilesSyncer}
+                        eventSyncer={props.eventSyncer}
                     />
                 );
             } else if (props.focusedContent.type == "ProfileData") {
@@ -129,6 +133,7 @@ export function MessagePanel(props: DirectMessagePanelProps) {
                         eventEmitter={props.eventEmitter}
                         db={props.db}
                         profilesSyncer={props.profilesSyncer}
+                        eventSyncer={props.eventSyncer}
                     />
                 }
                 {
@@ -175,6 +180,7 @@ interface MessageListProps {
     db: Database;
     eventEmitter: EventEmitter<DirectMessagePanelUpdate>;
     profilesSyncer: ProfilesSyncer;
+    eventSyncer: EventSyncer;
 }
 
 interface MessageListState {
@@ -247,6 +253,7 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
                     eventEmitter: this.props.eventEmitter,
                     db: this.props.db,
                     profilesSyncer: this.props.profilesSyncer,
+                    eventSyncer: this.props.eventSyncer,
                 }),
             );
         }
@@ -301,6 +308,7 @@ function MessageBoxGroup(props: {
     db: Database;
     eventEmitter: EventEmitter<DirectMessagePanelUpdate | ViewUserDetail>;
     profilesSyncer: ProfilesSyncer;
+    eventSyncer: EventSyncer;
 }) {
     // const t = Date.now();
     const vnode = (
@@ -341,7 +349,7 @@ function MessageBoxGroup(props: {
                             <pre
                                 class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto`}
                             >
-                                {ParseMessageContent(msg.msg, props.db, props.profilesSyncer)}
+                                {ParseMessageContent(msg.msg, props.db, props.profilesSyncer, props.eventSyncer)}
                             </pre>
                             {msg.replyCount > 0
                                 ? (
@@ -431,13 +439,14 @@ export function ParseMessageContent(
     message: ChatMessage,
     db: Database,
     profilesSyncer: ProfilesSyncer,
+    eventSyncer: EventSyncer,
 ) {
     if (message.type == "image") {
         return <img src={message.content} />;
     }
-    const items = Array.from(parseContent(message.content));
+
     const vnode = [<p>{message.content}</p>];
-    for (const item of items) {
+    for (const item of parseContent(message.content)) {
         const itemStr = message.content.slice(item.start, item.end + 1);
         switch (item.type) {
             case "url":
@@ -453,6 +462,20 @@ export function ParseMessageContent(
                 } else {
                     profilesSyncer.add(pubkey.hex);
                 }
+                break;
+            case "note":
+                const note = NoteID.FromBech32(itemStr);
+                if (note instanceof Error) {
+                    console.error(note);
+                    break;
+                }
+                console.log(note);
+                const event = eventSyncer.syncEvent(note);
+                if (event instanceof Promise) {
+                    break;
+                }
+                console.log("!!!", event);
+                vnode.push(<p>{event.content}</p>);
                 break;
             case "tag":
                 // todo
