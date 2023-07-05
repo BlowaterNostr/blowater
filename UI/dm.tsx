@@ -11,15 +11,15 @@ import { DM_EditorModel } from "./editor.tsx";
 import { getConversationMessages, UI_Interaction_Event } from "./app_update.ts";
 import {
     NostrAccountContext,
-    NostrEvent,
     NostrKind,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 import { ConnectionPool } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
-import { getProfileEvent, ProfileData } from "../features/profile.ts";
-import { getAllUsersInformation, ProfilesSyncer, UserInfo } from "./contact-list.ts";
+import { getProfileEvent } from "../features/profile.ts";
+import { ProfilesSyncer, UserInfo } from "./contact-list.ts";
 import { ChatMessage } from "./message.ts";
 import { DM_Container_Model } from "./dm.ts";
 import { getFocusedContent } from "./app.tsx";
+import { EventSyncer } from "./event_syncer.ts";
 
 type DirectMessageContainerProps = {
     editors: Map<string, DM_EditorModel>;
@@ -30,6 +30,7 @@ type DirectMessageContainerProps = {
     db: Database;
     allUserInfo: Map<string, UserInfo>;
     profilesSyncer: ProfilesSyncer;
+    eventSyncer: EventSyncer;
 } & DM_Container_Model;
 
 export type MessageThread = {
@@ -109,6 +110,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
             focusedContent: focusedContent,
             db: props.db,
             profilesSyncer: props.profilesSyncer,
+            eventSyncer: props.eventSyncer,
         });
     }
 

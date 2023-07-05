@@ -13,6 +13,7 @@ import { ChatMessage, groupContinuousMessages } from "./message.ts";
 import { Editor, EditorEvent, EditorModel } from "./editor.tsx";
 import { Database } from "../database.ts";
 import { ProfilesSyncer } from "./contact-list.ts";
+import { EventSyncer } from "./event_syncer.ts";
 
 interface MessageThreadProps {
     eventEmitter: EventEmitter<DirectMessagePanelUpdate | EditorEvent>;
@@ -21,6 +22,7 @@ interface MessageThreadProps {
     db: Database;
     editorModel: EditorModel;
     profilesSyncer: ProfilesSyncer;
+    eventSyncer: EventSyncer;
 }
 
 export function MessageThreadPanel(props: MessageThreadProps) {
@@ -42,6 +44,7 @@ export function MessageThreadPanel(props: MessageThreadProps) {
                     messages={props.messages}
                     db={props.db}
                     profilesSyncer={props.profilesSyncer}
+                    eventSyncer={props.eventSyncer}
                 />
             </div>
 
@@ -60,6 +63,7 @@ function MessageThreadList(props: {
     messages: ChatMessage[];
     db: Database;
     profilesSyncer: ProfilesSyncer;
+    eventSyncer: EventSyncer;
 }) {
     let groups = groupContinuousMessages(props.messages, (pre, cur) => {
         const sameAuthor = pre.event.pubkey == cur.event.pubkey;
@@ -74,6 +78,7 @@ function MessageThreadList(props: {
                 myPublicKey={props.myPublicKey}
                 db={props.db}
                 profilesSyncer={props.profilesSyncer}
+                eventSyncer={props.eventSyncer}
             />,
         );
     }
@@ -91,6 +96,7 @@ function MessageThreadBoxGroup(props: {
     myPublicKey: PublicKey;
     db: Database;
     profilesSyncer: ProfilesSyncer;
+    eventSyncer: EventSyncer;
 }) {
     const vnode = (
         <ul class={tw`py-2`}>
@@ -108,7 +114,7 @@ function MessageThreadBoxGroup(props: {
                             <pre
                                 class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto`}
                             >
-                                {ParseMessageContent(msg, props.db, props.profilesSyncer)}
+                                {ParseMessageContent(msg, props.db, props.profilesSyncer, props.eventSyncer)}
                             </pre>
                         </div>
                     </li>

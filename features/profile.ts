@@ -1,5 +1,5 @@
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { Database, NotFound } from "../database.ts";
+import { Database } from "../database.ts";
 import {
     ConnectionPool,
     newSubID,

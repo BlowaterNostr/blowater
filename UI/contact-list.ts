@@ -13,8 +13,7 @@ import {
     ConnectionPool,
     newSubID,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
-import { reset } from "https://deno.land/std@0.176.0/fmt/colors.ts";
-import { CustomAppData, getTags, PinContact, Signed_CustomAppData_Typed_Event } from "../nostr.ts";
+import { CustomAppData, getTags } from "../nostr.ts";
 import { assertEquals } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 
 export interface UserInfo {

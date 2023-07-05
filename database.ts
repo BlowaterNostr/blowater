@@ -29,13 +29,17 @@ export class Database {
 
     constructor(
         private addToIndexedDB: (event: NostrEvent) => Promise<void>,
-        private getEvent: (keys: Indices) => Promise<NostrEvent | undefined>,
+        public getEvent: (keys: Indices) => Promise<NostrEvent | undefined>,
         public filterEvents: (
             filter: (e: NostrEvent) => boolean,
         ) => Iterable<NostrEvent>,
     ) {}
 
-    private async addEvent(event: NostrEvent) {
+    async addEvent(event: NostrEvent) {
+        const storedEvent = await this.getEvent({ id: event.id });
+        if (storedEvent) { // event exist
+            return;
+        }
         console.log("Database.addEvent", event.id);
         await this.addToIndexedDB(event);
         await this.sourceOfChange.put(event);
@@ -55,10 +59,7 @@ export class Database {
                     return;
                 }
                 if (filter(e)) {
-                    const storedEvent = await this.getEvent({ id: e.id });
-                    if (storedEvent === undefined) {
-                        await this.addEvent(e);
-                    }
+                    await this.addEvent(e);
                 } else {
                     console.log(
                         "event",
