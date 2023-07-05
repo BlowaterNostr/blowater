@@ -473,7 +473,7 @@ export function ParseMessageContent(
                 if (event instanceof Promise) {
                     break;
                 }
-                vnode.push(<p>{event.content}</p>);
+                vnode.push(NoteCard(event.content));
                 break;
             case "tag":
                 // todo
@@ -493,6 +493,14 @@ function ProfileCard(profile: ProfileData, pubkey: string) {
             </div>
             <div class={tw`${DividerClass} my-[0.5rem]`}></div>
             <p class={tw`text-[0.8rem]`}>{profile.about}</p>
+        </div>
+    );
+}
+
+function NoteCard(content: string) {
+    return (
+        <div class={tw`px-4 py-2 border-2 border-[${PrimaryTextColor}4D] rounded-lg`}>
+            {content}
         </div>
     );
 }
