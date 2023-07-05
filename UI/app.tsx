@@ -19,7 +19,7 @@ import { Database } from "../database.ts";
 import { getAllUsersInformation, ProfilesSyncer, UserInfo } from "./contact-list.ts";
 import { RelayConfig } from "./setting.ts";
 import { new_DM_EditorModel } from "./editor.tsx";
-import { Channel, sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { initialModel, Model } from "./app_model.ts";
 import {
     Database_Update,
