@@ -1,6 +1,5 @@
 import {
     ConnectionPool,
-    newSubID,
     SubscriptionAlreadyExist,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
 import { Database } from "../database.ts";
