@@ -12,6 +12,7 @@ import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr
 import { ChatMessage, groupContinuousMessages } from "./message.ts";
 import { Editor, EditorEvent, EditorModel } from "./editor.tsx";
 import { Database } from "../database.ts";
+import { ProfilesSyncer } from "./contact-list.ts";
 
 interface MessageThreadProps {
     eventEmitter: EventEmitter<DirectMessagePanelUpdate | EditorEvent>;
@@ -19,6 +20,7 @@ interface MessageThreadProps {
     myPublicKey: PublicKey;
     db: Database;
     editorModel: EditorModel;
+    profilesSyncer: ProfilesSyncer;
 }
 
 export function MessageThreadPanel(props: MessageThreadProps) {
@@ -39,6 +41,7 @@ export function MessageThreadPanel(props: MessageThreadProps) {
                     myPublicKey={props.myPublicKey}
                     messages={props.messages}
                     db={props.db}
+                    profilesSyncer={props.profilesSyncer}
                 />
             </div>
 
@@ -56,6 +59,7 @@ function MessageThreadList(props: {
     myPublicKey: PublicKey;
     messages: ChatMessage[];
     db: Database;
+    profilesSyncer: ProfilesSyncer;
 }) {
     let groups = groupContinuousMessages(props.messages, (pre, cur) => {
         const sameAuthor = pre.event.pubkey == cur.event.pubkey;
@@ -69,6 +73,7 @@ function MessageThreadList(props: {
                 messages={group}
                 myPublicKey={props.myPublicKey}
                 db={props.db}
+                profilesSyncer={props.profilesSyncer}
             />,
         );
     }
@@ -85,6 +90,7 @@ function MessageThreadBoxGroup(props: {
     messages: ChatMessage[];
     myPublicKey: PublicKey;
     db: Database;
+    profilesSyncer: ProfilesSyncer;
 }) {
     const vnode = (
         <ul class={tw`py-2`}>
@@ -102,7 +108,7 @@ function MessageThreadBoxGroup(props: {
                             <pre
                                 class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto`}
                             >
-                                {ParseMessageContent(msg, props.db)}
+                                {ParseMessageContent(msg, props.db, props.profilesSyncer)}
                             </pre>
                         </div>
                     </li>

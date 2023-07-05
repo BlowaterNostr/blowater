@@ -16,7 +16,7 @@ import {
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 import { ConnectionPool } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
 import { getProfileEvent, ProfileData } from "../features/profile.ts";
-import { getAllUsersInformation, UserInfo } from "./contact-list.ts";
+import { getAllUsersInformation, ProfilesSyncer, UserInfo } from "./contact-list.ts";
 import { ChatMessage } from "./message.ts";
 import { DM_Container_Model } from "./dm.ts";
 import { getFocusedContent } from "./app.tsx";
@@ -29,6 +29,7 @@ type DirectMessageContainerProps = {
     eventEmitter: EventBus<UI_Interaction_Event>;
     db: Database;
     allUserInfo: Map<string, UserInfo>;
+    profilesSyncer: ProfilesSyncer;
 } & DM_Container_Model;
 
 export type MessageThread = {
@@ -107,6 +108,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
             editorModel: currentEditorModel,
             focusedContent: focusedContent,
             db: props.db,
+            profilesSyncer: props.profilesSyncer,
         });
     }
 
