@@ -276,7 +276,7 @@ export async function* UI_Interaction_Update(
         //
         // DM
         //
-        else if (event.type == "SubscripProfile") {
+        else if (event.type == "subscribeProfile") {
             const addSuccessfully = await profileSyncer.add(event.pubkey.hex);
             if (!addSuccessfully) {
                 continue;

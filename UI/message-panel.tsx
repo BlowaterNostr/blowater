@@ -57,15 +57,15 @@ export type DirectMessagePanelUpdate =
     }
     | ViewThread
     | ViewUserDetail
-    | SubscripProfile;
+    | subscribeProfile;
 
 export type ViewThread = {
     type: "ViewThread";
     root: NostrEvent;
 };
 
-export type SubscripProfile = {
-    type: "SubscripProfile";
+export type subscribeProfile = {
+    type: "subscribeProfile";
     pubkey: PublicKey;
 };
 
@@ -175,7 +175,7 @@ interface MessageListProps {
     myPublicKey: PublicKey;
     threads: MessageThread[];
     db: Database;
-    eventEmitter?: EventEmitter<DirectMessagePanelUpdate>;
+    eventEmitter: EventEmitter<DirectMessagePanelUpdate>;
 }
 
 interface MessageListState {
@@ -299,7 +299,7 @@ function MessageBoxGroup(props: {
     }[];
     myPublicKey: PublicKey;
     db: Database;
-    eventEmitter?: EventEmitter<DirectMessagePanelUpdate | ViewUserDetail | SubscripProfile>;
+    eventEmitter: EventEmitter<DirectMessagePanelUpdate | ViewUserDetail | subscribeProfile>;
 }) {
     // const t = Date.now();
     const vnode = (
@@ -429,7 +429,7 @@ export function NameAndTime(message: ChatMessage, index: number, myPublicKey: Pu
 export function ParseMessageContent(
     message: ChatMessage,
     db: Database,
-    eventEmitter?: EventEmitter<SubscripProfile>,
+    eventEmitter: EventEmitter<subscribeProfile>,
 ) {
     if (message.type == "image") {
         return <img src={message.content} />;
@@ -451,7 +451,7 @@ export function ParseMessageContent(
                     vnode.push(ProfileCard(profile.content, profile.pubkey));
                 } else {
                     eventEmitter?.emit({
-                        type: "SubscripProfile",
+                        type: "subscribeProfile",
                         pubkey,
                     });
                 }

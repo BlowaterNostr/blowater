@@ -7,6 +7,7 @@ import {
     DirectMessagePanelUpdate,
     NameAndTime,
     ParseMessageContent,
+    subscribeProfile,
 } from "./message-panel.tsx";
 import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 import { ChatMessage, groupContinuousMessages } from "./message.ts";
@@ -39,6 +40,7 @@ export function MessageThreadPanel(props: MessageThreadProps) {
                     myPublicKey={props.myPublicKey}
                     messages={props.messages}
                     db={props.db}
+                    eventEmitter={props.eventEmitter}
                 />
             </div>
 
@@ -56,6 +58,7 @@ function MessageThreadList(props: {
     myPublicKey: PublicKey;
     messages: ChatMessage[];
     db: Database;
+    eventEmitter: EventEmitter<subscribeProfile>;
 }) {
     let groups = groupContinuousMessages(props.messages, (pre, cur) => {
         const sameAuthor = pre.event.pubkey == cur.event.pubkey;
@@ -69,6 +72,7 @@ function MessageThreadList(props: {
                 messages={group}
                 myPublicKey={props.myPublicKey}
                 db={props.db}
+                eventEmitter={props.eventEmitter}
             />,
         );
     }
@@ -85,6 +89,7 @@ function MessageThreadBoxGroup(props: {
     messages: ChatMessage[];
     myPublicKey: PublicKey;
     db: Database;
+    eventEmitter: EventEmitter<subscribeProfile>;
 }) {
     const vnode = (
         <ul class={tw`py-2`}>
@@ -102,7 +107,7 @@ function MessageThreadBoxGroup(props: {
                             <pre
                                 class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto`}
                             >
-                                {ParseMessageContent(msg, props.db)}
+                                {ParseMessageContent(msg, props.db, props.eventEmitter)}
                             </pre>
                         </div>
                     </li>
