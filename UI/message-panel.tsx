@@ -469,12 +469,10 @@ export function ParseMessageContent(
                     console.error(note);
                     break;
                 }
-                console.log(note);
                 const event = eventSyncer.syncEvent(note);
                 if (event instanceof Promise) {
                     break;
                 }
-                console.log("!!!", event);
                 vnode.push(<p>{event.content}</p>);
                 break;
             case "tag":
