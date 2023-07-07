@@ -4,10 +4,10 @@ import { tw } from "https://esm.sh/twind@0.16.16";
 
 import { Database } from "../database.ts";
 import { Avatar } from "./components/avatar.tsx";
-import { CenterClass, IconButtonClass } from "./components/tw.ts";
+import { CenterClass, IconButtonClass, LinearGradientsClass } from "./components/tw.ts";
 import { sortUserInfo, UserInfo } from "./contact-list.ts";
 import { EventEmitter } from "../event-bus.ts";
-import { AddIcon, PinIcon, UnpinIcon } from "./icons/mod.tsx";
+import { PinIcon, UnpinIcon } from "./icons/mod.tsx";
 import { DM_EditorModel } from "./editor.tsx";
 import { Search } from "./search.tsx";
 import { SearchModel, SearchUpdate } from "./search_model.ts";
@@ -17,6 +17,8 @@ import {
     NostrAccountContext,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 import { PinContact, UnpinContact } from "../nostr.ts";
+import { AddIcon } from "./icons2/add-icon.tsx";
+import { PrimaryBackgroundColor, PrimaryTextColor } from "./style/colors.ts";
 
 type Props = {
     myAccountContext: NostrAccountContext;
@@ -81,23 +83,21 @@ export function ContactList(props: Props) {
     return (
         <div class={tw`h-full flex flex-col mobile:w-full desktop:w-64 bg-[#2F3136]`}>
             <div
-                class={tw`flex items-center justify-between px-4 h-14 border-b border-[#36393F]`}
+                class={tw`flex items-center justify-between px-4 h-20 border-b border-[#36393F]`}
             >
-                <span class={tw`hover:text-[#B9BBBE] text-[#96989D]`}>
-                    DIRECT MESSAGES
-                </span>
                 <button
                     onClick={() => {
                         props.eventEmitter.emit({
                             type: "StartSearch",
                         });
                     }}
-                    class={tw`w-6 h-6 ${IconButtonClass}`}
+                    class={tw`w-full h-[2.5rem] text-[${PrimaryTextColor}] ${IconButtonClass} ${LinearGradientsClass} hover:bg-gradient-to-l`}
                 >
+                    New Chat
                     <AddIcon
-                        class={tw`w-4 h-4`}
+                        class={tw`w-[1.5rem] h-[1.5rem]`}
                         style={{
-                            fill: "rgb(185, 187, 190)",
+                            fill: PrimaryTextColor,
                         }}
                     />
                 </button>
