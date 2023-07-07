@@ -53,7 +53,7 @@ export function getTags(event: Event): Tags {
                 } else if (tag[3] == "root") {
                     const [_1, EventID, RelayURL, _2] = tag;
                     tags.root = [EventID, RelayURL as string, "root"];
-                } else {
+                } else if (tag[1] != "") {
                     tags.e.push(tag[1]);
                 }
                 break;
