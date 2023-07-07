@@ -137,6 +137,12 @@ export interface ProfileEvent {
 }
 
 export function ProfileFromNostrEvent(event: NostrEvent): ProfileEvent {
+    let profileData: ProfileData = {};
+    try {
+        profileData = JSON.parse(event.content);
+    } catch (e) {
+        console.error(event.id, event.content, "is not valid JSON");
+    }
     return {
         kind: event.kind,
         id: event.id,
@@ -144,6 +150,6 @@ export function ProfileFromNostrEvent(event: NostrEvent): ProfileEvent {
         created_at: event.created_at,
         pubkey: event.pubkey,
         tags: event.tags,
-        content: JSON.parse(event.content) as ProfileData, // possible to throw
+        content: profileData,
     };
 }
