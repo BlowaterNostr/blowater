@@ -1,21 +1,19 @@
 import { chan, closed } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import {
-    PrivateKey,
-    PublicKey,
-    publicKeyHexFromNpub,
-} from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
+import { PrivateKey, PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 import {
     InMemoryAccountContext,
-    NIP04,
     NostrAccountContext,
     NostrEvent,
     UnsignedNostrEvent,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 
-type AlbyExtensionContext = {
+type NIP07 = {
     getPublicKey(): Promise<string>;
     signEvent(event: UnsignedNostrEvent): Promise<NostrEvent>;
-    nip04: NIP04;
+    nip04: {
+        encrypt: (pubkey: string, plaintext: string) => Promise<string | Error>;
+        decrypt: (pubkey: string, ciphertext: string) => Promise<string | Error>;
+    };
     enabled: boolean;
     enable: () => Promise<{ enabled: boolean }>;
 };
@@ -41,9 +39,9 @@ export class AlbyAccountContext implements NostrAccountContext {
     private readonly signEventChan = chan<NostrEvent>();
 
     static async New(): Promise<AlbyAccountContext | Error | undefined> {
-        function getExtensionObject(): AlbyExtensionContext | undefined {
+        function getExtensionObject(): NIP07 | undefined {
             if ("nostr" in window) {
-                return window.nostr as AlbyExtensionContext;
+                return window.nostr as NIP07;
             }
             return undefined;
         }
@@ -67,7 +65,7 @@ export class AlbyAccountContext implements NostrAccountContext {
     }
 
     private constructor(
-        private alby: AlbyExtensionContext,
+        private alby: NIP07,
         public publicKey: PublicKey,
     ) {
         (async () => {
@@ -113,31 +111,29 @@ export class AlbyAccountContext implements NostrAccountContext {
         return res;
     }
 
-    nip04: NIP04 = {
-        encrypt: async (pubkey: string, plaintext: string) => {
-            await this.operationChan.put({
-                op: "encrypt",
-                pubkey,
-                plaintext,
-            });
-            const res = await this.encryptChan.pop();
-            if (res === closed) {
-                throw new Error("unreachable");
-            }
-            return res;
-        },
-        decrypt: async (pubkey: string, ciphertext: string) => {
-            await this.operationChan.put({
-                op: "decrypt",
-                pubkey,
-                ciphertext,
-            });
-            const res = await this.decryptChan.pop();
-            if (res === closed) {
-                throw new Error("unreachable");
-            }
-            return res;
-        },
+    encrypt = async (pubkey: string, plaintext: string) => {
+        await this.operationChan.put({
+            op: "encrypt",
+            pubkey,
+            plaintext,
+        });
+        const res = await this.encryptChan.pop();
+        if (res === closed) {
+            throw new Error("unreachable");
+        }
+        return res;
+    };
+    decrypt = async (pubkey: string, ciphertext: string) => {
+        await this.operationChan.put({
+            op: "decrypt",
+            pubkey,
+            ciphertext,
+        });
+        const res = await this.decryptChan.pop();
+        if (res === closed) {
+            throw new Error("unreachable");
+        }
+        return res;
     };
 
     enable = async (): Promise<boolean> => {
