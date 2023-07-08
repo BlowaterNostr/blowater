@@ -324,7 +324,7 @@ function MessageBoxGroup(props: {
                                 boxShadow: "2px 2px 5px 0 black",
                             }}
                             onClick={() => {
-                                props.eventEmitter?.emit({
+                                props.eventEmitter.emit({
                                     type: "ViewThread",
                                     root: msg.msg.event,
                                 });
@@ -349,7 +349,7 @@ function MessageBoxGroup(props: {
                             <pre
                                 class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto`}
                             >
-                                {ParseMessageContent(msg.msg, props.db, props.profilesSyncer, props.eventSyncer)}
+                                {ParseMessageContent(msg.msg, props.db, props.profilesSyncer, props.eventSyncer, props.eventEmitter)}
                             </pre>
                             {msg.replyCount > 0
                                 ? (
@@ -357,7 +357,7 @@ function MessageBoxGroup(props: {
                                         <span
                                             class={tw`text-[#A6A8AA] font-bold hover:underline cursor-pointer text-[0.8rem]`}
                                             onClick={() => {
-                                                props.eventEmitter?.emit({
+                                                props.eventEmitter.emit({
                                                     type: "ViewThread",
                                                     root: msg.msg.event,
                                                 });
@@ -440,6 +440,7 @@ export function ParseMessageContent(
     db: Database,
     profilesSyncer: ProfilesSyncer,
     eventSyncer: EventSyncer,
+    eventEmitter: EventEmitter<ViewUserDetail>,
 ) {
     if (message.type == "image") {
         return <img src={message.content} />;
@@ -458,7 +459,7 @@ export function ParseMessageContent(
                 const pubkey = PublicKey.FromBech32(itemStr);
                 const profile = getProfileEvent(db, pubkey);
                 if (profile) {
-                    vnode.push(ProfileCard(profile.content, profile.pubkey));
+                    vnode.push(ProfileCard(profile.content, pubkey, eventEmitter));
                 } else {
                     profilesSyncer.add(pubkey.hex);
                 }
@@ -484,12 +485,22 @@ export function ParseMessageContent(
     return vnode;
 }
 
-function ProfileCard(profile: ProfileData, pubkey: string) {
+function ProfileCard(profile: ProfileData, pubkey: PublicKey, eventEmitter: EventEmitter<ViewUserDetail>) {
     return (
-        <div class={tw`px-4 py-2 border-2 border-[${PrimaryTextColor}4D] rounded-lg`}>
+        <div
+            class={tw`px-4 py-2 border-2 border-[${PrimaryTextColor}4D] rounded-lg hover:bg-[${PrimaryBackgroundColor}] cursor-pointer`}
+            onClick={() => {
+                eventEmitter.emit({
+                    type: "ViewUserDetail",
+                    pubkey: pubkey,
+                });
+            }}
+        >
             <div class={tw`flex`}>
                 <Avatar class={tw`w-10 h-10`} picture={profile.picture}></Avatar>
-                <p class={tw`text-[1.2rem] font-blod leading-10 truncate ml-2`}>{profile.name || pubkey}</p>
+                <p class={tw`text-[1.2rem] font-blod leading-10 truncate ml-2`}>
+                    {profile.name || pubkey.bech32}
+                </p>
             </div>
             <div class={tw`${DividerClass} my-[0.5rem]`}></div>
             <p class={tw`text-[0.8rem]`}>{profile.about}</p>
