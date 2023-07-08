@@ -315,9 +315,13 @@ export function AppComponent(props: {
     let socialPostsPanel: VNode | undefined;
     if (app.model.navigationModel.activeNav == "Social") {
         const allUserInfo = getAllUsersInformation(app.database, myAccountCtx);
+        console.log("AppComponent:getSocialPosts before", Date.now() - t);
         const socialPosts = getSocialPosts(app.database, allUserInfo);
-        let focusedContent = (() => {
+        console.log("AppComponent:getSocialPosts after", Date.now() - t, Date.now());
+        let focusedContentGetter = () => {
+            console.log("AppComponent:getFocusedContent before", Date.now() - t);
             let _ = getFocusedContent(app.model.social.focusedContent, allUserInfo, socialPosts);
+            console.log("AppComponent:getFocusedContent", Date.now() - t);
             if (_?.type === "MessageThread") {
                 let editor = app.model.social.replyEditors.get(_.data.root.event.id);
                 if (editor == undefined) {
@@ -340,7 +344,9 @@ export function AppComponent(props: {
                 };
             }
             return _;
-        })();
+        };
+        console.log("AppComponent:focusedContentGetter", Date.now() - t);
+        let focusedContent = focusedContentGetter();
         console.log("AppComponent:socialPosts", Date.now() - t);
         socialPostsPanel = (
             <div

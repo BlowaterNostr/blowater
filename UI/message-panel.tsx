@@ -493,7 +493,7 @@ export function ParseMessageContent(
 function ProfileCard(profile: ProfileData, pubkey: PublicKey, eventEmitter: EventEmitter<ViewUserDetail>) {
     return (
         <div
-            class={tw`px-4 py-2 border-2 border-[${PrimaryTextColor}4D] rounded-lg hover:bg-[${HoverButtonBackgroudColor}] cursor-pointer w-96`}
+            class={tw`px-4 py-2 border-2 border-[${PrimaryTextColor}4D] rounded-lg hover:bg-[${HoverButtonBackgroudColor}] cursor-pointer w-fit`}
             onClick={() => {
                 eventEmitter.emit({
                     type: "ViewUserDetail",

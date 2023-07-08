@@ -17,9 +17,11 @@ export function getSocialPosts(db: Database, allUsersInfo: Map<string, UserInfo>
     const threads = computeThreads(Array.from(events));
     console.log("getSocialPosts:threads", Date.now() - t);
     const msgs: MessageThread[] = new Array(threads.length);
-    for (const [i, thread] of threads.entries()) {
+    for (let i = 0; i < threads.length; i++) {
+        const thread = threads[i];
         const messages: ChatMessage[] = [];
-        for (const [j, event] of thread.entries()) {
+        for (let j = 0; j < thread.length; j++) {
+            const event = thread[j];
             let userInfo = allUsersInfo.get(event.pubkey);
             const pubkey = PublicKey.FromHex(event.pubkey);
             if (pubkey instanceof Error) {
@@ -43,6 +45,6 @@ export function getSocialPosts(db: Database, allUsersInfo: Map<string, UserInfo>
             replies: messages.slice(1),
         };
     }
-    console.log("getSocialPosts", Date.now() - t);
+    console.log("getSocialPosts:end", Date.now() - t);
     return msgs;
 }
