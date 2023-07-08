@@ -99,8 +99,10 @@ export async function* UI_Interaction_Update(
                     }
                 }
                 if (ctx) {
+                    console.log("sign in as", ctx.publicKey.bech32());
                     app.signIn(ctx);
-                    break;
+                } else {
+                    console.error("failed to sign in");
                 }
                 break;
         }

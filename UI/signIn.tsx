@@ -141,7 +141,7 @@ export function SignIn(props: Props) {
                         }}
                         class={tw`w-full mt-8 bg-[#ED4545] hover:bg-[#E03030] ${ButtonClass}`}
                     >
-                        Signup
+                        Sign In
                     </button>
                 </div>
             </div>

@@ -50,13 +50,13 @@ export async function Start(database: Database) {
     /* first render */ render(<AppComponent app={app} />, document.body);
 
     const lamport = time.fromEvents(app.database.filterEvents((_) => true));
-    let i = 0;
     // UI
     (async () => {
         for await (let _ of UI_Interaction_Update(app, app.profileSyncer, lamport)) {
-            const vnode = <AppComponent app={app} />;
             const t = Date.now();
-            render(vnode, document.body);
+            {
+                render(<AppComponent app={app} />, document.body);
+            }
             console.log("render", Date.now() - t);
         }
     })();
