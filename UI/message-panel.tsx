@@ -21,7 +21,12 @@ import { MessageThread } from "./dm.tsx";
 import { UserDetail } from "./user-detail.tsx";
 import { MessageThreadPanel } from "./message-thread-panel.tsx";
 import { Database } from "../database.ts";
-import { DividerBackgroundColor, PrimaryBackgroundColor, PrimaryTextColor } from "./style/colors.ts";
+import {
+    DividerBackgroundColor,
+    HoverButtonBackgroudColor,
+    PrimaryBackgroundColor,
+    PrimaryTextColor,
+} from "./style/colors.ts";
 import { ProfilesSyncer } from "./contact-list.ts";
 import { NoteID } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nip19.ts";
 import { EventSyncer } from "./event_syncer.ts";
@@ -488,7 +493,7 @@ export function ParseMessageContent(
 function ProfileCard(profile: ProfileData, pubkey: PublicKey, eventEmitter: EventEmitter<ViewUserDetail>) {
     return (
         <div
-            class={tw`px-4 py-2 border-2 border-[${PrimaryTextColor}4D] rounded-lg hover:bg-[${PrimaryBackgroundColor}] cursor-pointer`}
+            class={tw`px-4 py-2 border-2 border-[${PrimaryTextColor}4D] rounded-lg hover:bg-[${HoverButtonBackgroudColor}] cursor-pointer w-96`}
             onClick={() => {
                 eventEmitter.emit({
                     type: "ViewUserDetail",
