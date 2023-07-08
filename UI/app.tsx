@@ -45,7 +45,10 @@ import { EventSyncer } from "./event_syncer.ts";
 
 export async function Start(database: Database) {
     console.log("Start the application");
+
     const app = new App(database);
+    render(<AppComponent app={app} />, document.body);
+
     // check sign in
     const ctx = await signIn(); // get local nostr ctx
     if (ctx) {
@@ -91,6 +94,40 @@ export async function Start(database: Database) {
     //     render(<AppComponent app={app} />, document.body);
     //     console.log("init render done");
     // }
+
+    ////////////
+        // Update //
+        ////////////
+        const lamport = time.fromEvents(this.database.filterEvents((_) => true));
+        let i = 0;
+        (async () => {
+            for await (let _ of UI_Interaction_Update(this, profilesSyncer, lamport)) {
+                const vnode = <AppComponent app={this} />;
+                const t = Date.now();
+                render(vnode, document.body);
+                console.log("render", Date.now() - t);
+            }
+        })();
+        (async () => {
+            for await (
+                let _ of Database_Update(
+                    accountContext,
+                    this.database,
+                    this.model,
+                    profilesSyncer,
+                    lamport,
+                    this.eventBus,
+                )
+            ) {
+                render(<AppComponent app={this} />, document.body);
+                console.log(`render ${++i} times`);
+            }
+        })();
+        (async () => {
+            for await (let _ of Relay_Update(this.relayPool)) {
+                render(<AppComponent app={this} />, document.body);
+            }
+        })();
 }
 
 async function initApp(
@@ -255,40 +292,6 @@ export class App {
 
         console.log("App starts rendering");
         render(<AppComponent app={this} />, document.body);
-
-        ////////////
-        // Update //
-        ////////////
-        const lamport = time.fromEvents(this.database.filterEvents((_) => true));
-        let i = 0;
-        (async () => {
-            for await (let _ of UI_Interaction_Update(this, profilesSyncer, lamport)) {
-                const vnode = <AppComponent app={this} />;
-                const t = Date.now();
-                render(vnode, document.body);
-                console.log("render", Date.now() - t);
-            }
-        })();
-        (async () => {
-            for await (
-                let _ of Database_Update(
-                    accountContext,
-                    this.database,
-                    this.model,
-                    profilesSyncer,
-                    lamport,
-                    this.eventBus,
-                )
-            ) {
-                render(<AppComponent app={this} />, document.body);
-                console.log(`render ${++i} times`);
-            }
-        })();
-        (async () => {
-            for await (let _ of Relay_Update(this.relayPool)) {
-                render(<AppComponent app={this} />, document.body);
-            }
-        })();
     };
 
     logout = () => {
