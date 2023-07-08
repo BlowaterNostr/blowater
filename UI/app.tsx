@@ -47,19 +47,32 @@ export async function Start(database: Database) {
     console.log("Start the application");
 
     const app = new App(database);
-    render(<AppComponent app={app} />, document.body);
+    /* first render */ render(<AppComponent app={app} />, document.body);
+
+    const lamport = time.fromEvents(app.database.filterEvents((_) => true));
+    let i = 0;
+    // UI
+    (async () => {
+        for await (let _ of UI_Interaction_Update(app, app.profileSyncer, lamport)) {
+            const vnode = <AppComponent app={app} />;
+            const t = Date.now();
+            render(vnode, document.body);
+            console.log("render", Date.now() - t);
+        }
+    })();
 
     // check sign in
-    const ctx = await signIn(); // get local nostr ctx
-    if (ctx) {
-        console.log("found local ctx", ctx);
-        const err = await app.signIn(ctx);
-        // if (err) {
-        //     console.error(err);
-        // }
-        return;
-    }
-    console.log("first render");
+    // const ctx = await signIn(); // get local nostr ctx
+    // if (ctx) {
+    //     console.log("found local ctx", ctx);
+    //     const err = await app.signIn(ctx);
+    //     if (err) {
+    //         console.error(err);
+    //     }
+    //     return;
+    // } else {
+
+    // }
     // render(<AppComponent app={app} />, document.body);
     // const events = app.eventBus.onChange();
     // for await (const event of events) {
@@ -96,38 +109,31 @@ export async function Start(database: Database) {
     // }
 
     ////////////
-        // Update //
-        ////////////
-        const lamport = time.fromEvents(this.database.filterEvents((_) => true));
-        let i = 0;
-        (async () => {
-            for await (let _ of UI_Interaction_Update(this, profilesSyncer, lamport)) {
-                const vnode = <AppComponent app={this} />;
-                const t = Date.now();
-                render(vnode, document.body);
-                console.log("render", Date.now() - t);
-            }
-        })();
-        (async () => {
-            for await (
-                let _ of Database_Update(
-                    accountContext,
-                    this.database,
-                    this.model,
-                    profilesSyncer,
-                    lamport,
-                    this.eventBus,
-                )
-            ) {
-                render(<AppComponent app={this} />, document.body);
-                console.log(`render ${++i} times`);
-            }
-        })();
-        (async () => {
-            for await (let _ of Relay_Update(this.relayPool)) {
-                render(<AppComponent app={this} />, document.body);
-            }
-        })();
+    // Update //
+    ////////////
+
+    // Database
+    // (async () => {
+    //     for await (
+    //         let _ of Database_Update(
+    //             app.myAccountContext,
+    //             app.database,
+    //             app.model,
+    //             app.profileSyncer,
+    //             lamport,
+    //             app.eventBus,
+    //         )
+    //     ) {
+    //         render(<AppComponent app={app} />, document.body);
+    //         console.log(`render ${++i} times`);
+    //     }
+    // })();
+    // relay
+    // (async () => {
+    //     for await (let _ of Relay_Update(app.relayPool)) {
+    //         render(<AppComponent app={app} />, document.body);
+    //     }
+    // })();
 }
 
 async function initApp(
@@ -291,7 +297,6 @@ export class App {
         console.log("user set", profilesSyncer.userSet);
 
         console.log("App starts rendering");
-        render(<AppComponent app={this} />, document.body);
     };
 
     logout = () => {
