@@ -43,6 +43,56 @@ import { AppList } from "./app-list.tsx";
 import { SecondaryBackgroundColor } from "./style/colors.ts";
 import { EventSyncer } from "./event_syncer.ts";
 
+export async function Start(database: Database) {
+    console.log("Start the application");
+    const app = new App(database);
+    // check sign in
+    const ctx = await signIn(); // get local nostr ctx
+    if (ctx) {
+        console.log("found local ctx", ctx);
+        const err = await app.signIn(ctx);
+        // if (err) {
+        //     console.error(err);
+        // }
+        return;
+    }
+    console.log("first render");
+    // render(<AppComponent app={app} />, document.body);
+    // const events = app.eventBus.onChange();
+    // for await (const event of events) {
+    //     console.log(event);
+    //     if (event.type == "editSignInPrivateKey") {
+    //         app.model.signIn.privateKey = event.privateKey;
+    //     } else if (event.type == "createNewAccount") {
+    //         app.model.signIn.state = "newAccount";
+    //     } else if (event.type == "backToSignInPage") {
+    //         app.model.signIn.state = "enterPrivateKey";
+    //     } else if (event.type == "signin") {
+    //         let ctx;
+    //         if (event.privateKey) {
+    //             ctx = signInWithPrivateKey(event.privateKey);
+    //         } else {
+    //             const ctx2 = await signInWithExtension();
+    //             console.log(ctx2);
+    //             if (typeof ctx2 == "string") {
+    //                 app.model.signIn.warningString = ctx;
+    //             } else if (ctx2 instanceof Error) {
+    //                 app.model.signIn.warningString = ctx2.message;
+    //             } else {
+    //                 ctx = ctx2;
+    //             }
+    //         }
+    //         if (ctx) {
+    //             app.signIn(ctx);
+    //             break;
+    //         }
+    //     }
+    //     console.log("init render");
+    //     render(<AppComponent app={app} />, document.body);
+    //     console.log("init render done");
+    // }
+}
+
 async function initApp(
     pool: ConnectionPool,
     accountContext: NostrAccountContext,
@@ -150,56 +200,7 @@ export class App {
     profileSyncer!: ProfilesSyncer;
     eventSyncer: EventSyncer;
 
-    static async Start(database: Database) {
-        console.log("Start the application");
-        const app = new App(database);
-        // check sign in
-        const ctx = await signIn();
-        if (ctx) {
-            const err = await app.signIn(ctx);
-            if (err) {
-                console.error(err);
-            }
-            return;
-        }
-        console.log("first render");
-        render(<AppComponent app={app} />, document.body);
-        const events = app.eventBus.onChange();
-        for await (const event of events) {
-            console.log(event);
-            if (event.type == "editSignInPrivateKey") {
-                app.model.signIn.privateKey = event.privateKey;
-            } else if (event.type == "createNewAccount") {
-                app.model.signIn.state = "newAccount";
-            } else if (event.type == "backToSignInPage") {
-                app.model.signIn.state = "enterPrivateKey";
-            } else if (event.type == "signin") {
-                let ctx;
-                if (event.privateKey) {
-                    ctx = signInWithPrivateKey(event.privateKey);
-                } else {
-                    const ctx2 = await signInWithExtension();
-                    console.log(ctx2);
-                    if (typeof ctx2 == "string") {
-                        app.model.signIn.warningString = ctx;
-                    } else if (ctx2 instanceof Error) {
-                        app.model.signIn.warningString = ctx2.message;
-                    } else {
-                        ctx = ctx2;
-                    }
-                }
-                if (ctx) {
-                    app.signIn(ctx);
-                    break;
-                }
-            }
-            console.log("init render");
-            render(<AppComponent app={app} />, document.body);
-            console.log("init render done");
-        }
-    }
-
-    private constructor(
+    constructor(
         public readonly database: Database,
     ) {
         this.model = initialModel();

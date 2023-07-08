@@ -2,7 +2,7 @@
 import { h, render } from "https://esm.sh/preact@10.11.3";
 import { setup } from "https://esm.sh/twind@0.16.16";
 import { NewIndexedDB } from "./db.ts";
-import { App } from "./app.tsx";
+import { Start } from "./app.tsx";
 
 setup({
     theme: {
@@ -27,5 +27,5 @@ if (database instanceof Error) {
         document.body,
     );
 } else {
-    App.Start(database);
+    Start(database);
 }

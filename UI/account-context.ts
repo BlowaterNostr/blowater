@@ -18,7 +18,7 @@ type NIP07 = {
     enable: () => Promise<{ enabled: boolean }>;
 };
 
-export class AlbyAccountContext implements NostrAccountContext {
+export class Nip7ExtensionContext implements NostrAccountContext {
     private readonly operationChan = chan<
         "enable" | {
             op: "encrypt";
@@ -38,7 +38,7 @@ export class AlbyAccountContext implements NostrAccountContext {
     private readonly decryptChan = chan<string | Error>();
     private readonly signEventChan = chan<NostrEvent>();
 
-    static async New(): Promise<AlbyAccountContext | Error | undefined> {
+    static async New(): Promise<Nip7ExtensionContext | Error | undefined> {
         function getExtensionObject(): NIP07 | undefined {
             if ("nostr" in window) {
                 return window.nostr as NIP07;
@@ -61,7 +61,7 @@ export class AlbyAccountContext implements NostrAccountContext {
         if (pub instanceof Error) {
             return pub;
         }
-        return new AlbyAccountContext(ext, pub);
+        return new Nip7ExtensionContext(ext, pub);
     }
 
     private constructor(
