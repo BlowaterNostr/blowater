@@ -54,7 +54,6 @@ export class Nip7ExtensionContext implements NostrAccountContext {
         try {
             pubkey = await ext.getPublicKey();
         } catch (e) {
-            console.log(e.message);
             return e;
         }
         const pub = PublicKey.FromHex(pubkey);

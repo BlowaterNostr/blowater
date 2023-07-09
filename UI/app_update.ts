@@ -208,7 +208,7 @@ export async function* UI_Interaction_Update(
                 throw new Error(`can't handle ${event.type} if not signed`);
             }
             if (event.target.kind == NostrKind.DIRECT_MESSAGE) {
-                sendDMandImages({
+                const err = await sendDMandImages({
                     sender: app.myAccountContext,
                     receiverPublicKey: event.target.receiver.pubkey.hex,
                     message: event.text,
@@ -219,6 +219,10 @@ export async function* UI_Interaction_Update(
                     waitAll: false,
                     tags: event.tags,
                 });
+                if (err instanceof Error) {
+                    console.error("update:SendMessage", err);
+                    continue; // todo: global error toast
+                }
                 const editor = app.model.editors.get(event.id);
                 if (editor) {
                     editor.files = [];

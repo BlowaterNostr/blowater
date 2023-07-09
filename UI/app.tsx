@@ -45,10 +45,13 @@ import { getRelayURLs } from "./setting.ts";
 export async function Start(database: Database) {
     console.log("Start the application");
     const lamport = time.fromEvents(database.filterEvents((_) => true));
+    const app = new App(database, lamport);
     const ctx = await getCurrentSignInCtx();
     console.log("Start:", ctx);
-    const app = new App(database, lamport);
-    if (ctx) {
+    if (ctx instanceof Error) {
+        console.error(ctx);
+        app.model.signIn.warningString = "Please add your private key to your NIP-7 extension";
+    } else if (ctx) {
         app.myAccountContext = ctx;
         const err = await app.initApp(ctx);
         if (err instanceof Error) {

@@ -56,7 +56,7 @@ export async function getCurrentSignInCtx() {
     if (getSignInState() === "nip07") {
         const albyCtx = await Nip7ExtensionContext.New();
         if (albyCtx instanceof Error) {
-            throw albyCtx;
+            return albyCtx;
         }
         if (albyCtx === undefined) {
             setSignInState("none");

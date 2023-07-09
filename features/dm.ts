@@ -47,12 +47,12 @@ export async function sendDMandImages(args: {
             ],
             message,
         );
+        console.log("sendDMandImages:", nostrEvent);
         if (nostrEvent instanceof Error) {
             return nostrEvent;
         }
         eventsToSend.push(nostrEvent);
     }
-
     for (let blob of files) {
         const imgEvent = await prepareNostrImageEvents(
             sender,
