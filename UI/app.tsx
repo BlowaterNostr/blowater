@@ -46,8 +46,15 @@ export async function Start(database: Database) {
     console.log("Start the application");
     const lamport = time.fromEvents(database.filterEvents((_) => true));
     const ctx = await getCurrentSignInCtx();
+    console.log("Start:", ctx);
     const app = new App(database, lamport);
-    app.myAccountContext = ctx;
+    if (ctx) {
+        app.myAccountContext = ctx;
+        const err = await app.initApp(ctx);
+        if (err instanceof Error) {
+            throw err;
+        }
+    }
 
     /* first render */ render(<AppComponent app={app} />, document.body);
 
@@ -144,23 +151,7 @@ async function initProfileSyncer(
     // Add relays to Connection Pool //
     ///////////////////////////////////
     const relayURLs = getRelayURLs(database);
-    const ps = [];
-    for (let url of relayURLs) {
-        const relay = SingleRelayConnection.New(
-            url,
-            AsyncWebSocket.New,
-        );
-        if (relay instanceof Error) {
-            return relay;
-        }
-        ps.push(
-            pool.addRelay(relay).then(async (res) => {
-                if (res) {
-                    console.log(res);
-                }
-            }),
-        );
-    }
+    pool.addRelayURLs(relayURLs);
 
     return profilesSyncer;
 }
