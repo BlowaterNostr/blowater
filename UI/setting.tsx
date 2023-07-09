@@ -61,8 +61,8 @@ export const Setting: FunctionComponent<SettingProps> = (props: SettingProps) =>
         priKey = ctx.privateKey;
     }
     return (
-        <div class={tw`max-w-[50rem] m-auto p-[3rem]`}>
-            <div class={tw`px-[2rem] py-[1.5rem] ${inputBorderClass} rounded-lg mt-[1.5rem]`}>
+        <div class={tw`max-w-[41rem] m-auto py-[1.5rem]`}>
+            <div class={tw`px-[1rem] py-[1.5rem] ${inputBorderClass} rounded-lg mt-[1.5rem]`}>
                 <RelaySetting
                     err={props.AddRelayButtonClickedError}
                     eventBus={props.eventBus}
@@ -71,7 +71,7 @@ export const Setting: FunctionComponent<SettingProps> = (props: SettingProps) =>
                 />
             </div>
 
-            <div class={tw`px-[2rem] py-[1.5rem] ${inputBorderClass} rounded-lg mt-[1.5rem]`}>
+            <div class={tw`px-[1rem] py-[0.5rem] ${inputBorderClass} rounded-lg mt-[1.5rem]`}>
                 <KeyView
                     privateKey={priKey}
                     publicKey={props.myAccountContext.publicKey}
@@ -148,7 +148,7 @@ export function RelaySetting(props: {
                                 <span
                                     class={tw`bg-[${
                                         colors[r.status]
-                                    }] min-w-[5rem] w-[5rem] text-center block py-1 rounded text-[0.8rem] mr-2 font-bold`}
+                                    }] text-center block py-1 px-2 rounded text-[0.8rem] mr-2 font-bold`}
                                 >
                                     {r.status}
                                 </span>
