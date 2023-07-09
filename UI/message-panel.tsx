@@ -24,6 +24,7 @@ import { Database } from "../database.ts";
 import {
     DividerBackgroundColor,
     HoverButtonBackgroudColor,
+    LinkColor,
     PrimaryBackgroundColor,
     PrimaryTextColor,
 } from "./style/colors.ts";
@@ -451,13 +452,21 @@ export function ParseMessageContent(
         return <img src={message.content} />;
     }
 
-    const vnode = [<p>{message.content}</p>];
+    const vnode = [];
+    let start = 0;
     for (const item of parseContent(message.content)) {
         const itemStr = message.content.slice(item.start, item.end + 1);
+        vnode.push(message.content.slice(start, item.start));
         switch (item.type) {
             case "url":
                 if (urlIsImage(itemStr)) {
                     vnode.push(<img src={itemStr} />);
+                } else {
+                    vnode.push(
+                        <a target="_blank" class={tw`hover:underline text-[${LinkColor}]`} href={itemStr}>
+                            {itemStr}
+                        </a>,
+                    );
                 }
                 break;
             case "npub":
@@ -485,7 +494,10 @@ export function ParseMessageContent(
                 // todo
                 break;
         }
+
+        start = item.end + 1;
     }
+    vnode.push(message.content.slice(start));
 
     return vnode;
 }
