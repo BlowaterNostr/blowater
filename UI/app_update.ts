@@ -119,7 +119,6 @@ export async function* UI_Interaction_Update(
                 if (err instanceof Error) {
                     app.model.AddRelayButtonClickedError = err.message;
                 } else {
-                    setRelayURLs(app.relayPool.getRelays().map((r) => r.url));
                     app.model.AddRelayButtonClickedError = "";
                 }
             });
@@ -128,7 +127,6 @@ export async function* UI_Interaction_Update(
             app.model.AddRelayInput = event.url;
         } else if (event.type == "RemoveRelayButtonClicked") {
             await app.relayPool.removeRelay(event.url);
-            setRelayURLs(app.relayPool.getRelays().map((r) => r.url));
         } //
         //
         // Search
@@ -573,8 +571,4 @@ function InsertNewProfileField(model: Model) {
             value: "",
         };
     }
-}
-
-function setRelayURLs(arg0: string[]) {
-    throw new Error("Function not implemented.");
 }
