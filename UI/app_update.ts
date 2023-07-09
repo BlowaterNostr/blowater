@@ -2,7 +2,7 @@ import { getProfileEvent, getProfilesByName, saveProfile } from "../features/pro
 
 import { App } from "./app.tsx";
 import { getAllUsersInformation, getGroupOf, ProfilesSyncer, UserInfo } from "./contact-list.ts";
-import { RelayConfig } from "./setting.ts";
+
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { Database } from "../database.ts";
 import { convertEventsToChatMessages } from "./dm.ts";
@@ -119,7 +119,7 @@ export async function* UI_Interaction_Update(
                 if (err instanceof Error) {
                     app.model.AddRelayButtonClickedError = err.message;
                 } else {
-                    RelayConfig.setURLs(app.relayPool.getRelays().map((r) => r.url));
+                    setRelayURLs(app.relayPool.getRelays().map((r) => r.url));
                     app.model.AddRelayButtonClickedError = "";
                 }
             });
@@ -128,7 +128,7 @@ export async function* UI_Interaction_Update(
             app.model.AddRelayInput = event.url;
         } else if (event.type == "RemoveRelayButtonClicked") {
             await app.relayPool.removeRelay(event.url);
-            RelayConfig.setURLs(app.relayPool.getRelays().map((r) => r.url));
+            setRelayURLs(app.relayPool.getRelays().map((r) => r.url));
         } //
         //
         // Search
@@ -573,4 +573,8 @@ function InsertNewProfileField(model: Model) {
             value: "",
         };
     }
+}
+
+function setRelayURLs(arg0: string[]) {
+    throw new Error("Function not implemented.");
 }

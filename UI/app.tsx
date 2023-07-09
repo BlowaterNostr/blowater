@@ -16,7 +16,7 @@ import { Setting } from "./setting.tsx";
 import { Database } from "../database.ts";
 
 import { getAllUsersInformation, ProfilesSyncer, UserInfo } from "./contact-list.ts";
-import { RelayConfig } from "./setting.ts";
+
 import { new_DM_EditorModel } from "./editor.tsx";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { initialModel, Model } from "./app_model.ts";
@@ -40,6 +40,7 @@ import { setSignInState, SignIn, signIn, signInWithExtension, signInWithPrivateK
 import { AppList } from "./app-list.tsx";
 import { SecondaryBackgroundColor } from "./style/colors.ts";
 import { EventSyncer } from "./event_syncer.ts";
+import { getRelayURLs } from "./setting.ts";
 
 export async function Start(database: Database) {
     console.log("Start the application");
@@ -144,7 +145,7 @@ async function initProfileSyncer(
     ///////////////////////////////////
     // Add relays to Connection Pool //
     ///////////////////////////////////
-    const relayURLs = RelayConfig.getURLs();
+    const relayURLs = getRelayURLs(database);
     const ps = [];
     for (let url of relayURLs) {
         const relay = SingleRelayConnection.New(
