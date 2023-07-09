@@ -448,98 +448,103 @@ export async function* Database_Update(
             if (key instanceof PublicKey) {
                 await profileSyncer.add(key.hex);
             }
-            if (e.kind == NostrKind.META_DATA || e.kind == NostrKind.DIRECT_MESSAGE) {
-                const contacts = getAllUsersInformation(database, ctx);
-                for (const contact of contacts.values()) {
-                    const editor = model.editors.get(contact.pubkey.hex);
-                    if (editor == null) { // a stranger sends a message
-                        const pubkey = PublicKey.FromHex(contact.pubkey.hex);
-                        if (pubkey instanceof Error) {
-                            throw pubkey; // impossible
-                        }
-                        model.editors.set(
-                            contact.pubkey.hex,
-                            new_DM_EditorModel({
-                                pubkey,
-                            }),
-                        );
-                    }
-                }
 
-                if (model.dm.currentSelectedContact) {
-                    updateConversation(
-                        model,
-                        model.dm.currentSelectedContact,
-                    );
-                }
-
-                if (e.kind == NostrKind.META_DATA) {
-                    if (model.dm.search.searchResults.length > 0) {
-                        const previous = model.dm.search.searchResults;
-                        model.dm.search.searchResults = previous.map((profile) => {
-                            const profileEvent = getProfileEvent(database, profile.pubkey);
-                            return {
-                                pubkey: profile.pubkey,
-                                profile: profileEvent?.content,
-                            };
-                        });
-                    }
-                    // my profile update
-                    if (ctx && e.pubkey == ctx.publicKey.hex) {
-                        const newProfile = getProfileEvent(database, ctx.publicKey);
-                        if (newProfile == undefined) {
-                            throw new Error("impossible");
-                        }
-                        model.myProfile = newProfile.content;
-                    }
-                } else if (e.kind == NostrKind.DIRECT_MESSAGE) {
-                    const pubkey = PublicKey.FromHex(e.pubkey);
-                    if (pubkey instanceof Error) {
-                        console.error(pubkey);
-                        continue;
-                    }
-                    const author = getProfileEvent(database, pubkey);
-                    if (e.pubkey != ctx.publicKey.hex) {
-                        notify(
-                            author?.content.name ? author.content.name : "",
-                            "new message",
-                            author?.content.picture ? author.content.picture : "",
-                            () => {
-                                const k = PublicKey.FromHex(e.pubkey);
-                                if (k instanceof Error) {
-                                    console.error(k);
-                                    return;
+            switch (e.kind) {
+                case NostrKind.META_DATA:
+                case NostrKind.DIRECT_MESSAGE:
+                    {
+                        const contacts = getAllUsersInformation(database, ctx);
+                        for (const contact of contacts.values()) {
+                            const editor = model.editors.get(contact.pubkey.hex);
+                            if (editor == null) { // a stranger sends a message
+                                const pubkey = PublicKey.FromHex(contact.pubkey.hex);
+                                if (pubkey instanceof Error) {
+                                    throw pubkey; // impossible
                                 }
-                                eventEmitter.emit({
-                                    type: "SelectProfile",
-                                    pubkey: k,
+                                model.editors.set(
+                                    contact.pubkey.hex,
+                                    new_DM_EditorModel({
+                                        pubkey,
+                                    }),
+                                );
+                            }
+                        }
+
+                        if (model.dm.currentSelectedContact) {
+                            updateConversation(
+                                model,
+                                model.dm.currentSelectedContact,
+                            );
+                        }
+
+                        if (e.kind == NostrKind.META_DATA) {
+                            if (model.dm.search.searchResults.length > 0) {
+                                const previous = model.dm.search.searchResults;
+                                model.dm.search.searchResults = previous.map((profile) => {
+                                    const profileEvent = getProfileEvent(database, profile.pubkey);
+                                    return {
+                                        pubkey: profile.pubkey,
+                                        profile: profileEvent?.content,
+                                    };
                                 });
-                            },
-                        );
-                        model.dm.currentSelectedContact;
-                        if (model.dm.currentSelectedContact?.hex != e.pubkey) {
-                            model.dm.hasNewMessages.add(e.pubkey);
+                            }
+                            // my profile update
+                            if (ctx && e.pubkey == ctx.publicKey.hex) {
+                                const newProfile = getProfileEvent(database, ctx.publicKey);
+                                if (newProfile == undefined) {
+                                    throw new Error("impossible");
+                                }
+                                model.myProfile = newProfile.content;
+                            }
+                        } else if (e.kind == NostrKind.DIRECT_MESSAGE) {
+                            const pubkey = PublicKey.FromHex(e.pubkey);
+                            if (pubkey instanceof Error) {
+                                console.error(pubkey);
+                                continue;
+                            }
+                            const author = getProfileEvent(database, pubkey);
+                            if (e.pubkey != ctx.publicKey.hex) {
+                                notify(
+                                    author?.content.name ? author.content.name : "",
+                                    "new message",
+                                    author?.content.picture ? author.content.picture : "",
+                                    () => {
+                                        const k = PublicKey.FromHex(e.pubkey);
+                                        if (k instanceof Error) {
+                                            console.error(k);
+                                            return;
+                                        }
+                                        eventEmitter.emit({
+                                            type: "SelectProfile",
+                                            pubkey: k,
+                                        });
+                                    },
+                                );
+                                model.dm.currentSelectedContact;
+                                if (model.dm.currentSelectedContact?.hex != e.pubkey) {
+                                    model.dm.hasNewMessages.add(e.pubkey);
+                                }
+                            }
                         }
                     }
-                }
-            } else if (e.kind == NostrKind.CustomAppData) {
-                const contacts = getAllUsersInformation(database, ctx);
-                for (const contact of contacts.values()) {
-                    const editor = model.editors.get(contact.pubkey.hex);
-                    if (editor == null) {
-                        throw new Error("impossible");
-                    } else {
-                        // chatModel.userInfo = contact;
-                        // quetion: do nothing?
+                    break;
+                case NostrKind.CustomAppData:
+                    const contacts = getAllUsersInformation(database, ctx);
+                    for (const contact of contacts.values()) {
+                        const editor = model.editors.get(contact.pubkey.hex);
+                        if (editor == null) {
+                            throw new Error("impossible");
+                        } else {
+                            // chatModel.userInfo = contact;
+                            // quetion: do nothing?
+                        }
                     }
-                }
-            } else if (e.kind == NostrKind.TEXT_NOTE) {
-                // do nothing
-            } else {
-                continue;
+                    break;
+                case NostrKind.TEXT_NOTE:
+                    break;
             }
+            yield model;
         }
-        yield model;
     }
 }
 
