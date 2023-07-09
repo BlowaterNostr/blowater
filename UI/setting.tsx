@@ -61,8 +61,8 @@ export const Setting: FunctionComponent<SettingProps> = (props: SettingProps) =>
         priKey = ctx.privateKey;
     }
     return (
-        <div class={tw`max-w-[50rem] m-auto p-[1rem]`}>
-            <div class={tw`px-[1rem] py-[0.5rem] ${inputBorderClass} rounded-lg`}>
+        <div class={tw`max-w-[41rem] m-auto py-[1.5rem]`}>
+            <div class={tw`px-[1rem] py-[1.5rem] ${inputBorderClass} rounded-lg mt-[1.5rem]`}>
                 <RelaySetting
                     err={props.AddRelayButtonClickedError}
                     eventBus={props.eventBus}
