@@ -47,6 +47,7 @@ export async function Start(database: Database) {
     const lamport = time.fromEvents(database.filterEvents((_) => true));
 
     const app = new App(database, lamport);
+
     /* first render */ render(<AppComponent app={app} />, document.body);
 
     for await (let _ of UI_Interaction_Update(app, app.profileSyncer, lamport)) {
@@ -57,15 +58,11 @@ export async function Start(database: Database) {
         console.log("render", Date.now() - t);
     }
 
-    ////////////
-    // Update //
-    ////////////
-    // relay
-    // (async () => {
-    //     for await (let _ of Relay_Update(app.relayPool)) {
-    //         render(<AppComponent app={app} />, document.body);
-    //     }
-    // })();
+    (async () => {
+        for await (let _ of Relay_Update(app.relayPool)) {
+            render(<AppComponent app={app} />, document.body);
+        }
+    })();
 }
 
 async function initProfileSyncer(
