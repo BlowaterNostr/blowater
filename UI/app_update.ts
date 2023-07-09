@@ -100,12 +100,16 @@ export async function* UI_Interaction_Update(
                 }
                 if (ctx) {
                     console.log("sign in as", ctx.publicKey.bech32());
-                    app.signIn(ctx);
+                    const err = await app.initApp(ctx);
+                    if (err instanceof Error) {
+                        console.error(err.message);
+                    }
                 } else {
                     console.error("failed to sign in");
                 }
                 break;
         }
+
         //
         // Relay
         //

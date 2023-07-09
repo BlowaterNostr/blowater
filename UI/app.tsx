@@ -5,7 +5,6 @@ import * as dm from "../features/dm.ts";
 import { DirectMessageContainer, MessageThread } from "./dm.tsx";
 import { AsyncWebSocket } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/websocket.ts";
 import * as db from "../database.ts";
-import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 
 import { tw } from "https://esm.sh/twind@0.16.16";
 import { EditProfile } from "./edit-profile.tsx";
@@ -31,7 +30,6 @@ import {
     NostrAccountContext,
     NostrEvent,
     NostrKind,
-    prepareCustomAppDataEvent,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 import {
     ConnectionPool,
@@ -45,11 +43,11 @@ import { EventSyncer } from "./event_syncer.ts";
 
 export async function Start(database: Database) {
     console.log("Start the application");
+    const lamport = time.fromEvents(database.filterEvents((_) => true));
 
-    const app = new App(database);
+    const app = new App(database, lamport);
     /* first render */ render(<AppComponent app={app} />, document.body);
 
-    const lamport = time.fromEvents(app.database.filterEvents((_) => true));
     // UI
     (async () => {
         for await (let _ of UI_Interaction_Update(app, app.profileSyncer, lamport)) {
@@ -111,23 +109,6 @@ export async function Start(database: Database) {
     ////////////
     // Update //
     ////////////
-
-    // Database
-    // (async () => {
-    //     for await (
-    //         let _ of Database_Update(
-    //             app.myAccountContext,
-    //             app.database,
-    //             app.model,
-    //             app.profileSyncer,
-    //             lamport,
-    //             app.eventBus,
-    //         )
-    //     ) {
-    //         render(<AppComponent app={app} />, document.body);
-    //         console.log(`render ${++i} times`);
-    //     }
-    // })();
     // relay
     // (async () => {
     //     for await (let _ of Relay_Update(app.relayPool)) {
@@ -136,7 +117,7 @@ export async function Start(database: Database) {
     // })();
 }
 
-async function initApp(
+async function initProfileSyncer(
     pool: ConnectionPool,
     accountContext: NostrAccountContext,
     database: db.Database,
@@ -221,7 +202,7 @@ async function initApp(
             AsyncWebSocket.New,
         );
         if (relay instanceof Error) {
-            fail(relay.message);
+            return relay;
         }
         ps.push(
             pool.addRelay(relay).then(async (res) => {
@@ -232,7 +213,7 @@ async function initApp(
         );
     }
 
-    return { profilesSyncer };
+    return profilesSyncer;
 }
 
 export class App {
@@ -245,26 +226,22 @@ export class App {
 
     constructor(
         public readonly database: Database,
+        public readonly lamport: time.LamportTime,
     ) {
         this.model = initialModel();
         this.relayPool = new ConnectionPool();
         this.eventSyncer = new EventSyncer(this.relayPool, this.database);
     }
 
-    signIn = async (accountContext: NostrAccountContext) => {
-        console.log("App.signIn");
-        const { profilesSyncer } = await initApp(this.relayPool, accountContext, this.database);
-        console.log("App init done");
+    initApp = async (accountContext: NostrAccountContext) => {
+        console.log("App.initApp");
+        const profilesSyncer = await initProfileSyncer(this.relayPool, accountContext, this.database);
+        if (profilesSyncer instanceof Error) {
+            return profilesSyncer;
+        }
+
         this.profileSyncer = profilesSyncer;
         this.myAccountContext = accountContext;
-
-        const loginEvent = await prepareCustomAppDataEvent(accountContext, {
-            type: "UserLogin",
-        });
-        if (loginEvent instanceof Error) {
-            return loginEvent;
-        }
-        this.relayPool.sendEvent(loginEvent);
 
         const allUsersInfo = getAllUsersInformation(this.database, this.myAccountContext);
         console.log("App allUsersInfo");
@@ -296,7 +273,23 @@ export class App {
         );
         console.log("user set", profilesSyncer.userSet);
 
-        console.log("App starts rendering");
+        // Database
+        (async () => {
+            let i = 0;
+            for await (
+                let _ of Database_Update(
+                    accountContext,
+                    this.database,
+                    this.model,
+                    this.profileSyncer,
+                    this.lamport,
+                    this.eventBus,
+                )
+            ) {
+                render(<AppComponent app={this} />, document.body);
+                console.log(`render ${++i} times`);
+            }
+        })();
     };
 
     logout = () => {
