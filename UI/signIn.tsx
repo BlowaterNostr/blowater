@@ -52,7 +52,7 @@ export function setSignInState(state: SignInState) {
 ////////////////////////
 // Check Login Status //
 ////////////////////////
-export async function signIn() {
+export async function getCurrentSignInCtx() {
     if (getSignInState() === "nip07") {
         const albyCtx = await Nip7ExtensionContext.New();
         if (albyCtx instanceof Error) {

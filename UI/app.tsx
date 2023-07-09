@@ -36,7 +36,7 @@ import {
     newSubID,
     SingleRelayConnection,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
-import { setSignInState, SignIn, signIn, signInWithExtension, signInWithPrivateKey } from "./signIn.tsx";
+import { getCurrentSignInCtx, setSignInState, SignIn } from "./signIn.tsx";
 import { AppList } from "./app-list.tsx";
 import { SecondaryBackgroundColor } from "./style/colors.ts";
 import { EventSyncer } from "./event_syncer.ts";
@@ -45,8 +45,9 @@ import { getRelayURLs } from "./setting.ts";
 export async function Start(database: Database) {
     console.log("Start the application");
     const lamport = time.fromEvents(database.filterEvents((_) => true));
-
+    const ctx = await getCurrentSignInCtx();
     const app = new App(database, lamport);
+    app.myAccountContext = ctx;
 
     /* first render */ render(<AppComponent app={app} />, document.body);
 
