@@ -148,7 +148,7 @@ export function RelaySetting(props: {
                                 <span
                                     class={tw`bg-[${
                                         colors[r.status]
-                                    }] min-w-[5rem] w-[5rem] text-center block py-1 rounded text-[0.8rem] mr-2 font-bold`}
+                                    }] text-center block py-1 px-2 rounded text-[0.8rem] mr-2 font-bold`}
                                 >
                                     {r.status}
                                 </span>
