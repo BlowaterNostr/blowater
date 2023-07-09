@@ -363,30 +363,37 @@ export class Event implements nostr.NostrEvent {
         this.content = event.content;
     }
 
+    private _decryptedContent: string | Error | undefined;
     async decryptedContent() {
-        if (this.kind == NostrKind.DIRECT_MESSAGE) {
-            const isSender = this.pubkey == this.ctx.publicKey.hex;
-            const pTags = getTags(this).p;
-            if (pTags.length > 0) {
-                const receiverPubkey = pTags[0];
-                if (isSender) {
-                    return this.ctx.decrypt(receiverPubkey, this.content);
+        if(this._decryptedContent != undefined) {
+            return this._decryptedContent
+        }
+        this._decryptedContent = await (() => {
+            if (this.kind == NostrKind.DIRECT_MESSAGE) {
+                const isSender = this.pubkey == this.ctx.publicKey.hex;
+                const pTags = getTags(this).p;
+                if (pTags.length > 0) {
+                    const receiverPubkey = pTags[0];
+                    if (isSender) {
+                        return this.ctx.decrypt(receiverPubkey, this.content);
+                    }
+                    if (/* is receiver */ receiverPubkey == this.ctx.publicKey.hex) {
+                        return this.ctx.decrypt(this.pubkey, this.content);
+                    }
+                    return new Error(`neither sender nor receiver of event ${this.id}`);
+                } else {
+                    return new Error(`event ${this.id} has no receiver`);
                 }
-                if (/* is receiver */ receiverPubkey == this.ctx.publicKey.hex) {
+            }
+            if (this.kind == NostrKind.CustomAppData) {
+                if (/* is sender */ this.ctx.publicKey.hex == this.pubkey) {
                     return this.ctx.decrypt(this.pubkey, this.content);
+                } else {
+                    return new Error(`not sender of event ${this.id}`);
                 }
-                return new Error(`neither sender nor receiver of event ${this.id}`);
-            } else {
-                return new Error(`event ${this.id} has no receiver`);
             }
-        }
-        if (this.kind == NostrKind.CustomAppData) {
-            if (/* is sender */ this.ctx.publicKey.hex == this.pubkey) {
-                return this.ctx.decrypt(this.pubkey, this.content);
-            } else {
-                return new Error(`not sender of event ${this.id}`);
-            }
-        }
-        return this.content;
+            return this.content;
+        })();
+        return this._decryptedContent;
     }
 }
