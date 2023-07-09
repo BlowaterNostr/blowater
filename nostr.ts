@@ -92,7 +92,7 @@ export async function prepareNostrImageEvents(
     for (let i = 0; i < chunkCount; i++) {
         const chunk = binaryContent.slice(i * chunkSize, (i + 1) * chunkSize);
         // encryption
-        const encrypted = await sender.nip04.encrypt(receiverPublicKey, chunk);
+        const encrypted = await sender.encrypt(receiverPublicKey, chunk);
         if (encrypted instanceof Error) {
             return encrypted;
         }

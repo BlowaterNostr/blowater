@@ -1,7 +1,7 @@
 /** @jsx h */
 import { h } from "https://esm.sh/preact@10.11.3";
 import { tw } from "https://esm.sh/twind@0.16.16";
-import { AlbyAccountContext, GetLocalStorageAccountContext } from "./account-context.ts";
+import { GetLocalStorageAccountContext, Nip7ExtensionContext } from "./account-context.ts";
 import { ButtonClass, CenterClass, DividerClass } from "./components/tw.ts";
 import KeyView from "./key-view.tsx";
 import { PrivateKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
@@ -54,7 +54,7 @@ export function setSignInState(state: SignInState) {
 ////////////////////////
 export async function signIn() {
     if (getSignInState() === "nip07") {
-        const albyCtx = await AlbyAccountContext.New();
+        const albyCtx = await Nip7ExtensionContext.New();
         if (albyCtx instanceof Error) {
             throw albyCtx;
         }
@@ -78,7 +78,7 @@ export async function signIn() {
 }
 
 export async function signInWithExtension() {
-    const albyCtx = await AlbyAccountContext.New();
+    const albyCtx = await Nip7ExtensionContext.New();
     if (albyCtx instanceof Error) {
         return albyCtx;
     }
@@ -141,7 +141,7 @@ export function SignIn(props: Props) {
                         }}
                         class={tw`w-full mt-8 bg-[#ED4545] hover:bg-[#E03030] ${ButtonClass}`}
                     >
-                        Signup
+                        Sign In
                     </button>
                 </div>
             </div>

@@ -2,7 +2,7 @@ import { getProfileEvent, getProfilesByName, saveProfile } from "../features/pro
 
 import { App } from "./app.tsx";
 import { getAllUsersInformation, getGroupOf, ProfilesSyncer, UserInfo } from "./contact-list.ts";
-import { RelayConfig } from "./setting.ts";
+
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { Database } from "../database.ts";
 import { convertEventsToChatMessages } from "./dm.ts";
@@ -26,7 +26,7 @@ import {
     prepareCustomAppDataEvent,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 import { ConnectionPool } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
-import { SignInEvent } from "./signIn.tsx";
+import { SignInEvent, signInWithExtension, signInWithPrivateKey } from "./signIn.tsx";
 import { computeThreads, getTags, PinContact, UnpinContact } from "../nostr.ts";
 import { MessageThread } from "./dm.tsx";
 
@@ -70,13 +70,46 @@ export async function* UI_Interaction_Update(
     profileSyncer: ProfilesSyncer,
     lamport: LamportTime,
 ) {
-    if (!app.myAccountContext) {
-        throw "impossible";
-    }
-
     const events = app.eventBus.onChange();
     for await (const event of events) {
         console.log(event);
+        switch (event.type) {
+            case "editSignInPrivateKey":
+                app.model.signIn.privateKey = event.privateKey;
+                break;
+            case "createNewAccount":
+                app.model.signIn.state = "newAccount";
+                break;
+            case "backToSignInPage":
+                app.model.signIn.state = "enterPrivateKey";
+                break;
+            case "signin":
+                let ctx;
+                if (event.privateKey) {
+                    ctx = signInWithPrivateKey(event.privateKey);
+                } else {
+                    const ctx2 = await signInWithExtension();
+                    console.log(ctx2);
+                    if (typeof ctx2 == "string") {
+                        app.model.signIn.warningString = ctx2;
+                    } else if (ctx2 instanceof Error) {
+                        app.model.signIn.warningString = ctx2.message;
+                    } else {
+                        ctx = ctx2;
+                    }
+                }
+                if (ctx) {
+                    console.log("sign in as", ctx.publicKey.bech32());
+                    const err = await app.initApp(ctx);
+                    if (err instanceof Error) {
+                        console.error(err.message);
+                    }
+                } else {
+                    console.error("failed to sign in");
+                }
+                break;
+        }
+
         //
         // Relay
         //
@@ -86,7 +119,6 @@ export async function* UI_Interaction_Update(
                 if (err instanceof Error) {
                     app.model.AddRelayButtonClickedError = err.message;
                 } else {
-                    RelayConfig.setURLs(app.relayPool.getRelays().map((r) => r.url));
                     app.model.AddRelayButtonClickedError = "";
                 }
             });
@@ -95,7 +127,6 @@ export async function* UI_Interaction_Update(
             app.model.AddRelayInput = event.url;
         } else if (event.type == "RemoveRelayButtonClicked") {
             await app.relayPool.removeRelay(event.url);
-            RelayConfig.setURLs(app.relayPool.getRelays().map((r) => r.url));
         } //
         //
         // Search
@@ -132,6 +163,9 @@ export async function* UI_Interaction_Update(
         // Contacts
         //
         else if (event.type == "SelectProfile") {
+            if (!app.myAccountContext) {
+                throw new Error(`can't handle SelectProfile if not signed`);
+            }
             app.model.dm.search.isSearching = false;
             app.model.dm.search.searchResults = [];
             app.model.rightPanelModel = {
@@ -152,6 +186,9 @@ export async function* UI_Interaction_Update(
         } else if (event.type == "SelectGroup") {
             app.model.dm.selectedContactGroup = event.group;
         } else if (event.type == "PinContact" || event.type == "UnpinContact") {
+            if (!app.myAccountContext) {
+                throw new Error(`can't handle ${event.type} if not signed`);
+            }
             const nostrEvent = await prepareCustomAppDataEvent(app.myAccountContext, event);
             if (nostrEvent instanceof Error) {
                 console.error(nostrEvent);
@@ -167,6 +204,9 @@ export async function* UI_Interaction_Update(
         // Editor
         //
         else if (event.type == "SendMessage") {
+            if (!app.myAccountContext) {
+                throw new Error(`can't handle ${event.type} if not signed`);
+            }
             if (event.target.kind == NostrKind.DIRECT_MESSAGE) {
                 sendDMandImages({
                     sender: app.myAccountContext,
@@ -251,6 +291,9 @@ export async function* UI_Interaction_Update(
         else if (event.type == "EditMyProfile") {
             app.model.myProfile = Object.assign(app.model.myProfile || {}, event.profile);
         } else if (event.type == "SaveMyProfile") {
+            if (!app.myAccountContext) {
+                throw new Error(`can't handle ${event.type} if not signed`);
+            }
             InsertNewProfileField(app.model);
             await saveProfile(
                 event.profile,

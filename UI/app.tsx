@@ -5,7 +5,6 @@ import * as dm from "../features/dm.ts";
 import { DirectMessageContainer, MessageThread } from "./dm.tsx";
 import { AsyncWebSocket } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/websocket.ts";
 import * as db from "../database.ts";
-import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 
 import { tw } from "https://esm.sh/twind@0.16.16";
 import { EditProfile } from "./edit-profile.tsx";
@@ -17,7 +16,7 @@ import { Setting } from "./setting.tsx";
 import { Database } from "../database.ts";
 
 import { getAllUsersInformation, ProfilesSyncer, UserInfo } from "./contact-list.ts";
-import { RelayConfig } from "./setting.ts";
+
 import { new_DM_EditorModel } from "./editor.tsx";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { initialModel, Model } from "./app_model.ts";
@@ -31,7 +30,6 @@ import {
     NostrAccountContext,
     NostrEvent,
     NostrKind,
-    prepareCustomAppDataEvent,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 import {
     ConnectionPool,
@@ -42,8 +40,32 @@ import { setSignInState, SignIn, signIn, signInWithExtension, signInWithPrivateK
 import { AppList } from "./app-list.tsx";
 import { SecondaryBackgroundColor } from "./style/colors.ts";
 import { EventSyncer } from "./event_syncer.ts";
+import { getRelayURLs } from "./setting.ts";
 
-async function initApp(
+export async function Start(database: Database) {
+    console.log("Start the application");
+    const lamport = time.fromEvents(database.filterEvents((_) => true));
+
+    const app = new App(database, lamport);
+
+    /* first render */ render(<AppComponent app={app} />, document.body);
+
+    for await (let _ of UI_Interaction_Update(app, app.profileSyncer, lamport)) {
+        const t = Date.now();
+        {
+            render(<AppComponent app={app} />, document.body);
+        }
+        console.log("render", Date.now() - t);
+    }
+
+    (async () => {
+        for await (let _ of Relay_Update(app.relayPool)) {
+            render(<AppComponent app={app} />, document.body);
+        }
+    })();
+}
+
+async function initProfileSyncer(
     pool: ConnectionPool,
     accountContext: NostrAccountContext,
     database: db.Database,
@@ -120,7 +142,7 @@ async function initApp(
     ///////////////////////////////////
     // Add relays to Connection Pool //
     ///////////////////////////////////
-    const relayURLs = RelayConfig.getURLs();
+    const relayURLs = getRelayURLs(database);
     const ps = [];
     for (let url of relayURLs) {
         const relay = SingleRelayConnection.New(
@@ -128,7 +150,7 @@ async function initApp(
             AsyncWebSocket.New,
         );
         if (relay instanceof Error) {
-            fail(relay.message);
+            return relay;
         }
         ps.push(
             pool.addRelay(relay).then(async (res) => {
@@ -139,7 +161,7 @@ async function initApp(
         );
     }
 
-    return { profilesSyncer };
+    return profilesSyncer;
 }
 
 export class App {
@@ -150,77 +172,24 @@ export class App {
     profileSyncer!: ProfilesSyncer;
     eventSyncer: EventSyncer;
 
-    static async Start(database: Database) {
-        console.log("Start the application");
-        const app = new App(database);
-        // check sign in
-        const ctx = await signIn();
-        if (ctx) {
-            const err = await app.signIn(ctx);
-            if (err) {
-                console.error(err);
-            }
-            return;
-        }
-        console.log("first render");
-        render(<AppComponent app={app} />, document.body);
-        const events = app.eventBus.onChange();
-        for await (const event of events) {
-            console.log(event);
-            if (event.type == "editSignInPrivateKey") {
-                app.model.signIn.privateKey = event.privateKey;
-            } else if (event.type == "createNewAccount") {
-                app.model.signIn.state = "newAccount";
-            } else if (event.type == "backToSignInPage") {
-                app.model.signIn.state = "enterPrivateKey";
-            } else if (event.type == "signin") {
-                let ctx;
-                if (event.privateKey) {
-                    ctx = signInWithPrivateKey(event.privateKey);
-                } else {
-                    const ctx2 = await signInWithExtension();
-                    console.log(ctx2);
-                    if (typeof ctx2 == "string") {
-                        app.model.signIn.warningString = ctx;
-                    } else if (ctx2 instanceof Error) {
-                        app.model.signIn.warningString = ctx2.message;
-                    } else {
-                        ctx = ctx2;
-                    }
-                }
-                if (ctx) {
-                    app.signIn(ctx);
-                    break;
-                }
-            }
-            console.log("init render");
-            render(<AppComponent app={app} />, document.body);
-            console.log("init render done");
-        }
-    }
-
-    private constructor(
+    constructor(
         public readonly database: Database,
+        public readonly lamport: time.LamportTime,
     ) {
         this.model = initialModel();
         this.relayPool = new ConnectionPool();
         this.eventSyncer = new EventSyncer(this.relayPool, this.database);
     }
 
-    signIn = async (accountContext: NostrAccountContext) => {
-        console.log("App.signIn");
-        const { profilesSyncer } = await initApp(this.relayPool, accountContext, this.database);
-        console.log("App init done");
+    initApp = async (accountContext: NostrAccountContext) => {
+        console.log("App.initApp");
+        const profilesSyncer = await initProfileSyncer(this.relayPool, accountContext, this.database);
+        if (profilesSyncer instanceof Error) {
+            return profilesSyncer;
+        }
+
         this.profileSyncer = profilesSyncer;
         this.myAccountContext = accountContext;
-
-        const loginEvent = await prepareCustomAppDataEvent(accountContext, {
-            type: "UserLogin",
-        });
-        if (loginEvent instanceof Error) {
-            return loginEvent;
-        }
-        this.relayPool.sendEvent(loginEvent);
 
         const allUsersInfo = getAllUsersInformation(this.database, this.myAccountContext);
         console.log("App allUsersInfo");
@@ -252,40 +221,21 @@ export class App {
         );
         console.log("user set", profilesSyncer.userSet);
 
-        console.log("App starts rendering");
-        render(<AppComponent app={this} />, document.body);
-
-        ////////////
-        // Update //
-        ////////////
-        const lamport = time.fromEvents(this.database.filterEvents((_) => true));
-        let i = 0;
+        // Database
         (async () => {
-            for await (let _ of UI_Interaction_Update(this, profilesSyncer, lamport)) {
-                const vnode = <AppComponent app={this} />;
-                const t = Date.now();
-                render(vnode, document.body);
-                console.log("render", Date.now() - t);
-            }
-        })();
-        (async () => {
+            let i = 0;
             for await (
                 let _ of Database_Update(
                     accountContext,
                     this.database,
                     this.model,
-                    profilesSyncer,
-                    lamport,
+                    this.profileSyncer,
+                    this.lamport,
                     this.eventBus,
                 )
             ) {
                 render(<AppComponent app={this} />, document.body);
                 console.log(`render ${++i} times`);
-            }
-        })();
-        (async () => {
-            for await (let _ of Relay_Update(this.relayPool)) {
-                render(<AppComponent app={this} />, document.body);
             }
         })();
     };
