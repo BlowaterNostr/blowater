@@ -48,16 +48,13 @@ export async function Start(database: Database) {
     const app = new App(database, lamport);
     /* first render */ render(<AppComponent app={app} />, document.body);
 
-    // UI
-    (async () => {
-        for await (let _ of UI_Interaction_Update(app, app.profileSyncer, lamport)) {
-            const t = Date.now();
-            {
-                render(<AppComponent app={app} />, document.body);
-            }
-            console.log("render", Date.now() - t);
+    for await (let _ of UI_Interaction_Update(app, app.profileSyncer, lamport)) {
+        const t = Date.now();
+        {
+            render(<AppComponent app={app} />, document.body);
         }
-    })();
+        console.log("render", Date.now() - t);
+    }
 
     ////////////
     // Update //

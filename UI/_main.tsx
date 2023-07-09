@@ -18,7 +18,7 @@ setup({
 
 const database = await NewIndexedDB();
 if (database instanceof Error) {
-    console.log(database);
+    console.error(database);
     render(
         <div>
             <p>IndexedDB is not supported in this mode on {navigator.userAgent}</p>
