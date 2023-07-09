@@ -33,10 +33,9 @@ type Tags = {
     root?: [nostr.EventID, RelayURL, "root"];
 } & nostr.Tags;
 
-type Event = nostr.NostrEvent<Tag>;
 type UnsignedEvent = nostr.UnsignedNostrEvent<Tag>;
 
-export function getTags(event: Event): Tags {
+export function getTags(event: nostr.NostrEvent<Tag>): Tags {
     const tags: Tags = {
         p: [],
         e: [],
@@ -341,3 +340,53 @@ export type UnpinContact = {
 export type UserLogin = {
     type: "UserLogin";
 };
+
+export class Event implements nostr.NostrEvent {
+    id: string;
+    sig: string;
+    pubkey: string;
+    kind: nostr.NostrKind;
+    created_at: number;
+    tags: nostr.Tag[];
+    content: string;
+
+    constructor(
+        public readonly event: nostr.NostrEvent,
+        public readonly ctx: nostr.NostrAccountContext,
+    ) {
+        this.id = event.id;
+        this.sig = event.sig;
+        this.pubkey = event.pubkey;
+        this.kind = event.kind;
+        this.created_at = event.created_at;
+        this.tags = event.tags;
+        this.content = event.content;
+    }
+
+    async decryptedContent() {
+        if (this.kind == NostrKind.DIRECT_MESSAGE) {
+            const isSender = this.pubkey == this.ctx.publicKey.hex;
+            const pTags = getTags(this).p;
+            if (pTags.length > 0) {
+                const receiverPubkey = pTags[0];
+                if (isSender) {
+                    return this.ctx.decrypt(receiverPubkey, this.content);
+                }
+                if (/* is receiver */ receiverPubkey == this.ctx.publicKey.hex) {
+                    return this.ctx.decrypt(this.pubkey, this.content);
+                }
+                return new Error(`neither sender nor receiver of event ${this.id}`);
+            } else {
+                return new Error(`event ${this.id} has no receiver`);
+            }
+        }
+        if (this.kind == NostrKind.CustomAppData) {
+            if (/* is sender */ this.ctx.publicKey.hex == this.pubkey) {
+                return this.ctx.decrypt(this.pubkey, this.content);
+            } else {
+                return new Error(`not sender of event ${this.id}`);
+            }
+        }
+        return this.content;
+    }
+}

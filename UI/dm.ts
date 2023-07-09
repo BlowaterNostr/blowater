@@ -1,11 +1,8 @@
-import { Database } from "../database.ts";
-import { getProfiles, ProfileData, ProfileEvent } from "../features/profile.ts";
 import { NostrEvent } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 import { getTags, groupImageEvents, reassembleBase64ImageFromEvents } from "../nostr.ts";
 import { ChatMessage } from "./message.ts";
 import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 import { ContactGroup } from "./contact-list.tsx";
-import { DM_EditorModel } from "./editor.tsx";
 import { SearchModel } from "./search_model.ts";
 import { UserInfo } from "./contact-list.ts";
 
