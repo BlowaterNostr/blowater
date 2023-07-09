@@ -6,24 +6,11 @@
     "https://deno.land/std@0.176.0/testing/_diff.ts": "1a3c044aedf77647d6cac86b798c6417603361b66b54c53331b312caeb447aea",
     "https://deno.land/std@0.176.0/testing/_format.ts": "a69126e8a469009adf4cf2a50af889aca364c349797e63174884a52ff75cf4c7",
     "https://deno.land/std@0.176.0/testing/asserts.ts": "984ab0bfb3faeed92ffaa3a6b06536c66811185328c5dd146257c702c41b01ab",
-    "https://esm.sh/preact@10.11.3": "ad3c24796c4132c84b4b392f812228d53a0fd600fa64648f27aebd05ec09b24e",
-    "https://esm.sh/stable/preact@10.11.3/denonext/preact.mjs": "c828d9020ea26f07ba07b2f0a3ef97fd7ceb1c2a772c380ca05e2647ac8d3923",
-    "https://esm.sh/twind@0.16.16": "6c8934ebceb225d94d9e11f42338e09a94cf9e7bce84d9817a1123a0cea44cd2",
-    "https://esm.sh/v128/csstype@3.1.2/index.d.ts": "4c68749a564a6facdf675416d75789ee5a557afda8960e0803cf6711fa569288",
-    "https://esm.sh/v128/preact@10.11.3/src/index.d.ts": "76842a9d103548261ee001f2aee5fa5cacc8b1b4b4032af537ed84603c8f4a31",
-    "https://esm.sh/v128/preact@10.11.3/src/jsx.d.ts": "77ce5bd7324455c9f6dc85bfc3c94b733acb92cc98fdf82e4b1059c8bca7866d",
-    "https://esm.sh/v128/style-vendorizer@2.2.3/denonext/style-vendorizer.mjs": "121455e7b04b631ef6463ce63cdcd29febd74d88c37713c774ceca8a1561c83d",
-    "https://esm.sh/v128/twind@0.16.16/denonext/twind.mjs": "0f80aa32016330a7bf964c8a6e29cbec8e81560d57e5bc317581c9d79b02fa5c",
-    "https://esm.sh/v128/twind@0.16.16/twind.d.ts": "07018b644f38b8167d61aca629f7fc34b49ff4bf75d13a813caff530ebd4325a",
     "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts": "3e8eed3d933748d48c83e2ae583bf86748621bcd6e8f181bef8a6ae8e5a4bfac",
     "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/ende.ts": "28190c9017f4cbcb25ba57b27a85c561f65b7610b5fc36ee4d70e2c95a7f727a",
     "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts": "3cef68a341119df674b980914021fd417274ce627bc8c77c405eda2a05174421",
-    "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nip19.ts": "880aa40c85bb770703b5e85d72f29fed96f21777dc17906017c385873aedfd44",
     "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts": "542c4d2cd078f03776d7029b5e7db72eb6daa02dae59b7863f0d9b755c08e57b",
-    "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay-list.test.ts": "93c319f991c03c4a62d080960c83fc17542c0f593344ca37c9e56cad7428de2a",
-    "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts": "93c5c6fe196dc9cae7c0e82ee8057a5350f77e69ae7d395fdb141a25b2664739",
     "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/scure.js": "fbc4be16918272bd167fff1184a7f5bbd1a676bad2a73130bb530d78df893a99",
-    "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/vendor/esm.sh/v106/@noble/secp256k1@1.7.1/es2022/secp256k1.js": "69e32f6c686cc651ff2e6d4d22ed6e9b6f86b38311b405b47b2abdf3cb98eb4d",
-    "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/websocket.ts": "d817c40d32fe45e30bfb30255287e76a977930f6709c9585772dc54e077a31ed"
+    "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/vendor/esm.sh/v106/@noble/secp256k1@1.7.1/es2022/secp256k1.js": "69e32f6c686cc651ff2e6d4d22ed6e9b6f86b38311b405b47b2abdf3cb98eb4d"
   }
 }

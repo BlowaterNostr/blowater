@@ -33,7 +33,7 @@ install:
 cache:
 	rm -f deno.lock UI/deno.lock
 	cd UI && deno cache -r _main.tsx
-	deno cache -r --no-lock *.ts
+	deno cache -r *.ts
 
 clear-coverage:
 	rm -rf $(coverage_dir)
