@@ -68,7 +68,7 @@ export class ProfilesSyncer {
 }
 
 function socialPostsStream(pubkeys: Iterable<string>, pool: ConnectionPool) {
-    const chan = new Channel<[NostrEvent, string]>();
+    const chan = new Channel<{ event: NostrEvent; url: string }>();
     let subId = newSubID();
     (async () => {
         let resp = await pool.newSub(
@@ -86,10 +86,10 @@ function socialPostsStream(pubkeys: Iterable<string>, pool: ConnectionPool) {
         for await (let { res: nostrMessage, url: relayUrl } of resp) {
             if (nostrMessage.type === "EVENT" && nostrMessage.event.content) {
                 const event = nostrMessage.event;
-                await chan.put([
-                    event,
-                    relayUrl,
-                ]);
+                await chan.put({
+                    event: event,
+                    url: relayUrl,
+                });
             }
         }
         console.log("closed");

@@ -31,7 +31,7 @@ export function profilesStream(
     publicKeys: Iterable<string>,
     pool: ConnectionPool,
 ) {
-    const chan = csp.chan<[NostrEvent, string]>();
+    const chan = csp.chan<{ event: NostrEvent; url: string }>();
     (async () => {
         const hexPublicKeys = Array.from(publicKeys).map((k) => publicKeyHexFromNpub(k));
         let subId = newSubID();
@@ -47,10 +47,10 @@ export function profilesStream(
         }
         for await (let { res: nostrMessage, url: relayUrl } of resp) {
             if (nostrMessage.type === "EVENT" && nostrMessage.event.content) {
-                await chan.put([
-                    nostrMessage.event,
-                    relayUrl,
-                ]);
+                await chan.put({
+                    event: nostrMessage.event,
+                    url: relayUrl,
+                });
             }
         }
         await chan.close(`pool sub has been clsoed`);

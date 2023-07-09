@@ -47,23 +47,23 @@ export class Database {
 
     syncEvents(
         filter: (e: NostrEvent) => boolean,
-        events: csp.Channel<[NostrEvent, string /*relay url*/]>,
+        events: csp.Channel<{ event: NostrEvent; url: string /*relay url*/ }>,
     ): csp.Channel<NostrEvent> {
         const resChan = csp.chan<NostrEvent>(buffer_size);
         (async () => {
-            for await (const [e, url] of events) {
+            for await (const { event, url } of events) {
                 if (resChan.closed()) {
                     await events.close(
                         "db syncEvents, resChan is closed, closing the source events",
                     );
                     return;
                 }
-                if (filter(e)) {
-                    await this.addEvent(e);
+                if (filter(event)) {
+                    await this.addEvent(event);
                 } else {
                     console.log(
                         "event",
-                        e,
+                        event,
                         "does not satisfy filterer",
                         filter,
                     );
@@ -76,64 +76,64 @@ export class Database {
         return resChan;
     }
 
-    async syncNewDirectMessageEventsOf(
-        accountContext: NostrAccountContext,
-        msgs: csp.Channel<{ res: RelayResponse_REQ_Message; url: string }>,
-    ): Promise<csp.Channel<NostrEvent | DecryptionFailure>> {
-        const resChan = csp.chan<NostrEvent | DecryptionFailure>(buffer_size);
-        const publicKey = accountContext.publicKey;
-        (async () => {
-            for await (const { res: msg, url } of msgs) {
-                if (msg.type !== "EVENT") {
-                    continue;
-                }
-                const encryptedEvent = msg.event;
-                const theirPubKey = whoIamTalkingTo(encryptedEvent, publicKey.hex);
-                if (theirPubKey instanceof Error) {
-                    // this could happen if the user send an event without p tag
-                    // because the application is subscribing all events send by the user
-                    console.warn(theirPubKey);
-                    continue;
-                }
+    // async syncNewDirectMessageEventsOf(
+    //     accountContext: NostrAccountContext,
+    //     msgs: csp.Channel<{ res: RelayResponse_REQ_Message; url: string }>,
+    // ): Promise<csp.Channel<NostrEvent | DecryptionFailure>> {
+    //     const resChan = csp.chan<NostrEvent | DecryptionFailure>(buffer_size);
+    //     const publicKey = accountContext.publicKey;
+    //     (async () => {
+    //         for await (const { res: msg, url } of msgs) {
+    //             if (msg.type !== "EVENT") {
+    //                 continue;
+    //             }
+    //             const encryptedEvent = msg.event;
+    //             const theirPubKey = whoIamTalkingTo(encryptedEvent, publicKey.hex);
+    //             if (theirPubKey instanceof Error) {
+    //                 // this could happen if the user send an event without p tag
+    //                 // because the application is subscribing all events send by the user
+    //                 console.warn(theirPubKey);
+    //                 continue;
+    //             }
 
-                const decryptedEvent = await decryptNostrEvent(
-                    encryptedEvent,
-                    accountContext,
-                    theirPubKey,
-                );
-                if (decryptedEvent instanceof DecryptionFailure) {
-                    resChan.put(decryptedEvent).then(async (res) => {
-                        if (res instanceof csp.PutToClosedChannelError) {
-                            await msgs.close(
-                                "resChan has been closed, closing the source chan",
-                            );
-                        }
-                    });
-                    continue;
-                }
-                const storedEvent = await this.getEvent({
-                    id: encryptedEvent.id,
-                });
-                if (storedEvent === undefined) {
-                    try {
-                        await this.addEvent(decryptedEvent);
-                    } catch (e) {
-                        console.log(e.message);
-                    }
-                    resChan.put(decryptedEvent).then(async (res) => {
-                        if (res instanceof csp.PutToClosedChannelError) {
-                            await msgs.close(
-                                "resChan has been closed, closing the source chan",
-                            );
-                        }
-                    });
-                }
-                // else do nothing
-            }
-            await resChan.close("source chan is clsoed, closing the resChan");
-        })();
-        return resChan;
-    }
+    //             const decryptedEvent = await decryptNostrEvent(
+    //                 encryptedEvent,
+    //                 accountContext,
+    //                 theirPubKey,
+    //             );
+    //             if (decryptedEvent instanceof DecryptionFailure) {
+    //                 resChan.put(decryptedEvent).then(async (res) => {
+    //                     if (res instanceof csp.PutToClosedChannelError) {
+    //                         await msgs.close(
+    //                             "resChan has been closed, closing the source chan",
+    //                         );
+    //                     }
+    //                 });
+    //                 continue;
+    //             }
+    //             const storedEvent = await this.getEvent({
+    //                 id: encryptedEvent.id,
+    //             });
+    //             if (storedEvent === undefined) {
+    //                 try {
+    //                     await this.addEvent(decryptedEvent);
+    //                 } catch (e) {
+    //                     console.log(e.message);
+    //                 }
+    //                 resChan.put(decryptedEvent).then(async (res) => {
+    //                     if (res instanceof csp.PutToClosedChannelError) {
+    //                         await msgs.close(
+    //                             "resChan has been closed, closing the source chan",
+    //                         );
+    //                     }
+    //                 });
+    //             }
+    //             // else do nothing
+    //         }
+    //         await resChan.close("source chan is clsoed, closing the resChan");
+    //     })();
+    //     return resChan;
+    // }
 
     //////////////////
     // On DB Change //

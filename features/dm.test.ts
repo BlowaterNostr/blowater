@@ -14,7 +14,7 @@ import {
     NoRelayRegistered,
     SingleRelayConnection,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
-import { getAllDecryptedMessagesOf, messagesBetween, sendDMandImages } from "./dm.ts";
+import { messagesBetween, sendDMandImages } from "./dm.ts";
 
 const testPrivateKey = PrivateKey.Generate();
 const myPublicKey = Deno.env.get("TEST_NOTIFICATION_PUBKEY");
@@ -125,25 +125,25 @@ Deno.test("sendDMandImages", async (t) => {
 //     await pool.close();
 // });
 
-Deno.test("getAllDecryptedMessagesOf", async () => {
-    const pool = new ConnectionPool();
-    const relay = SingleRelayConnection.New(relays[0], AsyncWebSocket.New);
-    if (relay instanceof Error) {
-        fail(relay.message);
-    }
-    const err = await pool.addRelay(relay);
-    if (err instanceof Error) {
-        fail(err.message);
-    }
-    let stream = getAllDecryptedMessagesOf(InMemoryAccountContext.New(testPrivateKey), pool, 3);
-    try {
-        await stream.next();
-        await stream.next();
-    } catch (e) {
-        console.log(e);
-    }
-    await pool.close();
-});
+// Deno.test("getAllDecryptedMessagesOf", async () => {
+//     const pool = new ConnectionPool();
+//     const relay = SingleRelayConnection.New(relays[0], AsyncWebSocket.New);
+//     if (relay instanceof Error) {
+//         fail(relay.message);
+//     }
+//     const err = await pool.addRelay(relay);
+//     if (err instanceof Error) {
+//         fail(err.message);
+//     }
+//     let stream = getAllDecryptedMessagesOf(InMemoryAccountContext.New(testPrivateKey), pool, 3);
+//     try {
+//         await stream.next();
+//         await stream.next();
+//     } catch (e) {
+//         console.log(e);
+//     }
+//     await pool.close();
+// });
 
 Deno.test("messagesBetween", async () => {
     const pool = new ConnectionPool();

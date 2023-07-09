@@ -101,8 +101,8 @@ async function initProfileSyncer(
         pool,
         since,
     );
-    database.syncNewDirectMessageEventsOf(
-        accountContext,
+    database.syncEvents(
+        (_) => true,
         messageStream,
     );
 
@@ -112,7 +112,7 @@ async function initProfileSyncer(
 
     // Sync Custom App Data
     (async () => {
-        const chan = new Channel<[NostrEvent, string]>();
+        const chan = new Channel<{ event: NostrEvent; url: string }>();
         let subId = newSubID();
         let resp = await pool.newSub(
             subId,
@@ -137,10 +137,10 @@ async function initProfileSyncer(
                         console.error(decryptedEvent);
                         continue;
                     }
-                    await chan.put([
-                        decryptedEvent,
-                        relayUrl,
-                    ]);
+                    await chan.put({
+                        event: decryptedEvent,
+                        url: relayUrl,
+                    });
                 }
             }
             console.log("closed");
