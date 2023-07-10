@@ -118,11 +118,13 @@ export async function DirectMessageContainer(props: DirectMessageContainerProps)
             profilesSyncer: props.profilesSyncer,
             eventSyncer: props.eventSyncer,
         });
-        if(messagePanel instanceof Error) {
-            return messagePanel
+        if (messagePanel instanceof Error) {
+            console.log("!!!???", messagePanel);
+            return messagePanel;
         }
     }
 
+    console.log("!!!", messagePanel);
     const vDom = (
         <div
             class={tw`h-full w-full flex bg-[#36393F] overflow-hidden`}

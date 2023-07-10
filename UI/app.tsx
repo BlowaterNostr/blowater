@@ -122,7 +122,7 @@ async function initProfileSyncer(
             {
                 authors: [myPublicKey.hex],
                 kinds: [NostrKind.CustomAppData],
-                limit: 1
+                limit: 1,
             },
         );
         if (resp instanceof Error) {
@@ -304,18 +304,18 @@ export async function AppComponent(props: {
             // myPublicKey={myAccountCtx.publicKey}
             ctx: myAccountCtx,
             messages: socialPosts,
-            rightPanelModel:app.model.rightPanelModel,
+            rightPanelModel: app.model.rightPanelModel,
             db: app.database,
             eventEmitter: app.eventBus,
             profilesSyncer: app.profileSyncer,
             eventSyncer: app.eventSyncer,
-        })
+        });
 
         socialPostsPanel = (
             <div
                 class={tw`flex-1 overflow-hidden bg-[#313338]`}
             >
-                {messagePanel instanceof Error? messagePanel.message : messagePanel}
+                {messagePanel instanceof Error ? messagePanel.message : messagePanel}
             </div>
         );
     }
@@ -372,12 +372,14 @@ export async function AppComponent(props: {
             // if(directMessageContainer instanceof Error) {
             //     return directMessageContainer
             // }
-            console.log("app:directMessageContainer", directMessageContainer)
+            console.log("app:directMessageContainer", directMessageContainer);
             dmVNode = (
                 <div
                     class={tw`flex-1 overflow-hidden`}
                 >
-                    {directMessageContainer instanceof Error? directMessageContainer.message : directMessageContainer}
+                    {directMessageContainer instanceof Error
+                        ? directMessageContainer.message
+                        : directMessageContainer}
                 </div>
             );
         }

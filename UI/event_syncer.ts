@@ -16,7 +16,7 @@ export class EventSyncer {
         return (async () => {
             let events = await this.pool.newSub("EventSyncer", {
                 ids: [id.hex],
-                limit: 1
+                limit: 1,
             });
             if (events instanceof SubscriptionAlreadyExist) {
                 events = await this.pool.updateSub("EventSyncer", {

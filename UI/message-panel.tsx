@@ -139,8 +139,9 @@ export async function MessagePanel(props: DirectMessagePanelProps) {
         profilesSyncer: props.profilesSyncer,
         eventSyncer: props.eventSyncer,
     });
-    if(messageList instanceof Error) {
-        return messageList
+    console.log("------", messageList);
+    if (messageList instanceof Error) {
+        return messageList;
     }
     let vnode = (
         <div class={tw`flex h-full w-full relative`}>
@@ -228,15 +229,11 @@ const jitter = new JitterPrevention(100);
 //         currentRenderCount: ItemsOfPerPage,
 //     };
 
-
 //     componentWillReceiveProps() {
 //         this.setState({
 //             currentRenderCount: ItemsOfPerPage,
 //         });
 //     }
-
-
-
 
 // }
 
@@ -259,23 +256,22 @@ const jitter = new JitterPrevention(100);
 // };
 
 const sortAndSliceMessage = (props: MessageListProps) => {
-    return sortMessage(props.messages)
-        // .slice(
-        //     0,
-        //     currentRenderCount,
-        // );
+    return sortMessage(props.messages);
+    // .slice(
+    //     0,
+    //     currentRenderCount,
+    // );
 };
 
 async function MessageList(props: MessageListProps) {
     const t = Date.now();
     const groups = groupContinuousMessages(sortAndSliceMessage(props), (pre, cur) => {
         const sameAuthor = pre.root.root_event.pubkey == cur.root.root_event.pubkey;
-        const _66sec =
-            Math.abs(cur.root.created_at.getTime() - pre.root.created_at.getTime()) < 1000 * 60;
+        const _66sec = Math.abs(cur.root.created_at.getTime() - pre.root.created_at.getTime()) < 1000 * 60;
         return sameAuthor && _66sec;
     });
     console.log("MessageList:groupContinuousMessages", Date.now() - t);
-    const messageBoxGroups = [];
+    const messageBoxGroups: h.JSX.Element[] = [];
     for (const threads of groups) {
         const boxGroup = await MessageBoxGroup({
             messageGroup: threads.map((thread) => {
@@ -290,8 +286,8 @@ async function MessageList(props: MessageListProps) {
             profilesSyncer: props.profilesSyncer,
             eventSyncer: props.eventSyncer,
         });
-        if(boxGroup instanceof Error) {
-            return boxGroup
+        if (boxGroup instanceof Error) {
+            return boxGroup;
         }
         messageBoxGroups.push(
             boxGroup,
@@ -306,7 +302,8 @@ async function MessageList(props: MessageListProps) {
                 transform: "perspective(none)",
             }}
         >
-            {/* <button
+            {
+                /* <button
                 onClick={() => {
                     if (this.xmessagesULElement.current) {
                         this.messagesULElement.current.scrollTo({
@@ -324,7 +321,8 @@ async function MessageList(props: MessageListProps) {
                         fill: "#F3F4EA",
                     }}
                 />
-            </button> */}
+            </button> */
+            }
             <ul
                 class={tw`w-full h-full overflow-y-auto overflow-x-hidden py-8 px-2 flex flex-col-reverse`}
                 // ref={this.messagesULElement}
@@ -360,8 +358,9 @@ async function MessageBoxGroup(props: {
             props.eventSyncer,
             props.eventEmitter,
         );
-        if (parseContent instanceof Error) {
-            return parsedContent;
+        if (parsedContent instanceof Error) {
+            console.warn(parsedContent.message);
+            continue;
         }
         const node = (
             <li
@@ -523,8 +522,8 @@ export async function ParseMessageContent(
                 break;
             case "npub":
                 const pubkey = PublicKey.FromBech32(itemStr);
-                if(pubkey instanceof Error) {
-                    console.log("ParseMessageContent:", `${itemStr} is not valid pubkey`)
+                if (pubkey instanceof Error) {
+                    console.log("ParseMessageContent:", `${itemStr} is not valid pubkey`);
                     break;
                 }
                 const profile = getProfileEvent(db, pubkey);
@@ -622,4 +621,3 @@ function RightPanel(props: RightPanelProps) {
         </div>
     );
 }
-
