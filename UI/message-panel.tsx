@@ -438,7 +438,7 @@ export async function ParseMessageContent(
     eventSyncer: EventSyncer,
     eventEmitter: EventEmitter<ViewUserDetail>,
 ) {
-    const content = await message.content();
+    const content = message.content();  // todo: pass a render call signal
     if (content instanceof Error) {
         return content;
     }

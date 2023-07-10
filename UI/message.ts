@@ -71,6 +71,7 @@ export class ChatMessage_v2 {
         name?: string;
         picture?: string;
     };
+    private _content: string | Error | undefined;
     constructor(
         public readonly args: {
             readonly root_event: NostrEvent;
@@ -93,11 +94,17 @@ export class ChatMessage_v2 {
         this.author = args.author;
     }
 
-    async content(): Promise<string | Error> {
+    content(): string | Error {
+        if(this._content != undefined) {
+            return this._content;
+        }
         if (this.root_event.kind == NostrKind.TEXT_NOTE) {
             return this.args.content;
         }
-        return decryptDM(this.args.root_event, this.args.content, this.args.ctx);
+        decryptDM(this.args.root_event, this.args.content, this.args.ctx).then(res => {
+            this._content = res
+        })
+        return this.args.content
     }
 }
 
