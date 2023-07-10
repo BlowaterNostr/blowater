@@ -1,4 +1,7 @@
-import { NostrEvent } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
+import {
+    NostrAccountContext,
+    NostrEvent,
+} from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 import { getTags, groupImageEvents, reassembleBase64ImageFromEvents } from "../nostr.ts";
 import { ChatMessage } from "./message.ts";
 import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";

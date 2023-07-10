@@ -1,20 +1,17 @@
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { Database, NotFound, whoIamTalkingTo } from "../database.ts";
+import { Database, NotFound } from "../database.ts";
 import {
-    DecryptionFailure,
-    decryptNostrEvent,
     NostrAccountContext,
     NostrEvent,
     NostrKind,
     prepareEncryptedNostrEvent,
     prepareNormalNostrEvent,
-    RelayResponse_Event,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 import {
     ConnectionPool,
     newSubID,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
-import { prepareNostrImageEvents, Tag } from "../nostr.ts";
+import { getTags, prepareNostrImageEvents, Tag } from "../nostr.ts";
 import {
     PrivateKey,
     publicKeyHexFromNpub,
@@ -259,14 +256,6 @@ async function* messagesSendToMeBy(
     }
 }
 
-async function decryptMessage(
-    relayResponse: RelayResponse_Event,
-    ctx: NostrAccountContext,
-    publicKey: string,
-): Promise<NostrEvent | DecryptionFailure> {
-    return decryptNostrEvent(relayResponse.event, ctx, publicKey);
-}
-
 function merge<T>(...iters: AsyncIterable<T>[]) {
     let merged = csp.chan<T>();
     async function coroutine<T>(
@@ -318,6 +307,49 @@ export function getContactPubkeysOf(db: Database, pubkey: string): Set<string> |
     return contactList;
 }
 
+function whoIamTalkingTo(event: NostrEvent, myPublicKey: string) {
+    if (event.kind !== NostrKind.DIRECT_MESSAGE) {
+        console.log(event);
+        return new Error(`event ${event.id} is not a DM`);
+    }
+    // first asuming the other user is the sender
+    let whoIAmTalkingTo = event.pubkey;
+    const tags = getTags(event).p;
+    // if I am the sender
+    if (event.pubkey === publicKeyHexFromNpub(myPublicKey)) {
+        if (tags.length === 1) {
+            const theirPubKey = tags[0];
+            whoIAmTalkingTo = theirPubKey;
+            return whoIAmTalkingTo;
+        } else if (tags.length === 0) {
+            console.log(event);
+            return Error(
+                `No p tag is found - Not a valid DM - id ${event.id}, kind ${event.kind}`,
+            );
+        } else {
+            return Error(`Multiple tag p: ${event}`);
+        }
+    } else {
+        if (tags.length === 1) {
+            const receiverPubkey = tags[0];
+            if (receiverPubkey !== myPublicKey) {
+                return Error(
+                    `Not my message, receiver is ${receiverPubkey}, sender is ${event.pubkey}, my key is ${myPublicKey}`,
+                );
+            }
+        } else if (tags.length === 0) {
+            return Error(
+                `This is not a valid DM, id ${event.id}, kind ${event.kind}`,
+            );
+        } else {
+            console.log(event);
+            return Error(`Multiple tag p: ${event}`);
+        }
+    }
+    // I am the receiver
+    return whoIAmTalkingTo;
+}
+
 export function getNewestEventOf(db: Database, pubkey: string): NostrEvent | typeof NotFound {
     const events = Array.from(getDirectMessageEventsOf(db, pubkey));
     if (events.length === 0) {
@@ -359,4 +391,21 @@ function filterDMBetween(myPubKey: string, contactPubKey: string) {
         return isDM &&
             ((iAmAuthor && otherIsReceiver) || (otherIsAuthor && iAmReceiver));
     };
+}
+
+export async function decryptDM(event: NostrEvent, ctx: NostrAccountContext) {
+    const isSender = event.pubkey == ctx.publicKey.hex;
+    const pTags = getTags(event).p;
+    if (pTags.length > 0) {
+        const receiverPubkey = pTags[0];
+        if (isSender) {
+            return ctx.decrypt(receiverPubkey, event.content);
+        }
+        if (/* is receiver */ receiverPubkey == ctx.publicKey.hex) {
+            return ctx.decrypt(event.pubkey, event.content);
+        }
+        return new Error(`neither sender nor receiver of event ${event.id}`);
+    } else {
+        return new Error(`event ${event.id} has no receiver`);
+    }
 }

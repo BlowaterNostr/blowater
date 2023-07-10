@@ -341,7 +341,7 @@ export type UserLogin = {
     type: "UserLogin";
 };
 
-export class Event implements nostr.NostrEvent {
+export class ContextualEvent implements nostr.NostrEvent {
     id: string;
     sig: string;
     pubkey: string;
@@ -365,8 +365,8 @@ export class Event implements nostr.NostrEvent {
 
     private _decryptedContent: string | Error | undefined;
     async decryptedContent() {
-        if(this._decryptedContent != undefined) {
-            return this._decryptedContent
+        if (this._decryptedContent != undefined) {
+            return this._decryptedContent;
         }
         this._decryptedContent = await (() => {
             if (this.kind == NostrKind.DIRECT_MESSAGE) {
