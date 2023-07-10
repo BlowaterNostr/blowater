@@ -46,31 +46,15 @@ Deno.test("prepareNostrImageEvents", async (t) => {
     }
     const [events, _] = imgEvents;
     await t.step("full", async () => {
-        const decryptedEvents = [];
-        for (const e of events) {
-            const decryptedEvent = await decryptNostrEvent(e, InMemoryAccountContext.New(pri), pub);
-            if (decryptedEvent instanceof Error) {
-                fail(decryptedEvent.message);
-            }
-            decryptedEvents.push(decryptedEvent);
-        }
-        const content = await reassembleBase64ImageFromEvents(decryptedEvents, ctx);
+        const content = await reassembleBase64ImageFromEvents(events, ctx);
         if (content instanceof Error) {
             fail(content.message);
         }
         assertEquals(await blobToBase64(blob), content);
     });
     await t.step("partial, should fail", async () => {
-        const decryptedEvents = [];
         const partialEvents = events.slice(0, 1); // not enough events
-        for (const e of partialEvents) {
-            const decryptedEvent = await decryptNostrEvent(e, InMemoryAccountContext.New(pri), pub);
-            if (decryptedEvent instanceof Error) {
-                fail(decryptedEvent.message);
-            }
-            decryptedEvents.push(decryptedEvent);
-        }
-        const content = await reassembleBase64ImageFromEvents(decryptedEvents, ctx);
+        const content = await reassembleBase64ImageFromEvents(partialEvents, ctx);
         assertInstanceOf(content, Error);
     });
 });
