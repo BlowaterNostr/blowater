@@ -1,14 +1,18 @@
-import { ChatMessage } from "../UI/message.ts";
 import { Database } from "../database.ts";
-import { NostrKind } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
+import {
+    NostrAccountContext,
+    NostrKind,
+} from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 
 import { computeThreads, getTags } from "../nostr.ts";
 
-import { MessageThread } from "../UI/dm.tsx";
 import { UserInfo } from "../UI/contact-list.ts";
 
-export function getSocialPosts(db: Database, allUsersInfo: Map<string, UserInfo>) {
+import { ChatMessage_v2 } from "../UI/message.ts";
+import { MessageThread } from "../UI/dm.tsx";
+
+export function getSocialPosts(db: Database, allUsersInfo: Map<string, UserInfo>, ctx: NostrAccountContext) {
     const t = Date.now();
     const events = db.filterEvents((e) => {
         return e.kind == NostrKind.TEXT_NOTE;
@@ -19,7 +23,7 @@ export function getSocialPosts(db: Database, allUsersInfo: Map<string, UserInfo>
     const msgs: MessageThread[] = new Array(threads.length);
     for (let i = 0; i < threads.length; i++) {
         const thread = threads[i];
-        const messages: ChatMessage[] = [];
+        const messages: ChatMessage_v2[] = [];
         for (let j = 0; j < thread.length; j++) {
             const event = thread[j];
             let userInfo = allUsersInfo.get(event.pubkey);
@@ -27,8 +31,8 @@ export function getSocialPosts(db: Database, allUsersInfo: Map<string, UserInfo>
             if (pubkey instanceof Error) {
                 throw new Error("impossible");
             }
-            messages[j] = {
-                event: event,
+            messages[j] = new ChatMessage_v2({
+                root_event: event,
                 author: {
                     pubkey: pubkey,
                     name: userInfo?.profile?.content.name,
@@ -38,7 +42,8 @@ export function getSocialPosts(db: Database, allUsersInfo: Map<string, UserInfo>
                 created_at: new Date(event.created_at * 1000),
                 type: "text",
                 lamport: getTags(event).lamport_timestamp,
-            };
+                ctx: ctx,
+            });
         }
         msgs[i] = {
             root: messages[0],

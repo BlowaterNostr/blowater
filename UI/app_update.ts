@@ -210,7 +210,7 @@ export async function* UI_Interaction_Update(
             if (event.target.kind == NostrKind.DIRECT_MESSAGE) {
                 const err = await sendDMandImages({
                     sender: app.myAccountContext,
-                    receiverPublicKey: event.target.receiver.pubkey.hex,
+                    receiverPublicKey: event.target.receiver.pubkey,
                     message: event.text,
                     files: event.files,
                     kind: event.target.kind,
@@ -362,7 +362,6 @@ export async function getConversationMessages(args: {
     pub2: string;
     allUserInfo: Map<string, UserInfo>;
     ctx: NostrAccountContext;
-    db: Database;
 }): Promise<MessageThread[]> {
     const { database, pub1, pub2, allUserInfo } = args;
     let t = Date.now();
@@ -372,7 +371,10 @@ export async function getConversationMessages(args: {
     // console.log("getConversationMessages:compute threads", Date.now() - t)
     const msgs: MessageThread[] = [];
     for (const thread of threads) {
-        const messages = await convertEventsToChatMessages(thread, allUserInfo, args.ctx, args.db);
+        const messages = await convertEventsToChatMessages(thread, allUserInfo, args.ctx, database);
+        // if (messages instanceof Error) {
+        //     return messages;
+        // }
         if (messages.length > 0) {
             messages.sort((m1, m2) => {
                 if (m1.lamport && m2.lamport && m1.lamport != m2.lamport) {

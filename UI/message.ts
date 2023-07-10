@@ -1,6 +1,11 @@
 import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 import { MessageThread } from "./dm.tsx";
-import { NostrEvent } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
+import {
+    NostrAccountContext,
+    NostrEvent,
+    NostrKind,
+} from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
+import { decryptDM } from "../features/dm.ts";
 
 export function* parseContent(content: string) {
     // URLs
@@ -43,8 +48,21 @@ export type ContentItem = {
 };
 
 // Think of ChatMessage as an materialized view of NostrEvent
-export interface ChatMessage {
-    readonly event: NostrEvent;
+// export interface ChatMessage_v1 {
+//     readonly event: NostrEvent;
+//     readonly type: "image" | "text";
+//     readonly created_at: Date;
+//     readonly lamport: number | undefined;
+//     readonly author: {
+//         pubkey: PublicKey;
+//         name?: string;
+//         picture?: string;
+//     };
+//     content: string;
+// }
+
+export class ChatMessage_v2 {
+    readonly root_event: NostrEvent;
     readonly type: "image" | "text";
     readonly created_at: Date;
     readonly lamport: number | undefined;
@@ -53,7 +71,34 @@ export interface ChatMessage {
         name?: string;
         picture?: string;
     };
-    content: string;
+    constructor(
+        public readonly args: {
+            readonly root_event: NostrEvent;
+            readonly type: "image" | "text";
+            readonly created_at: Date;
+            readonly lamport: number | undefined;
+            readonly author: {
+                pubkey: PublicKey;
+                name?: string;
+                picture?: string;
+            };
+            readonly content: string;
+            readonly ctx: NostrAccountContext;
+        },
+    ) {
+        this.root_event = args.root_event;
+        this.type = args.type;
+        this.created_at = args.created_at;
+        this.lamport = args.lamport;
+        this.author = args.author;
+    }
+
+    async content(): Promise<string | Error> {
+        if (this.root_event.kind == NostrKind.TEXT_NOTE) {
+            return this.args.content;
+        }
+        return decryptDM(this.args.root_event, this.args.content, this.args.ctx);
+    }
 }
 
 export function urlIsImage(url: string) {

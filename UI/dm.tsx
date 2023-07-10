@@ -16,10 +16,11 @@ import {
 import { ConnectionPool } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
 import { getProfileEvent } from "../features/profile.ts";
 import { ProfilesSyncer, UserInfo } from "./contact-list.ts";
-import { ChatMessage } from "./message.ts";
+
 import { DM_Container_Model } from "./dm.ts";
 import { getFocusedContent } from "./app.tsx";
 import { EventSyncer } from "./event_syncer.ts";
+import { ChatMessage_v2 } from "./message.ts";
 
 type DirectMessageContainerProps = {
     editors: Map<string, DM_EditorModel>;
@@ -34,8 +35,8 @@ type DirectMessageContainerProps = {
 } & DM_Container_Model;
 
 export type MessageThread = {
-    root: ChatMessage;
-    replies: ChatMessage[];
+    root: ChatMessage_v2;
+    replies: ChatMessage_v2[];
 };
 
 export async function DirectMessageContainer(props: DirectMessageContainerProps) {
@@ -61,7 +62,7 @@ export async function DirectMessageContainer(props: DirectMessageContainerProps)
     }
     console.log("DirectMessageContainer", Date.now() - t);
 
-    let messagePanel: VNode | undefined;
+    let messagePanel: VNode | Error | undefined;
     if (currentEditorModel) {
         const convoMsgs = await getConversationMessages({
             database: props.db,
@@ -69,7 +70,6 @@ export async function DirectMessageContainer(props: DirectMessageContainerProps)
             pub2: currentEditorModel.target.receiver.pubkey.hex,
             allUserInfo: props.allUserInfo,
             ctx: props.myAccountContext,
-            db: props.db,
         });
         // if (convoMsgs instanceof Error) {
         //     return convoMsgs;
@@ -83,14 +83,14 @@ export async function DirectMessageContainer(props: DirectMessageContainerProps)
                 convoMsgs,
             );
             if (_?.type == "MessageThread") {
-                let editor = props.editors.get(_.data.root.event.id);
+                let editor = props.editors.get(_.data.root.root_event.id);
                 if (editor == undefined) {
                     editor = {
-                        id: _.data.root.event.id,
+                        id: _.data.root.root_event.id,
                         files: [],
                         text: "",
                         tags: [
-                            ["e", _.data.root.event.id],
+                            ["e", _.data.root.root_event.id],
                         ],
                         target: {
                             kind: NostrKind.DIRECT_MESSAGE,
@@ -106,8 +106,9 @@ export async function DirectMessageContainer(props: DirectMessageContainerProps)
             }
             return _;
         })();
-        messagePanel = MessagePanel({
-            myPublicKey: props.myAccountContext.publicKey,
+        messagePanel = await MessagePanel({
+            // myPublicKey: props.myAccountContext.publicKey,
+            ctx: props.myAccountContext,
             messages: convoMsgs,
             rightPanelModel: props.rightPanelModel,
             eventEmitter: props.eventEmitter,
@@ -117,6 +118,9 @@ export async function DirectMessageContainer(props: DirectMessageContainerProps)
             profilesSyncer: props.profilesSyncer,
             eventSyncer: props.eventSyncer,
         });
+        if(messagePanel instanceof Error) {
+            return messagePanel
+        }
     }
 
     const vDom = (

@@ -10,7 +10,7 @@ import {
     ViewUserDetail,
 } from "./message-panel.tsx";
 import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
-import { ChatMessage, groupContinuousMessages } from "./message.ts";
+import { ChatMessage_v2, groupContinuousMessages } from "./message.ts";
 import { Editor, EditorEvent, EditorModel } from "./editor.tsx";
 import { Database } from "../database.ts";
 import { ProfilesSyncer } from "./contact-list.ts";
@@ -18,7 +18,7 @@ import { EventSyncer } from "./event_syncer.ts";
 
 interface MessageThreadProps {
     eventEmitter: EventEmitter<DirectMessagePanelUpdate | EditorEvent>;
-    messages: ChatMessage[];
+    messages: ChatMessage_v2[];
     myPublicKey: PublicKey;
     db: Database;
     editorModel: EditorModel;
@@ -62,14 +62,14 @@ export function MessageThreadPanel(props: MessageThreadProps) {
 
 function MessageThreadList(props: {
     myPublicKey: PublicKey;
-    messages: ChatMessage[];
+    messages: ChatMessage_v2[];
     db: Database;
     profilesSyncer: ProfilesSyncer;
     eventSyncer: EventSyncer;
     eventEmitter: EventEmitter<ViewUserDetail>;
 }) {
     let groups = groupContinuousMessages(props.messages, (pre, cur) => {
-        const sameAuthor = pre.event.pubkey == cur.event.pubkey;
+        const sameAuthor = pre.root_event.pubkey == cur.root_event.pubkey;
         const _66sec = Math.abs(cur.created_at.getTime() - pre.created_at.getTime()) < 1000 * 60;
         return sameAuthor && _66sec;
     });
@@ -96,7 +96,7 @@ function MessageThreadList(props: {
 }
 
 function MessageThreadBoxGroup(props: {
-    messages: ChatMessage[];
+    messages: ChatMessage_v2[];
     myPublicKey: PublicKey;
     db: Database;
     profilesSyncer: ProfilesSyncer;

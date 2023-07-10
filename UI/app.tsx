@@ -100,7 +100,7 @@ async function initProfileSyncer(
 
     // Sync DM events
     const messageStream = dm.getAllEncryptedMessagesOf(
-        myPublicKey.hex,
+        myPublicKey,
         pool,
         since,
     );
@@ -122,6 +122,7 @@ async function initProfileSyncer(
             {
                 authors: [myPublicKey.hex],
                 kinds: [NostrKind.CustomAppData],
+                limit: 1
             },
         );
         if (resp instanceof Error) {
@@ -247,7 +248,7 @@ export class App {
 
 export async function AppComponent(props: {
     app: App;
-}) {
+}): Promise<h.JSX.Element> {
     const t = Date.now();
     const app = props.app;
     const myAccountCtx = app.myAccountContext;
@@ -265,21 +266,21 @@ export async function AppComponent(props: {
     if (app.model.navigationModel.activeNav == "Social") {
         const allUserInfo = getAllUsersInformation(app.database, myAccountCtx);
         console.log("AppComponent:getSocialPosts before", Date.now() - t);
-        const socialPosts = getSocialPosts(app.database, allUserInfo);
+        const socialPosts = getSocialPosts(app.database, allUserInfo, myAccountCtx);
         console.log("AppComponent:getSocialPosts after", Date.now() - t, Date.now());
         let focusedContentGetter = () => {
             console.log("AppComponent:getFocusedContent before", Date.now() - t);
             let _ = getFocusedContent(app.model.social.focusedContent, allUserInfo, socialPosts);
             console.log("AppComponent:getFocusedContent", Date.now() - t);
             if (_?.type === "MessageThread") {
-                let editor = app.model.social.replyEditors.get(_.data.root.event.id);
+                let editor = app.model.social.replyEditors.get(_.data.root.root_event.id);
                 if (editor == undefined) {
                     editor = {
-                        id: _.data.root.event.id,
+                        id: _.data.root.root_event.id,
                         files: [],
                         text: "",
                         tags: [
-                            ["e", _.data.root.event.id],
+                            ["e", _.data.root.root_event.id],
                         ],
                         target: {
                             kind: NostrKind.TEXT_NOTE,
@@ -297,21 +298,24 @@ export async function AppComponent(props: {
         console.log("AppComponent:focusedContentGetter", Date.now() - t);
         let focusedContent = focusedContentGetter();
         console.log("AppComponent:socialPosts", Date.now() - t);
+        const messagePanel = await MessagePanel({
+            focusedContent: focusedContent,
+            editorModel: app.model.social.editor,
+            // myPublicKey={myAccountCtx.publicKey}
+            ctx: myAccountCtx,
+            messages: socialPosts,
+            rightPanelModel:app.model.rightPanelModel,
+            db: app.database,
+            eventEmitter: app.eventBus,
+            profilesSyncer: app.profileSyncer,
+            eventSyncer: app.eventSyncer,
+        })
+
         socialPostsPanel = (
             <div
                 class={tw`flex-1 overflow-hidden bg-[#313338]`}
             >
-                <MessagePanel
-                    focusedContent={focusedContent}
-                    editorModel={app.model.social.editor}
-                    myPublicKey={myAccountCtx.publicKey}
-                    messages={socialPosts}
-                    rightPanelModel={app.model.rightPanelModel}
-                    db={app.database}
-                    eventEmitter={app.eventBus}
-                    profilesSyncer={app.profileSyncer}
-                    eventSyncer={app.eventSyncer}
-                />
+                {messagePanel instanceof Error? messagePanel.message : messagePanel}
             </div>
         );
     }
@@ -365,11 +369,15 @@ export async function AppComponent(props: {
                 profilesSyncer: app.profileSyncer,
                 eventSyncer: app.eventSyncer,
             });
+            // if(directMessageContainer instanceof Error) {
+            //     return directMessageContainer
+            // }
+            console.log("app:directMessageContainer", directMessageContainer)
             dmVNode = (
                 <div
                     class={tw`flex-1 overflow-hidden`}
                 >
-                    {directMessageContainer}
+                    {directMessageContainer instanceof Error? directMessageContainer.message : directMessageContainer}
                 </div>
             );
         }
@@ -484,7 +492,7 @@ export function getFocusedContent(
         };
     } else {
         for (const thread of threads) {
-            if (thread.root.event.id == focusedContent.id) {
+            if (thread.root.root_event.id == focusedContent.id) {
                 return {
                     type: "MessageThread" as "MessageThread",
                     data: thread,

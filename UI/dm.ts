@@ -4,7 +4,7 @@ import {
     NostrEvent,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 import { getTags, groupImageEvents, reassembleBase64ImageFromEvents } from "../nostr.ts";
-import { ChatMessage } from "./message.ts";
+
 import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 import { ContactGroup } from "./contact-list.tsx";
 import { SearchModel } from "./search_model.ts";
@@ -12,6 +12,7 @@ import { UserInfo } from "./contact-list.ts";
 import { decryptDM } from "../features/dm.ts";
 import { DB } from "https://deno.land/x/sqlite@v3.7.2/mod.ts";
 import { Database } from "../database.ts";
+import { ChatMessage_v2 } from "./message.ts";
 
 export type DM_Container_Model = {
     search: SearchModel;
@@ -27,8 +28,8 @@ export async function convertEventsToChatMessages(
     userProfiles: Map<string, UserInfo>,
     ctx: NostrAccountContext,
     db: Database,
-): Promise<ChatMessage[]> {
-    const messages: ChatMessage[] = [];
+): Promise<ChatMessage_v2[]> {
+    const messages: ChatMessage_v2[] = [];
     const groups = groupImageEvents(events);
     let pubKeys = Array.from(groups.values()).map((es) => es[0].pubkey);
 
@@ -46,23 +47,21 @@ export async function convertEventsToChatMessages(
         if (pubkey instanceof Error) {
             throw new Error(textEvents[i].pubkey);
         }
-        const decryptedContent = await decryptDM(textEvents[i], ctx);
-        if (decryptedContent instanceof Error) {
-            db.remove(textEvents[i].id);
-            continue;
-        }
-        messages.push({
-            event: textEvents[i],
-            content: decryptedContent,
-            type: "text",
-            created_at: new Date(textEvents[i].created_at * 1000),
-            author: {
-                pubkey,
-                name: author?.profile?.content.name,
-                picture: author?.profile?.content.picture,
-            },
-            lamport: getTags(textEvents[i]).lamport_timestamp,
-        });
+        messages.push(
+            new ChatMessage_v2({
+                root_event: textEvents[i],
+                content: textEvents[i].content,
+                type: "text",
+                created_at: new Date(textEvents[i].created_at * 1000),
+                author: {
+                    pubkey,
+                    name: author?.profile?.content.name,
+                    picture: author?.profile?.content.picture,
+                },
+                lamport: getTags(textEvents[i]).lamport_timestamp,
+                ctx: ctx,
+            }),
+        );
     }
 
     for (const imageEvents of groups.values()) {
@@ -81,18 +80,21 @@ export async function convertEventsToChatMessages(
         if (pubkey instanceof Error) {
             throw new Error(imageEvents[0].pubkey);
         }
-        messages.push({
-            event: imageEvents[0],
-            content: imageBase64,
-            type: "image",
-            created_at: new Date(imageEvents[0].created_at * 1000),
-            author: {
-                pubkey: pubkey,
-                name: author?.profile?.content.name,
-                picture: author?.profile?.content.picture,
-            },
-            lamport: getTags(imageEvents[0]).lamport_timestamp,
-        });
+        messages.push(
+            new ChatMessage_v2({
+                root_event: imageEvents[0],
+                content: imageBase64,
+                type: "image",
+                created_at: new Date(imageEvents[0].created_at * 1000),
+                author: {
+                    pubkey: pubkey,
+                    name: author?.profile?.content.name,
+                    picture: author?.profile?.content.picture,
+                },
+                lamport: getTags(imageEvents[0]).lamport_timestamp,
+                ctx: ctx,
+            }),
+        );
     }
 
     return messages;

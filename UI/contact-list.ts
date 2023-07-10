@@ -76,7 +76,7 @@ function socialPostsStream(pubkeys: Iterable<string>, pool: ConnectionPool) {
             {
                 authors: Array.from(pubkeys),
                 kinds: [NostrKind.TEXT_NOTE],
-                limit: 200,
+                limit: 1, // 200
             },
         );
         if (resp instanceof Error) {
