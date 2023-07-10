@@ -33,7 +33,7 @@ export async function NewIndexedDB(): Promise<Database | Error> {
                 return cache.filter(filter);
             },
             async (id: string) => {
-                console.log("delete", id, db.events.delete);
+                console.log("delete", id);
                 await db.events.delete(id);
             },
         );
