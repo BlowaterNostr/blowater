@@ -76,7 +76,7 @@ export type ViewUserDetail = {
     pubkey: PublicKey;
 };
 
-export async function MessagePanel(props: DirectMessagePanelProps) {
+export function MessagePanel(props: DirectMessagePanelProps) {
     const t = Date.now();
     let placeholder = "Post your thoughts";
     if (props.editorModel.target.kind == NostrKind.DIRECT_MESSAGE) {
@@ -125,7 +125,7 @@ export async function MessagePanel(props: DirectMessagePanelProps) {
             </RightPanel>
         );
     }
-    const messageList = await MessageList({
+    const messageList = MessageList({
         ctx: props.ctx,
         messages: props.messages,
         eventEmitter: props.eventEmitter,
@@ -206,7 +206,7 @@ class JitterPrevention {
 }
 const jitter = new JitterPrevention(100);
 
-async function MessageList(props: MessageListProps) {
+function MessageList(props: MessageListProps) {
     const t = Date.now();
     const groups = groupContinuousMessages(sortMessage(props.messages.slice(0, 75)), (pre, cur) => {
         const sameAuthor = pre.root.root_event.pubkey == cur.root.root_event.pubkey;
@@ -216,7 +216,7 @@ async function MessageList(props: MessageListProps) {
     console.log("MessageList:groupContinuousMessages", Date.now() - t);
     const messageBoxGroups: h.JSX.Element[] = [];
     for (const threads of groups) {
-        const boxGroup = await MessageBoxGroup({
+        const boxGroup =  MessageBoxGroup({
             messageGroup: threads.map((thread) => {
                 return {
                     msg: thread.root,
@@ -279,7 +279,7 @@ async function MessageList(props: MessageListProps) {
     return vNode;
 }
 
-async function MessageBoxGroup(props: {
+function MessageBoxGroup(props: {
     messageGroup: {
         msg: ChatMessage_v2;
         replyCount: number;
@@ -294,7 +294,7 @@ async function MessageBoxGroup(props: {
     const vNodes = [];
     let index = 0;
     for (const msg of props.messageGroup.reverse()) {
-        const parsedContent = await ParseMessageContent(
+        const parsedContent = ParseMessageContent(
             msg.msg,
             props.db,
             props.profilesSyncer,
@@ -431,7 +431,7 @@ export function NameAndTime(message: ChatMessage_v2, index: number, myPublicKey:
     }
 }
 
-export async function ParseMessageContent(
+export function ParseMessageContent(
     message: ChatMessage_v2,
     db: Database,
     profilesSyncer: ProfilesSyncer,

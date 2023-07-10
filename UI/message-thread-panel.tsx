@@ -106,6 +106,11 @@ function MessageThreadBoxGroup(props: {
     const vnode = (
         <ul class={tw`py-2`}>
             {props.messages.map((msg, index) => {
+                const parsed = ParseMessageContent(msg, props.db, props.profilesSyncer, props.eventSyncer, props.eventEmitter)
+                if(parsed instanceof Error) {
+                    console.warn(parsed.message)
+                    return undefined;
+                }
                 return (
                     <li class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 group`}>
                         {AvatarOrTime(msg, index)}
@@ -119,7 +124,7 @@ function MessageThreadBoxGroup(props: {
                             <pre
                                 class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto`}
                             >
-                                {ParseMessageContent(msg, props.db, props.profilesSyncer, props.eventSyncer, props.eventEmitter)}
+                                {parsed}
                             </pre>
                         </div>
                     </li>

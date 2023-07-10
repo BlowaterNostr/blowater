@@ -112,9 +112,8 @@ export async function prepareNostrImageEvents(
     return [events, groupLeadEventID];
 }
 
-export async function reassembleBase64ImageFromEvents(
+export function reassembleBase64ImageFromEvents(
     events: nostr.NostrEvent[],
-    ctx: nostr.NostrAccountContext,
 ) {
     if (events.length === 0) {
         return "";
@@ -137,10 +136,6 @@ export async function reassembleBase64ImageFromEvents(
         }
         const [_2, _3, chunkIndex] = imageTag;
         const cIndex = Number(chunkIndex);
-        // const decryptedContent = await decryptDM(event, ctx);
-        // if (decryptedContent instanceof Error) {
-        //     return new nostr.DecryptionFailure(event);
-        // }
         chunks[cIndex] = event.content;
     }
 

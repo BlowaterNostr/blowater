@@ -57,13 +57,13 @@ export async function Start(database: Database) {
         }
     }
 
-    const appComponent = await AppComponent({ app });
+    const appComponent = AppComponent({ app });
     /* first render */ render(appComponent, document.body);
 
     for await (let _ of UI_Interaction_Update(app, app.profileSyncer, lamport)) {
         const t = Date.now();
         {
-            const appComponent = await AppComponent({ app });
+            const appComponent = AppComponent({ app });
             render(appComponent, document.body);
         }
         console.log("render", Date.now() - t);
@@ -71,7 +71,7 @@ export async function Start(database: Database) {
 
     (async () => {
         for await (let _ of Relay_Update(app.relayPool)) {
-            const appComponent = await AppComponent({ app });
+            const appComponent = AppComponent({ app });
             render(appComponent, document.body);
         }
     })();
@@ -231,7 +231,7 @@ export class App {
                     this.eventBus,
                 )
             ) {
-                const appComponent = await AppComponent({ app: this });
+                const appComponent = AppComponent({ app: this });
                 render(appComponent, document.body);
                 console.log(`render ${++i} times`);
             }
@@ -244,9 +244,9 @@ export class App {
     };
 }
 
-export async function AppComponent(props: {
+export function AppComponent(props: {
     app: App;
-}): Promise<h.JSX.Element> {
+}) {
     const t = Date.now();
     const app = props.app;
     const myAccountCtx = app.myAccountContext;
@@ -296,7 +296,7 @@ export async function AppComponent(props: {
         console.log("AppComponent:focusedContentGetter", Date.now() - t);
         let focusedContent = focusedContentGetter();
         console.log("AppComponent:socialPosts", Date.now() - t);
-        const messagePanel = await MessagePanel({
+        const messagePanel = MessagePanel({
             focusedContent: focusedContent,
             editorModel: app.model.social.editor,
             // myPublicKey={myAccountCtx.publicKey}
@@ -355,7 +355,7 @@ export async function AppComponent(props: {
     ) {
         const allUserInfo = getAllUsersInformation(app.database, myAccountCtx);
         if (app.model.navigationModel.activeNav == "DM") {
-            const directMessageContainer = await DirectMessageContainer({
+            const directMessageContainer = DirectMessageContainer({
                 editors: app.model.editors,
                 ...app.model.dm,
                 rightPanelModel: app.model.rightPanelModel,

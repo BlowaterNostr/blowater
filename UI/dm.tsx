@@ -39,7 +39,7 @@ export type MessageThread = {
     replies: ChatMessage_v2[];
 };
 
-export async function DirectMessageContainer(props: DirectMessageContainerProps) {
+export function DirectMessageContainer(props: DirectMessageContainerProps) {
     const t = Date.now();
     const currentConversation = props.currentSelectedContact;
     // todo: refactor it to be more performant
@@ -64,7 +64,7 @@ export async function DirectMessageContainer(props: DirectMessageContainerProps)
 
     let messagePanel: VNode | Error | undefined;
     if (currentEditorModel) {
-        const convoMsgs = await getConversationMessages({
+        const convoMsgs =  getConversationMessages({
             database: props.db,
             pub1: props.myAccountContext.publicKey.hex,
             pub2: currentEditorModel.target.receiver.pubkey.hex,
@@ -106,7 +106,7 @@ export async function DirectMessageContainer(props: DirectMessageContainerProps)
             }
             return _;
         })();
-        messagePanel = await MessagePanel({
+        messagePanel = MessagePanel({
             // myPublicKey: props.myAccountContext.publicKey,
             ctx: props.myAccountContext,
             messages: convoMsgs,
