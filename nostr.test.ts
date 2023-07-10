@@ -45,7 +45,7 @@ Deno.test("prepareNostrImageEvents", async (t) => {
     }
     const [events, _] = imgEvents;
     await t.step("full", async () => {
-        const content = await reassembleBase64ImageFromEvents(events, ctx);
+        const content = reassembleBase64ImageFromEvents(events);
         if (content instanceof Error) {
             fail(content.message);
         }
@@ -53,7 +53,7 @@ Deno.test("prepareNostrImageEvents", async (t) => {
     });
     await t.step("partial, should fail", async () => {
         const partialEvents = events.slice(0, 1); // not enough events
-        const content = await reassembleBase64ImageFromEvents(partialEvents, ctx);
+        const content = reassembleBase64ImageFromEvents(partialEvents);
         assertInstanceOf(content, Error);
     });
 });
