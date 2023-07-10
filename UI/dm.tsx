@@ -69,10 +69,11 @@ export async function DirectMessageContainer(props: DirectMessageContainerProps)
             pub2: currentEditorModel.target.receiver.pubkey.hex,
             allUserInfo: props.allUserInfo,
             ctx: props.myAccountContext,
+            db: props.db,
         });
-        if (convoMsgs instanceof Error) {
-            return convoMsgs;
-        }
+        // if (convoMsgs instanceof Error) {
+        //     return convoMsgs;
+        // }
         console.log("DirectMessageContainer:convoMsgs", Date.now() - t);
 
         const focusedContent = (() => {

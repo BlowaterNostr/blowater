@@ -14,6 +14,7 @@ import {
     TagPubKey,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 import { decryptDM } from "./features/dm.ts";
+import { Database } from "./database.ts";
 
 type TotolChunks = string;
 type ChunkIndex = string; // 0-indexed
@@ -140,7 +141,7 @@ export async function reassembleBase64ImageFromEvents(
         const cIndex = Number(chunkIndex);
         const decryptedContent = await decryptDM(event, ctx);
         if (decryptedContent instanceof Error) {
-            return decryptedContent;
+            return new nostr.DecryptionFailure(event);
         }
         chunks[cIndex] = decryptedContent;
     }

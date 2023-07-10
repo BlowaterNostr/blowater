@@ -32,6 +32,10 @@ export async function NewIndexedDB(): Promise<Database | Error> {
             (filter: (e: NostrEvent) => boolean) => {
                 return cache.filter(filter);
             },
+            async (id: string) => {
+                console.log("delete", id, db.events.delete);
+                await db.events.delete(id);
+            },
         );
     } catch (e) {
         return e;

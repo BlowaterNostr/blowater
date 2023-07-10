@@ -25,6 +25,7 @@ export class Database {
         public filterEvents: (
             filter: (e: NostrEvent) => boolean,
         ) => Iterable<NostrEvent>,
+        public remove: (id: string) => Promise<void>,
     ) {}
 
     async addEvent(event: NostrEvent) {

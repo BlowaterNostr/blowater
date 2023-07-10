@@ -91,8 +91,13 @@ export class Nip7ExtensionContext implements NostrAccountContext {
                         await this.encryptChan.put(e as Error);
                     }
                 } else if (op.op == "decrypt") {
-                    const res = await alby.nip04.decrypt(op.pubkey, op.ciphertext);
-                    await this.decryptChan.put(res);
+                    try {
+                        const res = await alby.nip04.decrypt(op.pubkey, op.ciphertext);
+                        await this.decryptChan.put(res);
+                    } catch (e) {
+                        console.log("nip7.decrypt", e);
+                        await this.decryptChan.put(e as Error);
+                    }
                 } else if (op.op === "signEvent") {
                     const res = await alby.signEvent(op.event);
                     await this.signEventChan.put(res);

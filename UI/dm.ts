@@ -1,4 +1,5 @@
 import {
+    DecryptionFailure,
     NostrAccountContext,
     NostrEvent,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
@@ -9,6 +10,8 @@ import { ContactGroup } from "./contact-list.tsx";
 import { SearchModel } from "./search_model.ts";
 import { UserInfo } from "./contact-list.ts";
 import { decryptDM } from "../features/dm.ts";
+import { DB } from "https://deno.land/x/sqlite@v3.7.2/mod.ts";
+import { Database } from "../database.ts";
 
 export type DM_Container_Model = {
     search: SearchModel;
@@ -23,7 +26,8 @@ export async function convertEventsToChatMessages(
     events: Iterable<NostrEvent>,
     userProfiles: Map<string, UserInfo>,
     ctx: NostrAccountContext,
-): Promise<ChatMessage[] | Error> {
+    db: Database,
+): Promise<ChatMessage[]> {
     const messages: ChatMessage[] = [];
     const groups = groupImageEvents(events);
     let pubKeys = Array.from(groups.values()).map((es) => es[0].pubkey);
@@ -44,7 +48,8 @@ export async function convertEventsToChatMessages(
         }
         const decryptedContent = await decryptDM(textEvents[i], ctx);
         if (decryptedContent instanceof Error) {
-            return decryptedContent;
+            db.remove(textEvents[i].id);
+            continue;
         }
         messages.push({
             event: textEvents[i],
@@ -62,6 +67,11 @@ export async function convertEventsToChatMessages(
 
     for (const imageEvents of groups.values()) {
         const imageBase64 = await reassembleBase64ImageFromEvents(imageEvents, ctx);
+        if (imageBase64 instanceof DecryptionFailure) {
+            console.info(imageBase64.message);
+            db.remove(imageBase64.event.id);
+            continue;
+        }
         if (imageBase64 instanceof Error) {
             console.info(imageBase64.message);
             continue;

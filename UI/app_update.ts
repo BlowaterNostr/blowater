@@ -362,7 +362,8 @@ export async function getConversationMessages(args: {
     pub2: string;
     allUserInfo: Map<string, UserInfo>;
     ctx: NostrAccountContext;
-}): Promise<MessageThread[] | Error> {
+    db: Database;
+}): Promise<MessageThread[]> {
     const { database, pub1, pub2, allUserInfo } = args;
     let t = Date.now();
     const events = get_Kind4_Events_Between(database, pub1, pub2);
@@ -371,10 +372,7 @@ export async function getConversationMessages(args: {
     // console.log("getConversationMessages:compute threads", Date.now() - t)
     const msgs: MessageThread[] = [];
     for (const thread of threads) {
-        const messages = await convertEventsToChatMessages(thread, allUserInfo, args.ctx);
-        if (messages instanceof Error) {
-            return messages;
-        }
+        const messages = await convertEventsToChatMessages(thread, allUserInfo, args.ctx, args.db);
         if (messages.length > 0) {
             messages.sort((m1, m2) => {
                 if (m1.lamport && m2.lamport && m1.lamport != m2.lamport) {

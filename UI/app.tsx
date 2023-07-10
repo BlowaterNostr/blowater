@@ -353,22 +353,23 @@ export async function AppComponent(props: {
     ) {
         const allUserInfo = getAllUsersInformation(app.database, myAccountCtx);
         if (app.model.navigationModel.activeNav == "DM") {
+            const directMessageContainer = await DirectMessageContainer({
+                editors: app.model.editors,
+                ...app.model.dm,
+                rightPanelModel: app.model.rightPanelModel,
+                eventEmitter: app.eventBus,
+                myAccountContext: myAccountCtx,
+                db: app.database,
+                pool: props.app.relayPool,
+                allUserInfo: allUserInfo,
+                profilesSyncer: app.profileSyncer,
+                eventSyncer: app.eventSyncer,
+            });
             dmVNode = (
                 <div
                     class={tw`flex-1 overflow-hidden`}
                 >
-                    {await DirectMessageContainer({
-                        editors: app.model.editors,
-                        ...app.model.dm,
-                        rightPanelModel: app.model.rightPanelModel,
-                        eventEmitter: app.eventBus,
-                        myAccountContext: myAccountCtx,
-                        db: app.database,
-                        pool: props.app.relayPool,
-                        allUserInfo: allUserInfo,
-                        profilesSyncer: app.profileSyncer,
-                        eventSyncer: app.eventSyncer,
-                    })}
+                    {directMessageContainer}
                 </div>
             );
         }
