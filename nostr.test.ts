@@ -7,7 +7,6 @@ import {
 import { utf8Decode } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/ende.ts";
 import {
     blobToBase64,
-    decryptNostrEvent,
     InMemoryAccountContext,
     NostrEvent,
     NostrKind,
