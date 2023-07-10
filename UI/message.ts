@@ -94,18 +94,22 @@ export class ChatMessage_v2 {
         this.author = args.author;
     }
 
-    content(): string | Error {
-        if (this._content != undefined) {
-            return this._content;
+    content = (): string | Error => {
+        // console.log("call", this)
+        // if (this._content != undefined) {
+        //     return this._content;
+        // }
+        // if (this.root_event.kind == NostrKind.TEXT_NOTE) {
+        //     return this.args.content;
+        // }
+        const res = decryptDM(this.args.root_event, this.args.content, this.args.ctx);
+        if (res instanceof Promise) {
+            return this.args.root_event.content;
+        } else {
+            return res;
         }
-        if (this.root_event.kind == NostrKind.TEXT_NOTE) {
-            return this.args.content;
-        }
-        decryptDM(this.args.root_event, this.args.content, this.args.ctx).then((res) => {
-            this._content = res;
-        });
-        return this.args.content;
-    }
+        // return this.args.content;
+    };
 }
 
 export function urlIsImage(url: string) {

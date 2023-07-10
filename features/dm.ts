@@ -388,14 +388,15 @@ function filterDMBetween(myPubKey: string, contactPubKey: string) {
 
 const cache = new Map<string, string | Error>();
 
-export async function decryptDM(event: NostrEvent, content: string, ctx: NostrAccountContext) {
+export function decryptDM(event: NostrEvent, content: string, ctx: NostrAccountContext) {
     const cachedResult = cache.get(event.id);
     if (cachedResult) {
         return cachedResult;
     }
-    const r = await _decryptDM(event, content, ctx);
-    cache.set(event.id, r);
-    return r;
+    return _decryptDM(event, content, ctx).then(res => {
+        cache.set(event.id, res)
+        return res
+    })
 }
 
 async function _decryptDM(event: NostrEvent, content: string, ctx: NostrAccountContext) {
