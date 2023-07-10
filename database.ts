@@ -1,16 +1,8 @@
 import {
-    PublicKey,
-    publicKeyHexFromNpub,
-} from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
-import {
-    DecryptionFailure,
-    decryptNostrEvent,
-    NostrAccountContext,
     NostrEvent,
     NostrKind,
-    RelayResponse_REQ_Message,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
-import { getTags, Tag } from "./nostr.ts";
+import { Tag } from "./nostr.ts";
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 
 export const NotFound = Symbol("Not Found");
