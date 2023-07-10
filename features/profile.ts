@@ -40,7 +40,7 @@ export function profilesStream(
             {
                 authors: Array.from(publicKeys),
                 kinds: [NostrKind.META_DATA],
-                limit: 1,
+                limit: 100, // todo: should use time
             },
         );
         if (resp instanceof Error) {

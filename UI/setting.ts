@@ -10,5 +10,5 @@ export const defaultRelays = [
 ];
 
 export function getRelayURLs(db: Database): string[] {
-    return [];
+    return defaultRelays;
 }

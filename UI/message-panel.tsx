@@ -255,17 +255,9 @@ const jitter = new JitterPrevention(100);
 //     }
 // };
 
-const sortAndSliceMessage = (props: MessageListProps) => {
-    return sortMessage(props.messages);
-    // .slice(
-    //     0,
-    //     currentRenderCount,
-    // );
-};
-
 async function MessageList(props: MessageListProps) {
     const t = Date.now();
-    const groups = groupContinuousMessages(sortAndSliceMessage(props), (pre, cur) => {
+    const groups = groupContinuousMessages(sortMessage(props.messages.slice(0, 75)), (pre, cur) => {
         const sameAuthor = pre.root.root_event.pubkey == cur.root.root_event.pubkey;
         const _66sec = Math.abs(cur.root.created_at.getTime() - pre.root.created_at.getTime()) < 1000 * 60;
         return sameAuthor && _66sec;

@@ -122,7 +122,7 @@ async function initProfileSyncer(
             {
                 authors: [myPublicKey.hex],
                 kinds: [NostrKind.CustomAppData],
-                limit: 1,
+                limit: 100, // todo: should use time
             },
         );
         if (resp instanceof Error) {
