@@ -70,7 +70,7 @@ Deno.test("prepareNostrImageEvents", async (t) => {
             }
             decryptedEvents.push(decryptedEvent);
         }
-        const content = reassembleBase64ImageFromEvents(decryptedEvents, ctx);
+        const content = await reassembleBase64ImageFromEvents(decryptedEvents, ctx);
         assertInstanceOf(content, Error);
     });
 });
