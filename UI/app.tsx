@@ -3,7 +3,6 @@ import { h, render, VNode } from "https://esm.sh/preact@10.11.3";
 import * as dm from "../features/dm.ts";
 
 import { DirectMessageContainer, MessageThread } from "./dm.tsx";
-import { AsyncWebSocket } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/websocket.ts";
 import * as db from "../database.ts";
 
 import { tw } from "https://esm.sh/twind@0.16.16";
@@ -34,7 +33,6 @@ import {
 import {
     ConnectionPool,
     newSubID,
-    SingleRelayConnection,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
 import { getCurrentSignInCtx, setSignInState, SignIn } from "./signIn.tsx";
 import { AppList } from "./app-list.tsx";

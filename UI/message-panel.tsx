@@ -23,10 +23,8 @@ import { UserDetail } from "./user-detail.tsx";
 import { MessageThreadPanel } from "./message-thread-panel.tsx";
 import { Database } from "../database.ts";
 import {
-    DividerBackgroundColor,
     HoverButtonBackgroudColor,
     LinkColor,
-    PrimaryBackgroundColor,
     PrimaryTextColor,
 } from "./style/colors.ts";
 import { ProfilesSyncer, UserInfo } from "./contact-list.ts";
@@ -139,7 +137,6 @@ export async function MessagePanel(props: DirectMessagePanelProps) {
         profilesSyncer: props.profilesSyncer,
         eventSyncer: props.eventSyncer,
     });
-    console.log("------", messageList);
     if (messageList instanceof Error) {
         return messageList;
     }
@@ -188,20 +185,12 @@ export async function MessagePanel(props: DirectMessagePanelProps) {
 
 interface MessageListProps {
     ctx: NostrAccountContext;
-    // allUserInfo: Map<string, UserInfo>
     messages: MessageThread[];
     db: Database;
     eventEmitter: EventEmitter<DirectMessagePanelUpdate>;
     profilesSyncer: ProfilesSyncer;
     eventSyncer: EventSyncer;
 }
-
-interface MessageListState {
-    currentRenderCount: number;
-}
-
-const ItemsOfPerPage = 100;
-let currentRenderCount = ItemsOfPerPage;
 
 class JitterPrevention {
     constructor(private duration: number) {}
@@ -220,40 +209,6 @@ class JitterPrevention {
     }
 }
 const jitter = new JitterPrevention(100);
-// export class MessageList_ extends Component<MessageListProps, MessageListState> {
-//     constructor(public props: MessageListProps) {
-//         super();
-//     }
-//     messagesULElement = createRef<HTMLUListElement>();
-//     state = {
-//         currentRenderCount: ItemsOfPerPage,
-//     };
-
-//     componentWillReceiveProps() {
-//         this.setState({
-//             currentRenderCount: ItemsOfPerPage,
-//         });
-//     }
-
-// }
-
-// const onScroll = async (e: h.JSX.TargetedUIEvent<HTMLUListElement>) => {
-//     if (
-//         e.currentTarget.scrollHeight - e.currentTarget.offsetHeight +
-//                 e.currentTarget.scrollTop < 1000
-//     ) {
-//         const ok = await jitter.shouldExecute();
-//         if (!ok || currentRenderCount >= props.messages.length) {
-//             return;
-//         }
-//         this.setState({
-//             currentRenderCount: Math.min(
-//                 this.state.currentRenderCount + ItemsOfPerPage,
-//                 this.props.messages.length,
-//             ),
-//         });
-//     }
-// };
 
 async function MessageList(props: MessageListProps) {
     const t = Date.now();
