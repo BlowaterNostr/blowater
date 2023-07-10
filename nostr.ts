@@ -13,6 +13,7 @@ import {
     prepareNormalNostrEvent,
     TagPubKey,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
+import { decryptDM } from "./features/dm.ts";
 
 type TotolChunks = string;
 type ChunkIndex = string; // 0-indexed
@@ -112,8 +113,9 @@ export async function prepareNostrImageEvents(
     return [events, groupLeadEventID];
 }
 
-export function reassembleBase64ImageFromEvents(
+export async function reassembleBase64ImageFromEvents(
     events: nostr.NostrEvent[],
+    ctx: nostr.NostrAccountContext,
 ) {
     if (events.length === 0) {
         return "";
@@ -136,7 +138,11 @@ export function reassembleBase64ImageFromEvents(
         }
         const [_2, _3, chunkIndex] = imageTag;
         const cIndex = Number(chunkIndex);
-        chunks[cIndex] = event.content;
+        const decryptedContent = await decryptDM(event, ctx);
+        if (decryptedContent instanceof Error) {
+            return decryptedContent;
+        }
+        chunks[cIndex] = decryptedContent;
     }
 
     if (chunks.includes(null)) {

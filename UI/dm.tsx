@@ -38,7 +38,7 @@ export type MessageThread = {
     replies: ChatMessage[];
 };
 
-export function DirectMessageContainer(props: DirectMessageContainerProps) {
+export async function DirectMessageContainer(props: DirectMessageContainerProps) {
     const t = Date.now();
     const currentConversation = props.currentSelectedContact;
     // todo: refactor it to be more performant
@@ -63,12 +63,16 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
 
     let messagePanel: VNode | undefined;
     if (currentEditorModel) {
-        const convoMsgs = getConversationMessages({
+        const convoMsgs = await getConversationMessages({
             database: props.db,
             pub1: props.myAccountContext.publicKey.hex,
             pub2: currentEditorModel.target.receiver.pubkey.hex,
             allUserInfo: props.allUserInfo,
+            ctx: props.myAccountContext,
         });
+        if (convoMsgs instanceof Error) {
+            return convoMsgs;
+        }
         console.log("DirectMessageContainer:convoMsgs", Date.now() - t);
 
         const focusedContent = (() => {

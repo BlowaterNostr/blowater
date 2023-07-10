@@ -393,7 +393,19 @@ function filterDMBetween(myPubKey: string, contactPubKey: string) {
     };
 }
 
+const cache = new Map<string, string | Error>();
+
 export async function decryptDM(event: NostrEvent, ctx: NostrAccountContext) {
+    const cachedResult = cache.get(event.id);
+    if (cachedResult) {
+        return cachedResult;
+    }
+    const r = await _decryptDM(event, ctx);
+    cache.set(event.id, r);
+    return r;
+}
+
+async function _decryptDM(event: NostrEvent, ctx: NostrAccountContext) {
     const isSender = event.pubkey == ctx.publicKey.hex;
     const pTags = getTags(event).p;
     if (pTags.length > 0) {

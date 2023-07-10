@@ -8,6 +8,7 @@ import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr
 import { ContactGroup } from "./contact-list.tsx";
 import { SearchModel } from "./search_model.ts";
 import { UserInfo } from "./contact-list.ts";
+import { decryptDM } from "../features/dm.ts";
 
 export type DM_Container_Model = {
     search: SearchModel;
@@ -18,10 +19,11 @@ export type DM_Container_Model = {
     hasNewMessages: Set<string>;
 };
 
-export function convertEventsToChatMessages(
+export async function convertEventsToChatMessages(
     events: Iterable<NostrEvent>,
     userProfiles: Map<string, UserInfo>,
-): ChatMessage[] {
+    ctx: NostrAccountContext,
+): Promise<ChatMessage[] | Error> {
     const messages: ChatMessage[] = [];
     const groups = groupImageEvents(events);
     let pubKeys = Array.from(groups.values()).map((es) => es[0].pubkey);
@@ -40,9 +42,13 @@ export function convertEventsToChatMessages(
         if (pubkey instanceof Error) {
             throw new Error(textEvents[i].pubkey);
         }
+        const decryptedContent = await decryptDM(textEvents[i], ctx);
+        if (decryptedContent instanceof Error) {
+            return decryptedContent;
+        }
         messages.push({
             event: textEvents[i],
-            content: textEvents[i].content,
+            content: decryptedContent, // textEvents[i].content,
             type: "text",
             created_at: new Date(textEvents[i].created_at * 1000),
             author: {
@@ -55,7 +61,7 @@ export function convertEventsToChatMessages(
     }
 
     for (const imageEvents of groups.values()) {
-        const imageBase64 = reassembleBase64ImageFromEvents(imageEvents);
+        const imageBase64 = await reassembleBase64ImageFromEvents(imageEvents, ctx);
         if (imageBase64 instanceof Error) {
             console.info(imageBase64.message);
             continue;

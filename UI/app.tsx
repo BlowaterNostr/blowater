@@ -59,19 +59,22 @@ export async function Start(database: Database) {
         }
     }
 
-    /* first render */ render(<AppComponent app={app} />, document.body);
+    const appComponent = await AppComponent({ app });
+    /* first render */ render(appComponent, document.body);
 
     for await (let _ of UI_Interaction_Update(app, app.profileSyncer, lamport)) {
         const t = Date.now();
         {
-            render(<AppComponent app={app} />, document.body);
+            const appComponent = await AppComponent({ app });
+            render(appComponent, document.body);
         }
         console.log("render", Date.now() - t);
     }
 
     (async () => {
         for await (let _ of Relay_Update(app.relayPool)) {
-            render(<AppComponent app={app} />, document.body);
+            const appComponent = await AppComponent({ app });
+            render(appComponent, document.body);
         }
     })();
 }
@@ -229,7 +232,8 @@ export class App {
                     this.eventBus,
                 )
             ) {
-                render(<AppComponent app={this} />, document.body);
+                const appComponent = await AppComponent({ app: this });
+                render(appComponent, document.body);
                 console.log(`render ${++i} times`);
             }
         })();
@@ -241,7 +245,7 @@ export class App {
     };
 }
 
-export function AppComponent(props: {
+export async function AppComponent(props: {
     app: App;
 }) {
     const t = Date.now();
@@ -353,7 +357,7 @@ export function AppComponent(props: {
                 <div
                     class={tw`flex-1 overflow-hidden`}
                 >
-                    {DirectMessageContainer({
+                    {await DirectMessageContainer({
                         editors: app.model.editors,
                         ...app.model.dm,
                         rightPanelModel: app.model.rightPanelModel,
