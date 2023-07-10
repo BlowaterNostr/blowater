@@ -216,7 +216,7 @@ function MessageList(props: MessageListProps) {
     console.log("MessageList:groupContinuousMessages", Date.now() - t);
     const messageBoxGroups: h.JSX.Element[] = [];
     for (const threads of groups) {
-        const boxGroup =  MessageBoxGroup({
+        const boxGroup = MessageBoxGroup({
             messageGroup: threads.map((thread) => {
                 return {
                     msg: thread.root,
@@ -438,7 +438,7 @@ export function ParseMessageContent(
     eventSyncer: EventSyncer,
     eventEmitter: EventEmitter<ViewUserDetail>,
 ) {
-    const content = message.content();  // todo: pass a render call signal
+    const content = message.content(); // todo: pass a render call signal
     if (content instanceof Error) {
         return content;
     }

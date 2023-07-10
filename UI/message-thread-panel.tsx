@@ -106,9 +106,15 @@ function MessageThreadBoxGroup(props: {
     const vnode = (
         <ul class={tw`py-2`}>
             {props.messages.map((msg, index) => {
-                const parsed = ParseMessageContent(msg, props.db, props.profilesSyncer, props.eventSyncer, props.eventEmitter)
-                if(parsed instanceof Error) {
-                    console.warn(parsed.message)
+                const parsed = ParseMessageContent(
+                    msg,
+                    props.db,
+                    props.profilesSyncer,
+                    props.eventSyncer,
+                    props.eventEmitter,
+                );
+                if (parsed instanceof Error) {
+                    console.warn(parsed.message);
                     return undefined;
                 }
                 return (

@@ -95,16 +95,16 @@ export class ChatMessage_v2 {
     }
 
     content(): string | Error {
-        if(this._content != undefined) {
+        if (this._content != undefined) {
             return this._content;
         }
         if (this.root_event.kind == NostrKind.TEXT_NOTE) {
             return this.args.content;
         }
-        decryptDM(this.args.root_event, this.args.content, this.args.ctx).then(res => {
-            this._content = res
-        })
-        return this.args.content
+        decryptDM(this.args.root_event, this.args.content, this.args.ctx).then((res) => {
+            this._content = res;
+        });
+        return this.args.content;
     }
 }
 

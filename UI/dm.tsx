@@ -64,7 +64,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
 
     let messagePanel: VNode | Error | undefined;
     if (currentEditorModel) {
-        const convoMsgs =  getConversationMessages({
+        const convoMsgs = getConversationMessages({
             database: props.db,
             pub1: props.myAccountContext.publicKey.hex,
             pub2: currentEditorModel.target.receiver.pubkey.hex,
