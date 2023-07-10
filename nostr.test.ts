@@ -26,7 +26,7 @@ import { PrivateKey } from "https://raw.githubusercontent.com/BlowaterNostr/nost
 Deno.test("prepareNostrImageEvents", async (t) => {
     const pri = PrivateKey.Generate();
     const pub = pri.toPublicKey().hex;
-    const ctx = InMemoryAccountContext.New(pri)
+    const ctx = InMemoryAccountContext.New(pri);
 
     let randomData = new Uint8Array(1024 * 48); // 48KB raw data
     for (let i = 0; i < randomData.length; i++) {
