@@ -48,7 +48,7 @@ export async function convertEventsToChatMessages(
         }
         messages.push({
             event: textEvents[i],
-            content: decryptedContent, // textEvents[i].content,
+            content: decryptedContent,
             type: "text",
             created_at: new Date(textEvents[i].created_at * 1000),
             author: {

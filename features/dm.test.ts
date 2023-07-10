@@ -99,52 +99,6 @@ Deno.test("sendDMandImages", async (t) => {
     await pool.close();
 });
 
-// Deno.test("sendDirectMessage", async () => {
-//     const pool = new ConnectionPool();
-//     const ps = [];
-//     for (let url of relays) {
-//         const relay = SingleRelayConnection.New(url, AsyncWebSocket.New);
-//         if (relay instanceof Error) {
-//             fail(relay.message);
-//         }
-//         const p = pool.addRelay(relay);
-//         ps.push(p);
-//     }
-//     await Promise.all(ps);
-//     const eventID = await sendDirectMessage(
-//         InMemoryAccountContext.New(testPrivateKey),
-//         publicKeyFromNpub(myPublicKey),
-//         "sendDirectMessage",
-//         pool,
-//     );
-//     if (eventID instanceof Error) {
-//         fail(eventID.message);
-//     }
-//     const oks = await pool.waitEventOK(eventID, false);
-//     console.log(oks);
-//     await pool.close();
-// });
-
-// Deno.test("getAllDecryptedMessagesOf", async () => {
-//     const pool = new ConnectionPool();
-//     const relay = SingleRelayConnection.New(relays[0], AsyncWebSocket.New);
-//     if (relay instanceof Error) {
-//         fail(relay.message);
-//     }
-//     const err = await pool.addRelay(relay);
-//     if (err instanceof Error) {
-//         fail(err.message);
-//     }
-//     let stream = getAllDecryptedMessagesOf(InMemoryAccountContext.New(testPrivateKey), pool, 3);
-//     try {
-//         await stream.next();
-//         await stream.next();
-//     } catch (e) {
-//         console.log(e);
-//     }
-//     await pool.close();
-// });
-
 Deno.test("messagesBetween", async () => {
     const pool = new ConnectionPool();
     const relay = SingleRelayConnection.New(relays[0], AsyncWebSocket.New);
