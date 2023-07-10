@@ -4,11 +4,12 @@ import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/maste
 import { EventBus } from "../event-bus.ts";
 import { UI_Interaction_Event } from "./app_update.ts";
 import { RelaySetting } from "./setting.tsx";
-import { relays } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay-list.test.ts";
+
 import { ConnectionPool } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
+import { defaultRelays } from "./setting.ts";
 
 const pool = new ConnectionPool();
-pool.addRelayURLs(relays).then((errs) => {
+pool.addRelayURLs(defaultRelays).then((errs) => {
     if (errs) {
         console.log(errs);
     }
