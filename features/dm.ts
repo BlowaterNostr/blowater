@@ -158,11 +158,14 @@ async function* getAllEncryptedMessagesSendBy(
     limit?: number,
     since?: number,
 ) {
-    publicKey = publicKeyHexFromNpub(publicKey);
+    const pubkey = publicKeyHexFromNpub(publicKey);
+    if (pubkey instanceof Error) {
+        throw new Error("Invalid pubkey");
+    }
     let resp = await relay.newSub(
         newSubID(),
         {
-            authors: [publicKey],
+            authors: [pubkey],
             kinds: [4],
             limit: limit,
             since: since,
@@ -182,13 +185,16 @@ async function* getAllEncryptedMessagesReceivedBy(
     limit?: number,
     since?: number,
 ) {
-    publicKey = publicKeyHexFromNpub(publicKey);
+    const pubkey = publicKeyHexFromNpub(publicKey);
+    if (pubkey instanceof Error) {
+        throw new Error("Invalid pubkey");
+    }
     const subid = newSubID();
     let resp = await relay.newSub(
         subid,
         {
             kinds: [4],
-            "#p": [publicKey],
+            "#p": [pubkey],
             limit: limit,
             since: since,
         },
@@ -202,13 +208,16 @@ async function* getAllEncryptedMessagesReceivedBy(
 }
 
 async function* getEncryptedMessagesBetween(
-    senderPubKey: string,
-    receiverPubKey: string,
+    sender: string,
+    receiver: string,
     relay: ConnectionPool,
     limit: number,
 ) {
-    senderPubKey = publicKeyHexFromNpub(senderPubKey);
-    receiverPubKey = publicKeyHexFromNpub(receiverPubKey);
+    const senderPubKey = publicKeyHexFromNpub(sender);
+    const receiverPubKey = publicKeyHexFromNpub(receiver);
+    if (senderPubKey instanceof Error || receiverPubKey instanceof Error) {
+        throw new Error("Invalid sender publickey or receiver publickey");
+    }
     let resp = await relay.newSub(
         newSubID(),
         {
@@ -228,11 +237,14 @@ async function* getEncryptedMessagesBetween(
 
 async function* messagesSendByMeTo(
     myPriKey: string,
-    receiverPubKey: string,
+    receiver: string,
     relay: ConnectionPool,
     limit: number,
 ) {
-    receiverPubKey = publicKeyHexFromNpub(receiverPubKey);
+    const receiverPubKey = publicKeyHexFromNpub(receiver);
+    if (receiverPubKey instanceof Error) {
+        throw new Error("Invalid receiver pubkey");
+    }
     const myPri = PrivateKey.FromHex(myPriKey) as PrivateKey;
     for await (
         let { res: relayResponse } of getEncryptedMessagesBetween(
@@ -248,11 +260,14 @@ async function* messagesSendByMeTo(
 
 async function* messagesSendToMeBy(
     myPriKey: string,
-    senderPubKey: string,
+    sender: string,
     relay: ConnectionPool,
     limit: number,
 ) {
-    senderPubKey = publicKeyHexFromNpub(senderPubKey);
+    const senderPubKey = publicKeyHexFromNpub(sender);
+    if (senderPubKey instanceof Error) {
+        throw new Error("Invalid sender pubkey");
+    }
     const myPri = PrivateKey.FromHex(myPriKey) as PrivateKey;
     for await (
         let { res: relayResponse } of getEncryptedMessagesBetween(

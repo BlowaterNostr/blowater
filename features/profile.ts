@@ -33,7 +33,15 @@ export function profilesStream(
 ) {
     const chan = csp.chan<[NostrEvent, string]>();
     (async () => {
-        const hexPublicKeys = Array.from(publicKeys).map((k) => publicKeyHexFromNpub(k));
+        const hexPublicKeys = [];
+        for (const k of publicKeys) {
+            const key = publicKeyHexFromNpub(k);
+            if (key instanceof Error) {
+                continue;
+            }
+
+            hexPublicKeys.push(key);
+        }
         let subId = newSubID();
         let resp = await pool.newSub(
             subId,

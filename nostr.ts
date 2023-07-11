@@ -74,13 +74,16 @@ export function getTags(event: Event): Tags {
 
 export async function prepareNostrImageEvents(
     sender: nostr.NostrAccountContext,
-    receiverPublicKey: string,
+    receiver: string,
     blob: Blob,
     kind: nostr.NostrKind,
     tags?: Tag[],
 ): Promise<[nostr.NostrEvent[], string] | Error> {
     // prepare nostr event
-    receiverPublicKey = publicKeyHexFromNpub(receiverPublicKey);
+    const receiverPublicKey = publicKeyHexFromNpub(receiver);
+    if (receiverPublicKey instanceof Error) {
+        throw new Error("Invalid receiver publick key");
+    }
 
     // read the blob
     const binaryContent = await nostr.blobToBase64(blob);
