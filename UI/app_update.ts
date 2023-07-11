@@ -17,7 +17,7 @@ import { DirectMessagePanelUpdate } from "./message-panel.tsx";
 import { NavigationUpdate } from "./nav.tsx";
 import { Model } from "./app_model.ts";
 import { SearchUpdate, SelectProfile } from "./search_model.ts";
-import { LamportTime } from "../time.ts";
+import { fromEvents, LamportTime } from "../time.ts";
 import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 import {
     NostrAccountContext,
@@ -29,6 +29,7 @@ import { ConnectionPool } from "https://raw.githubusercontent.com/BlowaterNostr/
 import { SignInEvent, signInWithExtension, signInWithPrivateKey } from "./signIn.tsx";
 import { computeThreads, getTags, PinContact, UnpinContact } from "../nostr.ts";
 import { MessageThread } from "./dm.tsx";
+import { DexieDatabase } from "./dexie-db.ts";
 
 export type UI_Interaction_Event =
     | RemoveRelayButtonClicked
@@ -66,22 +67,29 @@ export type AppEventBus = EventBus<UI_Interaction_Event>;
 // UI Interfaction //
 /////////////////////
 export async function* UI_Interaction_Update(
-    app: App,
-    profileSyncer: ProfilesSyncer,
-    lamport: LamportTime,
+    model: Model,
+    eventBus: AppEventBus,
+    dexieDB: DexieDatabase,
+    pool: ConnectionPool,
 ) {
-    const events = app.eventBus.onChange();
+    const events = eventBus.onChange();
     for await (const event of events) {
         console.log(event);
         switch (event.type) {
             case "editSignInPrivateKey":
-                app.model.signIn.privateKey = event.privateKey;
+                model.signIn.privateKey = event.privateKey;
+                yield model;
+                continue;
                 break;
             case "createNewAccount":
-                app.model.signIn.state = "newAccount";
+                model.signIn.state = "newAccount";
+                yield model;
+                continue;
                 break;
             case "backToSignInPage":
-                app.model.signIn.state = "enterPrivateKey";
+                model.signIn.state = "enterPrivateKey";
+                yield model;
+                continue;
                 break;
             case "signin":
                 let ctx;
@@ -91,63 +99,75 @@ export async function* UI_Interaction_Update(
                     const ctx2 = await signInWithExtension();
                     console.log(ctx2);
                     if (typeof ctx2 == "string") {
-                        app.model.signIn.warningString = ctx2;
+                        model.signIn.warningString = ctx2;
                     } else if (ctx2 instanceof Error) {
-                        app.model.signIn.warningString = ctx2.message;
+                        model.signIn.warningString = ctx2.message;
                     } else {
                         ctx = ctx2;
                     }
                 }
                 if (ctx) {
                     console.log("sign in as", ctx.publicKey.bech32());
+                    const dbView = await Database_Contextual_View.New(dexieDB, ctx);
+                    const lamport = fromEvents(dbView.filterEvents((_) => true));
+                    const app = new App(dbView, lamport, model, ctx, eventBus, pool);
                     const err = await app.initApp(ctx);
                     if (err instanceof Error) {
                         console.error(err.message);
                     }
+                    model.app = app;
                 } else {
                     console.error("failed to sign in");
                 }
+                yield model;
+                continue;
                 break;
         }
 
+        if (model.app == undefined) { // if not signed in
+            console.warn(event, "is not valid before signing");
+            console.warn("This could not happen!");
+            continue;
+        }
+        // All events below are only valid after signning in
         //
         // Relay
         //
         if (event.type == "AddRelayButtonClicked") {
             // todo: need to think about concurrent/async UI update
-            app.relayPool.addRelayURL(event.url).then((err) => {
+            model.app.relayPool.addRelayURL(event.url).then((err) => {
                 if (err instanceof Error) {
-                    app.model.AddRelayButtonClickedError = err.message;
+                    model.AddRelayButtonClickedError = err.message;
                 } else {
-                    app.model.AddRelayButtonClickedError = "";
+                    model.AddRelayButtonClickedError = "";
                 }
             });
-            app.model.AddRelayInput = "";
+            model.AddRelayInput = "";
         } else if (event.type == "AddRelayInputChange") {
-            app.model.AddRelayInput = event.url;
+            model.AddRelayInput = event.url;
         } else if (event.type == "RemoveRelayButtonClicked") {
-            await app.relayPool.removeRelay(event.url);
+            await model.app.relayPool.removeRelay(event.url);
         } //
         //
         // Search
         //
         else if (event.type == "CancelSearch") {
-            app.model.dm.search.isSearching = false;
-            app.model.dm.search.searchResults = [];
+            model.dm.search.isSearching = false;
+            model.dm.search.searchResults = [];
         } else if (event.type == "StartSearch") {
-            app.model.dm.search.isSearching = true;
+            model.dm.search.isSearching = true;
         } else if (event.type == "Search") {
             const pubkey = PublicKey.FromString(event.text);
             if (pubkey instanceof PublicKey) {
-                await profileSyncer.add(pubkey.hex);
-                const profile = getProfileEvent(app.database, pubkey);
-                app.model.dm.search.searchResults = [{
+                await model.app.profileSyncer.add(pubkey.hex);
+                const profile = getProfileEvent(model.app.database, pubkey);
+                model.dm.search.searchResults = [{
                     pubkey: pubkey,
                     profile: profile?.content,
                 }];
             } else {
-                const profiles = getProfilesByName(app.database, event.text);
-                app.model.dm.search.searchResults = profiles.map((p) => {
+                const profiles = getProfilesByName(model.app.database, event.text);
+                model.dm.search.searchResults = profiles.map((p) => {
                     const pubkey = PublicKey.FromString(p.pubkey);
                     if (pubkey instanceof Error) {
                         throw new Error("impossible");
@@ -163,38 +183,35 @@ export async function* UI_Interaction_Update(
         // Contacts
         //
         else if (event.type == "SelectProfile") {
-            if (!app.myAccountContext) {
-                throw new Error(`can't handle SelectProfile if not signed`);
-            }
-            app.model.dm.search.isSearching = false;
-            app.model.dm.search.searchResults = [];
-            app.model.rightPanelModel = {
+            model.dm.search.isSearching = false;
+            model.dm.search.searchResults = [];
+            model.rightPanelModel = {
                 show: false,
             };
             const group = getGroupOf(
                 event.pubkey,
-                getAllUsersInformation(app.database, app.myAccountContext),
+                getAllUsersInformation(model.app.database, model.app.myAccountContext),
             );
-            app.model.dm.selectedContactGroup = group;
-            updateConversation(app.model, event.pubkey);
+            model.dm.selectedContactGroup = group;
+            updateConversation(model.app.model, event.pubkey);
 
-            if (!app.model.dm.focusedContent.get(event.pubkey.hex)) {
-                app.model.dm.focusedContent.set(event.pubkey.hex, event.pubkey);
+            if (!model.dm.focusedContent.get(event.pubkey.hex)) {
+                model.dm.focusedContent.set(event.pubkey.hex, event.pubkey);
             }
         } else if (event.type == "BackToContactList") {
-            app.model.dm.currentSelectedContact = undefined;
+            model.dm.currentSelectedContact = undefined;
         } else if (event.type == "SelectGroup") {
-            app.model.dm.selectedContactGroup = event.group;
+            model.dm.selectedContactGroup = event.group;
         } else if (event.type == "PinContact" || event.type == "UnpinContact") {
-            if (!app.myAccountContext) {
+            if (!model.app.myAccountContext) {
                 throw new Error(`can't handle ${event.type} if not signed`);
             }
-            const nostrEvent = await prepareCustomAppDataEvent(app.myAccountContext, event);
+            const nostrEvent = await prepareCustomAppDataEvent(model.app.myAccountContext, event);
             if (nostrEvent instanceof Error) {
                 console.error(nostrEvent);
                 continue;
             }
-            const err = await app.relayPool.sendEvent(nostrEvent);
+            const err = await model.app.relayPool.sendEvent(nostrEvent);
             if (err instanceof Error) {
                 console.error(err);
             }
@@ -204,18 +221,18 @@ export async function* UI_Interaction_Update(
         // Editor
         //
         else if (event.type == "SendMessage") {
-            if (!app.myAccountContext) {
+            if (!model.app.myAccountContext) {
                 throw new Error(`can't handle ${event.type} if not signed`);
             }
             if (event.target.kind == NostrKind.DIRECT_MESSAGE) {
                 const err = await sendDMandImages({
-                    sender: app.myAccountContext,
+                    sender: model.app.myAccountContext,
                     receiverPublicKey: event.target.receiver.pubkey,
                     message: event.text,
                     files: event.files,
                     kind: event.target.kind,
-                    lamport_timestamp: lamport.now(),
-                    pool: app.relayPool,
+                    lamport_timestamp: model.app.lamport.now(),
+                    pool: model.app.relayPool,
                     waitAll: false,
                     tags: event.tags,
                 });
@@ -223,24 +240,24 @@ export async function* UI_Interaction_Update(
                     console.error("update:SendMessage", err);
                     continue; // todo: global error toast
                 }
-                const editor = app.model.editors.get(event.id);
+                const editor = model.editors.get(event.id);
                 if (editor) {
                     editor.files = [];
                     editor.text = "";
                 }
             } else {
                 sendSocialPost({
-                    sender: app.myAccountContext,
+                    sender: model.app.myAccountContext,
                     message: event.text,
-                    lamport_timestamp: lamport.now(),
-                    pool: app.relayPool,
+                    lamport_timestamp: model.app.lamport.now(),
+                    pool: model.app.relayPool,
                     tags: event.tags,
                 });
                 if (event.id == "social") {
-                    app.model.social.editor.files = [];
-                    app.model.social.editor.text = "";
+                    model.social.editor.files = [];
+                    model.social.editor.text = "";
                 }
-                const editor = app.model.social.replyEditors.get(event.id);
+                const editor = model.social.replyEditors.get(event.id);
                 if (editor) {
                     editor.files = [];
                     editor.text = "";
@@ -248,7 +265,7 @@ export async function* UI_Interaction_Update(
             }
         } else if (event.type == "UpdateMessageFiles") {
             if (event.target.kind == NostrKind.DIRECT_MESSAGE) {
-                const editor = app.model.editors.get(event.id);
+                const editor = model.editors.get(event.id);
                 if (editor) {
                     editor.files = event.files;
                 } else {
@@ -257,9 +274,9 @@ export async function* UI_Interaction_Update(
                 }
             } else {
                 if (event.id == "social") {
-                    app.model.social.editor.files = event.files;
+                    model.social.editor.files = event.files;
                 } else {
-                    const editor = app.model.social.replyEditors.get(event.id);
+                    const editor = model.social.replyEditors.get(event.id);
                     if (editor) {
                         editor.files = event.files;
                     } else {
@@ -269,7 +286,7 @@ export async function* UI_Interaction_Update(
             }
         } else if (event.type == "UpdateMessageText") {
             if (event.target.kind == NostrKind.DIRECT_MESSAGE) {
-                const editor = app.model.editors.get(event.id);
+                const editor = model.editors.get(event.id);
                 if (editor) {
                     editor.text = event.text;
                 } else {
@@ -278,9 +295,9 @@ export async function* UI_Interaction_Update(
                 }
             } else {
                 if (event.id == "social") {
-                    app.model.social.editor.text = event.text;
+                    model.social.editor.text = event.text;
                 } else {
-                    const editor = app.model.social.replyEditors.get(event.id);
+                    const editor = model.social.replyEditors.get(event.id);
                     if (editor) {
                         editor.text = event.text;
                     } else {
@@ -293,30 +310,30 @@ export async function* UI_Interaction_Update(
         // MyProfile
         //
         else if (event.type == "EditMyProfile") {
-            app.model.myProfile = Object.assign(app.model.myProfile || {}, event.profile);
+            model.myProfile = Object.assign(model.myProfile || {}, event.profile);
         } else if (event.type == "SaveMyProfile") {
-            if (!app.myAccountContext) {
+            if (!model.app.myAccountContext) {
                 throw new Error(`can't handle ${event.type} if not signed`);
             }
-            InsertNewProfileField(app.model);
+            InsertNewProfileField(model.app.model);
             await saveProfile(
                 event.profile,
-                app.myAccountContext,
-                app.relayPool,
+                model.app.myAccountContext,
+                model.app.relayPool,
             );
         } else if (event.type == "EditNewProfileFieldKey") {
-            app.model.newProfileField.key = event.key;
+            model.newProfileField.key = event.key;
         } else if (event.type == "EditNewProfileFieldValue") {
-            app.model.newProfileField.value = event.value;
+            model.newProfileField.value = event.value;
         } else if (event.type == "InsertNewProfileField") {
-            InsertNewProfileField(app.model);
+            InsertNewProfileField(model.app.model);
         } //
         //
         // Navigation
         //
         else if (event.type == "ChangeNavigation") {
-            app.model.navigationModel.activeNav = event.index;
-            app.model.rightPanelModel = {
+            model.navigationModel.activeNav = event.index;
+            model.rightPanelModel = {
                 show: false,
             };
         } //
@@ -324,35 +341,35 @@ export async function* UI_Interaction_Update(
         // DM
         //
         else if (event.type == "ToggleRightPanel") {
-            app.model.rightPanelModel.show = event.show;
+            model.rightPanelModel.show = event.show;
         } else if (event.type == "ViewThread") {
-            if (app.model.navigationModel.activeNav == "Social") {
-                app.model.social.focusedContent = event.root;
-            } else if (app.model.navigationModel.activeNav == "DM") {
-                if (app.model.dm.currentSelectedContact) {
-                    app.model.dm.focusedContent.set(
-                        app.model.dm.currentSelectedContact.hex,
+            if (model.navigationModel.activeNav == "Social") {
+                model.social.focusedContent = event.root;
+            } else if (model.navigationModel.activeNav == "DM") {
+                if (model.dm.currentSelectedContact) {
+                    model.dm.focusedContent.set(
+                        model.dm.currentSelectedContact.hex,
                         event.root,
                     );
                 }
             }
-            app.model.rightPanelModel.show = true;
+            model.rightPanelModel.show = true;
         } else if (event.type == "ViewUserDetail") {
-            if (app.model.navigationModel.activeNav == "Social") {
-                app.model.social.focusedContent = event.pubkey;
+            if (model.navigationModel.activeNav == "Social") {
+                model.social.focusedContent = event.pubkey;
             } else if (
-                app.model.navigationModel.activeNav == "DM"
+                model.navigationModel.activeNav == "DM"
             ) {
-                if (app.model.dm.currentSelectedContact) {
-                    app.model.dm.focusedContent.set(
-                        app.model.dm.currentSelectedContact.hex,
+                if (model.dm.currentSelectedContact) {
+                    model.dm.focusedContent.set(
+                        model.dm.currentSelectedContact.hex,
                         event.pubkey,
                     );
                 }
             }
-            app.model.rightPanelModel.show = true;
+            model.rightPanelModel.show = true;
         }
-        yield app.model;
+        yield model;
     }
 }
 

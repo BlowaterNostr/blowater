@@ -262,11 +262,11 @@ function merge<T>(...iters: AsyncIterable<T>[]) {
 //////////////////
 
 // get the messages send by and received by pubkey
-export function getDirectMessageEventsOf(db: Database_Contextual_View, pubkey: string) {
+export function getDirectMessageEventsOf(db: Database_Contextual_View, pubkey: PublicKey) {
     return db.filterEvents(filterDMof(pubkey));
 }
 
-export function getContactPubkeysOf(db: Database_Contextual_View, pubkey: string): Set<string> | Error {
+export function getContactPubkeysOf(db: Database_Contextual_View, pubkey: PublicKey): Set<string> | Error {
     const msgs = getDirectMessageEventsOf(db, pubkey);
     const contactList = new Set<string>();
     for (const event of msgs) {
@@ -279,7 +279,10 @@ export function getContactPubkeysOf(db: Database_Contextual_View, pubkey: string
     return contactList;
 }
 
-export function getNewestEventOf(db: Database_Contextual_View, pubkey: string): NostrEvent | typeof NotFound {
+export function getNewestEventOf(
+    db: Database_Contextual_View,
+    pubkey: PublicKey,
+): NostrEvent | typeof NotFound {
     const events = Array.from(getDirectMessageEventsOf(db, pubkey));
     if (events.length === 0) {
         return NotFound;
@@ -304,10 +307,10 @@ export function get_Kind4_Events_Between(
     return events;
 }
 
-function filterDMof(pubkey: string) {
+function filterDMof(pubkey: PublicKey) {
     return (e: NostrEvent) => {
-        const isAuthor = e.pubkey === pubkey;
-        const isReceiver = e.tags.filter((t) => t[0] === "p" && t[1] === pubkey).length === 1;
+        const isAuthor = e.pubkey === pubkey.hex;
+        const isReceiver = e.tags.filter((t) => t[0] === "p" && t[1] === pubkey.hex).length === 1;
         const isDM = e.kind === NostrKind.DIRECT_MESSAGE;
         return isDM && (isAuthor || isReceiver);
     };

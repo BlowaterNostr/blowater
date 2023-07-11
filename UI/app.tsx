@@ -3,7 +3,6 @@ import { h, render, VNode } from "https://esm.sh/preact@10.11.3";
 import * as dm from "../features/dm.ts";
 
 import { DirectMessageContainer, MessageThread } from "./dm.tsx";
-import { AsyncWebSocket } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/websocket.ts";
 import * as db from "../database.ts";
 
 import { tw } from "https://esm.sh/twind@0.16.16";
@@ -20,7 +19,13 @@ import { getAllUsersInformation, ProfilesSyncer, UserInfo } from "./contact-list
 import { new_DM_EditorModel } from "./editor.tsx";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { initialModel, Model } from "./app_model.ts";
-import { Database_Update, Relay_Update, UI_Interaction_Event, UI_Interaction_Update } from "./app_update.ts";
+import {
+    AppEventBus,
+    Database_Update,
+    Relay_Update,
+    UI_Interaction_Event,
+    UI_Interaction_Update,
+} from "./app_update.ts";
 import { getSocialPosts } from "../features/social.ts";
 import * as time from "../time.ts";
 import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
@@ -34,7 +39,6 @@ import {
 import {
     ConnectionPool,
     newSubID,
-    SingleRelayConnection,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
 import { getCurrentSignInCtx, setSignInState, SignIn } from "./signIn.tsx";
 import { AppList } from "./app-list.tsx";
@@ -44,36 +48,41 @@ import { getRelayURLs } from "./setting.ts";
 import { DexieDatabase } from "./dexie-db.ts";
 
 export async function Start(database: DexieDatabase) {
+    const model = initialModel();
+    const eventBus = new EventBus<UI_Interaction_Event>();
+    const pool = new ConnectionPool();
+
     console.log("Start the application");
-    const dbView = await Database_Contextual_View.New(database);
-    const lamport = time.fromEvents(dbView.filterEvents((_) => true));
-    const app = new App(dbView, lamport);
+
     const ctx = await getCurrentSignInCtx();
     console.log("Start:", ctx);
     if (ctx instanceof Error) {
         console.error(ctx);
-        app.model.signIn.warningString = "Please add your private key to your NIP-7 extension";
+        model.signIn.warningString = "Please add your private key to your NIP-7 extension";
     } else if (ctx) {
-        app.myAccountContext = ctx;
+        const dbView = await Database_Contextual_View.New(database, ctx);
+        const lamport = time.fromEvents(dbView.filterEvents((_) => true));
+        const app = new App(dbView, lamport, model, ctx, eventBus, pool);
         const err = await app.initApp(ctx);
         if (err instanceof Error) {
             throw err;
         }
+        model.app = app;
     }
 
-    /* first render */ render(<AppComponent app={app} />, document.body);
+    /* first render */ render(<AppComponent model={model} eventBus={eventBus} />, document.body);
 
-    for await (let _ of UI_Interaction_Update(app, app.profileSyncer, lamport)) {
+    for await (let _ of UI_Interaction_Update(model, eventBus, database, pool)) {
         const t = Date.now();
         {
-            render(<AppComponent app={app} />, document.body);
+            render(<AppComponent model={model} eventBus={eventBus} />, document.body);
         }
         console.log("render", Date.now() - t);
     }
 
     (async () => {
-        for await (let _ of Relay_Update(app.relayPool)) {
-            render(<AppComponent app={app} />, document.body);
+        for await (let _ of Relay_Update(pool)) {
+            render(<AppComponent model={model} eventBus={eventBus} />, document.body);
         }
     })();
 }
@@ -88,7 +97,7 @@ async function initProfileSyncer(
     ////////////////////
     // Init Core Data //
     ////////////////////
-    const newestEvent = dm.getNewestEventOf(database, myPublicKey.hex);
+    const newestEvent = dm.getNewestEventOf(database, myPublicKey);
     console.info("newestEvent", newestEvent);
     const _24h = 60 * 60 * 24;
     let since: number = _24h;
@@ -162,19 +171,17 @@ async function initProfileSyncer(
 }
 
 export class App {
-    relayPool: ConnectionPool;
-    myAccountContext: NostrAccountContext | undefined;
-    eventBus = new EventBus<UI_Interaction_Event>();
-    model: Model;
     profileSyncer!: ProfilesSyncer;
     eventSyncer: EventSyncer;
 
     constructor(
         public readonly database: Database_Contextual_View,
         public readonly lamport: time.LamportTime,
+        public readonly model: Model,
+        public readonly myAccountContext: NostrAccountContext,
+        public readonly eventBus: EventBus<UI_Interaction_Event>,
+        public readonly relayPool: ConnectionPool,
     ) {
-        this.model = initialModel();
-        this.relayPool = new ConnectionPool();
         this.eventSyncer = new EventSyncer(this.relayPool, this.database);
     }
 
@@ -186,7 +193,6 @@ export class App {
         }
 
         this.profileSyncer = profilesSyncer;
-        this.myAccountContext = accountContext;
 
         const allUsersInfo = getAllUsersInformation(this.database, this.myAccountContext);
         console.log("App allUsersInfo");
@@ -231,7 +237,7 @@ export class App {
                     this.eventBus,
                 )
             ) {
-                render(<AppComponent app={this} />, document.body);
+                render(<AppComponent model={this.model} eventBus={this.eventBus} />, document.body);
                 console.log(`render ${++i} times`);
             }
         })();
@@ -244,33 +250,39 @@ export class App {
 }
 
 export function AppComponent(props: {
-    app: App;
+    model: Model;
+    eventBus: AppEventBus;
 }) {
     const t = Date.now();
-    const app = props.app;
-    const myAccountCtx = app.myAccountContext;
-    if (myAccountCtx == undefined) {
+    const model = props.model;
+
+    if (model.app == undefined) {
         console.log("render sign in page");
         return (
             <SignIn
-                eventBus={app.eventBus}
-                {...app.model.signIn}
+                eventBus={props.eventBus}
+                privateKey={model.signIn.privateKey}
+                state={model.signIn.state}
+                warningString={model.signIn.warningString}
             />
         );
     }
 
+    const app = model.app;
+    const myAccountCtx = model.app.myAccountContext;
+
     let socialPostsPanel: VNode | undefined;
-    if (app.model.navigationModel.activeNav == "Social") {
+    if (model.navigationModel.activeNav == "Social") {
         const allUserInfo = getAllUsersInformation(app.database, myAccountCtx);
         console.log("AppComponent:getSocialPosts before", Date.now() - t);
         const socialPosts = getSocialPosts(app.database, allUserInfo);
         console.log("AppComponent:getSocialPosts after", Date.now() - t, Date.now());
         let focusedContentGetter = () => {
             console.log("AppComponent:getFocusedContent before", Date.now() - t);
-            let _ = getFocusedContent(app.model.social.focusedContent, allUserInfo, socialPosts);
+            let _ = getFocusedContent(model.social.focusedContent, allUserInfo, socialPosts);
             console.log("AppComponent:getFocusedContent", Date.now() - t);
             if (_?.type === "MessageThread") {
-                let editor = app.model.social.replyEditors.get(_.data.root.event.id);
+                let editor = model.social.replyEditors.get(_.data.root.event.id);
                 if (editor == undefined) {
                     editor = {
                         id: _.data.root.event.id,
@@ -283,7 +295,7 @@ export function AppComponent(props: {
                             kind: NostrKind.TEXT_NOTE,
                         },
                     };
-                    app.model.social.replyEditors.set(editor.id, editor);
+                    model.social.replyEditors.set(editor.id, editor);
                 }
                 return {
                     ..._,
@@ -301,10 +313,10 @@ export function AppComponent(props: {
             >
                 <MessagePanel
                     focusedContent={focusedContent}
-                    editorModel={app.model.social.editor}
+                    editorModel={model.social.editor}
                     myPublicKey={myAccountCtx.publicKey}
                     messages={socialPosts}
-                    rightPanelModel={app.model.rightPanelModel}
+                    rightPanelModel={model.rightPanelModel}
                     db={app.database}
                     eventEmitter={app.eventBus}
                     profilesSyncer={app.profileSyncer}
@@ -315,7 +327,7 @@ export function AppComponent(props: {
     }
 
     let settingNode;
-    if (app.model.navigationModel.activeNav == "Setting") {
+    if (model.navigationModel.activeNav == "Setting") {
         settingNode = (
             <div
                 class={tw`flex-1 overflow-hidden overflow-y-auto bg-[${SecondaryBackgroundColor}]`}
@@ -324,8 +336,8 @@ export function AppComponent(props: {
                     logout: app.logout,
                     pool: app.relayPool,
                     eventBus: app.eventBus,
-                    AddRelayButtonClickedError: app.model.AddRelayButtonClickedError,
-                    AddRelayInput: app.model.AddRelayInput,
+                    AddRelayButtonClickedError: model.AddRelayButtonClickedError,
+                    AddRelayInput: model.AddRelayInput,
                     myAccountContext: myAccountCtx,
                 })}
             </div>
@@ -333,7 +345,7 @@ export function AppComponent(props: {
     }
 
     let appList;
-    if (app.model.navigationModel.activeNav == "AppList") {
+    if (model.navigationModel.activeNav == "AppList") {
         appList = (
             <div
                 class={tw`flex-1 overflow-hidden overflow-y-auto bg-[#313338]`}
@@ -346,23 +358,23 @@ export function AppComponent(props: {
     let dmVNode;
     let aboutNode;
     if (
-        app.model.navigationModel.activeNav == "DM" ||
-        app.model.navigationModel.activeNav == "About"
+        model.navigationModel.activeNav == "DM" ||
+        model.navigationModel.activeNav == "About"
     ) {
         const allUserInfo = getAllUsersInformation(app.database, myAccountCtx);
-        if (app.model.navigationModel.activeNav == "DM") {
+        if (model.navigationModel.activeNav == "DM") {
             dmVNode = (
                 <div
                     class={tw`flex-1 overflow-hidden`}
                 >
                     {DirectMessageContainer({
-                        editors: app.model.editors,
-                        ...app.model.dm,
-                        rightPanelModel: app.model.rightPanelModel,
+                        editors: model.editors,
+                        ...model.dm,
+                        rightPanelModel: model.rightPanelModel,
                         eventEmitter: app.eventBus,
                         myAccountContext: myAccountCtx,
                         db: app.database,
-                        pool: props.app.relayPool,
+                        pool: app.relayPool,
                         allUserInfo: allUserInfo,
                         profilesSyncer: app.profileSyncer,
                         eventSyncer: app.eventSyncer,
@@ -371,7 +383,7 @@ export function AppComponent(props: {
             );
         }
 
-        if (app.model.navigationModel.activeNav == "About") {
+        if (model.navigationModel.activeNav == "About") {
             aboutNode = About();
         }
     }
@@ -384,20 +396,20 @@ export function AppComponent(props: {
                 <div class={tw`w-full flex-1 flex overflow-hidden`}>
                     <div class={tw`mobile:hidden`}>
                         {nav.NavBar({
-                            profilePicURL: app.model.myProfile?.picture,
+                            profilePicURL: model.myProfile?.picture,
                             publicKey: myAccountCtx.publicKey,
                             database: app.database,
                             pool: app.relayPool,
                             eventEmitter: app.eventBus,
-                            AddRelayButtonClickedError: app.model.AddRelayButtonClickedError,
-                            AddRelayInput: app.model.AddRelayInput,
-                            ...app.model.navigationModel,
+                            AddRelayButtonClickedError: model.AddRelayButtonClickedError,
+                            AddRelayInput: model.AddRelayInput,
+                            ...model.navigationModel,
                         })}
                     </div>
 
                     <div
                         class={tw`h-full px-[3rem] bg-[${SecondaryBackgroundColor}] flex-1 overflow-auto${
-                            app.model.navigationModel.activeNav == "Profile" ? " block" : " hidden"
+                            model.navigationModel.activeNav == "Profile" ? " block" : " hidden"
                         }`}
                     >
                         <div
@@ -405,8 +417,8 @@ export function AppComponent(props: {
                         >
                             {EditProfile({
                                 eventEmitter: app.eventBus,
-                                myProfile: app.model.myProfile,
-                                newProfileField: app.model.newProfileField,
+                                myProfile: model.myProfile,
+                                newProfileField: model.newProfileField,
                             })}
                         </div>
                     </div>
@@ -419,14 +431,14 @@ export function AppComponent(props: {
 
                 <div class={tw`desktop:hidden`}>
                     <nav.MobileNavBar
-                        profilePicURL={app.model.myProfile?.picture}
+                        profilePicURL={model.myProfile?.picture}
                         publicKey={myAccountCtx.publicKey}
                         database={app.database}
                         pool={app.relayPool}
                         eventEmitter={app.eventBus}
-                        AddRelayButtonClickedError={app.model.AddRelayButtonClickedError}
-                        AddRelayInput={app.model.AddRelayInput}
-                        {...app.model.navigationModel}
+                        AddRelayButtonClickedError={model.AddRelayButtonClickedError}
+                        AddRelayInput={model.AddRelayInput}
+                        {...model.navigationModel}
                     />
                 </div>
             </div>

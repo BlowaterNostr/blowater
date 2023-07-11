@@ -1,20 +1,17 @@
-import { Database_Contextual_View } from "../database.ts";
-
 import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
-import {
-    NostrEvent,
-    NostrKind,
-} from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
+import { NostrEvent } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 
-import { DM_EditorModel, EditorModel, new_Social_EditorModel, Social_EditorModel } from "./editor.tsx";
+import { DM_EditorModel, new_Social_EditorModel, Social_EditorModel } from "./editor.tsx";
 import { NavigationModel } from "./nav.tsx";
 import { SearchInitModel } from "./search_model.ts";
 import { SignInModel } from "./signIn.tsx";
-import { getProfileEvent, ProfileData } from "../features/profile.ts";
+import { ProfileData } from "../features/profile.ts";
 import { RightPanelModel } from "./message-panel.tsx";
 import { DM_Container_Model } from "./dm.ts";
+import { App } from "./app.tsx";
 
 export type Model = {
+    app: App | undefined; // app is only available after sign-in
     dm: DM_Container_Model;
     editors: Map<string, DM_EditorModel>;
 
@@ -47,6 +44,7 @@ export type Model = {
 export function initialModel(): Model {
     const editors: Map<string, DM_EditorModel> = new Map();
     return {
+        app: undefined,
         dm: {
             search: SearchInitModel(),
             selectedContactGroup: "Contacts",
