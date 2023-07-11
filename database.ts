@@ -27,10 +27,15 @@ export interface Indices {
 export class Database_Contextual_View {
     private readonly sourceOfChange = csp.chan<NostrEvent>(buffer_size);
     private readonly caster = csp.multi<NostrEvent>(this.sourceOfChange);
-    private readonly cache: NostrEvent[] = [];
+
+    static async New(database: DexieDatabase) {
+        const cache: NostrEvent[] = await database.events.filter((_: any) => true).toArray();
+        return new Database_Contextual_View(database, cache);
+    }
 
     constructor(
         private readonly database: DexieDatabase,
+        private readonly cache: NostrEvent[],
     ) {}
 
     public readonly getEvent = async (keys: Indices): Promise<NostrEvent | undefined> => {

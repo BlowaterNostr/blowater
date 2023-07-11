@@ -45,7 +45,7 @@ import { DexieDatabase } from "./db.ts";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
-    const dbView = new Database_Contextual_View(database);
+    const dbView = await Database_Contextual_View.New(database);
     const lamport = time.fromEvents(dbView.filterEvents((_) => true));
     const app = new App(dbView, lamport);
     const ctx = await getCurrentSignInCtx();
