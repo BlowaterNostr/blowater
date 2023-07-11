@@ -1,5 +1,5 @@
 import {
-    PublicKey,
+PublicKey,
     publicKeyHexFromNpub,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 import {
@@ -104,7 +104,7 @@ export class Database_Contextual_View {
                     continue;
                 }
                 const encryptedEvent = msg.event;
-                const theirPubKey = whoIamTalkingTo(encryptedEvent, publicKey.hex);
+                const theirPubKey = whoIamTalkingTo(encryptedEvent, publicKey);
                 if (theirPubKey instanceof Error) {
                     // this could happen if the user send an event without p tag
                     // because the application is subscribing all events send by the user
@@ -176,7 +176,7 @@ export class Database_Contextual_View {
     }
 }
 
-export function whoIamTalkingTo(event: NostrEvent, myPublicKey: string) {
+export function whoIamTalkingTo(event: NostrEvent, myPublicKey: PublicKey) {
     if (event.kind !== NostrKind.DIRECT_MESSAGE) {
         console.log(event);
         return new Error(`event ${event.id} is not a DM`);
@@ -185,7 +185,7 @@ export function whoIamTalkingTo(event: NostrEvent, myPublicKey: string) {
     let whoIAmTalkingTo = event.pubkey;
     const tags = getTags(event).p;
     // if I am the sender
-    if (event.pubkey === publicKeyHexFromNpub(myPublicKey)) {
+    if (event.pubkey === myPublicKey.hex) {
         if (tags.length === 1) {
             const theirPubKey = tags[0];
             whoIAmTalkingTo = theirPubKey;
@@ -201,7 +201,7 @@ export function whoIamTalkingTo(event: NostrEvent, myPublicKey: string) {
     } else {
         if (tags.length === 1) {
             const receiverPubkey = tags[0];
-            if (receiverPubkey !== myPublicKey) {
+            if (receiverPubkey !== myPublicKey.hex) {
                 return Error(
                     `Not my message, receiver is ${receiverPubkey}, sender is ${event.pubkey}, my key is ${myPublicKey}`,
                 );
