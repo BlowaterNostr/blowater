@@ -17,12 +17,13 @@ import {
 import { prepareNostrImageEvents, Tag } from "../nostr.ts";
 import {
     PrivateKey,
+    PublicKey,
     publicKeyHexFromNpub,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 
 export async function sendDMandImages(args: {
     sender: NostrAccountContext;
-    receiverPublicKey: string;
+    receiverPublicKey: PublicKey;
     message: string;
     files: Blob[];
     kind: NostrKind;
@@ -38,10 +39,10 @@ export async function sendDMandImages(args: {
         // build the nostr event
         const nostrEvent = await prepareEncryptedNostrEvent(
             sender,
-            receiverPublicKey,
+            receiverPublicKey.hex,
             kind,
             [
-                ["p", receiverPublicKey],
+                ["p", receiverPublicKey.hex],
                 ["lamport", String(lamport_timestamp)],
                 ...tags,
             ],
@@ -94,7 +95,7 @@ export async function sendSocialPost(args: {
 }
 
 export function getAllEncryptedMessagesOf(
-    publicKey: string,
+    publicKey: PublicKey,
     relay: ConnectionPool,
     since?: number,
     limit?: number,
@@ -120,7 +121,7 @@ export async function* getAllDecryptedMessagesOf(
     limit: number,
 ) {
     const pub = ctx.publicKey;
-    const allEncryptedMessage = getAllEncryptedMessagesOf(pub.hex, pool, 0, limit);
+    const allEncryptedMessage = getAllEncryptedMessagesOf(pub, pool, 0, limit);
     for await (const { res: message } of allEncryptedMessage) {
         if (message.type === "EVENT") {
             yield decryptMessage(message, ctx, message.event.pubkey);
@@ -131,38 +132,16 @@ export async function* getAllDecryptedMessagesOf(
     }
 }
 
-export function messagesBetween(
-    myPrivateKey: string,
-    theirPublicKey: string,
-    relay: ConnectionPool,
-    limit: number,
-) {
-    let events1 = messagesSendToMeBy(
-        myPrivateKey,
-        theirPublicKey,
-        relay,
-        limit,
-    );
-    let events2 = messagesSendByMeTo(
-        myPrivateKey,
-        theirPublicKey,
-        relay,
-        limit,
-    );
-    return merge(events1, events2);
-}
-
 async function* getAllEncryptedMessagesSendBy(
-    publicKey: string,
+    publicKey: PublicKey,
     relay: ConnectionPool,
     limit?: number,
     since?: number,
 ) {
-    publicKey = publicKeyHexFromNpub(publicKey);
     let resp = await relay.newSub(
         newSubID(),
         {
-            authors: [publicKey],
+            authors: [publicKey.hex],
             kinds: [4],
             limit: limit,
             since: since,
@@ -177,18 +156,17 @@ async function* getAllEncryptedMessagesSendBy(
 }
 
 async function* getAllEncryptedMessagesReceivedBy(
-    publicKey: string,
+    publicKey: PublicKey,
     relay: ConnectionPool,
     limit?: number,
     since?: number,
 ) {
-    publicKey = publicKeyHexFromNpub(publicKey);
     const subid = newSubID();
     let resp = await relay.newSub(
         subid,
         {
             kinds: [4],
-            "#p": [publicKey],
+            "#p": [publicKey.hex],
             limit: limit,
             since: since,
         },
@@ -202,19 +180,17 @@ async function* getAllEncryptedMessagesReceivedBy(
 }
 
 async function* getEncryptedMessagesBetween(
-    senderPubKey: string,
-    receiverPubKey: string,
+    senderPubKey: PublicKey,
+    receiverPubKey: PublicKey,
     relay: ConnectionPool,
     limit: number,
 ) {
-    senderPubKey = publicKeyHexFromNpub(senderPubKey);
-    receiverPubKey = publicKeyHexFromNpub(receiverPubKey);
     let resp = await relay.newSub(
         newSubID(),
         {
-            authors: [senderPubKey],
+            authors: [senderPubKey.hex],
             kinds: [4],
-            "#p": [receiverPubKey],
+            "#p": [receiverPubKey.hex],
             limit: limit,
         },
     );
@@ -227,37 +203,15 @@ async function* getEncryptedMessagesBetween(
 }
 
 async function* messagesSendByMeTo(
-    myPriKey: string,
-    receiverPubKey: string,
+    myPriKey: PrivateKey,
+    receiverPubKey: PublicKey,
     relay: ConnectionPool,
     limit: number,
 ) {
-    receiverPubKey = publicKeyHexFromNpub(receiverPubKey);
-    const myPri = PrivateKey.FromHex(myPriKey) as PrivateKey;
     for await (
         let { res: relayResponse } of getEncryptedMessagesBetween(
-            myPri.toPublicKey().hex,
+            myPriKey.toPublicKey(),
             receiverPubKey,
-            relay,
-            limit,
-        )
-    ) {
-        yield relayResponse;
-    }
-}
-
-async function* messagesSendToMeBy(
-    myPriKey: string,
-    senderPubKey: string,
-    relay: ConnectionPool,
-    limit: number,
-) {
-    senderPubKey = publicKeyHexFromNpub(senderPubKey);
-    const myPri = PrivateKey.FromHex(myPriKey) as PrivateKey;
-    for await (
-        let { res: relayResponse } of getEncryptedMessagesBetween(
-            senderPubKey,
-            myPri.toPublicKey().hex,
             relay,
             limit,
         )

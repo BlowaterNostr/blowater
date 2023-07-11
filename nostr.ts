@@ -3,6 +3,7 @@
 */
 import {
     PrivateKey,
+    PublicKey,
     publicKeyHexFromNpub,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 import * as nostr from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
@@ -74,14 +75,12 @@ export function getTags(event: Event): Tags {
 
 export async function prepareNostrImageEvents(
     sender: nostr.NostrAccountContext,
-    receiverPublicKey: string,
+    receiverPublicKey: PublicKey,
     blob: Blob,
     kind: nostr.NostrKind,
     tags?: Tag[],
 ): Promise<[nostr.NostrEvent[], string] | Error> {
     // prepare nostr event
-    receiverPublicKey = publicKeyHexFromNpub(receiverPublicKey);
-
     // read the blob
     const binaryContent = await nostr.blobToBase64(blob);
 
@@ -92,7 +91,7 @@ export async function prepareNostrImageEvents(
     for (let i = 0; i < chunkCount; i++) {
         const chunk = binaryContent.slice(i * chunkSize, (i + 1) * chunkSize);
         // encryption
-        const encrypted = await sender.encrypt(receiverPublicKey, chunk);
+        const encrypted = await sender.encrypt(receiverPublicKey.hex, chunk);
         if (encrypted instanceof Error) {
             return encrypted;
         }
@@ -102,7 +101,7 @@ export async function prepareNostrImageEvents(
             kind: kind,
             pubkey: sender.publicKey.hex,
             tags: [
-                ["p", receiverPublicKey],
+                ["p", receiverPublicKey.hex],
                 ["image", groupLeadEventID, String(chunkCount), String(i)],
                 ...(tags || []),
             ],

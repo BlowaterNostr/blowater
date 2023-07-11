@@ -210,7 +210,7 @@ export async function* UI_Interaction_Update(
             if (event.target.kind == NostrKind.DIRECT_MESSAGE) {
                 const err = await sendDMandImages({
                     sender: app.myAccountContext,
-                    receiverPublicKey: event.target.receiver.pubkey.hex,
+                    receiverPublicKey: event.target.receiver.pubkey,
                     message: event.text,
                     files: event.files,
                     kind: event.target.kind,

@@ -25,7 +25,7 @@ import { PrivateKey } from "https://raw.githubusercontent.com/BlowaterNostr/nost
 
 Deno.test("prepareNostrImageEvents", async (t) => {
     const pri = PrivateKey.Generate();
-    const pub = pri.toPublicKey().hex;
+    const pub = pri.toPublicKey();
 
     let randomData = new Uint8Array(1024 * 48); // 48KB raw data
     for (let i = 0; i < randomData.length; i++) {
@@ -47,7 +47,7 @@ Deno.test("prepareNostrImageEvents", async (t) => {
     await t.step("full", async () => {
         const decryptedEvents = [];
         for (const e of events) {
-            const decryptedEvent = await decryptNostrEvent(e, InMemoryAccountContext.New(pri), pub);
+            const decryptedEvent = await decryptNostrEvent(e, InMemoryAccountContext.New(pri), pub.hex);
             if (decryptedEvent instanceof Error) {
                 fail(decryptedEvent.message);
             }
@@ -63,7 +63,7 @@ Deno.test("prepareNostrImageEvents", async (t) => {
         const decryptedEvents = [];
         const partialEvents = events.slice(0, 1); // not enough events
         for (const e of partialEvents) {
-            const decryptedEvent = await decryptNostrEvent(e, InMemoryAccountContext.New(pri), pub);
+            const decryptedEvent = await decryptNostrEvent(e, InMemoryAccountContext.New(pri), pub.hex);
             if (decryptedEvent instanceof Error) {
                 fail(decryptedEvent.message);
             }
@@ -76,7 +76,7 @@ Deno.test("prepareNostrImageEvents", async (t) => {
 
 Deno.test("groupImageEvents", async () => {
     const pri = PrivateKey.Generate();
-    const pub = pri.toPublicKey().hex;
+    const pub = pri.toPublicKey();
 
     let randomData = new Uint8Array(1024 * 17);
     for (let i = 0; i < randomData.length; i++) {

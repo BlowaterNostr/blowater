@@ -97,7 +97,7 @@ async function initProfileSyncer(
 
     // Sync DM events
     const messageStream = dm.getAllEncryptedMessagesOf(
-        myPublicKey.hex,
+        myPublicKey,
         pool,
         since,
     );
