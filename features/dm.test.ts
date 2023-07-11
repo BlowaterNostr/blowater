@@ -2,6 +2,7 @@ import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { AsyncWebSocket } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/websocket.ts";
 import {
     PrivateKey,
+    PublicKey,
     publicKeyHexFromNpub,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 import {
@@ -14,11 +15,15 @@ import {
     NoRelayRegistered,
     SingleRelayConnection,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
-import { getAllDecryptedMessagesOf, messagesBetween, sendDMandImages } from "./dm.ts";
+import { getAllDecryptedMessagesOf, sendDMandImages } from "./dm.ts";
 
 const testPrivateKey = PrivateKey.Generate();
-const myPublicKey = Deno.env.get("TEST_NOTIFICATION_PUBKEY");
-if (myPublicKey == undefined) {
+const myPublicKeyString = Deno.env.get("TEST_NOTIFICATION_PUBKEY");
+if (myPublicKeyString == undefined) {
+    Deno.exit(1);
+}
+const myPublicKey = PublicKey.FromString(myPublicKeyString);
+if (myPublicKey instanceof Error) {
     Deno.exit(1);
 }
 
@@ -43,7 +48,7 @@ Deno.test("sendDMandImages", async (t) => {
     // await t.step("able to send images only", async () => {
     const errs = await sendDMandImages({
         sender: InMemoryAccountContext.New(testPrivateKey),
-        receiverPublicKey: publicKeyHexFromNpub(myPublicKey),
+        receiverPublicKey: myPublicKey,
         message: "   ", // will be ignored
         files: [new Blob([data])],
         kind: NostrKind.DIRECT_MESSAGE,
@@ -71,7 +76,7 @@ Deno.test("sendDMandImages", async (t) => {
     // await t.step("send image and text", async () => {
     const errs2 = await sendDMandImages({
         sender: InMemoryAccountContext.New(testPrivateKey),
-        receiverPublicKey: publicKeyHexFromNpub(myPublicKey),
+        receiverPublicKey: myPublicKey,
         message: "send image and text",
         files: [new Blob([data])],
         kind: NostrKind.DIRECT_MESSAGE,
@@ -142,18 +147,5 @@ Deno.test("getAllDecryptedMessagesOf", async () => {
     } catch (e) {
         console.log(e);
     }
-    await pool.close();
-});
-
-Deno.test("messagesBetween", async () => {
-    const pool = new ConnectionPool();
-    const relay = SingleRelayConnection.New(relays[0], AsyncWebSocket.New);
-    if (relay instanceof Error) {
-        fail(relay.message);
-    }
-    await pool.addRelay(relay);
-    let stream = messagesBetween(testPrivateKey.hex, myPublicKey, pool, 3);
-    let event = await stream.next();
-    event = await stream.next();
     await pool.close();
 });

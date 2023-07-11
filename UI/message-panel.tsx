@@ -471,6 +471,9 @@ export function ParseMessageContent(
                 break;
             case "npub":
                 const pubkey = PublicKey.FromBech32(itemStr);
+                if (pubkey instanceof Error) {
+                    continue;
+                }
                 const profile = getProfileEvent(db, pubkey);
                 if (profile) {
                     vnode.push(ProfileCard(profile.content, pubkey, eventEmitter));

@@ -33,12 +33,11 @@ export function profilesStream(
 ) {
     const chan = csp.chan<[NostrEvent, string]>();
     (async () => {
-        const hexPublicKeys = Array.from(publicKeys).map((k) => publicKeyHexFromNpub(k));
         let subId = newSubID();
         let resp = await pool.newSub(
             subId,
             {
-                authors: hexPublicKeys,
+                authors: Array.from(publicKeys),
                 kinds: [NostrKind.META_DATA],
             },
         );
