@@ -78,12 +78,18 @@ export async function* UI_Interaction_Update(
         switch (event.type) {
             case "editSignInPrivateKey":
                 model.signIn.privateKey = event.privateKey;
+                yield model;
+                continue;
                 break;
             case "createNewAccount":
                 model.signIn.state = "newAccount";
+                yield model;
+                continue;
                 break;
             case "backToSignInPage":
                 model.signIn.state = "enterPrivateKey";
+                yield model;
+                continue;
                 break;
             case "signin":
                 let ctx;
@@ -113,6 +119,8 @@ export async function* UI_Interaction_Update(
                 } else {
                     console.error("failed to sign in");
                 }
+                yield model;
+                continue;
                 break;
         }
 
@@ -361,7 +369,7 @@ export async function* UI_Interaction_Update(
             }
             model.rightPanelModel.show = true;
         }
-        yield model.app.model;
+        yield model;
     }
 }
 
