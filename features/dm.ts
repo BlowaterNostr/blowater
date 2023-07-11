@@ -1,5 +1,5 @@
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { Database, NotFound, whoIamTalkingTo } from "../database.ts";
+import { Database_Contextual_View, NotFound, whoIamTalkingTo } from "../database.ts";
 import {
     DecryptionFailure,
     decryptNostrEvent,
@@ -262,11 +262,11 @@ function merge<T>(...iters: AsyncIterable<T>[]) {
 //////////////////
 
 // get the messages send by and received by pubkey
-export function getDirectMessageEventsOf(db: Database, pubkey: string) {
+export function getDirectMessageEventsOf(db: Database_Contextual_View, pubkey: string) {
     return db.filterEvents(filterDMof(pubkey));
 }
 
-export function getContactPubkeysOf(db: Database, pubkey: string): Set<string> | Error {
+export function getContactPubkeysOf(db: Database_Contextual_View, pubkey: string): Set<string> | Error {
     const msgs = getDirectMessageEventsOf(db, pubkey);
     const contactList = new Set<string>();
     for (const event of msgs) {
@@ -279,7 +279,7 @@ export function getContactPubkeysOf(db: Database, pubkey: string): Set<string> |
     return contactList;
 }
 
-export function getNewestEventOf(db: Database, pubkey: string): NostrEvent | typeof NotFound {
+export function getNewestEventOf(db: Database_Contextual_View, pubkey: string): NostrEvent | typeof NotFound {
     const events = Array.from(getDirectMessageEventsOf(db, pubkey));
     if (events.length === 0) {
         return NotFound;
@@ -293,7 +293,11 @@ export function getNewestEventOf(db: Database, pubkey: string): NostrEvent | typ
     return newest;
 }
 
-export function get_Kind4_Events_Between(db: Database, myPubKey: string, contactPubkey: string) {
+export function get_Kind4_Events_Between(
+    db: Database_Contextual_View,
+    myPubKey: string,
+    contactPubkey: string,
+) {
     const events = db.filterEvents(
         filterDMBetween(myPubKey, contactPubkey),
     );

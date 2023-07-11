@@ -2,12 +2,12 @@ import {
     ConnectionPool,
     SubscriptionAlreadyExist,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
-import { Database } from "../database.ts";
+import { Database_Contextual_View } from "../database.ts";
 import { NoteID } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nip19.ts";
 import { verifyEvent } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 
 export class EventSyncer {
-    constructor(private readonly pool: ConnectionPool, private readonly db: Database) {}
+    constructor(private readonly pool: ConnectionPool, private readonly db: Database_Contextual_View) {}
     syncEvent(id: NoteID) {
         const iter = Array.from(this.db.filterEvents((e) => e.id == id.hex));
         if (iter.length > 0) {

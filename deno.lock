@@ -24,6 +24,7 @@
     "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts": "93c5c6fe196dc9cae7c0e82ee8057a5350f77e69ae7d395fdb141a25b2664739",
     "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/scure.js": "fbc4be16918272bd167fff1184a7f5bbd1a676bad2a73130bb530d78df893a99",
     "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/vendor/esm.sh/v106/@noble/secp256k1@1.7.1/es2022/secp256k1.js": "69e32f6c686cc651ff2e6d4d22ed6e9b6f86b38311b405b47b2abdf3cb98eb4d",
-    "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/websocket.ts": "d817c40d32fe45e30bfb30255287e76a977930f6709c9585772dc54e077a31ed"
+    "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/websocket.ts": "d817c40d32fe45e30bfb30255287e76a977930f6709c9585772dc54e077a31ed",
+    "https://unpkg.com/dexie@3.2.3/dist/modern/dexie.mjs": "63f0ed30a7ac5698fe88152899fd526ac1294067dc28283505151b436c2ee1ba"
   }
 }

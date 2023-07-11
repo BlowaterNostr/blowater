@@ -4,7 +4,7 @@ import { ContactList } from "./contact-list.tsx";
 
 import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 
-import { NewIndexedDB } from "./db.ts";
+import { NewIndexedDB } from "./dexie-db.ts";
 import { EventBus } from "../event-bus.ts";
 
 import { UI_Interaction_Event } from "./app_update.ts";

@@ -1,4 +1,4 @@
-import { Database } from "../database.ts";
+import { Database_Contextual_View } from "../database.ts";
 
 import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 import {

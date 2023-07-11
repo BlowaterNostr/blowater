@@ -1,5 +1,5 @@
 import { ChatMessage } from "../UI/message.ts";
-import { Database } from "../database.ts";
+import { Database_Contextual_View } from "../database.ts";
 import { NostrKind } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 
@@ -8,7 +8,7 @@ import { computeThreads, getTags } from "../nostr.ts";
 import { MessageThread } from "../UI/dm.tsx";
 import { UserInfo } from "../UI/contact-list.ts";
 
-export function getSocialPosts(db: Database, allUsersInfo: Map<string, UserInfo>) {
+export function getSocialPosts(db: Database_Contextual_View, allUsersInfo: Map<string, UserInfo>) {
     const t = Date.now();
     const events = db.filterEvents((e) => {
         return e.kind == NostrKind.TEXT_NOTE;

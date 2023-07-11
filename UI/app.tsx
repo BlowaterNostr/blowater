@@ -13,7 +13,7 @@ import { EventBus } from "../event-bus.ts";
 import { MessagePanel } from "./message-panel.tsx";
 
 import { Setting } from "./setting.tsx";
-import { Database } from "../database.ts";
+import { Database_Contextual_View } from "../database.ts";
 
 import { getAllUsersInformation, ProfilesSyncer, UserInfo } from "./contact-list.ts";
 
@@ -41,11 +41,13 @@ import { AppList } from "./app-list.tsx";
 import { SecondaryBackgroundColor } from "./style/colors.ts";
 import { EventSyncer } from "./event_syncer.ts";
 import { getRelayURLs } from "./setting.ts";
+import { DexieDatabase } from "./dexie-db.ts";
 
-export async function Start(database: Database) {
+export async function Start(database: DexieDatabase) {
     console.log("Start the application");
-    const lamport = time.fromEvents(database.filterEvents((_) => true));
-    const app = new App(database, lamport);
+    const dbView = await Database_Contextual_View.New(database);
+    const lamport = time.fromEvents(dbView.filterEvents((_) => true));
+    const app = new App(dbView, lamport);
     const ctx = await getCurrentSignInCtx();
     console.log("Start:", ctx);
     if (ctx instanceof Error) {
@@ -79,7 +81,7 @@ export async function Start(database: Database) {
 async function initProfileSyncer(
     pool: ConnectionPool,
     accountContext: NostrAccountContext,
-    database: db.Database,
+    database: db.Database_Contextual_View,
 ) {
     const myPublicKey = accountContext.publicKey;
 
@@ -168,7 +170,7 @@ export class App {
     eventSyncer: EventSyncer;
 
     constructor(
-        public readonly database: Database,
+        public readonly database: Database_Contextual_View,
         public readonly lamport: time.LamportTime,
     ) {
         this.model = initialModel();

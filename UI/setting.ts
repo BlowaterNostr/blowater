@@ -1,4 +1,4 @@
-import { Database } from "../database.ts";
+import { Database_Contextual_View } from "../database.ts";
 
 const damus = "wss://relay.damus.io";
 const nos = "wss://nos.lol";
@@ -9,6 +9,6 @@ export const defaultRelays = [
     "wss://relay.nostr.wirednet.jp",
 ];
 
-export function getRelayURLs(db: Database): string[] {
+export function getRelayURLs(db: Database_Contextual_View): string[] {
     return defaultRelays;
 }

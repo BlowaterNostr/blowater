@@ -1,5 +1,5 @@
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { Database } from "../database.ts";
+import { Database_Contextual_View } from "../database.ts";
 import {
     ConnectionPool,
     newSubID,
@@ -71,7 +71,7 @@ export async function saveProfile(
     pool.sendEvent(event);
 }
 
-export function getProfileEvent(db: Database, pubkey: PublicKey): ProfileEvent | undefined {
+export function getProfileEvent(db: Database_Contextual_View, pubkey: PublicKey): ProfileEvent | undefined {
     const events = Array.from(db.filterEvents((e) => {
         return e.kind === NostrKind.META_DATA && e.pubkey === pubkey.hex;
     }));
@@ -83,7 +83,7 @@ export function getProfileEvent(db: Database, pubkey: PublicKey): ProfileEvent |
     return ProfileFromNostrEvent(newest);
 }
 
-export function getProfilesByName(db: Database, name: string): ProfileEvent[] {
+export function getProfilesByName(db: Database_Contextual_View, name: string): ProfileEvent[] {
     const events = Array.from(db.filterEvents((e) => {
         return e.kind === NostrKind.META_DATA;
     }));
@@ -104,7 +104,7 @@ export function getProfilesByName(db: Database, name: string): ProfileEvent[] {
 }
 
 export function getProfiles(
-    db: Database,
+    db: Database_Contextual_View,
     pubkeys: Set<string>,
 ): Map<string, /*pubkey*/ ProfileEvent | undefined> {
     const contacts: Map<string, ProfileEvent | undefined> = new Map();

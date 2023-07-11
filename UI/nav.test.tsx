@@ -1,7 +1,7 @@
 /** @jsx h */
 import { h, render } from "https://esm.sh/preact@10.11.3";
 
-import { NewIndexedDB } from "./db.ts";
+import { NewIndexedDB } from "./dexie-db.ts";
 
 import * as nav from "./nav.tsx";
 import { tw } from "https://esm.sh/twind@0.16.16";

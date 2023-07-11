@@ -2,7 +2,7 @@
 import { Fragment, h } from "https://esm.sh/preact@10.11.3";
 import { tw } from "https://esm.sh/twind@0.16.16";
 
-import { Database } from "../database.ts";
+import { Database_Contextual_View } from "../database.ts";
 import { Avatar } from "./components/avatar.tsx";
 import { CenterClass, IconButtonClass, LinearGradientsClass } from "./components/tw.ts";
 import { sortUserInfo, UserInfo } from "./contact-list.ts";
@@ -22,7 +22,7 @@ import { PrimaryBackgroundColor, PrimaryTextColor } from "./style/colors.ts";
 
 type Props = {
     myAccountContext: NostrAccountContext;
-    database: Database;
+    database: Database_Contextual_View;
     eventEmitter: EventEmitter<ContactUpdate>;
 
     // Model

@@ -12,7 +12,7 @@ import {
 import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 import { ChatMessage, groupContinuousMessages } from "./message.ts";
 import { Editor, EditorEvent, EditorModel } from "./editor.tsx";
-import { Database } from "../database.ts";
+import { Database_Contextual_View } from "../database.ts";
 import { ProfilesSyncer } from "./contact-list.ts";
 import { EventSyncer } from "./event_syncer.ts";
 
@@ -20,7 +20,7 @@ interface MessageThreadProps {
     eventEmitter: EventEmitter<DirectMessagePanelUpdate | EditorEvent>;
     messages: ChatMessage[];
     myPublicKey: PublicKey;
-    db: Database;
+    db: Database_Contextual_View;
     editorModel: EditorModel;
     profilesSyncer: ProfilesSyncer;
     eventSyncer: EventSyncer;
@@ -63,7 +63,7 @@ export function MessageThreadPanel(props: MessageThreadProps) {
 function MessageThreadList(props: {
     myPublicKey: PublicKey;
     messages: ChatMessage[];
-    db: Database;
+    db: Database_Contextual_View;
     profilesSyncer: ProfilesSyncer;
     eventSyncer: EventSyncer;
     eventEmitter: EventEmitter<ViewUserDetail>;
@@ -98,7 +98,7 @@ function MessageThreadList(props: {
 function MessageThreadBoxGroup(props: {
     messages: ChatMessage[];
     myPublicKey: PublicKey;
-    db: Database;
+    db: Database_Contextual_View;
     profilesSyncer: ProfilesSyncer;
     eventSyncer: EventSyncer;
     eventEmitter: EventEmitter<ViewUserDetail>;

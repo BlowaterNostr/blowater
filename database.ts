@@ -12,6 +12,7 @@ import {
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 import { getTags, Tag } from "./nostr.ts";
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { DexieDatabase } from "./UI/dexie-db.ts";
 
 export const NotFound = Symbol("Not Found");
 const buffer_size = 1000;
@@ -23,17 +24,32 @@ export interface Indices {
     readonly pubkey?: string;
 }
 
-export class Database {
+export class Database_Contextual_View {
     private readonly sourceOfChange = csp.chan<NostrEvent>(buffer_size);
     private readonly caster = csp.multi<NostrEvent>(this.sourceOfChange);
 
+    static async New(database: DexieDatabase) {
+        const cache: NostrEvent[] = await database.events.filter((_: any) => true).toArray();
+        return new Database_Contextual_View(database, cache);
+    }
+
     constructor(
-        private addToIndexedDB: (event: NostrEvent) => Promise<void>,
-        public getEvent: (keys: Indices) => Promise<NostrEvent | undefined>,
-        public filterEvents: (
-            filter: (e: NostrEvent) => boolean,
-        ) => Iterable<NostrEvent>,
+        private readonly database: DexieDatabase,
+        private readonly cache: NostrEvent[],
     ) {}
+
+    public readonly getEvent = async (keys: Indices): Promise<NostrEvent | undefined> => {
+        return this.database.events.get(keys);
+    };
+
+    public readonly filterEvents = (filter: (e: NostrEvent) => boolean) => {
+        return this.cache.filter(filter);
+    };
+
+    private readonly addToIndexedDB = async (event: NostrEvent) => {
+        await this.database.events.put(event);
+        this.cache.push(event);
+    };
 
     async addEvent(event: NostrEvent) {
         const storedEvent = await this.getEvent({ id: event.id });
