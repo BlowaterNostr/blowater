@@ -1,5 +1,5 @@
 import {
-PublicKey,
+    PublicKey,
     publicKeyHexFromNpub,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 import {
@@ -28,14 +28,15 @@ export class Database_Contextual_View {
     private readonly sourceOfChange = csp.chan<NostrEvent>(buffer_size);
     private readonly caster = csp.multi<NostrEvent>(this.sourceOfChange);
 
-    static async New(database: DexieDatabase) {
+    static async New(database: DexieDatabase, ctx: NostrAccountContext) {
         const cache: NostrEvent[] = await database.events.filter((_: any) => true).toArray();
-        return new Database_Contextual_View(database, cache);
+        return new Database_Contextual_View(database, cache, ctx);
     }
 
     constructor(
         private readonly database: DexieDatabase,
         private readonly cache: NostrEvent[],
+        private readonly ctx: NostrAccountContext,
     ) {}
 
     public readonly getEvent = async (keys: Indices): Promise<NostrEvent | undefined> => {
