@@ -41,11 +41,13 @@ import { AppList } from "./app-list.tsx";
 import { SecondaryBackgroundColor } from "./style/colors.ts";
 import { EventSyncer } from "./event_syncer.ts";
 import { getRelayURLs } from "./setting.ts";
+import { DexieDatabase } from "./db.ts";
 
-export async function Start(database: Database_Contextual_View) {
+export async function Start(database: DexieDatabase) {
     console.log("Start the application");
-    const lamport = time.fromEvents(database.filterEvents((_) => true));
-    const app = new App(database, lamport);
+    const dbView = new Database_Contextual_View(database);
+    const lamport = time.fromEvents(dbView.filterEvents((_) => true));
+    const app = new App(dbView, lamport);
     const ctx = await getCurrentSignInCtx();
     console.log("Start:", ctx);
     if (ctx instanceof Error) {

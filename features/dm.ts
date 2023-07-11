@@ -293,7 +293,11 @@ export function getNewestEventOf(db: Database_Contextual_View, pubkey: string): 
     return newest;
 }
 
-export function get_Kind4_Events_Between(db: Database_Contextual_View, myPubKey: string, contactPubkey: string) {
+export function get_Kind4_Events_Between(
+    db: Database_Contextual_View,
+    myPubKey: string,
+    contactPubkey: string,
+) {
     const events = db.filterEvents(
         filterDMBetween(myPubKey, contactPubkey),
     );

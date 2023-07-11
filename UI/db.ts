@@ -2,7 +2,7 @@ import * as dexie from "https://unpkg.com/dexie@3.2.3/dist/modern/dexie.mjs";
 import { Database_Contextual_View, Indices } from "../database.ts";
 import { NostrEvent } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 
-export class Events extends dexie.Dexie {
+export class DexieDatabase extends dexie.Dexie {
     // 'friends' is added by dexie when declaring the stores()
     // We just tell the typing system this is the case
     // @ts-ignore
@@ -16,23 +16,10 @@ export class Events extends dexie.Dexie {
     }
 }
 
-export async function NewIndexedDB(): Promise<Database_Contextual_View | Error> {
+export function NewIndexedDB(): DexieDatabase | Error {
     try {
-        const db = new Events();
-        const cache: NostrEvent[] = await db.events.filter((_: any) => true).toArray();
-
-        return new Database_Contextual_View(
-            async (event: NostrEvent) => {
-                await db.events.put(event);
-                cache.push(event);
-            },
-            async (keys: Indices) => {
-                return db.events.get(keys);
-            },
-            (filter: (e: NostrEvent) => boolean) => {
-                return cache.filter(filter);
-            },
-        );
+        const db = new DexieDatabase();
+        return db;
     } catch (e) {
         return e;
     }

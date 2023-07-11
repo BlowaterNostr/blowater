@@ -16,7 +16,7 @@ setup({
     },
 });
 
-const database = await NewIndexedDB();
+const database = NewIndexedDB();
 if (database instanceof Error) {
     console.error(database);
     render(
