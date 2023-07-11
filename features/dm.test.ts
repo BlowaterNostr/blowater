@@ -9,13 +9,14 @@ import {
     InMemoryAccountContext,
     NostrKind,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
-import { relays } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay-list.test.ts";
 import {
     ConnectionPool,
     NoRelayRegistered,
     SingleRelayConnection,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
 import { getAllDecryptedMessagesOf, sendDMandImages } from "./dm.ts";
+import { relays } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay-list.test.ts";
+import { defaultRelays } from "../UI/setting.ts";
 
 const testPrivateKey = PrivateKey.Generate();
 const myPublicKeyString = Deno.env.get("TEST_NOTIFICATION_PUBKEY");
@@ -30,7 +31,7 @@ if (myPublicKey instanceof Error) {
 Deno.test("sendDMandImages", async (t) => {
     const pool = new ConnectionPool();
     const ps = [];
-    for (let url of relays) {
+    for (let url of defaultRelays) {
         console.log(url);
         const relay = SingleRelayConnection.New(url, AsyncWebSocket.New);
         if (relay instanceof Error) {

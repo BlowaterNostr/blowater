@@ -16,7 +16,7 @@ import {
 import { PrivateKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 import { InMemoryAccountContext } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 import { AsyncWebSocket } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/websocket.ts";
-import { relays } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay-list.test.ts";
+import { defaultRelays } from "./setting.ts";
 
 const start = Date.now();
 
@@ -24,7 +24,7 @@ const myPrivateKey = PrivateKey.Generate();
 const myPublicKey = PrivateKey.Generate().hex;
 
 const relayPool = new ConnectionPool();
-for (let url of relays.slice(0, 1)) {
+for (let url of defaultRelays.slice(0, 1)) {
     const relay = SingleRelayConnection.New(url, AsyncWebSocket.New);
     if (relay instanceof Error) {
         fail(relay.message);
