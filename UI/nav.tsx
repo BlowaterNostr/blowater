@@ -23,7 +23,7 @@ import { SettingIcon } from "./icons2/setting-icon.tsx";
 export type Props = {
     profilePicURL: string | undefined;
     publicKey: PublicKey;
-    database: db.Database;
+    database: db.Database_Contextual_View;
     pool: ConnectionPool;
     AddRelayButtonClickedError: string;
     AddRelayInput: string;

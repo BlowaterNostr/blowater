@@ -20,7 +20,7 @@ import { getProfileEvent, ProfileData } from "../features/profile.ts";
 import { MessageThread } from "./dm.tsx";
 import { UserDetail } from "./user-detail.tsx";
 import { MessageThreadPanel } from "./message-thread-panel.tsx";
-import { Database } from "../database.ts";
+import { Database_Contextual_View } from "../database.ts";
 import {
     DividerBackgroundColor,
     HoverButtonBackgroudColor,
@@ -49,7 +49,7 @@ interface DirectMessagePanelProps {
 
     rightPanelModel: RightPanelModel;
 
-    db: Database;
+    db: Database_Contextual_View;
     eventEmitter: EventEmitter<
         EditorEvent | DirectMessagePanelUpdate | PinContact | UnpinContact
     >;
@@ -183,7 +183,7 @@ export function MessagePanel(props: DirectMessagePanelProps) {
 interface MessageListProps {
     myPublicKey: PublicKey;
     threads: MessageThread[];
-    db: Database;
+    db: Database_Contextual_View;
     eventEmitter: EventEmitter<DirectMessagePanelUpdate>;
     profilesSyncer: ProfilesSyncer;
     eventSyncer: EventSyncer;
@@ -311,7 +311,7 @@ function MessageBoxGroup(props: {
         replyCount: number;
     }[];
     myPublicKey: PublicKey;
-    db: Database;
+    db: Database_Contextual_View;
     eventEmitter: EventEmitter<DirectMessagePanelUpdate | ViewUserDetail>;
     profilesSyncer: ProfilesSyncer;
     eventSyncer: EventSyncer;
@@ -443,7 +443,7 @@ export function NameAndTime(message: ChatMessage, index: number, myPublicKey: Pu
 
 export function ParseMessageContent(
     message: ChatMessage,
-    db: Database,
+    db: Database_Contextual_View,
     profilesSyncer: ProfilesSyncer,
     eventSyncer: EventSyncer,
     eventEmitter: EventEmitter<ViewUserDetail>,

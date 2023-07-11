@@ -1,5 +1,5 @@
 import * as dexie from "https://unpkg.com/dexie@3.2.3/dist/modern/dexie.mjs";
-import { Database, Indices } from "../database.ts";
+import { Database_Contextual_View, Indices } from "../database.ts";
 import { NostrEvent } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 
 export class Events extends dexie.Dexie {
@@ -16,12 +16,12 @@ export class Events extends dexie.Dexie {
     }
 }
 
-export async function NewIndexedDB(): Promise<Database | Error> {
+export async function NewIndexedDB(): Promise<Database_Contextual_View | Error> {
     try {
         const db = new Events();
         const cache: NostrEvent[] = await db.events.filter((_: any) => true).toArray();
 
-        return new Database(
+        return new Database_Contextual_View(
             async (event: NostrEvent) => {
                 await db.events.put(event);
                 cache.push(event);

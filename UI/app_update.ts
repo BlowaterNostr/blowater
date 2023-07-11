@@ -4,7 +4,7 @@ import { App } from "./app.tsx";
 import { getAllUsersInformation, getGroupOf, ProfilesSyncer, UserInfo } from "./contact-list.ts";
 
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { Database } from "../database.ts";
+import { Database_Contextual_View } from "../database.ts";
 import { convertEventsToChatMessages } from "./dm.ts";
 
 import { get_Kind4_Events_Between, sendDMandImages, sendSocialPost } from "../features/dm.ts";
@@ -357,7 +357,7 @@ export async function* UI_Interaction_Update(
 }
 
 export function getConversationMessages(args: {
-    database: Database;
+    database: Database_Contextual_View;
     pub1: string;
     pub2: string;
     allUserInfo: Map<string, UserInfo>;
@@ -416,7 +416,7 @@ export function updateConversation(
 //////////////
 export async function* Database_Update(
     ctx: NostrAccountContext,
-    database: Database,
+    database: Database_Contextual_View,
     model: Model,
     profileSyncer: ProfilesSyncer,
     lamport: LamportTime,

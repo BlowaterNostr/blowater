@@ -1,4 +1,4 @@
-import { Database } from "../database.ts";
+import { Database_Contextual_View } from "../database.ts";
 import { ProfileEvent, ProfileFromNostrEvent, profilesStream } from "../features/profile.ts";
 
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
@@ -33,7 +33,7 @@ export class ProfilesSyncer {
     private chan = new Channel<string[]>();
 
     constructor(
-        private readonly database: Database,
+        private readonly database: Database_Contextual_View,
         private readonly pool: ConnectionPool,
     ) {
         (async () => {
@@ -98,7 +98,7 @@ function socialPostsStream(pubkeys: Iterable<string>, pool: ConnectionPool) {
 }
 
 export function getAllUsersInformation(
-    database: Database,
+    database: Database_Contextual_View,
     myAccountContext: NostrAccountContext,
 ): Map<string, UserInfo> {
     const t = Date.now();

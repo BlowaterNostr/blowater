@@ -1,4 +1,4 @@
-import { Database } from "../database.ts";
+import { Database_Contextual_View } from "../database.ts";
 import { getProfiles, ProfileData, ProfileEvent } from "../features/profile.ts";
 import { NostrEvent } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 import { getTags, groupImageEvents, reassembleBase64ImageFromEvents } from "../nostr.ts";

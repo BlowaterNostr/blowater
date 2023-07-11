@@ -23,7 +23,7 @@ export interface Indices {
     readonly pubkey?: string;
 }
 
-export class Database {
+export class Database_Contextual_View {
     private readonly sourceOfChange = csp.chan<NostrEvent>(buffer_size);
     private readonly caster = csp.multi<NostrEvent>(this.sourceOfChange);
 
