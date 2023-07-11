@@ -1,7 +1,7 @@
 /** @jsx h */
 import { h, render } from "https://esm.sh/preact@10.11.3";
 
-import { NewIndexedDB } from "./db.ts";
+import { NewIndexedDB } from "./dexie-db.ts";
 import { MessagePanel } from "./message-panel.tsx";
 import { EventBus } from "../event-bus.ts";
 import { PrivateKey, PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";

@@ -12,7 +12,7 @@ import {
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 import { getTags, Tag } from "./nostr.ts";
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { DexieDatabase } from "./UI/db.ts";
+import { DexieDatabase } from "./UI/dexie-db.ts";
 
 export const NotFound = Symbol("Not Found");
 const buffer_size = 1000;

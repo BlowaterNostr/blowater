@@ -41,7 +41,7 @@ import { AppList } from "./app-list.tsx";
 import { SecondaryBackgroundColor } from "./style/colors.ts";
 import { EventSyncer } from "./event_syncer.ts";
 import { getRelayURLs } from "./setting.ts";
-import { DexieDatabase } from "./db.ts";
+import { DexieDatabase } from "./dexie-db.ts";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
