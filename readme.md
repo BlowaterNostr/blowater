@@ -25,7 +25,7 @@ Lightning: blowater@getalby.com
 
 - [x] NIP-01 - Basic protocol flow description
 - [ ] NIP-02 - Contact List and Petnames
-- [ ] NIP-03 - OpenTimestamps Attestations for Events 
+- [ ] NIP-03 - OpenTimestamps Attestations for Events
 - [x] NIP-04 - Encrypted Direct Message
 - [ ] NIP-05 - Mapping Nostr keys to DNS-based internet identifiers
 - [ ] NIP-06 - Basic key derivation from mnemonic seed phrase
@@ -45,7 +45,7 @@ Lightning: blowater@getalby.com
 - [x] NIP-21 - nostr: URL scheme
 - [ ] NIP-22 - Event created_at Limits
 - [ ] NIP-23 - Long-form Content
-     - Optional viewing, but not creating
+  - Optional viewing, but not creating
 - [ ] NIP-25 - Reactions
 - [ ] NIP-26 - Delegated Event Signing
 - [x] NIP-27 - Text Note References
@@ -65,6 +65,7 @@ Lightning: blowater@getalby.com
 - [x] NIP-78 - Application-specific data
 
 ## Building from Source
+
 #### Customer Support
 
 [Support Bot](https://nostr.band/npub1fdjk8cz47lzmcruean82cfufefkf4gja9hrs90tyysemm5p7vt7s9knc27)
