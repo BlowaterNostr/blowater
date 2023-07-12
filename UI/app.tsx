@@ -123,7 +123,6 @@ async function initProfileSyncer(
 
     // Sync Custom App Data
     (async () => {
-        const chan = new Channel<[NostrEvent, string]>();
         let subId = newSubID();
         let resp = await pool.newSub(
             subId,
@@ -135,31 +134,12 @@ async function initProfileSyncer(
         if (resp instanceof Error) {
             throw resp;
         }
-        (async () => {
-            for await (let { res: nostrMessage, url: relayUrl } of resp) {
-                if (nostrMessage.type === "EVENT" && nostrMessage.event.content) {
-                    const event = nostrMessage.event;
-                    const decryptedEvent = await decryptNostrEvent(
-                        event,
-                        accountContext,
-                        accountContext.publicKey.hex,
-                    );
-                    if (decryptedEvent instanceof DecryptionFailure) {
-                        console.error(decryptedEvent);
-                        continue;
-                    }
-                    await chan.put([
-                        decryptedEvent,
-                        relayUrl,
-                    ]);
-                }
+        for await (const { res, url } of resp) {
+            if (res.type == "EVENT") {
+                database.addEvent(res.event);
             }
-            console.log("closed");
-        })();
-        return chan;
-    })().then((customAppDataChan) => {
-        database.syncEvents((e) => e.kind == NostrKind.CustomAppData, customAppDataChan);
-    });
+        }
+    })();
 
     ///////////////////////////////////
     // Add relays to Connection Pool //
@@ -274,13 +254,13 @@ export function AppComponent(props: {
     let socialPostsPanel: VNode | undefined;
     if (model.navigationModel.activeNav == "Social") {
         const allUserInfo = getAllUsersInformation(app.database, myAccountCtx);
-        console.log("AppComponent:getSocialPosts before", Date.now() - t);
+        // console.log("AppComponent:getSocialPosts before", Date.now() - t);
         const socialPosts = getSocialPosts(app.database, allUserInfo);
-        console.log("AppComponent:getSocialPosts after", Date.now() - t, Date.now());
+        // console.log("AppComponent:getSocialPosts after", Date.now() - t, Date.now());
         let focusedContentGetter = () => {
-            console.log("AppComponent:getFocusedContent before", Date.now() - t);
+            // console.log("AppComponent:getFocusedContent before", Date.now() - t);
             let _ = getFocusedContent(model.social.focusedContent, allUserInfo, socialPosts);
-            console.log("AppComponent:getFocusedContent", Date.now() - t);
+            // console.log("AppComponent:getFocusedContent", Date.now() - t);
             if (_?.type === "MessageThread") {
                 let editor = model.social.replyEditors.get(_.data.root.event.id);
                 if (editor == undefined) {

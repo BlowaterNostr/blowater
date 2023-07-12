@@ -1,5 +1,4 @@
 import * as dexie from "https://unpkg.com/dexie@3.2.3/dist/modern/dexie.mjs";
-import { Database_Contextual_View, Indices } from "../database.ts";
 import { NostrEvent } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 
 export class DexieDatabase extends dexie.Dexie {

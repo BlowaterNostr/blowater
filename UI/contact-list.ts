@@ -99,7 +99,7 @@ function socialPostsStream(pubkeys: Iterable<string>, pool: ConnectionPool) {
 
 export function getAllUsersInformation(
     database: Database_Contextual_View,
-    myAccountContext: NostrAccountContext,
+    ctx: NostrAccountContext,
 ): Map<string, UserInfo> {
     const t = Date.now();
     const res = new Map<string, UserInfo>();
@@ -140,10 +140,10 @@ export function getAllUsersInformation(
                 case NostrKind.DIRECT_MESSAGE:
                     {
                         let whoAm_I_TalkingTo = "";
-                        if (event.pubkey == myAccountContext.publicKey.hex) {
+                        if (event.pubkey == ctx.publicKey.hex) {
                             // I am the sender
                             whoAm_I_TalkingTo = getTags(event).p[0];
-                        } else if (getTags(event).p[0] == myAccountContext.publicKey.hex) {
+                        } else if (getTags(event).p[0] == ctx.publicKey.hex) {
                             // I am the receiver
                             whoAm_I_TalkingTo = event.pubkey;
                         } else {
@@ -152,7 +152,7 @@ export function getAllUsersInformation(
                         }
                         const userInfo = res.get(whoAm_I_TalkingTo);
                         if (userInfo) {
-                            if (whoAm_I_TalkingTo == myAccountContext.publicKey.hex) {
+                            if (whoAm_I_TalkingTo == ctx.publicKey.hex) {
                                 // talking to myself
                                 if (userInfo.newestEventSendByMe) {
                                     if (event.created_at > userInfo.newestEventSendByMe?.created_at) {
@@ -164,7 +164,7 @@ export function getAllUsersInformation(
                                     userInfo.newestEventReceivedByMe = event;
                                 }
                             } else {
-                                if (myAccountContext.publicKey.hex == event.pubkey) {
+                                if (ctx.publicKey.hex == event.pubkey) {
                                     // I am the sender
                                     if (userInfo.newestEventSendByMe) {
                                         if (event.created_at > userInfo.newestEventSendByMe.created_at) {
@@ -192,12 +192,12 @@ export function getAllUsersInformation(
                                 newestEventSendByMe: undefined,
                                 profile: undefined,
                             };
-                            if (whoAm_I_TalkingTo == myAccountContext.publicKey.hex) {
+                            if (whoAm_I_TalkingTo == ctx.publicKey.hex) {
                                 // talking to myself
                                 newUserInfo.newestEventSendByMe = event;
                                 newUserInfo.newestEventReceivedByMe = event;
                             } else {
-                                if (myAccountContext.publicKey.hex == event.pubkey) {
+                                if (ctx.publicKey.hex == event.pubkey) {
                                     // I am the sender
                                     newUserInfo.newestEventSendByMe = event;
                                 } else {
@@ -212,7 +212,10 @@ export function getAllUsersInformation(
                 case NostrKind.DELETE:
                     break;
                 case NostrKind.CustomAppData: {
-                    const obj: CustomAppData = JSON.parse(event.content);
+                    if (event.kind == NostrKind.CustomAppData) {
+                        event;
+                    }
+                    const obj: CustomAppData = JSON.parse(event.decryptedContent);
                     if (obj.type == "PinContact" || obj.type == "UnpinContact") {
                         const userInfo = res.get(obj.pubkey);
                         if (userInfo) {
