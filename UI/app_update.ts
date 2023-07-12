@@ -539,21 +539,6 @@ export async function* Database_Update(
                         }
                     }
                 }
-            } else if (e.kind == NostrKind.CustomAppData) {
-                const contacts = getAllUsersInformation(database, ctx);
-                for (const contact of contacts.values()) {
-                    const editor = model.editors.get(contact.pubkey.hex);
-                    if (editor == null) {
-                        throw new Error("impossible");
-                    } else {
-                        // chatModel.userInfo = contact;
-                        // quetion: do nothing?
-                    }
-                }
-            } else if (e.kind == NostrKind.TEXT_NOTE) {
-                // do nothing
-            } else {
-                continue;
             }
         }
         yield model;

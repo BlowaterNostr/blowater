@@ -332,6 +332,16 @@ export type Decrypted_Nostr_Event = {
     readonly decryptedContent: string;
 };
 
+export type Decryptable_Nostr_Event = {
+    readonly id: nostr.EventID;
+    readonly sig: string;
+    readonly pubkey: string;
+    readonly kind: nostr.NostrKind.CustomAppData;
+    readonly created_at: number;
+    readonly tags: Tag[];
+    readonly content: string;
+};
+
 export type PlainText_Nostr_Event = {
     readonly id: nostr.EventID;
     readonly sig: string;
