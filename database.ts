@@ -29,6 +29,7 @@ export class Database_Contextual_View {
     private readonly caster = csp.multi<Decrypted_Nostr_Event | PlainText_Nostr_Event>(this.sourceOfChange);
 
     static async New(database: DexieDatabase, ctx: NostrAccountContext) {
+        const t = Date.now();
         const events: NostrEvent[] = await database.events.filter((_: any) => true).toArray();
         const cache = new Array<PlainText_Nostr_Event | Decrypted_Nostr_Event>();
         for (const event of events) {
@@ -43,6 +44,7 @@ export class Database_Contextual_View {
             }
             cache.push(e);
         }
+        console.log("Database_Contextual_View:New", Date.now() - t);
         return new Database_Contextual_View(database, cache, ctx);
     }
 
