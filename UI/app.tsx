@@ -47,6 +47,7 @@ import { EventSyncer } from "./event_syncer.ts";
 import { getRelayURLs } from "./setting.ts";
 import { DexieDatabase } from "./dexie-db.ts";
 import { DividerClass } from "./components/tw.ts";
+import { About } from "./about.tsx";
 
 export async function Start(database: DexieDatabase) {
     const model = initialModel();
@@ -428,53 +429,6 @@ export function AppComponent(props: {
 
     console.debug("App:end", Date.now() - t);
     return final;
-}
-
-function About() {
-    return (
-        <div
-            class={tw`flex-1 overflow-hidden bg-[${SecondaryBackgroundColor}] text-[${PrimaryTextColor}]`}
-        >
-            <div class={tw`max-w-[50rem] p-[1rem] m-auto`}>
-                <h1 class={tw`text-[1.8rem] font-bold`}>Blowater</h1>
-                <div class={tw`${DividerClass}`}></div>
-                <p>Blowater is delightful DM focusing Nostr client.</p>
-
-                <p class={tw`mt-4`}>
-                    It's here to replace Telegram/Slack/Discord alike centralized chat apps and give users a
-                    strong privacy, globally available decentralized chat app.
-                </p>
-
-                <p class={tw`text-[1.3rem] font-bold mt-8`}>Authors</p>
-                <p class={tw`mt-4 text-[1.2rem]`}>Software Engineers</p>
-                <a
-                    class={tw`text-[${LinkColor}] hover:underline mt-4`}
-                    href="https://nostr.band/npub1dww6jgxykmkt7tqjqx985tg58dxlm7v83sa743578xa4j7zpe3hql6pdnf"
-                >
-                    Water Blowater
-                </a>
-                <p class={tw`mt-4 text-[1.2rem]`}>Donation</p>
-                <p>
-                    Lightning:{" "}
-                    <a
-                        class={tw`text-[${LinkColor}] hover:underline mt-4`}
-                        href="mailto:blowater@getalby.com"
-                    >
-                        blowater@getalby.com
-                    </a>
-                </p>
-                <p class={tw`mt-4 text-[1.2rem]`}>Customer Support Bot</p>
-                <p>
-                    <a
-                        class={tw`text-[${LinkColor}] hover:underline mt-4`}
-                        href="https://nostr.band/npub1fdjk8cz47lzmcruean82cfufefkf4gja9hrs90tyysemm5p7vt7s9knc27"
-                    >
-                        Support Bot
-                    </a>
-                </p>
-            </div>
-        </div>
-    );
 }
 
 // todo: move to somewhere else
