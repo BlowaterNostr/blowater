@@ -42,10 +42,12 @@ import {
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
 import { getCurrentSignInCtx, setSignInState, SignIn } from "./signIn.tsx";
 import { AppList } from "./app-list.tsx";
-import { SecondaryBackgroundColor } from "./style/colors.ts";
+import { LinkColor, PrimaryTextColor, SecondaryBackgroundColor } from "./style/colors.ts";
 import { EventSyncer } from "./event_syncer.ts";
 import { getRelayURLs } from "./setting.ts";
 import { DexieDatabase } from "./dexie-db.ts";
+import { DividerClass } from "./components/tw.ts";
+import { About } from "./about.tsx";
 
 export async function Start(database: DexieDatabase) {
     const model = initialModel();
@@ -427,32 +429,6 @@ export function AppComponent(props: {
 
     console.debug("App:end", Date.now() - t);
     return final;
-}
-
-function About() {
-    return (
-        <div
-            class={tw`flex-1 overflow-hidden bg-[#313338] text-[#FFFFFF]`}
-        >
-            <p>Blowater is delightful DM focusing Nostr client.</p>
-
-            <p>
-                It's here to replace Telegram/Slack/Discord alike centralized chat apps and give users a
-                strong privacy, globally available decentralized chat app.
-            </p>
-
-            <p>Authors</p>
-            <ul>
-                <li>Water Blowater npub1dww6jgxykmkt7tqjqx985tg58dxlm7v83sa743578xa4j7zpe3hql6pdnf</li>
-            </ul>
-
-            <div>Donation Lightning: blowater@getalby.com</div>
-
-            <div>
-                Customer Support Support Bot: npub1fdjk8cz47lzmcruean82cfufefkf4gja9hrs90tyysemm5p7vt7s9knc27
-            </div>
-        </div>
-    );
 }
 
 // todo: move to somewhere else
