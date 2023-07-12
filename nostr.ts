@@ -1,11 +1,7 @@
 /*
     Extension to common Nostr types
 */
-import {
-    PrivateKey,
-    PublicKey,
-    publicKeyHexFromNpub,
-} from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
+import { PrivateKey, PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 import * as nostr from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 import {
     groupBy,
@@ -324,6 +320,33 @@ export interface Unsigned_CustomAppData_Typed_Event {
     readonly created_at: number;
     readonly content: CustomAppData;
 }
+
+export type Decrypted_Nostr_Event = {
+    readonly id: nostr.EventID;
+    readonly sig: string;
+    readonly pubkey: string;
+    readonly kind: nostr.NostrKind.CustomAppData;
+    readonly created_at: number;
+    readonly tags: Tag[];
+    readonly content: string;
+    readonly decryptedContent: string;
+};
+
+export type PlainText_Nostr_Event = {
+    readonly id: nostr.EventID;
+    readonly sig: string;
+    readonly pubkey: string;
+    readonly kind:
+        | NostrKind.DIRECT_MESSAGE
+        | NostrKind.CONTACTS
+        | NostrKind.DELETE
+        | NostrKind.META_DATA
+        | NostrKind.TEXT_NOTE
+        | NostrKind.RECOMMED_SERVER;
+    readonly created_at: number;
+    readonly tags: Tag[];
+    readonly content: string;
+};
 
 export type CustomAppData = PinContact | UnpinContact | UserLogin;
 

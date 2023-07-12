@@ -10,7 +10,7 @@ import {
     NostrKind,
     RelayResponse_REQ_Message,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
-import { getTags, Tag } from "./nostr.ts";
+import { Decrypted_Nostr_Event, getTags, PlainText_Nostr_Event, Tag } from "./nostr.ts";
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { DexieDatabase } from "./UI/dexie-db.ts";
 
@@ -25,17 +25,30 @@ export interface Indices {
 }
 
 export class Database_Contextual_View {
-    private readonly sourceOfChange = csp.chan<NostrEvent>(buffer_size);
-    private readonly caster = csp.multi<NostrEvent>(this.sourceOfChange);
+    private readonly sourceOfChange = csp.chan<Decrypted_Nostr_Event | PlainText_Nostr_Event>(buffer_size);
+    private readonly caster = csp.multi<Decrypted_Nostr_Event | PlainText_Nostr_Event>(this.sourceOfChange);
 
     static async New(database: DexieDatabase, ctx: NostrAccountContext) {
-        const cache: NostrEvent[] = await database.events.filter((_: any) => true).toArray();
+        const events: NostrEvent[] = await database.events.filter((_: any) => true).toArray();
+        const cache = new Array<PlainText_Nostr_Event | Decrypted_Nostr_Event>();
+        for (const event of events) {
+            const e = await transformEvent(event, ctx);
+            if (e == undefined) {
+                continue;
+            }
+            if (e instanceof Error) {
+                console.log("Database:delete", event.id);
+                database.events.delete(event.id);
+                continue;
+            }
+            cache.push(e);
+        }
         return new Database_Contextual_View(database, cache, ctx);
     }
 
     constructor(
         private readonly database: DexieDatabase,
-        private readonly cache: NostrEvent[],
+        private readonly cache: (PlainText_Nostr_Event | Decrypted_Nostr_Event)[],
         private readonly ctx: NostrAccountContext,
     ) {}
 
@@ -47,19 +60,23 @@ export class Database_Contextual_View {
         return this.cache.filter(filter);
     };
 
-    private readonly addToIndexedDB = async (event: NostrEvent) => {
-        await this.database.events.put(event);
-        this.cache.push(event);
-    };
-
     async addEvent(event: NostrEvent) {
         const storedEvent = await this.getEvent({ id: event.id });
         if (storedEvent) { // event exist
             return;
         }
         console.log("Database.addEvent", event.id);
-        await this.addToIndexedDB(event);
-        await this.sourceOfChange.put(event);
+        await this.database.events.put(event);
+        const e = await transformEvent(event, this.ctx);
+        if (e) {
+            if (e instanceof Error) {
+                console.log("Database:delete", event.id);
+                this.database.events.delete(event.id);
+                return;
+            }
+            this.cache.push(e);
+            await this.sourceOfChange.put(e);
+        }
     }
 
     syncEvents(
@@ -218,4 +235,38 @@ export function whoIamTalkingTo(event: NostrEvent, myPublicKey: PublicKey) {
     }
     // I am the receiver
     return whoIAmTalkingTo;
+}
+
+async function transformEvent(event: NostrEvent, ctx: NostrAccountContext) {
+    if (event.kind == NostrKind.CustomAppData) {
+        if (event.pubkey == ctx.publicKey.hex) {
+            // if I am the author
+            const decrypted = await ctx.decrypt(ctx.publicKey.hex, event.content);
+            if (decrypted instanceof Error) {
+                return decrypted;
+            }
+            const e: Decrypted_Nostr_Event = {
+                content: event.content,
+                created_at: event.created_at,
+                id: event.id,
+                kind: event.kind,
+                pubkey: event.pubkey,
+                sig: event.sig,
+                tags: event.tags,
+                decryptedContent: decrypted,
+            };
+            return e;
+        }
+    } else {
+        const e: PlainText_Nostr_Event = {
+            content: event.content,
+            created_at: event.created_at,
+            id: event.id,
+            kind: event.kind,
+            pubkey: event.pubkey,
+            sig: event.sig,
+            tags: event.tags,
+        };
+        return e;
+    }
 }
