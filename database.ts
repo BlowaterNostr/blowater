@@ -1,7 +1,4 @@
-import {
-    PublicKey,
-    publicKeyHexFromNpub,
-} from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
+import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 import {
     DecryptionFailure,
     decryptNostrEvent,
@@ -10,7 +7,13 @@ import {
     NostrKind,
     RelayResponse_REQ_Message,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
-import { Decrypted_Nostr_Event, getTags, PlainText_Nostr_Event, Tag } from "./nostr.ts";
+import {
+    Decryptable_Nostr_Event,
+    Decrypted_Nostr_Event,
+    getTags,
+    PlainText_Nostr_Event,
+    Tag,
+} from "./nostr.ts";
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { DexieDatabase } from "./UI/dexie-db.ts";
 
@@ -30,22 +33,60 @@ export class Database_Contextual_View {
 
     static async New(database: DexieDatabase, ctx: NostrAccountContext) {
         const t = Date.now();
-        const events: NostrEvent[] = await database.events.filter((_: any) => true).toArray();
-        const cache = new Array<PlainText_Nostr_Event | Decrypted_Nostr_Event>();
-        for (const event of events) {
-            const e = await transformEvent(event, ctx);
-            if (e == undefined) {
-                continue;
+        const cache: (PlainText_Nostr_Event | Decrypted_Nostr_Event)[] = await database.events.filter(
+            (e: NostrEvent) => {
+                return e.kind != NostrKind.CustomAppData;
+            },
+        ).toArray();
+        const db = new Database_Contextual_View(database, cache, ctx);
+
+        (async () => {
+            let tt = 0;
+            const events: Decryptable_Nostr_Event[] = await database.events.filter((e: NostrEvent) => {
+                return e.kind == NostrKind.CustomAppData;
+            }).toArray();
+            for (const event of events) {
+                if (event.kind == NostrKind.CustomAppData) {
+                    const t2 = Date.now();
+                    const e = await transformEvent({
+                        content: event.content,
+                        created_at: event.created_at,
+                        id: event.id,
+                        kind: event.kind,
+                        pubkey: event.pubkey,
+                        sig: event.sig,
+                        tags: event.tags,
+                    }, ctx);
+                    tt += Date.now() - t2;
+                    if (e == undefined) {
+                        continue;
+                    }
+                    if (e instanceof Error) {
+                        console.log("Database:delete", event.id);
+                        database.events.delete(event.id);
+                        continue;
+                    }
+                    cache.push(e);
+                    await db.sourceOfChange.put(e);
+                } else {
+                    const e = {
+                        content: event.content,
+                        created_at: event.created_at,
+                        id: event.id,
+                        kind: event.kind,
+                        pubkey: event.pubkey,
+                        sig: event.sig,
+                        tags: event.tags,
+                    };
+                    cache.push(e);
+                    await db.sourceOfChange.put(e);
+                }
             }
-            if (e instanceof Error) {
-                console.log("Database:delete", event.id);
-                database.events.delete(event.id);
-                continue;
-            }
-            cache.push(e);
-        }
+            console.log("Database_Contextual_View:transformEvent", tt);
+        })();
+
         console.log("Database_Contextual_View:New", Date.now() - t);
-        return new Database_Contextual_View(database, cache, ctx);
+        return db;
     }
 
     constructor(
@@ -69,13 +110,36 @@ export class Database_Contextual_View {
         }
         console.log("Database.addEvent", event.id);
         await this.database.events.put(event);
-        const e = await transformEvent(event, this.ctx);
-        if (e) {
+        if (event.kind == NostrKind.CustomAppData) {
+            const e = await transformEvent({
+                content: event.content,
+                created_at: event.created_at,
+                id: event.id,
+                kind: event.kind,
+                pubkey: event.pubkey,
+                sig: event.sig,
+                tags: event.tags,
+            }, this.ctx);
+            if (e == undefined) {
+                return;
+            }
             if (e instanceof Error) {
                 console.log("Database:delete", event.id);
                 this.database.events.delete(event.id);
                 return;
             }
+            this.cache.push(e);
+            await this.sourceOfChange.put(e);
+        } else {
+            const e = {
+                content: event.content,
+                created_at: event.created_at,
+                id: event.id,
+                kind: event.kind,
+                pubkey: event.pubkey,
+                sig: event.sig,
+                tags: event.tags,
+            };
             this.cache.push(e);
             await this.sourceOfChange.put(e);
         }
@@ -239,28 +303,14 @@ export function whoIamTalkingTo(event: NostrEvent, myPublicKey: PublicKey) {
     return whoIAmTalkingTo;
 }
 
-async function transformEvent(event: NostrEvent, ctx: NostrAccountContext) {
-    if (event.kind == NostrKind.CustomAppData) {
-        if (event.pubkey == ctx.publicKey.hex) {
-            // if I am the author
-            const decrypted = await ctx.decrypt(ctx.publicKey.hex, event.content);
-            if (decrypted instanceof Error) {
-                return decrypted;
-            }
-            const e: Decrypted_Nostr_Event = {
-                content: event.content,
-                created_at: event.created_at,
-                id: event.id,
-                kind: event.kind,
-                pubkey: event.pubkey,
-                sig: event.sig,
-                tags: event.tags,
-                decryptedContent: decrypted,
-            };
-            return e;
+async function transformEvent(event: Decryptable_Nostr_Event, ctx: NostrAccountContext) {
+    if (event.pubkey == ctx.publicKey.hex) {
+        // if I am the author
+        const decrypted = await ctx.decrypt(ctx.publicKey.hex, event.content);
+        if (decrypted instanceof Error) {
+            return decrypted;
         }
-    } else {
-        const e: PlainText_Nostr_Event = {
+        const e: Decrypted_Nostr_Event = {
             content: event.content,
             created_at: event.created_at,
             id: event.id,
@@ -268,6 +318,7 @@ async function transformEvent(event: NostrEvent, ctx: NostrAccountContext) {
             pubkey: event.pubkey,
             sig: event.sig,
             tags: event.tags,
+            decryptedContent: decrypted,
         };
         return e;
     }
