@@ -1,4 +1,4 @@
-import { chan, closed } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { chan, closed, sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { PrivateKey, PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 import {
     InMemoryAccountContext,
@@ -39,17 +39,17 @@ export class Nip7ExtensionContext implements NostrAccountContext {
     private readonly signEventChan = chan<NostrEvent>();
 
     static async New(): Promise<Nip7ExtensionContext | Error | undefined> {
-        function getExtensionObject(): NIP07 | undefined {
+        async function getExtensionObject(): Promise<NIP07 | undefined> {
+            await sleep(20);
             if ("nostr" in window) {
                 return window.nostr as NIP07;
             }
             return undefined;
         }
-        const ext = getExtensionObject();
+        const ext = await getExtensionObject();
         if (ext === undefined) {
             return undefined;
         }
-        console.log("AlbyAccountContext.New");
         let pubkey: string | undefined;
         try {
             pubkey = await ext.getPublicKey();
