@@ -40,6 +40,7 @@ export class Nip7ExtensionContext implements NostrAccountContext {
 
     static async New(): Promise<Nip7ExtensionContext | Error | undefined> {
         async function getExtensionObject(): Promise<NIP07 | undefined> {
+            // wait for alby or nos2x init
             await sleep(20);
             if ("nostr" in window) {
                 return window.nostr as NIP07;
