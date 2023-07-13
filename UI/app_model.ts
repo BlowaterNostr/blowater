@@ -10,6 +10,8 @@ import { RightPanelModel } from "./message-panel.tsx";
 import { DM_Container_Model } from "./dm.ts";
 import { App } from "./app.tsx";
 import { ParsedTag_Nostr_Event } from "../nostr.ts";
+import { MessageThread } from "./dm.tsx";
+import { UserInfo } from "./contact-list.ts";
 
 export type Model = {
     app: App | undefined; // app is only available after sign-in
@@ -22,10 +24,11 @@ export type Model = {
         key: string;
         value: string;
     };
+    allUsersInfo: Map<string, UserInfo>;
 
     // social
     social: {
-        threads: ParsedTag_Nostr_Event[][];
+        threads: MessageThread[];
         editor: Social_EditorModel;
         replyEditors: Map<string, Social_EditorModel>;
         focusedContent: NostrEvent /* thread root event */ | PublicKey /* focused user profile */ | undefined;
@@ -54,6 +57,7 @@ export function initialModel(): Model {
             hasNewMessages: new Set(),
             currentSelectedContact: undefined,
         },
+        allUsersInfo: new Map(),
         editors: editors,
         newProfileField: {
             key: "",

@@ -11,9 +11,10 @@ import { UserInfo } from "../UI/contact-list.ts";
 export function getSocialPosts(
     db: Database_Contextual_View,
     allUsersInfo: Map<string, UserInfo>,
-    threads: ParsedTag_Nostr_Event[][],
 ) {
     const t = Date.now();
+    const events = db.filterEvents((e) => e.kind == NostrKind.TEXT_NOTE);
+    const threads = computeThreads(events);
     const msgs: MessageThread[] = new Array(threads.length);
     for (let i = 0; i < threads.length; i++) {
         const thread = threads[i];

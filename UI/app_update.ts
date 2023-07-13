@@ -30,6 +30,7 @@ import { SignInEvent, signInWithExtension, signInWithPrivateKey } from "./signIn
 import { computeThreads, getTags, PinContact, UnpinContact } from "../nostr.ts";
 import { MessageThread } from "./dm.tsx";
 import { DexieDatabase } from "./dexie-db.ts";
+import { getSocialPosts } from "../features/social.ts";
 
 export type UI_Interaction_Event =
     | RemoveRelayButtonClicked
@@ -131,6 +132,7 @@ export async function* UI_Interaction_Update(
         }
         // All events below are only valid after signning in
         //
+
         // Relay
         //
         if (event.type == "AddRelayButtonClicked") {
@@ -190,7 +192,7 @@ export async function* UI_Interaction_Update(
             };
             const group = getGroupOf(
                 event.pubkey,
-                getAllUsersInformation(model.app.database, model.app.myAccountContext),
+                model.allUsersInfo,
             );
             model.dm.selectedContactGroup = group;
             updateConversation(model.app.model, event.pubkey);
@@ -457,6 +459,7 @@ export async function* Database_Update(
         }
 
         for (let e of changes_events) {
+            model.allUsersInfo = getAllUsersInformation(database, ctx);
             const t = getTags(e).lamport_timestamp;
             if (t) {
                 lamport.set(t);
@@ -466,8 +469,7 @@ export async function* Database_Update(
                 await profileSyncer.add(key.hex);
             }
             if (e.kind == NostrKind.META_DATA || e.kind == NostrKind.DIRECT_MESSAGE) {
-                const contacts = getAllUsersInformation(database, ctx);
-                for (const contact of contacts.values()) {
+                for (const contact of model.allUsersInfo.values()) {
                     const editor = model.editors.get(contact.pubkey.hex);
                     if (editor == null) { // a stranger sends a message
                         const pubkey = PublicKey.FromHex(contact.pubkey.hex);
@@ -541,7 +543,7 @@ export async function* Database_Update(
                 }
             } else if (e.kind == NostrKind.TEXT_NOTE) {
                 const events = database.filterEvents((e) => e.kind == NostrKind.TEXT_NOTE);
-                model.social.threads = computeThreads(events);
+                model.social.threads = getSocialPosts(database, model.allUsersInfo);
             }
         }
         yield model;
