@@ -11,6 +11,7 @@ import {
     Decryptable_Nostr_Event,
     Decrypted_Nostr_Event,
     getTags,
+    ParsedTag_Nostr_Event,
     PlainText_Nostr_Event,
     Tag,
 } from "./nostr.ts";
@@ -33,27 +34,28 @@ export class Database_Contextual_View {
 
     static async New(database: DexieDatabase, ctx: NostrAccountContext) {
         const t = Date.now();
-        const cache: (NostrEvent)[] = await database.events.filter(
+        const onload: (NostrEvent)[] = await database.events.filter(
             (e: NostrEvent) => {
                 return e.kind != NostrKind.CustomAppData;
             },
         ).toArray();
+        const cache: (PlainText_Nostr_Event | Decrypted_Nostr_Event)[] = onload.map((event) => {
+            const e: PlainText_Nostr_Event = {
+                content: event.content,
+                created_at: event.created_at,
+                id: event.id,
+                // @ts-ignore
+                kind: event.kind,
+                pubkey: event.pubkey,
+                sig: event.sig,
+                tags: event.tags,
+                parsedTags: getTags(event),
+            };
+            return e;
+        });
         const db = new Database_Contextual_View(
             database,
-            cache.map((event) => {
-                const e: PlainText_Nostr_Event = {
-                    content: event.content,
-                    created_at: event.created_at,
-                    id: event.id,
-                    // @ts-ignore
-                    kind: event.kind,
-                    pubkey: event.pubkey,
-                    sig: event.sig,
-                    tags: event.tags,
-                    parsedTags: getTags(event),
-                };
-                return e;
-            }),
+            cache,
             ctx,
         );
 
