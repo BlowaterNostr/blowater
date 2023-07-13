@@ -209,62 +209,34 @@ export function prepareReplyEvent(
     );
 }
 
-export function compare(a: nostr.NostrEvent, b: nostr.NostrEvent) {
-    // const aTags = getTags(a);
-    // const bTags = getTags(b);
-    // if (aTags.image && bTags.image) {
-    //     if (aTags.image[0] == bTags.image[0]) {
-    //         return (Number(aTags.image[2]) - Number(bTags.image[2]));
-    //     }
-    // }
-    // if (aTags.reply && aTags.reply[0] == b.id) {
-    //     return 1;
-    // }
-    // if (bTags.reply && bTags.reply[0] == a.id) {
-    //     return -1;
-    // }
-    // if (aTags.root && aTags.root[0] == b.id) {
-    //     return 1;
-    // }
-    // if (bTags.root && bTags.root[0] == a.id) {
-    //     return -1;
-    // }
-    // if (!aTags.reply && !aTags.root) {
-    //     return -1;
-    // }
-    // if (!bTags.reply && !bTags.root) {
-    //     return 1;
-    // }
-    for (const aTag of a.tags) {
-        if (aTag[0] == "lamport") {
-            for (const bTag of b.tags) {
-                if (bTag[0] == "lamport") {
-                    return Number(aTag[1]) - Number(bTag[1]);
-                }
-            }
-        }
+export function compare(a: ParsedTag_Nostr_Event, b: ParsedTag_Nostr_Event) {
+    if (a.parsedTags.lamport_timestamp && b.parsedTags.lamport_timestamp) {
+        return a.parsedTags.lamport_timestamp - b.parsedTags.lamport_timestamp;
     }
     return a.created_at - b.created_at;
 }
 
-export function computeThreads(events: nostr.NostrEvent[]) {
+export type ParsedTag_Nostr_Event = nostr.NostrEvent & {
+    readonly parsedTags: Tags;
+};
+export function computeThreads(events: ParsedTag_Nostr_Event[]) {
     events.sort(compare);
-    const idsMap = new Map<string, nostr.NostrEvent>();
+    const idsMap = new Map<string, ParsedTag_Nostr_Event>();
     for (const event of events) {
         if (!idsMap.has(event.id)) {
             idsMap.set(event.id, event);
         }
-        const tags = getTags(event);
+        const tags = event.parsedTags;
         if (tags.image && tags.image[2] == "0" && !idsMap.has(tags.image[0])) {
             idsMap.set(tags.image[0], event);
         }
     }
 
-    const relationsMap = new Map<nostr.NostrEvent, nostr.NostrEvent | string>();
+    const relationsMap = new Map<ParsedTag_Nostr_Event, ParsedTag_Nostr_Event | string>();
     for (const event of events) {
         let id = event.id;
-        const replyTags = getTags(event).root || getTags(event).reply || getTags(event).e;
-        const imageTags = getTags(event).image;
+        const replyTags = event.parsedTags.root || event.parsedTags.reply || event.parsedTags.e;
+        const imageTags = event.parsedTags.image;
         if (replyTags && replyTags.length > 0) {
             id = replyTags[0];
         } else if (imageTags && imageTags.length > 0) {
@@ -284,7 +256,7 @@ export function computeThreads(events: nostr.NostrEvent[]) {
         }
     }
 
-    const resMap = new Map<string, nostr.NostrEvent[]>();
+    const resMap = new Map<string, ParsedTag_Nostr_Event[]>();
     for (const event of events) {
         const relationEvent = relationsMap.get(event);
         if (!relationEvent) {
@@ -328,6 +300,7 @@ export type Decrypted_Nostr_Event = {
     readonly kind: nostr.NostrKind.CustomAppData;
     readonly created_at: number;
     readonly tags: Tag[];
+    readonly parsedTags: Tags;
     readonly content: string;
     readonly decryptedContent: string;
 };
@@ -355,9 +328,9 @@ export type PlainText_Nostr_Event = {
         | NostrKind.RECOMMED_SERVER;
     readonly created_at: number;
     readonly tags: Tag[];
+    readonly parsedTags: Tags;
     readonly content: string;
 };
-
 export type CustomAppData = PinContact | UnpinContact | UserLogin;
 
 export type PinContact = {

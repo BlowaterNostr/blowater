@@ -33,12 +33,29 @@ export class Database_Contextual_View {
 
     static async New(database: DexieDatabase, ctx: NostrAccountContext) {
         const t = Date.now();
-        const cache: (PlainText_Nostr_Event | Decrypted_Nostr_Event)[] = await database.events.filter(
+        const cache: (NostrEvent)[] = await database.events.filter(
             (e: NostrEvent) => {
                 return e.kind != NostrKind.CustomAppData;
             },
         ).toArray();
-        const db = new Database_Contextual_View(database, cache, ctx);
+        const db = new Database_Contextual_View(
+            database,
+            cache.map((event) => {
+                const e: PlainText_Nostr_Event = {
+                    content: event.content,
+                    created_at: event.created_at,
+                    id: event.id,
+                    // @ts-ignore
+                    kind: event.kind,
+                    pubkey: event.pubkey,
+                    sig: event.sig,
+                    tags: event.tags,
+                    parsedTags: getTags(event),
+                };
+                return e;
+            }),
+            ctx,
+        );
 
         (async () => {
             let tt = 0;
@@ -69,7 +86,7 @@ export class Database_Contextual_View {
                     cache.push(e);
                     await db.sourceOfChange.put(e);
                 } else {
-                    const e = {
+                    const e: PlainText_Nostr_Event = {
                         content: event.content,
                         created_at: event.created_at,
                         id: event.id,
@@ -77,6 +94,7 @@ export class Database_Contextual_View {
                         pubkey: event.pubkey,
                         sig: event.sig,
                         tags: event.tags,
+                        parsedTags: getTags(event),
                     };
                     cache.push(e);
                     await db.sourceOfChange.put(e);
@@ -91,7 +109,7 @@ export class Database_Contextual_View {
 
     constructor(
         private readonly database: DexieDatabase,
-        private readonly cache: (PlainText_Nostr_Event | Decrypted_Nostr_Event)[],
+        public readonly events: (PlainText_Nostr_Event | Decrypted_Nostr_Event)[],
         private readonly ctx: NostrAccountContext,
     ) {}
 
@@ -100,7 +118,7 @@ export class Database_Contextual_View {
     };
 
     public readonly filterEvents = (filter: (e: NostrEvent) => boolean) => {
-        return this.cache.filter(filter);
+        return this.events.filter(filter);
     };
 
     async addEvent(event: NostrEvent) {
@@ -128,10 +146,10 @@ export class Database_Contextual_View {
                 this.database.events.delete(event.id);
                 return;
             }
-            this.cache.push(e);
+            this.events.push(e);
             await this.sourceOfChange.put(e);
         } else {
-            const e = {
+            const e: PlainText_Nostr_Event = {
                 content: event.content,
                 created_at: event.created_at,
                 id: event.id,
@@ -139,8 +157,9 @@ export class Database_Contextual_View {
                 pubkey: event.pubkey,
                 sig: event.sig,
                 tags: event.tags,
+                parsedTags: getTags(event),
             };
-            this.cache.push(e);
+            this.events.push(e);
             await this.sourceOfChange.put(e);
         }
     }
@@ -318,6 +337,7 @@ async function transformEvent(event: Decryptable_Nostr_Event, ctx: NostrAccountC
             pubkey: event.pubkey,
             sig: event.sig,
             tags: event.tags,
+            parsedTags: getTags(event),
             decryptedContent: decrypted,
         };
         return e;

@@ -15,13 +15,16 @@ import {
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 import {
     computeThreads,
+    getTags,
     groupImageEvents,
+    ParsedTag_Nostr_Event,
     prepareNostrImageEvents,
     prepareReplyEvent,
     reassembleBase64ImageFromEvents,
 } from "./nostr.ts";
 import { LamportTime } from "./time.ts";
 import { PrivateKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
+import { ParseMessageContent } from "./UI/message-panel.tsx";
 
 Deno.test("prepareNostrImageEvents", async (t) => {
     const pri = PrivateKey.Generate();
@@ -282,7 +285,7 @@ Deno.test("Group reply messages", async (t) => {
             "text message 12, text message 5's reply",
         );
 
-        const testEvent: NostrEvent[] = [
+        const testEvent = [
             message1,
             message2 as NostrEvent,
             message3 as NostrEvent,
@@ -295,7 +298,12 @@ Deno.test("Group reply messages", async (t) => {
             message10 as NostrEvent,
             message11 as NostrEvent,
             message12 as NostrEvent,
-        ];
+        ].map((e): ParsedTag_Nostr_Event => {
+            return {
+                ...e,
+                parsedTags: getTags(e),
+            };
+        });
 
         const validResult = new Set<Set<NostrEvent>>([
             new Set([
@@ -305,7 +313,12 @@ Deno.test("Group reply messages", async (t) => {
                 message4 as NostrEvent,
                 message5 as NostrEvent,
                 message12 as NostrEvent,
-            ]),
+            ].map((e): ParsedTag_Nostr_Event => {
+                return {
+                    ...e,
+                    parsedTags: getTags(e),
+                };
+            })),
             new Set([
                 message6 as NostrEvent,
                 message7 as NostrEvent,
@@ -313,7 +326,12 @@ Deno.test("Group reply messages", async (t) => {
                 message9 as NostrEvent,
                 message10 as NostrEvent,
                 message11 as NostrEvent,
-            ]),
+            ].map((e): ParsedTag_Nostr_Event => {
+                return {
+                    ...e,
+                    parsedTags: getTags(e),
+                };
+            })),
         ]);
 
         for (let i = 0; i < 10; i++) {
@@ -377,17 +395,32 @@ Deno.test("Group reply messages", async (t) => {
             message2,
             message3,
             message4,
-        ];
+        ].map((e): ParsedTag_Nostr_Event => {
+            return {
+                ...e,
+                parsedTags: getTags(e),
+            };
+        });
 
         const validResult = new Set([
             new Set([
                 message1,
-            ]),
+            ].map((e): ParsedTag_Nostr_Event => {
+                return {
+                    ...e,
+                    parsedTags: getTags(e),
+                };
+            })),
             new Set([
                 message2,
                 message3,
                 message4,
-            ]),
+            ].map((e): ParsedTag_Nostr_Event => {
+                return {
+                    ...e,
+                    parsedTags: getTags(e),
+                };
+            })),
         ]);
 
         for (let i = 0; i < 10; i++) {
@@ -435,16 +468,31 @@ Deno.test("Group reply messages", async (t) => {
             message1,
             message2,
             message3,
-        ];
+        ].map((e): ParsedTag_Nostr_Event => {
+            return {
+                ...e,
+                parsedTags: getTags(e),
+            };
+        });
 
         const validResult = new Set([
             new Set([
                 message1,
-            ]),
+            ].map((e): ParsedTag_Nostr_Event => {
+                return {
+                    ...e,
+                    parsedTags: getTags(e),
+                };
+            })),
             new Set([
                 message2,
                 message3,
-            ]),
+            ].map((e): ParsedTag_Nostr_Event => {
+                return {
+                    ...e,
+                    parsedTags: getTags(e),
+                };
+            })),
         ]);
 
         for (let i = 0; i < 10; i++) {
@@ -496,7 +544,12 @@ Deno.test("Group reply messages", async (t) => {
             message2,
             message3,
             message4,
-        ];
+        ].map((e): ParsedTag_Nostr_Event => {
+            return {
+                ...e,
+                parsedTags: getTags(e),
+            };
+        });
 
         const validResult = new Set([
             new Set([
@@ -504,7 +557,12 @@ Deno.test("Group reply messages", async (t) => {
                 message2,
                 message3,
                 message4,
-            ]),
+            ].map((e): ParsedTag_Nostr_Event => {
+                return {
+                    ...e,
+                    parsedTags: getTags(e),
+                };
+            })),
         ]);
 
         for (let i = 0; i < 10; i++) {
