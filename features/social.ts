@@ -14,7 +14,7 @@ export function getSocialPosts(db: Database_Contextual_View, allUsersInfo: Map<s
         return e.kind == NostrKind.TEXT_NOTE;
     });
 
-    const threads = computeThreads(Array.from(events));
+    const threads = computeThreads(events);
     console.log("getSocialPosts:threads", Date.now() - t);
     const msgs: MessageThread[] = new Array(threads.length);
     for (let i = 0; i < threads.length; i++) {
@@ -37,7 +37,7 @@ export function getSocialPosts(db: Database_Contextual_View, allUsersInfo: Map<s
                 content: event.content,
                 created_at: new Date(event.created_at * 1000),
                 type: "text",
-                lamport: getTags(event).lamport_timestamp,
+                lamport: event.parsedTags.lamport_timestamp,
             };
         }
         msgs[i] = {
