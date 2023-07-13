@@ -1,7 +1,8 @@
 /** @jsx h */
 import { h, render } from "https://esm.sh/preact@10.11.3";
 import { EventBus } from "../event-bus.ts";
-import { Search, SearchUpdate } from "./search.tsx";
+import { Search } from "./search.tsx";
+import { SearchUpdate } from "./search_model.ts";
 
 const eventBus = new EventBus<SearchUpdate>();
 

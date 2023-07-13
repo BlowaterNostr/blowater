@@ -48,6 +48,7 @@ import { getRelayURLs } from "./setting.ts";
 import { DexieDatabase } from "./dexie-db.ts";
 import { DividerClass } from "./components/tw.ts";
 import { About } from "./about.tsx";
+import { computeThreads } from "../nostr.ts";
 
 export async function Start(database: DexieDatabase) {
     const model = initialModel();
@@ -168,6 +169,8 @@ export class App {
     }
 
     initApp = async (accountContext: NostrAccountContext) => {
+        const events = this.database.filterEvents((e) => e.kind == NostrKind.TEXT_NOTE);
+
         console.log("App.initApp");
         const profilesSyncer = await initProfileSyncer(this.relayPool, accountContext, this.database);
         if (profilesSyncer instanceof Error) {
@@ -176,14 +179,15 @@ export class App {
 
         this.profileSyncer = profilesSyncer;
 
-        const allUsersInfo = getAllUsersInformation(this.database, this.myAccountContext);
+        this.model.allUsersInfo = getAllUsersInformation(this.database, this.myAccountContext);
         console.log("App allUsersInfo");
+        this.model.social.threads = getSocialPosts(this.database, this.model.allUsersInfo);
 
         /* my profile */
-        this.model.myProfile = allUsersInfo.get(accountContext.publicKey.hex)?.profile?.content;
+        this.model.myProfile = this.model.allUsersInfo.get(accountContext.publicKey.hex)?.profile?.content;
 
         /* contacts */
-        for (const contact of allUsersInfo.values()) {
+        for (const contact of this.model.allUsersInfo.values()) {
             const editor = this.model.editors.get(contact.pubkey.hex);
             if (editor == null) {
                 const pubkey = PublicKey.FromHex(contact.pubkey.hex);
@@ -202,7 +206,7 @@ export class App {
         }
 
         await profilesSyncer.add(
-            ...Array.from(allUsersInfo.keys()),
+            ...Array.from(this.model.allUsersInfo.keys()),
         );
         console.log("user set", profilesSyncer.userSet);
 
@@ -255,13 +259,9 @@ export function AppComponent(props: {
 
     let socialPostsPanel: VNode | undefined;
     if (model.navigationModel.activeNav == "Social") {
-        const allUserInfo = getAllUsersInformation(app.database, myAccountCtx);
-        // console.log("AppComponent:getSocialPosts before", Date.now() - t);
-        const socialPosts = getSocialPosts(app.database, allUserInfo);
-        // console.log("AppComponent:getSocialPosts after", Date.now() - t, Date.now());
         let focusedContentGetter = () => {
             // console.log("AppComponent:getFocusedContent before", Date.now() - t);
-            let _ = getFocusedContent(model.social.focusedContent, allUserInfo, socialPosts);
+            let _ = getFocusedContent(model.social.focusedContent, model.allUsersInfo, model.social.threads);
             // console.log("AppComponent:getFocusedContent", Date.now() - t);
             if (_?.type === "MessageThread") {
                 let editor = model.social.replyEditors.get(_.data.root.event.id);
@@ -286,9 +286,7 @@ export function AppComponent(props: {
             }
             return _;
         };
-        console.log("AppComponent:focusedContentGetter", Date.now() - t);
         let focusedContent = focusedContentGetter();
-        console.log("AppComponent:socialPosts", Date.now() - t);
         socialPostsPanel = (
             <div
                 class={tw`flex-1 overflow-hidden bg-[#313338]`}
@@ -297,7 +295,7 @@ export function AppComponent(props: {
                     focusedContent={focusedContent}
                     editorModel={model.social.editor}
                     myPublicKey={myAccountCtx.publicKey}
-                    messages={socialPosts}
+                    messages={model.social.threads}
                     rightPanelModel={model.rightPanelModel}
                     db={app.database}
                     eventEmitter={app.eventBus}
@@ -343,7 +341,6 @@ export function AppComponent(props: {
         model.navigationModel.activeNav == "DM" ||
         model.navigationModel.activeNav == "About"
     ) {
-        const allUserInfo = getAllUsersInformation(app.database, myAccountCtx);
         if (model.navigationModel.activeNav == "DM") {
             dmVNode = (
                 <div
@@ -357,7 +354,7 @@ export function AppComponent(props: {
                         myAccountContext: myAccountCtx,
                         db: app.database,
                         pool: app.relayPool,
-                        allUserInfo: allUserInfo,
+                        allUserInfo: model.allUsersInfo,
                         profilesSyncer: app.profileSyncer,
                         eventSyncer: app.eventSyncer,
                     })}
@@ -427,7 +424,7 @@ export function AppComponent(props: {
         </div>
     );
 
-    console.debug("App:end", Date.now() - t);
+    console.debug("AppComponent:end", Date.now() - t);
     return final;
 }
 
