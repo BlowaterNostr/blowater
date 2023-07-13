@@ -9,6 +9,7 @@ import { ProfileData } from "../features/profile.ts";
 import { RightPanelModel } from "./message-panel.tsx";
 import { DM_Container_Model } from "./dm.ts";
 import { App } from "./app.tsx";
+import { ParsedTag_Nostr_Event } from "../nostr.ts";
 
 export type Model = {
     app: App | undefined; // app is only available after sign-in
@@ -24,6 +25,7 @@ export type Model = {
 
     // social
     social: {
+        threads: ParsedTag_Nostr_Event[][];
         editor: Social_EditorModel;
         replyEditors: Map<string, Social_EditorModel>;
         focusedContent: NostrEvent /* thread root event */ | PublicKey /* focused user profile */ | undefined;
@@ -58,6 +60,7 @@ export function initialModel(): Model {
             value: "",
         },
         social: {
+            threads: [],
             editor: new_Social_EditorModel(),
             replyEditors: new Map<string, Social_EditorModel>(),
             focusedContent: undefined,

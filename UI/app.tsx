@@ -48,6 +48,7 @@ import { getRelayURLs } from "./setting.ts";
 import { DexieDatabase } from "./dexie-db.ts";
 import { DividerClass } from "./components/tw.ts";
 import { About } from "./about.tsx";
+import { computeThreads } from "../nostr.ts";
 
 export async function Start(database: DexieDatabase) {
     const model = initialModel();
@@ -168,6 +169,8 @@ export class App {
     }
 
     initApp = async (accountContext: NostrAccountContext) => {
+        const events = this.database.filterEvents((e) => e.kind == NostrKind.TEXT_NOTE);
+        this.model.social.threads = computeThreads(events);
         console.log("App.initApp");
         const profilesSyncer = await initProfileSyncer(this.relayPool, accountContext, this.database);
         if (profilesSyncer instanceof Error) {
@@ -257,7 +260,7 @@ export function AppComponent(props: {
     if (model.navigationModel.activeNav == "Social") {
         const allUserInfo = getAllUsersInformation(app.database, myAccountCtx);
         // console.log("AppComponent:getSocialPosts before", Date.now() - t);
-        const socialPosts = getSocialPosts(app.database, allUserInfo);
+        const socialPosts = getSocialPosts(app.database, allUserInfo, model.social.threads);
         // console.log("AppComponent:getSocialPosts after", Date.now() - t, Date.now());
         let focusedContentGetter = () => {
             // console.log("AppComponent:getFocusedContent before", Date.now() - t);

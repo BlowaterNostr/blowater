@@ -539,6 +539,9 @@ export async function* Database_Update(
                         }
                     }
                 }
+            } else if (e.kind == NostrKind.TEXT_NOTE) {
+                const events = database.filterEvents((e) => e.kind == NostrKind.TEXT_NOTE);
+                model.social.threads = computeThreads(events);
             }
         }
         yield model;
