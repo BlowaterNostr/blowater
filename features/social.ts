@@ -30,8 +30,8 @@ export function getSocialPosts(
                 event: event,
                 author: {
                     pubkey: pubkey,
-                    name: userInfo?.profile?.content.name,
-                    picture: userInfo?.profile?.content.picture,
+                    name: userInfo?.profile?.profile.name,
+                    picture: userInfo?.profile?.profile.picture,
                 },
                 content: event.content,
                 created_at: new Date(event.created_at * 1000),

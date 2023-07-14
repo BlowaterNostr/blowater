@@ -1,5 +1,5 @@
 import { Database_Contextual_View } from "../database.ts";
-import { ProfileEvent, ProfileFromNostrEvent, profilesStream } from "../features/profile.ts";
+import { ProfileFromNostrEvent, profilesStream } from "../features/profile.ts";
 
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { ContactGroup } from "./contact-list.tsx";
@@ -13,12 +13,12 @@ import {
     ConnectionPool,
     newSubID,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
-import { CustomAppData, getTags } from "../nostr.ts";
+import { CustomAppData, getTags, Profile_Nostr_Event } from "../nostr.ts";
 import { assertEquals } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 
 export interface UserInfo {
     pubkey: PublicKey;
-    profile: ProfileEvent | undefined; // todo: maybe change it to ProfileEvent
+    profile: Profile_Nostr_Event | undefined; // todo: maybe change it to ProfileEvent
     newestEventSendByMe: NostrEvent | undefined;
     newestEventReceivedByMe: NostrEvent | undefined;
     pinEvent: {
@@ -109,7 +109,16 @@ export function getAllUsersInformation(
                 case NostrKind.META_DATA:
                     {
                         const userInfo = res.get(event.pubkey);
-                        const profileEvent = ProfileFromNostrEvent(event);
+                        const profileEvent = ProfileFromNostrEvent({
+                            content: event.content,
+                            created_at: event.created_at,
+                            id: event.id,
+                            kind: event.kind,
+                            parsedTags: event.parsedTags,
+                            pubkey: event.pubkey,
+                            sig: event.sig,
+                            tags: event.tags,
+                        });
                         if (userInfo) {
                             if (userInfo.profile) {
                                 if (profileEvent.created_at > userInfo.profile?.created_at) {
