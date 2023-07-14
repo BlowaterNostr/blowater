@@ -15,7 +15,7 @@ import {
     NostrKind,
     prepareNormalNostrEvent,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
-import { Tag } from "../nostr.ts";
+import { ParsedTag_Nostr_Event, PlainText_Nostr_Event, Profile_Nostr_Event, Tag } from "../nostr.ts";
 
 // nip01 meta data
 // https://github.com/nostr-protocol/nips/blob/master/05.md
@@ -71,10 +71,25 @@ export async function saveProfile(
     pool.sendEvent(event);
 }
 
-export function getProfileEvent(db: Database_Contextual_View, pubkey: PublicKey): ProfileEvent | undefined {
-    const events = Array.from(db.filterEvents((e) => {
-        return e.kind === NostrKind.META_DATA && e.pubkey === pubkey.hex;
-    }));
+export function getProfileEvent(
+    db: Database_Contextual_View,
+    pubkey: PublicKey,
+): Profile_Nostr_Event | undefined {
+    const events: ParsedTag_Nostr_Event<NostrKind.META_DATA>[] = [];
+    for (const e of db.events) {
+        if (e.kind === NostrKind.META_DATA && e.pubkey === pubkey.hex) {
+            events.push({
+                content: e.content,
+                kind: e.kind,
+                created_at: e.created_at,
+                id: e.id,
+                parsedTags: e.parsedTags,
+                pubkey: e.pubkey,
+                sig: e.sig,
+                tags: e.tags,
+            });
+        }
+    }
     if (events.length == 0) {
         return undefined;
     }
@@ -83,10 +98,22 @@ export function getProfileEvent(db: Database_Contextual_View, pubkey: PublicKey)
     return ProfileFromNostrEvent(newest);
 }
 
-export function getProfilesByName(db: Database_Contextual_View, name: string): ProfileEvent[] {
-    const events = Array.from(db.filterEvents((e) => {
-        return e.kind === NostrKind.META_DATA;
-    }));
+export function getProfilesByName(db: Database_Contextual_View, name: string): Profile_Nostr_Event[] {
+    const events: ParsedTag_Nostr_Event<NostrKind.META_DATA>[] = [];
+    for (const e of db.events) {
+        if (e.kind === NostrKind.META_DATA) {
+            events.push({
+                content: e.content,
+                kind: e.kind,
+                created_at: e.created_at,
+                id: e.id,
+                parsedTags: e.parsedTags,
+                pubkey: e.pubkey,
+                sig: e.sig,
+                tags: e.tags,
+            });
+        }
+    }
     if (events.length == 0) {
         return [];
     }
@@ -96,7 +123,7 @@ export function getProfilesByName(db: Database_Contextual_View, name: string): P
     for (const events of profilesPerUser.values()) {
         events.sort((e1, e2) => e2.created_at - e1.created_at);
         const p = ProfileFromNostrEvent(events[0]);
-        if (p.content.name && p.content.name?.toLocaleLowerCase().indexOf(name.toLowerCase()) != -1) {
+        if (p.profile.name && p.profile.name?.toLocaleLowerCase().indexOf(name.toLowerCase()) != -1) {
             result.push(p);
         }
     }
@@ -106,8 +133,8 @@ export function getProfilesByName(db: Database_Contextual_View, name: string): P
 export function getProfiles(
     db: Database_Contextual_View,
     pubkeys: Set<string>,
-): Map<string, /*pubkey*/ ProfileEvent | undefined> {
-    const contacts: Map<string, ProfileEvent | undefined> = new Map();
+): Map<string, /*pubkey*/ Profile_Nostr_Event | undefined> {
+    const contacts: Map<string, Profile_Nostr_Event | undefined> = new Map();
     for (const key of pubkeys) {
         const event = getProfileEvent(db, PublicKey.FromHex(key) as PublicKey);
         contacts.set(key, event);
@@ -125,17 +152,9 @@ export interface ProfileData {
     [key: string]: string | undefined;
 }
 
-export interface ProfileEvent {
-    kind: NostrKind;
-    id: string;
-    sig: string;
-    created_at: number;
-    pubkey: string;
-    tags: Tag[];
-    content: ProfileData;
-}
-
-export function ProfileFromNostrEvent(event: NostrEvent): ProfileEvent {
+export function ProfileFromNostrEvent(
+    event: ParsedTag_Nostr_Event<NostrKind.META_DATA>,
+): Profile_Nostr_Event {
     let profileData: ProfileData = {};
     try {
         profileData = JSON.parse(event.content);
@@ -149,6 +168,8 @@ export function ProfileFromNostrEvent(event: NostrEvent): ProfileEvent {
         created_at: event.created_at,
         pubkey: event.pubkey,
         tags: event.tags,
-        content: profileData,
+        content: event.content,
+        parsedTags: event.parsedTags,
+        profile: profileData,
     };
 }

@@ -165,7 +165,7 @@ export async function* UI_Interaction_Update(
                 const profile = getProfileEvent(model.app.database, pubkey);
                 model.dm.search.searchResults = [{
                     pubkey: pubkey,
-                    profile: profile?.content,
+                    profile: profile?.profile,
                 }];
             } else {
                 const profiles = getProfilesByName(model.app.database, event.text);
@@ -176,7 +176,7 @@ export async function* UI_Interaction_Update(
                     }
                     return {
                         pubkey: pubkey,
-                        profile: p.content,
+                        profile: p.profile,
                     };
                 });
             }
@@ -499,7 +499,7 @@ export async function* Database_Update(
                             const profileEvent = getProfileEvent(database, profile.pubkey);
                             return {
                                 pubkey: profile.pubkey,
-                                profile: profileEvent?.content,
+                                profile: profileEvent?.profile,
                             };
                         });
                     }
@@ -509,7 +509,7 @@ export async function* Database_Update(
                         if (newProfile == undefined) {
                             throw new Error("impossible");
                         }
-                        model.myProfile = newProfile.content;
+                        model.myProfile = newProfile.profile;
                     }
                 } else if (e.kind == NostrKind.DIRECT_MESSAGE) {
                     const pubkey = PublicKey.FromHex(e.pubkey);
@@ -520,9 +520,9 @@ export async function* Database_Update(
                     const author = getProfileEvent(database, pubkey);
                     if (e.pubkey != ctx.publicKey.hex) {
                         notify(
-                            author?.content.name ? author.content.name : "",
+                            author?.profile.name ? author.profile.name : "",
                             "new message",
-                            author?.content.picture ? author.content.picture : "",
+                            author?.profile.picture ? author.profile.picture : "",
                             () => {
                                 const k = PublicKey.FromHex(e.pubkey);
                                 if (k instanceof Error) {
