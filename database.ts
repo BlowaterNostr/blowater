@@ -13,10 +13,12 @@ import {
     getTags,
     ParsedTag_Nostr_Event,
     PlainText_Nostr_Event,
+    Profile_Nostr_Event,
     Tag,
 } from "./nostr.ts";
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { DexieDatabase } from "./UI/dexie-db.ts";
+import { parseProfileData, ProfileFromNostrEvent } from "./features/profile.ts";
 
 export const NotFound = Symbol("Not Found");
 const buffer_size = 1000;
@@ -29,30 +31,66 @@ export interface Indices {
 }
 
 export class Database_Contextual_View {
-    private readonly sourceOfChange = csp.chan<Decrypted_Nostr_Event | PlainText_Nostr_Event>(buffer_size);
-    private readonly caster = csp.multi<Decrypted_Nostr_Event | PlainText_Nostr_Event>(this.sourceOfChange);
+    private readonly sourceOfChange = csp.chan<
+        PlainText_Nostr_Event | Decrypted_Nostr_Event | Profile_Nostr_Event
+    >(buffer_size);
+    private readonly caster = csp.multi<PlainText_Nostr_Event | Decrypted_Nostr_Event | Profile_Nostr_Event>(
+        this.sourceOfChange,
+    );
 
     static async New(database: DexieDatabase, ctx: NostrAccountContext) {
         const t = Date.now();
+
         const onload: (NostrEvent)[] = await database.events.filter(
             (e: NostrEvent) => {
                 return e.kind != NostrKind.CustomAppData;
             },
         ).toArray();
-        const cache: (PlainText_Nostr_Event | Decrypted_Nostr_Event)[] = onload.map((event) => {
-            const e: PlainText_Nostr_Event = {
-                content: event.content,
-                created_at: event.created_at,
-                id: event.id,
-                // @ts-ignore
-                kind: event.kind,
-                pubkey: event.pubkey,
-                sig: event.sig,
-                tags: event.tags,
-                parsedTags: getTags(event),
-            };
-            return e;
-        });
+        const cache: (PlainText_Nostr_Event | Decrypted_Nostr_Event | Profile_Nostr_Event)[] = [];
+        for (const event of onload) {
+            switch (event.kind) {
+                case NostrKind.META_DATA:
+                    {
+                        const profileData = parseProfileData(event.content);
+                        if (profileData instanceof Error) {
+                            console.error(profileData);
+                            console.log("Database:delete", event.id);
+                            database.events.delete(event.id);
+                            continue;
+                        }
+                        const e: Profile_Nostr_Event = {
+                            ...event,
+                            kind: event.kind,
+                            parsedTags: getTags(event),
+                            profile: profileData,
+                        };
+                        cache.push(e);
+                    }
+                    break;
+                case NostrKind.TEXT_NOTE:
+                case NostrKind.RECOMMED_SERVER:
+                case NostrKind.CONTACTS:
+                case NostrKind.DIRECT_MESSAGE:
+                case NostrKind.DELETE:
+                    {
+                        const e: PlainText_Nostr_Event = {
+                            content: event.content,
+                            created_at: event.created_at,
+                            id: event.id,
+                            kind: event.kind,
+                            pubkey: event.pubkey,
+                            sig: event.sig,
+                            tags: event.tags,
+                            parsedTags: getTags(event),
+                        };
+                        cache.push(e);
+                    }
+                    break;
+                case NostrKind.CustomAppData:
+                    // ignore
+                    break;
+            }
+        }
         const db = new Database_Contextual_View(
             database,
             cache,
@@ -111,7 +149,7 @@ export class Database_Contextual_View {
 
     constructor(
         private readonly database: DexieDatabase,
-        public readonly events: (PlainText_Nostr_Event | Decrypted_Nostr_Event)[],
+        public readonly events: (PlainText_Nostr_Event | Decrypted_Nostr_Event | Profile_Nostr_Event)[],
         private readonly ctx: NostrAccountContext,
     ) {}
 
@@ -123,15 +161,15 @@ export class Database_Contextual_View {
         return this.events.filter(filter);
     };
 
-    async addEvent(event: NostrEvent) {
+    async addEvent(event: NostrEvent): Promise<boolean> {
         const storedEvent = await this.getEvent({ id: event.id });
         if (storedEvent) { // event exist
-            return;
+            return false;
         }
         console.log("Database.addEvent", event.id);
-        await this.database.events.put(event);
+        let e: PlainText_Nostr_Event | Decrypted_Nostr_Event | Profile_Nostr_Event;
         if (event.kind == NostrKind.CustomAppData) {
-            const e = await transformEvent({
+            const _e = await transformEvent({
                 content: event.content,
                 created_at: event.created_at,
                 id: event.id,
@@ -140,30 +178,44 @@ export class Database_Contextual_View {
                 sig: event.sig,
                 tags: event.tags,
             }, this.ctx);
-            if (e == undefined) {
-                return;
+            if (_e == undefined) {
+                return false;
             }
-            if (e instanceof Error) {
+            if (_e instanceof Error) {
                 console.log("Database:delete", event.id);
-                this.database.events.delete(event.id);
-                return;
+                this.database.events.delete(event.id); // todo: remove
+                return false;
             }
-            this.events.push(e);
-            await this.sourceOfChange.put(e);
+            e = _e;
         } else {
-            const e: PlainText_Nostr_Event = {
-                content: event.content,
-                created_at: event.created_at,
-                id: event.id,
-                kind: event.kind,
-                pubkey: event.pubkey,
-                sig: event.sig,
-                tags: event.tags,
-                parsedTags: getTags(event),
-            };
-            this.events.push(e);
-            await this.sourceOfChange.put(e);
+            if (event.kind == NostrKind.META_DATA) {
+                const profileData = parseProfileData(event.content);
+                if (profileData instanceof Error) {
+                    return false;
+                }
+                e = {
+                    ...event,
+                    kind: event.kind,
+                    profile: profileData,
+                    parsedTags: getTags(event),
+                };
+            } else {
+                e = {
+                    content: event.content,
+                    created_at: event.created_at,
+                    id: event.id,
+                    kind: event.kind,
+                    pubkey: event.pubkey,
+                    sig: event.sig,
+                    tags: event.tags,
+                    parsedTags: getTags(event),
+                };
+            }
         }
+        await this.database.events.put(event);
+        this.events.push(e);
+        /* not await */ this.sourceOfChange.put(e);
+        return true;
     }
 
     syncEvents(

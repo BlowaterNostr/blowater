@@ -75,19 +75,10 @@ export function getProfileEvent(
     db: Database_Contextual_View,
     pubkey: PublicKey,
 ): Profile_Nostr_Event | undefined {
-    const events: ParsedTag_Nostr_Event<NostrKind.META_DATA>[] = [];
+    const events: Profile_Nostr_Event[] = [];
     for (const e of db.events) {
         if (e.kind === NostrKind.META_DATA && e.pubkey === pubkey.hex) {
-            events.push({
-                content: e.content,
-                kind: e.kind,
-                created_at: e.created_at,
-                id: e.id,
-                parsedTags: e.parsedTags,
-                pubkey: e.pubkey,
-                sig: e.sig,
-                tags: e.tags,
-            });
+            events.push(e);
         }
     }
     if (events.length == 0) {
@@ -95,23 +86,14 @@ export function getProfileEvent(
     }
     events.sort((e1, e2) => e2.created_at - e1.created_at);
     const newest = events[0];
-    return ProfileFromNostrEvent(newest);
+    return newest;
 }
 
 export function getProfilesByName(db: Database_Contextual_View, name: string): Profile_Nostr_Event[] {
-    const events: ParsedTag_Nostr_Event<NostrKind.META_DATA>[] = [];
+    const events: Profile_Nostr_Event[] = [];
     for (const e of db.events) {
         if (e.kind === NostrKind.META_DATA) {
-            events.push({
-                content: e.content,
-                kind: e.kind,
-                created_at: e.created_at,
-                id: e.id,
-                parsedTags: e.parsedTags,
-                pubkey: e.pubkey,
-                sig: e.sig,
-                tags: e.tags,
-            });
+            events.push(e);
         }
     }
     if (events.length == 0) {
@@ -122,7 +104,7 @@ export function getProfilesByName(db: Database_Contextual_View, name: string): P
     const result = [];
     for (const events of profilesPerUser.values()) {
         events.sort((e1, e2) => e2.created_at - e1.created_at);
-        const p = ProfileFromNostrEvent(events[0]);
+        const p = events[0];
         if (p.profile.name && p.profile.name?.toLocaleLowerCase().indexOf(name.toLowerCase()) != -1) {
             result.push(p);
         }
@@ -154,14 +136,12 @@ export interface ProfileData {
 
 export function ProfileFromNostrEvent(
     event: ParsedTag_Nostr_Event<NostrKind.META_DATA>,
-): Profile_Nostr_Event {
-    let profileData: ProfileData = {};
-    try {
-        profileData = JSON.parse(event.content);
-    } catch (e) {
-        console.error(event.id, event.content, "is not valid JSON");
+) {
+    const profileData = parseProfileData(event.content);
+    if (profileData instanceof Error) {
+        return profileData;
     }
-    return {
+    const e: Profile_Nostr_Event = {
         kind: event.kind,
         id: event.id,
         sig: event.sig,
@@ -172,4 +152,13 @@ export function ProfileFromNostrEvent(
         parsedTags: event.parsedTags,
         profile: profileData,
     };
+    return e;
+}
+
+export function parseProfileData(content: string) {
+    try {
+        return JSON.parse(content) as ProfileData;
+    } catch (e) {
+        return e as Error;
+    }
 }

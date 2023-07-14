@@ -284,7 +284,7 @@ export type Decrypted_Nostr_Event = ParsedTag_Nostr_Event<NostrKind.CustomAppDat
 export type Decryptable_Nostr_Event = nostr.NostrEvent<NostrKind.CustomAppData>;
 
 export type PlainText_Nostr_Event = ParsedTag_Nostr_Event<
-    Exclude<NostrKind, NostrKind.CustomAppData> // todo: exclude DM as well
+    Exclude<NostrKind, NostrKind.CustomAppData | NostrKind.META_DATA> // todo: exclude DM as well
 >;
 export type Profile_Nostr_Event = ParsedTag_Nostr_Event<NostrKind.META_DATA> & {
     profile: ProfileData;
