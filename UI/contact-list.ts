@@ -109,16 +109,7 @@ export function getAllUsersInformation(
                 case NostrKind.META_DATA:
                     {
                         const userInfo = res.get(event.pubkey);
-                        const profileEvent = ProfileFromNostrEvent({
-                            content: event.content,
-                            created_at: event.created_at,
-                            id: event.id,
-                            kind: event.kind,
-                            parsedTags: event.parsedTags,
-                            pubkey: event.pubkey,
-                            sig: event.sig,
-                            tags: event.tags,
-                        });
+                        const profileEvent = event;
                         if (userInfo) {
                             if (userInfo.profile) {
                                 if (profileEvent.created_at > userInfo.profile?.created_at) {
@@ -133,9 +124,8 @@ export function getAllUsersInformation(
                                 pubkey: PublicKey.FromHex(event.pubkey) as PublicKey,
                                 newestEventReceivedByMe: undefined,
                                 newestEventSendByMe: undefined,
-                                profile: undefined,
+                                profile: profileEvent,
                             };
-                            newUserInfo.profile = profileEvent;
                             res.set(event.pubkey, newUserInfo);
                         }
                     }
