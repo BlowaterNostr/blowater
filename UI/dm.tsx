@@ -50,8 +50,8 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                 const profile = getProfileEvent(props.db, currentConversation);
                 currentEditorModel.target.receiver = {
                     pubkey: currentConversation,
-                    name: profile?.content.name,
-                    picture: profile?.content.picture,
+                    name: profile?.profile.name,
+                    picture: profile?.profile.picture,
                 };
             }
         }

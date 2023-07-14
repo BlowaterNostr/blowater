@@ -10,6 +10,7 @@ import {
     prepareNormalNostrEvent,
     TagPubKey,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
+import { ProfileData } from "./features/profile.ts";
 
 type TotolChunks = string;
 type ChunkIndex = string; // 0-indexed
@@ -283,8 +284,11 @@ export type Decrypted_Nostr_Event = ParsedTag_Nostr_Event<NostrKind.CustomAppDat
 export type Decryptable_Nostr_Event = nostr.NostrEvent<NostrKind.CustomAppData>;
 
 export type PlainText_Nostr_Event = ParsedTag_Nostr_Event<
-    Exclude<NostrKind, NostrKind.CustomAppData>
+    Exclude<NostrKind, NostrKind.CustomAppData> // todo: exclude DM as well
 >;
+export type Profile_Nostr_Event = ParsedTag_Nostr_Event<NostrKind.META_DATA> & {
+    profile: ProfileData;
+};
 export type CustomAppData = PinContact | UnpinContact | UserLogin;
 
 export type PinContact = {

@@ -45,8 +45,8 @@ export function convertEventsToChatMessages(
             created_at: new Date(textEvents[i].created_at * 1000),
             author: {
                 pubkey,
-                name: author?.profile?.content.name,
-                picture: author?.profile?.content.picture,
+                name: author?.profile?.profile.name,
+                picture: author?.profile?.profile.picture,
             },
             lamport: getTags(textEvents[i]).lamport_timestamp,
         });
@@ -70,8 +70,8 @@ export function convertEventsToChatMessages(
             created_at: new Date(imageEvents[0].created_at * 1000),
             author: {
                 pubkey: pubkey,
-                name: author?.profile?.content.name,
-                picture: author?.profile?.content.picture,
+                name: author?.profile?.profile.name,
+                picture: author?.profile?.profile.picture,
             },
             lamport: getTags(imageEvents[0]).lamport_timestamp,
         });

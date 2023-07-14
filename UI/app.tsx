@@ -184,7 +184,7 @@ export class App {
         this.model.social.threads = getSocialPosts(this.database, this.model.allUsersInfo);
 
         /* my profile */
-        this.model.myProfile = this.model.allUsersInfo.get(accountContext.publicKey.hex)?.profile?.content;
+        this.model.myProfile = this.model.allUsersInfo.get(accountContext.publicKey.hex)?.profile?.profile;
 
         /* contacts */
         for (const contact of this.model.allUsersInfo.values()) {
@@ -198,8 +198,8 @@ export class App {
                     contact.pubkey.hex,
                     new_DM_EditorModel({
                         pubkey,
-                        name: contact.profile?.content.name,
-                        picture: contact.profile?.content.picture,
+                        name: contact.profile?.profile.name,
+                        picture: contact.profile?.profile.picture,
                     }),
                 );
             }
@@ -438,7 +438,7 @@ export function getFocusedContent(
         return;
     }
     if (focusedContent instanceof PublicKey) {
-        const profileData = allUserInfo.get(focusedContent.hex)?.profile?.content;
+        const profileData = allUserInfo.get(focusedContent.hex)?.profile?.profile;
         return {
             type: "ProfileData" as "ProfileData",
             data: profileData,

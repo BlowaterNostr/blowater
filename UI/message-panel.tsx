@@ -476,7 +476,7 @@ export function ParseMessageContent(
                 }
                 const profile = getProfileEvent(db, pubkey);
                 if (profile) {
-                    vnode.push(ProfileCard(profile.content, pubkey, eventEmitter));
+                    vnode.push(ProfileCard(profile.profile, pubkey, eventEmitter));
                 } else {
                     profilesSyncer.add(pubkey.hex);
                 }

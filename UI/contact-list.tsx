@@ -285,13 +285,13 @@ function ConversationListItem(props: ListItemProps) {
         <Fragment>
             <Avatar
                 class={tw`w-8 h-8 mr-2`}
-                picture={props.userInfo.profile?.content.picture}
+                picture={props.userInfo.profile?.profile.picture}
             />
             <div
                 class={tw`flex-1 overflow-hidden relative`}
             >
                 <p class={tw`truncate w-full`}>
-                    {props.userInfo.profile?.content.name || props.userInfo.pubkey.bech32()}
+                    {props.userInfo.profile?.profile.name || props.userInfo.pubkey.bech32()}
                 </p>
                 {props.userInfo.newestEventReceivedByMe !== undefined
                     ? (
