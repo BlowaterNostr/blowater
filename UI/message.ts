@@ -85,11 +85,11 @@ export function sortMessage(messages: MessageThread[]) {
         .sort((m1, m2) => {
             if (m1.root.lamport && m2.root.lamport) {
                 if (m1.root.lamport == m2.root.lamport) {
-                    return m2.root.created_at.getTime() - m1.root.created_at.getTime();
+                    return m1.root.created_at.getTime() - m2.root.created_at.getTime();
                 } else {
-                    return m2.root.lamport - m1.root.lamport;
+                    return m1.root.lamport - m2.root.lamport;
                 }
             }
-            return m2.root.created_at.getTime() - m1.root.created_at.getTime();
+            return m1.root.created_at.getTime() - m2.root.created_at.getTime();
         });
 }
