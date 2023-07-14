@@ -1,8 +1,5 @@
 file = *
 coverage_dir = cov_profile
-run:
-	deno run --allow-net test.ts
-
 test: clear-coverage
 	deno test --config=deno.json --coverage=$(coverage_dir) --allow-net --allow-read --allow-env --trace-ops *.test.ts **/*.test.ts
 
