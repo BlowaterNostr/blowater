@@ -30,8 +30,8 @@ type Tags = {
     root?: [nostr.EventID, RelayURL, "root"];
 } & nostr.Tags;
 
-type Event = nostr.NostrEvent<Tag>;
-type UnsignedEvent = nostr.UnsignedNostrEvent<Tag>;
+type Event = nostr.NostrEvent<NostrKind, Tag>;
+type UnsignedEvent = nostr.UnsignedNostrEvent<NostrKind, Tag>;
 
 export function getTags(event: Event): Tags {
     const tags: Tags = {
@@ -216,7 +216,7 @@ export function compare(a: ParsedTag_Nostr_Event, b: ParsedTag_Nostr_Event) {
     return a.created_at - b.created_at;
 }
 
-export type ParsedTag_Nostr_Event = nostr.NostrEvent & {
+export type ParsedTag_Nostr_Event<Kind extends NostrKind = NostrKind> = nostr.NostrEvent<Kind> & {
     readonly parsedTags: Tags;
 };
 export function computeThreads(events: ParsedTag_Nostr_Event[]) {
@@ -276,61 +276,15 @@ export function computeThreads(events: ParsedTag_Nostr_Event[]) {
     return Array.from(resMap.values());
 }
 
-export interface Signed_CustomAppData_Typed_Event {
-    readonly id: nostr.EventID;
-    readonly sig: string;
-    readonly pubkey: string;
-    readonly kind: nostr.NostrKind.CustomAppData;
-    readonly created_at: number;
-    readonly tags: Tag[];
-    readonly content: CustomAppData;
-}
-
-export interface Unsigned_CustomAppData_Typed_Event {
-    readonly pubkey: string;
-    readonly kind: nostr.NostrKind.CustomAppData;
-    readonly created_at: number;
-    readonly content: CustomAppData;
-}
-
-export type Decrypted_Nostr_Event = {
-    readonly id: nostr.EventID;
-    readonly sig: string;
-    readonly pubkey: string;
-    readonly kind: nostr.NostrKind.CustomAppData;
-    readonly created_at: number;
-    readonly tags: Tag[];
-    readonly parsedTags: Tags;
-    readonly content: string;
+export type Decrypted_Nostr_Event = ParsedTag_Nostr_Event<NostrKind.CustomAppData> & {
     readonly decryptedContent: string;
 };
 
-export type Decryptable_Nostr_Event = {
-    readonly id: nostr.EventID;
-    readonly sig: string;
-    readonly pubkey: string;
-    readonly kind: nostr.NostrKind.CustomAppData;
-    readonly created_at: number;
-    readonly tags: Tag[];
-    readonly content: string;
-};
+export type Decryptable_Nostr_Event = nostr.NostrEvent<NostrKind.CustomAppData>;
 
-export type PlainText_Nostr_Event = {
-    readonly id: nostr.EventID;
-    readonly sig: string;
-    readonly pubkey: string;
-    readonly kind:
-        | NostrKind.DIRECT_MESSAGE
-        | NostrKind.CONTACTS
-        | NostrKind.DELETE
-        | NostrKind.META_DATA
-        | NostrKind.TEXT_NOTE
-        | NostrKind.RECOMMED_SERVER;
-    readonly created_at: number;
-    readonly tags: Tag[];
-    readonly parsedTags: Tags;
-    readonly content: string;
-};
+export type PlainText_Nostr_Event = ParsedTag_Nostr_Event<
+    Exclude<NostrKind, NostrKind.CustomAppData>
+>;
 export type CustomAppData = PinContact | UnpinContact | UserLogin;
 
 export type PinContact = {

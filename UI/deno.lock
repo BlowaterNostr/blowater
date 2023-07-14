@@ -19,7 +19,7 @@
     "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/ende.ts": "00807d3602a65d5a6881c8fbb01d6886bf7a6640a2cc5c7c1bf00dd00b320ae7",
     "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts": "1830bb6eded80c71aeae6a94ce921dbf09fcdf4820a3b846f8e8d9e23ce17119",
     "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nip19.ts": "880aa40c85bb770703b5e85d72f29fed96f21777dc17906017c385873aedfd44",
-    "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts": "6d4b0bde3978bdc3d6cdc802a6f51e2391cb7257cac3aa80a6e70212b11b18a1",
+    "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts": "aeac23272327a1a0c576aaa66a040497474ec0d325fa27bbb112b2b36110abb3",
     "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts": "93c5c6fe196dc9cae7c0e82ee8057a5350f77e69ae7d395fdb141a25b2664739",
     "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/scure.js": "fbc4be16918272bd167fff1184a7f5bbd1a676bad2a73130bb530d78df893a99",
     "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/vendor/esm.sh/v106/@noble/secp256k1@1.7.1/es2022/secp256k1.js": "69e32f6c686cc651ff2e6d4d22ed6e9b6f86b38311b405b47b2abdf3cb98eb4d",
