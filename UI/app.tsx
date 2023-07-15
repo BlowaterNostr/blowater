@@ -14,10 +14,9 @@ import { MessagePanel } from "./message-panel.tsx";
 import { Setting } from "./setting.tsx";
 import { Database_Contextual_View } from "../database.ts";
 
-import { getAllUsersInformation, ProfilesSyncer, UserInfo } from "./contact-list.ts";
+import { AllUsersInformation, ProfilesSyncer, UserInfo } from "./contact-list.ts";
 
 import { new_DM_EditorModel } from "./editor.tsx";
-import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { initialModel, Model } from "./app_model.ts";
 import {
     AppEventBus,
@@ -156,6 +155,7 @@ async function initProfileSyncer(
 export class App {
     profileSyncer!: ProfilesSyncer;
     eventSyncer: EventSyncer;
+    public readonly allUsersInfo: AllUsersInformation;
 
     constructor(
         public readonly database: Database_Contextual_View,
@@ -166,10 +166,11 @@ export class App {
         public readonly relayPool: ConnectionPool,
     ) {
         this.eventSyncer = new EventSyncer(this.relayPool, this.database);
+        this.allUsersInfo = new AllUsersInformation(myAccountContext);
     }
 
     initApp = async (accountContext: NostrAccountContext) => {
-        const events = this.database.filterEvents((e) => e.kind == NostrKind.TEXT_NOTE);
+        // const events = this.database.filterEvents((e) => e.kind == NostrKind.TEXT_NOTE);
 
         console.log("App.initApp");
         const profilesSyncer = await initProfileSyncer(this.relayPool, accountContext, this.database);
@@ -179,15 +180,16 @@ export class App {
 
         this.profileSyncer = profilesSyncer;
 
-        this.model.allUsersInfo = getAllUsersInformation(this.database, this.myAccountContext);
+        this.allUsersInfo.addEvents(this.database.events);
         console.log("App allUsersInfo");
-        this.model.social.threads = getSocialPosts(this.database, this.model.allUsersInfo);
+        this.model.social.threads = getSocialPosts(this.database, this.allUsersInfo.userInfos);
 
         /* my profile */
-        this.model.myProfile = this.model.allUsersInfo.get(accountContext.publicKey.hex)?.profile?.profile;
+        this.model.myProfile = this.allUsersInfo.userInfos.get(accountContext.publicKey.hex)?.profile
+            ?.profile;
 
         /* contacts */
-        for (const contact of this.model.allUsersInfo.values()) {
+        for (const contact of this.allUsersInfo.userInfos.values()) {
             const editor = this.model.editors.get(contact.pubkey.hex);
             if (editor == null) {
                 const pubkey = PublicKey.FromHex(contact.pubkey.hex);
@@ -206,7 +208,7 @@ export class App {
         }
 
         await profilesSyncer.add(
-            ...Array.from(this.model.allUsersInfo.keys()),
+            ...Array.from(this.allUsersInfo.userInfos.keys()),
         );
         console.log("user set", profilesSyncer.userSet);
 
@@ -221,6 +223,7 @@ export class App {
                     this.profileSyncer,
                     this.lamport,
                     this.eventBus,
+                    this.allUsersInfo,
                 )
             ) {
                 render(<AppComponent model={this.model} eventBus={this.eventBus} />, document.body);
@@ -261,7 +264,11 @@ export function AppComponent(props: {
     if (model.navigationModel.activeNav == "Social") {
         let focusedContentGetter = () => {
             // console.log("AppComponent:getFocusedContent before", Date.now() - t);
-            let _ = getFocusedContent(model.social.focusedContent, model.allUsersInfo, model.social.threads);
+            let _ = getFocusedContent(
+                model.social.focusedContent,
+                app.allUsersInfo.userInfos,
+                model.social.threads,
+            );
             // console.log("AppComponent:getFocusedContent", Date.now() - t);
             if (_?.type === "MessageThread") {
                 let editor = model.social.replyEditors.get(_.data.root.event.id);
@@ -354,7 +361,7 @@ export function AppComponent(props: {
                         myAccountContext: myAccountCtx,
                         db: app.database,
                         pool: app.relayPool,
-                        allUserInfo: model.allUsersInfo,
+                        allUserInfo: app.allUsersInfo.userInfos,
                         profilesSyncer: app.profileSyncer,
                         eventSyncer: app.eventSyncer,
                     })}

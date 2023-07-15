@@ -1,7 +1,7 @@
 import { getProfileEvent, getProfilesByName, saveProfile } from "../features/profile.ts";
 
 import { App } from "./app.tsx";
-import { getAllUsersInformation, getGroupOf, ProfilesSyncer, UserInfo } from "./contact-list.ts";
+import { AllUsersInformation, getGroupOf, ProfilesSyncer, UserInfo } from "./contact-list.ts";
 
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { Database_Contextual_View } from "../database.ts";
@@ -27,7 +27,15 @@ import {
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 import { ConnectionPool } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
 import { SignInEvent, signInWithExtension, signInWithPrivateKey } from "./signIn.tsx";
-import { computeThreads, getTags, PinContact, UnpinContact } from "../nostr.ts";
+import {
+    computeThreads,
+    Decrypted_Nostr_Event,
+    getTags,
+    PinContact,
+    PlainText_Nostr_Event,
+    Profile_Nostr_Event,
+    UnpinContact,
+} from "../nostr.ts";
 import { MessageThread } from "./dm.tsx";
 import { DexieDatabase } from "./dexie-db.ts";
 import { getSocialPosts } from "../features/social.ts";
@@ -192,7 +200,7 @@ export async function* UI_Interaction_Update(
             };
             const group = getGroupOf(
                 event.pubkey,
-                model.allUsersInfo,
+                model.app.allUsersInfo.userInfos,
             );
             model.dm.selectedContactGroup = group;
             updateConversation(model.app.model, event.pubkey);
@@ -440,12 +448,13 @@ export async function* Database_Update(
     profileSyncer: ProfilesSyncer,
     lamport: LamportTime,
     eventEmitter: EventEmitter<SelectProfile>,
+    allUserInfo: AllUsersInformation,
 ) {
     const changes = database.onChange((_) => true);
     while (true) {
         await csp.sleep(333);
         await changes.ready();
-        const changes_events: NostrEvent[] = [];
+        const changes_events: (PlainText_Nostr_Event | Decrypted_Nostr_Event | Profile_Nostr_Event)[] = [];
         while (true) {
             if (!changes.isReadyToPop()) {
                 break;
@@ -460,7 +469,7 @@ export async function* Database_Update(
 
         let hasKind_1 = false;
         for (let e of changes_events) {
-            model.allUsersInfo = getAllUsersInformation(database, ctx);
+            allUserInfo.addEvents([e]);
             const t = getTags(e).lamport_timestamp;
             if (t) {
                 lamport.set(t);
@@ -470,7 +479,7 @@ export async function* Database_Update(
                 await profileSyncer.add(key.hex);
             }
             if (e.kind == NostrKind.META_DATA || e.kind == NostrKind.DIRECT_MESSAGE) {
-                for (const contact of model.allUsersInfo.values()) {
+                for (const contact of allUserInfo.userInfos.values()) {
                     const editor = model.editors.get(contact.pubkey.hex);
                     if (editor == null) { // a stranger sends a message
                         const pubkey = PublicKey.FromHex(contact.pubkey.hex);
@@ -547,7 +556,7 @@ export async function* Database_Update(
             }
         }
         if (hasKind_1) {
-            model.social.threads = getSocialPosts(database, model.allUsersInfo);
+            model.social.threads = getSocialPosts(database, allUserInfo.userInfos);
         }
         yield model;
     }

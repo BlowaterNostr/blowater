@@ -332,9 +332,11 @@ export class Database_Contextual_View {
     //////////////////
     // On DB Change //
     //////////////////
-    onChange(filter: (e: NostrEvent) => boolean) {
+    onChange(filter: (e: PlainText_Nostr_Event | Decrypted_Nostr_Event | Profile_Nostr_Event) => boolean) {
         const c = this.caster.copy();
-        const res = csp.chan<NostrEvent>(buffer_size);
+        const res = csp.chan<PlainText_Nostr_Event | Decrypted_Nostr_Event | Profile_Nostr_Event>(
+            buffer_size,
+        );
         (async () => {
             for await (const newE of c) {
                 if (filter(newE)) {

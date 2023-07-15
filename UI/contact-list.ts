@@ -1,5 +1,5 @@
 import { Database_Contextual_View } from "../database.ts";
-import { ProfileFromNostrEvent, profilesStream } from "../features/profile.ts";
+import { profilesStream } from "../features/profile.ts";
 
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { ContactGroup } from "./contact-list.tsx";
@@ -13,8 +13,13 @@ import {
     ConnectionPool,
     newSubID,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
-import { CustomAppData, getTags, Profile_Nostr_Event } from "../nostr.ts";
-import { assertEquals } from "https://deno.land/std@0.176.0/testing/asserts.ts";
+import {
+    CustomAppData,
+    Decrypted_Nostr_Event,
+    getTags,
+    PlainText_Nostr_Event,
+    Profile_Nostr_Event,
+} from "../nostr.ts";
 
 export interface UserInfo {
     pubkey: PublicKey;
@@ -97,18 +102,18 @@ function socialPostsStream(pubkeys: Iterable<string>, pool: ConnectionPool) {
     return chan;
 }
 
-export function getAllUsersInformation(
-    database: Database_Contextual_View,
-    ctx: NostrAccountContext,
-): Map<string, UserInfo> {
-    const t = Date.now();
-    const res = new Map<string, UserInfo>();
-    {
-        for (const event of database.filterEvents((_) => true)) {
+export class AllUsersInformation {
+    readonly userInfos = new Map<string, UserInfo>();
+
+    constructor(public readonly ctx: NostrAccountContext) {}
+
+    addEvents(events: (Profile_Nostr_Event | PlainText_Nostr_Event | Decrypted_Nostr_Event)[]) {
+        // const t = Date.now();
+        for (const event of events) {
             switch (event.kind) {
                 case NostrKind.META_DATA:
                     {
-                        const userInfo = res.get(event.pubkey);
+                        const userInfo = this.userInfos.get(event.pubkey);
                         const profileEvent = event;
                         if (userInfo) {
                             if (userInfo.profile) {
@@ -126,7 +131,7 @@ export function getAllUsersInformation(
                                 newestEventSendByMe: undefined,
                                 profile: profileEvent,
                             };
-                            res.set(event.pubkey, newUserInfo);
+                            this.userInfos.set(event.pubkey, newUserInfo);
                         }
                     }
                     break;
@@ -139,19 +144,19 @@ export function getAllUsersInformation(
                 case NostrKind.DIRECT_MESSAGE:
                     {
                         let whoAm_I_TalkingTo = "";
-                        if (event.pubkey == ctx.publicKey.hex) {
+                        if (event.pubkey == this.ctx.publicKey.hex) {
                             // I am the sender
                             whoAm_I_TalkingTo = getTags(event).p[0];
-                        } else if (getTags(event).p[0] == ctx.publicKey.hex) {
+                        } else if (getTags(event).p[0] == this.ctx.publicKey.hex) {
                             // I am the receiver
                             whoAm_I_TalkingTo = event.pubkey;
                         } else {
                             // I am neither. Possible because other user has used this device before
                             break;
                         }
-                        const userInfo = res.get(whoAm_I_TalkingTo);
+                        const userInfo = this.userInfos.get(whoAm_I_TalkingTo);
                         if (userInfo) {
-                            if (whoAm_I_TalkingTo == ctx.publicKey.hex) {
+                            if (whoAm_I_TalkingTo == this.ctx.publicKey.hex) {
                                 // talking to myself
                                 if (userInfo.newestEventSendByMe) {
                                     if (event.created_at > userInfo.newestEventSendByMe?.created_at) {
@@ -163,7 +168,7 @@ export function getAllUsersInformation(
                                     userInfo.newestEventReceivedByMe = event;
                                 }
                             } else {
-                                if (ctx.publicKey.hex == event.pubkey) {
+                                if (this.ctx.publicKey.hex == event.pubkey) {
                                     // I am the sender
                                     if (userInfo.newestEventSendByMe) {
                                         if (event.created_at > userInfo.newestEventSendByMe.created_at) {
@@ -191,12 +196,12 @@ export function getAllUsersInformation(
                                 newestEventSendByMe: undefined,
                                 profile: undefined,
                             };
-                            if (whoAm_I_TalkingTo == ctx.publicKey.hex) {
+                            if (whoAm_I_TalkingTo == this.ctx.publicKey.hex) {
                                 // talking to myself
                                 newUserInfo.newestEventSendByMe = event;
                                 newUserInfo.newestEventReceivedByMe = event;
                             } else {
-                                if (ctx.publicKey.hex == event.pubkey) {
+                                if (this.ctx.publicKey.hex == event.pubkey) {
                                     // I am the sender
                                     newUserInfo.newestEventSendByMe = event;
                                 } else {
@@ -204,7 +209,7 @@ export function getAllUsersInformation(
                                     newUserInfo.newestEventReceivedByMe = event;
                                 }
                             }
-                            res.set(whoAm_I_TalkingTo, newUserInfo);
+                            this.userInfos.set(whoAm_I_TalkingTo, newUserInfo);
                         }
                     }
                     break;
@@ -216,7 +221,7 @@ export function getAllUsersInformation(
                     }
                     const obj: CustomAppData = JSON.parse(event.decryptedContent);
                     if (obj.type == "PinContact" || obj.type == "UnpinContact") {
-                        const userInfo = res.get(obj.pubkey);
+                        const userInfo = this.userInfos.get(obj.pubkey);
                         if (userInfo) {
                             if (userInfo.pinEvent) {
                                 if (event.created_at > userInfo.pinEvent.created_at) {
@@ -232,7 +237,7 @@ export function getAllUsersInformation(
                                 };
                             }
                         } else {
-                            res.set(obj.pubkey, {
+                            this.userInfos.set(obj.pubkey, {
                                 pubkey: PublicKey.FromHex(obj.pubkey) as PublicKey, // todo: could throw
                                 pinEvent: {
                                     content: obj,
@@ -247,17 +252,8 @@ export function getAllUsersInformation(
                 }
             }
         }
+        // console.log("AllUsersInformation:addEvents", Date.now() - t);
     }
-    // todo: should write a unit test for it instead of runtime assertion
-    for (const [pubkey, userInfo] of res) {
-        assertEquals(pubkey, userInfo.pubkey.hex);
-        if (userInfo.profile) {
-            assertEquals(pubkey, userInfo.profile.pubkey);
-        }
-    }
-
-    console.log("getAllUsersInformation", Date.now() - t);
-    return res;
 }
 
 export const sortUserInfo = (a: UserInfo, b: UserInfo) => {

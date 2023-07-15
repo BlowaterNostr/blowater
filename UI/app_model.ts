@@ -24,7 +24,7 @@ export type Model = {
         key: string;
         value: string;
     };
-    allUsersInfo: Map<string, UserInfo>;
+    // allUsersInfo: Map<string, UserInfo>;
 
     // social
     social: {
@@ -57,7 +57,7 @@ export function initialModel(): Model {
             hasNewMessages: new Set(),
             currentSelectedContact: undefined,
         },
-        allUsersInfo: new Map(),
+        // allUsersInfo: new Map(),
         editors: editors,
         newProfileField: {
             key: "",
