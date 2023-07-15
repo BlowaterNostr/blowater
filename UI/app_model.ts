@@ -9,7 +9,7 @@ import { ProfileData } from "../features/profile.ts";
 import { RightPanelModel } from "./message-panel.tsx";
 import { DM_Container_Model } from "./dm.ts";
 import { App } from "./app.tsx";
-import { ParsedTag_Nostr_Event } from "../nostr.ts";
+import { Parsed_Event } from "../nostr.ts";
 import { MessageThread } from "./dm.tsx";
 import { UserInfo } from "./contact-list.ts";
 

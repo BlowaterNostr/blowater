@@ -15,7 +15,7 @@ import {
     NostrKind,
     prepareNormalNostrEvent,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
-import { ParsedTag_Nostr_Event, PlainText_Nostr_Event, Profile_Nostr_Event, Tag } from "../nostr.ts";
+import { Parsed_Event, PlainText_Nostr_Event, Profile_Nostr_Event, Tag } from "../nostr.ts";
 
 // nip01 meta data
 // https://github.com/nostr-protocol/nips/blob/master/05.md
@@ -135,7 +135,7 @@ export interface ProfileData {
 }
 
 export function ProfileFromNostrEvent(
-    event: ParsedTag_Nostr_Event<NostrKind.META_DATA>,
+    event: Parsed_Event<NostrKind.META_DATA>,
 ) {
     const profileData = parseProfileData(event.content);
     if (profileData instanceof Error) {
@@ -151,6 +151,7 @@ export function ProfileFromNostrEvent(
         content: event.content,
         parsedTags: event.parsedTags,
         profile: profileData,
+        publicKey: event.publicKey,
     };
     return e;
 }

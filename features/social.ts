@@ -3,7 +3,7 @@ import { Database_Contextual_View } from "../database.ts";
 import { NostrKind } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 
-import { computeThreads, getTags, ParsedTag_Nostr_Event } from "../nostr.ts";
+import { computeThreads } from "../nostr.ts";
 
 import { MessageThread } from "../UI/dm.tsx";
 import { UserInfo } from "../UI/contact-list.ts";
@@ -14,7 +14,9 @@ export function getSocialPosts(
 ) {
     const t = Date.now();
     const events = db.filterEvents((e) => e.kind == NostrKind.TEXT_NOTE);
+    console.log("getSocialPosts:filterEvents", Date.now() - t);
     const threads = computeThreads(events);
+    console.log("getSocialPosts:computeThreads", Date.now() - t);
     const msgs: MessageThread[] = new Array(threads.length);
     for (let i = 0; i < threads.length; i++) {
         const thread = threads[i];
@@ -22,14 +24,10 @@ export function getSocialPosts(
         for (let j = 0; j < thread.length; j++) {
             const event = thread[j];
             let userInfo = allUsersInfo.get(event.pubkey);
-            const pubkey = PublicKey.FromHex(event.pubkey);
-            if (pubkey instanceof Error) {
-                throw new Error("impossible");
-            }
             messages[j] = {
                 event: event,
                 author: {
-                    pubkey: pubkey,
+                    pubkey: event.publicKey,
                     name: userInfo?.profile?.profile.name,
                     picture: userInfo?.profile?.profile.picture,
                 },
