@@ -14,7 +14,9 @@ export function getSocialPosts(
 ) {
     const t = Date.now();
     const events = db.filterEvents((e) => e.kind == NostrKind.TEXT_NOTE);
+    console.log("getSocialPosts:filterEvents", Date.now() - t);
     const threads = computeThreads(events);
+    console.log("getSocialPosts:computeThreads", Date.now() - t);
     const msgs: MessageThread[] = new Array(threads.length);
     for (let i = 0; i < threads.length; i++) {
         const thread = threads[i];
