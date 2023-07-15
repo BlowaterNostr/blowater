@@ -210,19 +210,19 @@ export function prepareReplyEvent(
     );
 }
 
-export function compare(a: ParsedTag_Nostr_Event, b: ParsedTag_Nostr_Event) {
+export function compare(a: Parsed_Event, b: Parsed_Event) {
     if (a.parsedTags.lamport_timestamp && b.parsedTags.lamport_timestamp) {
         return a.parsedTags.lamport_timestamp - b.parsedTags.lamport_timestamp;
     }
     return a.created_at - b.created_at;
 }
 
-export type ParsedTag_Nostr_Event<Kind extends NostrKind = NostrKind> = nostr.NostrEvent<Kind> & {
+export type Parsed_Event<Kind extends NostrKind = NostrKind> = nostr.NostrEvent<Kind> & {
     readonly parsedTags: Tags;
 };
-export function computeThreads(events: ParsedTag_Nostr_Event[]) {
+export function computeThreads(events: Parsed_Event[]) {
     events.sort(compare);
-    const idsMap = new Map<string, ParsedTag_Nostr_Event>();
+    const idsMap = new Map<string, Parsed_Event>();
     for (const event of events) {
         if (!idsMap.has(event.id)) {
             idsMap.set(event.id, event);
@@ -233,7 +233,7 @@ export function computeThreads(events: ParsedTag_Nostr_Event[]) {
         }
     }
 
-    const relationsMap = new Map<ParsedTag_Nostr_Event, ParsedTag_Nostr_Event | string>();
+    const relationsMap = new Map<Parsed_Event, Parsed_Event | string>();
     for (const event of events) {
         let id = event.id;
         const replyTags = event.parsedTags.root || event.parsedTags.reply || event.parsedTags.e;
@@ -257,7 +257,7 @@ export function computeThreads(events: ParsedTag_Nostr_Event[]) {
         }
     }
 
-    const resMap = new Map<string, ParsedTag_Nostr_Event[]>();
+    const resMap = new Map<string, Parsed_Event[]>();
     for (const event of events) {
         const relationEvent = relationsMap.get(event);
         if (!relationEvent) {
@@ -277,16 +277,16 @@ export function computeThreads(events: ParsedTag_Nostr_Event[]) {
     return Array.from(resMap.values());
 }
 
-export type Decrypted_Nostr_Event = ParsedTag_Nostr_Event<NostrKind.CustomAppData> & {
+export type Decrypted_Nostr_Event = Parsed_Event<NostrKind.CustomAppData> & {
     readonly decryptedContent: string;
 };
 
 export type Decryptable_Nostr_Event = nostr.NostrEvent<NostrKind.CustomAppData>;
 
-export type PlainText_Nostr_Event = ParsedTag_Nostr_Event<
+export type PlainText_Nostr_Event = Parsed_Event<
     Exclude<NostrKind, NostrKind.CustomAppData | NostrKind.META_DATA> // todo: exclude DM as well
 >;
-export type Profile_Nostr_Event = ParsedTag_Nostr_Event<NostrKind.META_DATA> & {
+export type Profile_Nostr_Event = Parsed_Event<NostrKind.META_DATA> & {
     profile: ProfileData;
 };
 export type CustomAppData = PinContact | UnpinContact | UserLogin;

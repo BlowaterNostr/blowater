@@ -11,7 +11,7 @@ import {
     Decryptable_Nostr_Event,
     Decrypted_Nostr_Event,
     getTags,
-    ParsedTag_Nostr_Event,
+    Parsed_Event,
     PlainText_Nostr_Event,
     Profile_Nostr_Event,
     Tag,
