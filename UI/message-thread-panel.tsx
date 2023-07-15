@@ -7,6 +7,7 @@ import {
     DirectMessagePanelUpdate,
     NameAndTime,
     ParseMessageContent,
+    ViewThread,
     ViewUserDetail,
 } from "./message-panel.tsx";
 import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
@@ -66,7 +67,7 @@ function MessageThreadList(props: {
     db: Database_Contextual_View;
     profilesSyncer: ProfilesSyncer;
     eventSyncer: EventSyncer;
-    eventEmitter: EventEmitter<ViewUserDetail>;
+    eventEmitter: EventEmitter<ViewUserDetail | ViewThread>;
 }) {
     let groups = groupContinuousMessages(props.messages, (pre, cur) => {
         const sameAuthor = pre.event.pubkey == cur.event.pubkey;
@@ -101,7 +102,7 @@ function MessageThreadBoxGroup(props: {
     db: Database_Contextual_View;
     profilesSyncer: ProfilesSyncer;
     eventSyncer: EventSyncer;
-    eventEmitter: EventEmitter<ViewUserDetail>;
+    eventEmitter: EventEmitter<ViewUserDetail | ViewThread>;
 }) {
     const vnode = (
         <ul class={tw`py-2`}>

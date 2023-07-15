@@ -10,13 +10,19 @@ import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/maste
 import { EventEmitter } from "../event-bus.ts";
 
 import { ChatMessage, groupContinuousMessages, parseContent, sortMessage, urlIsImage } from "./message.ts";
-import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
+import { InvalidKey, PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 import {
     NostrEvent,
     NostrKind,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
-import { PinContact, UnpinContact } from "../nostr.ts";
-import { getProfileEvent, ProfileData } from "../features/profile.ts";
+import {
+    Decrypted_Nostr_Event,
+    PinContact,
+    PlainText_Nostr_Event,
+    Profile_Nostr_Event,
+    UnpinContact,
+} from "../nostr.ts";
+import { getProfileEvent, parseProfileData, ProfileData } from "../features/profile.ts";
 import { MessageThread } from "./dm.tsx";
 import { UserDetail } from "./user-detail.tsx";
 import { MessageThreadPanel } from "./message-thread-panel.tsx";
@@ -446,7 +452,7 @@ export function ParseMessageContent(
     db: Database_Contextual_View,
     profilesSyncer: ProfilesSyncer,
     eventSyncer: EventSyncer,
-    eventEmitter: EventEmitter<ViewUserDetail>,
+    eventEmitter: EventEmitter<ViewUserDetail | ViewThread>,
 ) {
     if (message.type == "image") {
         return <img src={message.content} />;
@@ -491,7 +497,7 @@ export function ParseMessageContent(
                 if (event instanceof Promise) {
                     break;
                 }
-                vnode.push(NoteCard(event.content));
+                vnode.push(NoteCard(event, eventEmitter, db));
                 break;
             case "tag":
                 // todo
@@ -508,7 +514,7 @@ export function ParseMessageContent(
 function ProfileCard(profile: ProfileData, pubkey: PublicKey, eventEmitter: EventEmitter<ViewUserDetail>) {
     return (
         <div
-            class={tw`px-4 py-2 border-2 border-[${PrimaryTextColor}4D] rounded-lg hover:bg-[${HoverButtonBackgroudColor}] cursor-pointer py-1`}
+            class={tw`px-4 py-2 my-1 border-2 border-[${PrimaryTextColor}4D] rounded-lg hover:bg-[${HoverButtonBackgroudColor}] cursor-pointer py-1`}
             onClick={() => {
                 eventEmitter.emit({
                     type: "ViewUserDetail",
@@ -528,12 +534,35 @@ function ProfileCard(profile: ProfileData, pubkey: PublicKey, eventEmitter: Even
     );
 }
 
-function NoteCard(content: string) {
-    return (
-        <div class={tw`px-4 py-2 border-2 border-[${PrimaryTextColor}4D] rounded-lg  py-1`}>
-            {content}
-        </div>
-    );
+function NoteCard(
+    event: Profile_Nostr_Event | PlainText_Nostr_Event | Decrypted_Nostr_Event,
+    eventEmitter: EventEmitter<ViewThread | ViewUserDetail>,
+    db: Database_Contextual_View,
+) {
+    const pubkey = PublicKey.FromHex(event.pubkey);
+    if (pubkey instanceof InvalidKey) {
+        return event.content;
+    }
+    switch (event.kind) {
+        case NostrKind.META_DATA:
+            const profileData = parseProfileData(event.content);
+            if (profileData instanceof Error) {
+                return event.content;
+            }
+            return ProfileCard(profileData, pubkey, eventEmitter);
+        case NostrKind.TEXT_NOTE:
+        case NostrKind.DIRECT_MESSAGE:
+            const profile = getProfileEvent(db, pubkey);
+            return (
+                <div class={tw`px-4 my-1 py-2 border-2 border-[${PrimaryTextColor}4D] rounded-lg py-1 flex`}>
+                    <Avatar class={tw`w-10 h-10`} picture={profile?.profile.picture} />
+                    <div class={tw`ml-2 flex-1 overflow-hidden`}>
+                        <p class={tw`truncate`}>{profile?.profile.name || pubkey.bech32()}</p>
+                        <p class={tw`text-[0.8rem]`}>{event.content}</p>
+                    </div>
+                </div>
+            );
+    }
 }
 
 type RightPanelProps = {
