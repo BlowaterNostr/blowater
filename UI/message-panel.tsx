@@ -474,36 +474,42 @@ export function ParseMessageContent(
         vnode.push(message.content.slice(start, item.start));
         switch (item.type) {
             case "url":
-                const itemStr = message.content.slice(item.start, item.end + 1);
-                if (urlIsImage(itemStr)) {
-                    vnode.push(<img src={itemStr} />);
-                } else {
-                    vnode.push(
-                        <a target="_blank" class={tw`hover:underline text-[${LinkColor}]`} href={itemStr}>
-                            {itemStr}
-                        </a>,
-                    );
+                {
+                    const itemStr = message.content.slice(item.start, item.end + 1);
+                    if (urlIsImage(itemStr)) {
+                        vnode.push(<img src={itemStr} />);
+                    } else {
+                        vnode.push(
+                            <a target="_blank" class={tw`hover:underline text-[${LinkColor}]`} href={itemStr}>
+                                {itemStr}
+                            </a>,
+                        );
+                    }
                 }
                 break;
             case "npub":
-                const userInfo = allUserInfo.get(item.pubkey.hex);
-                if (userInfo) {
-                    const profile = userInfo.profile;
-                    if (profile) {
-                        vnode.push(ProfileCard(profile.profile, item.pubkey, eventEmitter));
+                {
+                    const userInfo = allUserInfo.get(item.pubkey.hex);
+                    if (userInfo) {
+                        const profile = userInfo.profile;
+                        if (profile) {
+                            vnode.push(ProfileCard(profile.profile, item.pubkey, eventEmitter));
+                        } else {
+                            // profilesSyncer.add(item.pubkey.hex);
+                        }
                     } else {
                         profilesSyncer.add(item.pubkey.hex);
                     }
-                } else {
-                    profilesSyncer.add(item.pubkey.hex);
                 }
                 break;
             case "note":
-                const event = eventSyncer.syncEvent(item.noteID);
-                if (event instanceof Promise) {
-                    break;
+                {
+                    const event = eventSyncer.syncEvent(item.noteID);
+                    if (event instanceof Promise) {
+                        break;
+                    }
+                    vnode.push(NoteCard(event, eventEmitter, db));
                 }
-                vnode.push(NoteCard(event, eventEmitter, db));
                 break;
             case "tag":
                 // todo
