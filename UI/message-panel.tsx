@@ -472,10 +472,10 @@ export function ParseMessageContent(
     let start = 0;
     for (const item of message.event.parsedContentItems) {
         vnode.push(message.content.slice(start, item.start));
+        const itemStr = message.content.slice(item.start, item.end + 1);
         switch (item.type) {
             case "url":
                 {
-                    const itemStr = message.content.slice(item.start, item.end + 1);
                     if (urlIsImage(itemStr)) {
                         vnode.push(<img src={itemStr} />);
                     } else {
