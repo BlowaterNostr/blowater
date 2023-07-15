@@ -458,6 +458,7 @@ export async function* Database_Update(
             changes_events.push(e);
         }
 
+        let hasKind_1 = false;
         for (let e of changes_events) {
             model.allUsersInfo = getAllUsersInformation(database, ctx);
             const t = getTags(e).lamport_timestamp;
@@ -542,8 +543,11 @@ export async function* Database_Update(
                     }
                 }
             } else if (e.kind == NostrKind.TEXT_NOTE) {
-                model.social.threads = getSocialPosts(database, model.allUsersInfo);
+                hasKind_1 = true;
             }
+        }
+        if (hasKind_1) {
+            model.social.threads = getSocialPosts(database, model.allUsersInfo);
         }
         yield model;
     }
