@@ -562,6 +562,12 @@ function NoteCard(
                     </div>
                 </div>
             );
+        default:
+            return (
+                <div class={tw`px-4 my-1 py-2 border-2 border-[${PrimaryTextColor}4D] rounded-lg py-1 flex`}>
+                    {event.content}
+                </div>
+            );
     }
 }
 
