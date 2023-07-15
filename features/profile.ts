@@ -151,6 +151,7 @@ export function ProfileFromNostrEvent(
         content: event.content,
         parsedTags: event.parsedTags,
         profile: profileData,
+        publicKey: event.publicKey,
     };
     return e;
 }

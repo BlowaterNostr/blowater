@@ -219,6 +219,7 @@ export function compare(a: Parsed_Event, b: Parsed_Event) {
 
 export type Parsed_Event<Kind extends NostrKind = NostrKind> = nostr.NostrEvent<Kind> & {
     readonly parsedTags: Tags;
+    readonly publicKey: PublicKey;
 };
 export function computeThreads(events: Parsed_Event[]) {
     events.sort(compare);

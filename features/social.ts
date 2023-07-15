@@ -22,14 +22,10 @@ export function getSocialPosts(
         for (let j = 0; j < thread.length; j++) {
             const event = thread[j];
             let userInfo = allUsersInfo.get(event.pubkey);
-            const pubkey = PublicKey.FromHex(event.pubkey);
-            if (pubkey instanceof Error) {
-                throw new Error("impossible");
-            }
             messages[j] = {
                 event: event,
                 author: {
-                    pubkey: pubkey,
+                    pubkey: event.publicKey,
                     name: userInfo?.profile?.profile.name,
                     picture: userInfo?.profile?.profile.picture,
                 },

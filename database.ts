@@ -48,6 +48,11 @@ export class Database_Contextual_View {
         ).toArray();
         const cache: (PlainText_Nostr_Event | Decrypted_Nostr_Event | Profile_Nostr_Event)[] = [];
         for (const event of onload) {
+            const pubkey = PublicKey.FromHex(event.pubkey);
+            if (pubkey instanceof Error) {
+                console.error(pubkey);
+                continue;
+            }
             switch (event.kind) {
                 case NostrKind.META_DATA:
                     {
@@ -63,6 +68,7 @@ export class Database_Contextual_View {
                             kind: event.kind,
                             parsedTags: getTags(event),
                             profile: profileData,
+                            publicKey: pubkey,
                         };
                         cache.push(e);
                     }
@@ -82,6 +88,7 @@ export class Database_Contextual_View {
                             sig: event.sig,
                             tags: event.tags,
                             parsedTags: getTags(event),
+                            publicKey: pubkey,
                         };
                         cache.push(e);
                     }
@@ -103,8 +110,12 @@ export class Database_Contextual_View {
                 return e.kind == NostrKind.CustomAppData;
             }).toArray();
             for (const event of events) {
+                const pubkey = PublicKey.FromHex(event.pubkey);
+                if (pubkey instanceof Error) {
+                    console.error(pubkey);
+                    continue;
+                }
                 if (event.kind == NostrKind.CustomAppData) {
-                    const t2 = Date.now();
                     const e = await transformEvent({
                         content: event.content,
                         created_at: event.created_at,
@@ -114,7 +125,7 @@ export class Database_Contextual_View {
                         sig: event.sig,
                         tags: event.tags,
                     }, ctx);
-                    tt += Date.now() - t2;
+
                     if (e == undefined) {
                         continue;
                     }
@@ -135,6 +146,7 @@ export class Database_Contextual_View {
                         sig: event.sig,
                         tags: event.tags,
                         parsedTags: getTags(event),
+                        publicKey: pubkey,
                     };
                     cache.push(e);
                     await db.sourceOfChange.put(e);
@@ -166,6 +178,13 @@ export class Database_Contextual_View {
         if (storedEvent) { // event exist
             return false;
         }
+        // todo: verify event
+        const pubkey = PublicKey.FromHex(event.pubkey);
+        if (pubkey instanceof Error) {
+            console.error(pubkey);
+            return false;
+        }
+
         console.log("Database.addEvent", event.id);
         let e: PlainText_Nostr_Event | Decrypted_Nostr_Event | Profile_Nostr_Event;
         if (event.kind == NostrKind.CustomAppData) {
@@ -198,6 +217,7 @@ export class Database_Contextual_View {
                     kind: event.kind,
                     profile: profileData,
                     parsedTags: getTags(event),
+                    publicKey: pubkey,
                 };
             } else {
                 e = {
@@ -209,6 +229,7 @@ export class Database_Contextual_View {
                     sig: event.sig,
                     tags: event.tags,
                     parsedTags: getTags(event),
+                    publicKey: pubkey,
                 };
             }
         }
@@ -393,6 +414,7 @@ async function transformEvent(event: Decryptable_Nostr_Event, ctx: NostrAccountC
             tags: event.tags,
             parsedTags: getTags(event),
             decryptedContent: decrypted,
+            publicKey: ctx.publicKey,
         };
         return e;
     }
