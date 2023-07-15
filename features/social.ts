@@ -3,7 +3,7 @@ import { Database_Contextual_View } from "../database.ts";
 import { NostrKind } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 
-import { computeThreads, getTags, ParsedTag_Nostr_Event } from "../nostr.ts";
+import { computeThreads } from "../nostr.ts";
 
 import { MessageThread } from "../UI/dm.tsx";
 import { UserInfo } from "../UI/contact-list.ts";
