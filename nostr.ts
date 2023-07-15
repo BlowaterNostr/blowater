@@ -210,7 +210,10 @@ export function prepareReplyEvent(
     );
 }
 
-export function compare(a: Parsed_Event, b: Parsed_Event) {
+export type parsedTagsEvent<Kind extends NostrKind = NostrKind> = nostr.NostrEvent<Kind> & {
+    readonly parsedTags: Tags;
+};
+export function compare(a: parsedTagsEvent, b: parsedTagsEvent) {
     if (a.parsedTags.lamport_timestamp && b.parsedTags.lamport_timestamp) {
         return a.parsedTags.lamport_timestamp - b.parsedTags.lamport_timestamp;
     }
@@ -221,9 +224,9 @@ export type Parsed_Event<Kind extends NostrKind = NostrKind> = nostr.NostrEvent<
     readonly parsedTags: Tags;
     readonly publicKey: PublicKey;
 };
-export function computeThreads(events: Parsed_Event[]) {
+export function computeThreads<T extends parsedTagsEvent>(events: T[]) {
     events.sort(compare);
-    const idsMap = new Map<string, Parsed_Event>();
+    const idsMap = new Map<string, T>();
     for (const event of events) {
         if (!idsMap.has(event.id)) {
             idsMap.set(event.id, event);
@@ -234,7 +237,7 @@ export function computeThreads(events: Parsed_Event[]) {
         }
     }
 
-    const relationsMap = new Map<Parsed_Event, Parsed_Event | string>();
+    const relationsMap = new Map<T, T | string>();
     for (const event of events) {
         let id = event.id;
         const replyTags = event.parsedTags.root || event.parsedTags.reply || event.parsedTags.e;
@@ -258,7 +261,7 @@ export function computeThreads(events: Parsed_Event[]) {
         }
     }
 
-    const resMap = new Map<string, Parsed_Event[]>();
+    const resMap = new Map<string, T[]>();
     for (const event of events) {
         const relationEvent = relationsMap.get(event);
         if (!relationEvent) {
