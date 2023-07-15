@@ -384,17 +384,19 @@ export async function* UI_Interaction_Update(
 }
 
 export function getConversationMessages(args: {
-    database: Database_Contextual_View;
-    pub1: string;
-    pub2: string;
+    targetPubkey: string;
     allUserInfo: Map<string, UserInfo>;
 }): MessageThread[] {
-    const { database, pub1, pub2, allUserInfo } = args;
+    const { targetPubkey, allUserInfo } = args;
     let t = Date.now();
-    const events = get_Kind4_Events_Between(database, pub1, pub2);
-    // console.log("getConversationMessages:filter events", Date.now() - t)
+
+    let events = allUserInfo.get(targetPubkey)?.events;
+    if (events == undefined) {
+        events = [];
+    }
+
     const threads = computeThreads(Array.from(events));
-    // console.log("getConversationMessages:compute threads", Date.now() - t)
+    console.log("getConversationMessages:compute threads", Date.now() - t);
     const msgs: MessageThread[] = [];
     for (const thread of threads) {
         const messages = convertEventsToChatMessages(thread, allUserInfo);

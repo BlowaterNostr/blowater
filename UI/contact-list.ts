@@ -30,6 +30,7 @@ export interface UserInfo {
         readonly created_at: number;
         readonly content: CustomAppData;
     } | undefined;
+    events: PlainText_Nostr_Event[];
 }
 
 export class ProfilesSyncer {
@@ -130,6 +131,7 @@ export class AllUsersInformation {
                                 newestEventReceivedByMe: undefined,
                                 newestEventSendByMe: undefined,
                                 profile: profileEvent,
+                                events: [],
                             };
                             this.userInfos.set(event.pubkey, newUserInfo);
                         }
@@ -156,6 +158,7 @@ export class AllUsersInformation {
                         }
                         const userInfo = this.userInfos.get(whoAm_I_TalkingTo);
                         if (userInfo) {
+                            userInfo.events.push(event);
                             if (whoAm_I_TalkingTo == this.ctx.publicKey.hex) {
                                 // talking to myself
                                 if (userInfo.newestEventSendByMe) {
@@ -195,6 +198,7 @@ export class AllUsersInformation {
                                 newestEventReceivedByMe: undefined,
                                 newestEventSendByMe: undefined,
                                 profile: undefined,
+                                events: [event],
                             };
                             if (whoAm_I_TalkingTo == this.ctx.publicKey.hex) {
                                 // talking to myself
@@ -246,6 +250,7 @@ export class AllUsersInformation {
                                 newestEventReceivedByMe: undefined,
                                 newestEventSendByMe: undefined,
                                 profile: undefined,
+                                events: [],
                             });
                         }
                     }
