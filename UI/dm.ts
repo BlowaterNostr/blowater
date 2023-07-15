@@ -1,5 +1,10 @@
 import { NostrEvent } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
-import { getTags, groupImageEvents, reassembleBase64ImageFromEvents } from "../nostr.ts";
+import {
+    getTags,
+    groupImageEvents,
+    PlainText_Nostr_Event,
+    reassembleBase64ImageFromEvents,
+} from "../nostr.ts";
 import { ChatMessage } from "./message.ts";
 import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 import { ContactGroup } from "./contact-list.tsx";
@@ -17,7 +22,7 @@ export type DM_Container_Model = {
 };
 
 export function convertEventsToChatMessages(
-    events: Iterable<NostrEvent>,
+    events: Iterable<PlainText_Nostr_Event>,
     userProfiles: Map<string, UserInfo>,
 ): ChatMessage[] {
     const messages: ChatMessage[] = [];

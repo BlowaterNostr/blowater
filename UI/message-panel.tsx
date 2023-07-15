@@ -9,7 +9,7 @@ import { DividerClass, IconButtonClass } from "./components/tw.ts";
 import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { EventEmitter } from "../event-bus.ts";
 
-import { ChatMessage, groupContinuousMessages, parseContent, sortMessage, urlIsImage } from "./message.ts";
+import { ChatMessage, groupContinuousMessages, sortMessage, urlIsImage } from "./message.ts";
 import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 import {
     NostrEvent,
@@ -28,7 +28,7 @@ import { UserDetail } from "./user-detail.tsx";
 import { MessageThreadPanel } from "./message-thread-panel.tsx";
 import { Database_Contextual_View } from "../database.ts";
 import { HoverButtonBackgroudColor, LinkColor, PrimaryTextColor } from "./style/colors.ts";
-import { ProfilesSyncer } from "./contact-list.ts";
+import { ProfilesSyncer, UserInfo } from "./contact-list.ts";
 import { NoteID } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nip19.ts";
 import { EventSyncer } from "./event_syncer.ts";
 
@@ -55,6 +55,7 @@ interface DirectMessagePanelProps {
     >;
     profilesSyncer: ProfilesSyncer;
     eventSyncer: EventSyncer;
+    allUserInfo: Map<string, UserInfo>;
 }
 
 export type RightPanelModel = {
@@ -102,6 +103,7 @@ export function MessagePanel(props: DirectMessagePanelProps) {
                         editorModel={props.focusedContent.editor}
                         profilesSyncer={props.profilesSyncer}
                         eventSyncer={props.eventSyncer}
+                        allUserInfo={props.allUserInfo}
                     />
                 );
             } else if (props.focusedContent.type == "ProfileData") {
@@ -140,6 +142,7 @@ export function MessagePanel(props: DirectMessagePanelProps) {
                         db={props.db}
                         profilesSyncer={props.profilesSyncer}
                         eventSyncer={props.eventSyncer}
+                        allUserInfo={props.allUserInfo}
                     />
                 }
                 {
@@ -187,6 +190,7 @@ interface MessageListProps {
     eventEmitter: EventEmitter<DirectMessagePanelUpdate>;
     profilesSyncer: ProfilesSyncer;
     eventSyncer: EventSyncer;
+    allUserInfo: Map<string, UserInfo>;
 }
 
 interface MessageListState {
@@ -246,10 +250,12 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
         });
         console.log("MessageList:groupContinuousMessages", Date.now() - t);
         const messageBoxGroups = [];
+        let i = 0;
         for (const threads of groups) {
             messageBoxGroups.push(
                 MessageBoxGroup({
                     messageGroup: threads.map((thread) => {
+                        i++;
                         return {
                             msg: thread.root,
                             replyCount: thread.replies.length,
@@ -260,10 +266,11 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
                     db: this.props.db,
                     profilesSyncer: this.props.profilesSyncer,
                     eventSyncer: this.props.eventSyncer,
+                    allUserInfo: this.props.allUserInfo,
                 }),
             );
         }
-        console.log("MessageList:elements", Date.now() - t);
+        console.log(`MessageList:elements ${i}`, Date.now() - t);
 
         const vNode = (
             <div
@@ -312,6 +319,7 @@ function MessageBoxGroup(props: {
     }[];
     myPublicKey: PublicKey;
     db: Database_Contextual_View;
+    allUserInfo: Map<string, UserInfo>;
     eventEmitter: EventEmitter<DirectMessagePanelUpdate | ViewUserDetail>;
     profilesSyncer: ProfilesSyncer;
     eventSyncer: EventSyncer;
@@ -355,7 +363,14 @@ function MessageBoxGroup(props: {
                             <pre
                                 class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto`}
                             >
-                                {ParseMessageContent(msg.msg, props.db, props.profilesSyncer, props.eventSyncer, props.eventEmitter)}
+                                {ParseMessageContent(
+                                    msg.msg,
+                                    props.db,
+                                    props.allUserInfo,
+                                    props.profilesSyncer,
+                                    props.eventSyncer,
+                                    props.eventEmitter,
+                                    )}
                             </pre>
                             {msg.replyCount > 0
                                 ? (
@@ -444,6 +459,7 @@ export function NameAndTime(message: ChatMessage, index: number, myPublicKey: Pu
 export function ParseMessageContent(
     message: ChatMessage,
     db: Database_Contextual_View,
+    allUserInfo: Map<string, UserInfo>,
     profilesSyncer: ProfilesSyncer,
     eventSyncer: EventSyncer,
     eventEmitter: EventEmitter<ViewUserDetail | ViewThread>,
@@ -454,11 +470,11 @@ export function ParseMessageContent(
 
     const vnode = [];
     let start = 0;
-    for (const item of parseContent(message.content)) {
-        const itemStr = message.content.slice(item.start, item.end + 1);
+    for (const item of message.event.parsedContentItems) {
         vnode.push(message.content.slice(start, item.start));
         switch (item.type) {
             case "url":
+                const itemStr = message.content.slice(item.start, item.end + 1);
                 if (urlIsImage(itemStr)) {
                     vnode.push(<img src={itemStr} />);
                 } else {
@@ -470,24 +486,20 @@ export function ParseMessageContent(
                 }
                 break;
             case "npub":
-                const pubkey = PublicKey.FromBech32(itemStr);
-                if (pubkey instanceof Error) {
-                    continue;
-                }
-                const profile = getProfileEvent(db, pubkey);
-                if (profile) {
-                    vnode.push(ProfileCard(profile.profile, pubkey, eventEmitter));
+                const userInfo = allUserInfo.get(item.pubkey.hex);
+                if (userInfo) {
+                    const profile = userInfo.profile;
+                    if (profile) {
+                        vnode.push(ProfileCard(profile.profile, item.pubkey, eventEmitter));
+                    } else {
+                        profilesSyncer.add(item.pubkey.hex);
+                    }
                 } else {
-                    profilesSyncer.add(pubkey.hex);
+                    profilesSyncer.add(item.pubkey.hex);
                 }
                 break;
             case "note":
-                const note = NoteID.FromBech32(itemStr);
-                if (note instanceof Error) {
-                    console.error(note);
-                    break;
-                }
-                const event = eventSyncer.syncEvent(note);
+                const event = eventSyncer.syncEvent(item.noteID);
                 if (event instanceof Promise) {
                     break;
                 }

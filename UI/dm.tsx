@@ -109,6 +109,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
             db: props.db,
             profilesSyncer: props.profilesSyncer,
             eventSyncer: props.eventSyncer,
+            allUserInfo: props.allUserInfo,
         });
     }
 

@@ -4,10 +4,7 @@ import {
     ConnectionPool,
     newSubID,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
-import {
-    PublicKey,
-    publicKeyHexFromNpub,
-} from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
+import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 import {
     groupBy,
     NostrAccountContext,
@@ -15,7 +12,7 @@ import {
     NostrKind,
     prepareNormalNostrEvent,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
-import { Parsed_Event, PlainText_Nostr_Event, Profile_Nostr_Event, Tag } from "../nostr.ts";
+import { Parsed_Event, Profile_Nostr_Event } from "../nostr.ts";
 
 // nip01 meta data
 // https://github.com/nostr-protocol/nips/blob/master/05.md

@@ -11,14 +11,15 @@ import {
     Decryptable_Nostr_Event,
     Decrypted_Nostr_Event,
     getTags,
-    Parsed_Event,
     PlainText_Nostr_Event,
     Profile_Nostr_Event,
     Tag,
 } from "./nostr.ts";
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { DexieDatabase } from "./UI/dexie-db.ts";
-import { parseProfileData, ProfileFromNostrEvent } from "./features/profile.ts";
+import { parseProfileData } from "./features/profile.ts";
+import { parseContent } from "./UI/message.ts";
+import { NoteID } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nip19.ts";
 
 export const NotFound = Symbol("Not Found");
 const buffer_size = 1000;
@@ -89,6 +90,7 @@ export class Database_Contextual_View {
                             tags: event.tags,
                             parsedTags: getTags(event),
                             publicKey: pubkey,
+                            parsedContentItems: Array.from(parseContent(event.content)),
                         };
                         cache.push(e);
                     }
@@ -147,6 +149,7 @@ export class Database_Contextual_View {
                         tags: event.tags,
                         parsedTags: getTags(event),
                         publicKey: pubkey,
+                        parsedContentItems: Array.from(parseContent(event.content)),
                     };
                     cache.push(e);
                     await db.sourceOfChange.put(e);
@@ -230,6 +233,7 @@ export class Database_Contextual_View {
                     tags: event.tags,
                     parsedTags: getTags(event),
                     publicKey: pubkey,
+                    parsedContentItems: Array.from(parseContent(event.content)),
                 };
             }
         }
