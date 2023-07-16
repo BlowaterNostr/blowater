@@ -1,5 +1,5 @@
 /** @jsx h */
-import { Component, ComponentChildren, createRef, Fragment, h, VNode } from "https://esm.sh/preact@10.11.3";
+import { Component, ComponentChildren, createRef, h } from "https://esm.sh/preact@10.11.3";
 import { tw } from "https://esm.sh/twind@0.16.16";
 import { Editor, EditorEvent, EditorModel } from "./editor.tsx";
 
@@ -15,19 +15,19 @@ import {
     NostrEvent,
     NostrKind,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
-import { PinContact, UnpinContact } from "../nostr.ts";
+import {
+    Decrypted_Nostr_Event,
+    PinContact,
+    PlainText_Nostr_Event,
+    Profile_Nostr_Event,
+    UnpinContact,
+} from "../nostr.ts";
 import { getProfileEvent, ProfileData } from "../features/profile.ts";
 import { MessageThread } from "./dm.tsx";
 import { UserDetail } from "./user-detail.tsx";
 import { MessageThreadPanel } from "./message-thread-panel.tsx";
 import { Database_Contextual_View } from "../database.ts";
-import {
-    DividerBackgroundColor,
-    HoverButtonBackgroudColor,
-    LinkColor,
-    PrimaryBackgroundColor,
-    PrimaryTextColor,
-} from "./style/colors.ts";
+import { HoverButtonBackgroudColor, LinkColor, PrimaryTextColor } from "./style/colors.ts";
 import { ProfilesSyncer } from "./contact-list.ts";
 import { NoteID } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nip19.ts";
 import { EventSyncer } from "./event_syncer.ts";
@@ -446,7 +446,7 @@ export function ParseMessageContent(
     db: Database_Contextual_View,
     profilesSyncer: ProfilesSyncer,
     eventSyncer: EventSyncer,
-    eventEmitter: EventEmitter<ViewUserDetail>,
+    eventEmitter: EventEmitter<ViewUserDetail | ViewThread>,
 ) {
     if (message.type == "image") {
         return <img src={message.content} />;
@@ -491,7 +491,7 @@ export function ParseMessageContent(
                 if (event instanceof Promise) {
                     break;
                 }
-                vnode.push(NoteCard(event.content));
+                vnode.push(NoteCard(event, eventEmitter, db));
                 break;
             case "tag":
                 // todo
@@ -508,7 +508,7 @@ export function ParseMessageContent(
 function ProfileCard(profile: ProfileData, pubkey: PublicKey, eventEmitter: EventEmitter<ViewUserDetail>) {
     return (
         <div
-            class={tw`px-4 py-2 border-2 border-[${PrimaryTextColor}4D] rounded-lg hover:bg-[${HoverButtonBackgroudColor}] cursor-pointer py-1`}
+            class={tw`px-4 py-2 my-1 border-2 border-[${PrimaryTextColor}4D] rounded-lg hover:bg-[${HoverButtonBackgroudColor}] cursor-pointer py-1`}
             onClick={() => {
                 eventEmitter.emit({
                     type: "ViewUserDetail",
@@ -528,12 +528,33 @@ function ProfileCard(profile: ProfileData, pubkey: PublicKey, eventEmitter: Even
     );
 }
 
-function NoteCard(content: string) {
-    return (
-        <div class={tw`px-4 py-2 border-2 border-[${PrimaryTextColor}4D] rounded-lg  py-1`}>
-            {content}
-        </div>
-    );
+function NoteCard(
+    event: Profile_Nostr_Event | PlainText_Nostr_Event | Decrypted_Nostr_Event,
+    eventEmitter: EventEmitter<ViewThread | ViewUserDetail>,
+    db: Database_Contextual_View,
+) {
+    switch (event.kind) {
+        case NostrKind.META_DATA:
+            return ProfileCard(event.profile, event.publicKey, eventEmitter);
+        case NostrKind.TEXT_NOTE:
+        case NostrKind.DIRECT_MESSAGE:
+            const profile = getProfileEvent(db, event.publicKey);
+            return (
+                <div class={tw`px-4 my-1 py-2 border-2 border-[${PrimaryTextColor}4D] rounded-lg py-1 flex`}>
+                    <Avatar class={tw`w-10 h-10`} picture={profile?.profile.picture} />
+                    <div class={tw`ml-2 flex-1 overflow-hidden`}>
+                        <p class={tw`truncate`}>{profile?.profile.name || event.publicKey.bech32()}</p>
+                        <p class={tw`text-[0.8rem]`}>{event.content}</p>
+                    </div>
+                </div>
+            );
+        default:
+            return (
+                <div class={tw`px-4 my-1 py-2 border-2 border-[${PrimaryTextColor}4D] rounded-lg py-1 flex`}>
+                    {event.content}
+                </div>
+            );
+    }
 }
 
 type RightPanelProps = {
