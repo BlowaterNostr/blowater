@@ -493,7 +493,7 @@ export function ParseMessageContent(
                         if (profile) {
                             vnode.push(ProfileCard(profile.profile, item.pubkey, eventEmitter));
                         } else {
-                            // profilesSyncer.add(item.pubkey.hex);
+                            profilesSyncer.add(item.pubkey.hex);
                         }
                     } else {
                         profilesSyncer.add(item.pubkey.hex);
