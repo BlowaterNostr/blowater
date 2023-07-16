@@ -27,11 +27,7 @@ import { MessageThread } from "./dm.tsx";
 import { UserDetail } from "./user-detail.tsx";
 import { MessageThreadPanel } from "./message-thread-panel.tsx";
 import { Database_Contextual_View } from "../database.ts";
-import {
-    HoverButtonBackgroudColor,
-    LinkColor,
-    PrimaryTextColor,
-} from "./style/colors.ts";
+import { HoverButtonBackgroudColor, LinkColor, PrimaryTextColor } from "./style/colors.ts";
 import { ProfilesSyncer } from "./contact-list.ts";
 import { NoteID } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nip19.ts";
 import { EventSyncer } from "./event_syncer.ts";
