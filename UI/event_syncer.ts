@@ -9,9 +9,10 @@ import { verifyEvent } from "https://raw.githubusercontent.com/BlowaterNostr/nos
 export class EventSyncer {
     constructor(private readonly pool: ConnectionPool, private readonly db: Database_Contextual_View) {}
     syncEvent(id: NoteID) {
-        const iter = Array.from(this.db.filterEvents((e) => e.id == id.hex));
-        if (iter.length > 0) {
-            return iter[0];
+        for (const e of this.db.events) {
+            if (e.id == id.hex) {
+                return e;
+            }
         }
         return (async () => {
             let events = await this.pool.newSub("EventSyncer", {

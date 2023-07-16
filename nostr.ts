@@ -11,6 +11,7 @@ import {
     TagPubKey,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 import { ProfileData } from "./features/profile.ts";
+import { ContentItem } from "./UI/message.ts";
 
 type TotolChunks = string;
 type ChunkIndex = string; // 0-indexed
@@ -145,9 +146,9 @@ export function reassembleBase64ImageFromEvents(
     return chunks.join("");
 }
 
-export function groupImageEvents(events: Iterable<nostr.NostrEvent>) {
+export function groupImageEvents<T extends Parsed_Event>(events: Iterable<T>) {
     return groupBy(events, (event) => {
-        const tags = getTags(event);
+        const tags = event.parsedTags;
         const imageTag = tags.image;
         if (imageTag == undefined) {
             return undefined;
@@ -287,9 +288,14 @@ export type Decrypted_Nostr_Event = Parsed_Event<NostrKind.CustomAppData> & {
 
 export type Decryptable_Nostr_Event = nostr.NostrEvent<NostrKind.CustomAppData>;
 
-export type PlainText_Nostr_Event = Parsed_Event<
-    Exclude<NostrKind, NostrKind.CustomAppData | NostrKind.META_DATA> // todo: exclude DM as well
->;
+export type PlainText_Nostr_Event =
+    & Parsed_Event<
+        Exclude<NostrKind, NostrKind.CustomAppData | NostrKind.META_DATA> // todo: exclude DM as well
+    >
+    & {
+        parsedContentItems: ContentItem[];
+    };
+
 export type Profile_Nostr_Event = Parsed_Event<NostrKind.META_DATA> & {
     profile: ProfileData;
 };

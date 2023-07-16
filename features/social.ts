@@ -13,7 +13,12 @@ export function getSocialPosts(
     allUsersInfo: Map<string, UserInfo>,
 ) {
     const t = Date.now();
-    const events = db.filterEvents((e) => e.kind == NostrKind.TEXT_NOTE);
+    const events = [];
+    for (const e of db.events) {
+        if (e.kind == NostrKind.TEXT_NOTE) {
+            events.push(e);
+        }
+    }
     console.log("getSocialPosts:filterEvents", Date.now() - t);
     const threads = computeThreads(events);
     console.log("getSocialPosts:computeThreads", Date.now() - t);

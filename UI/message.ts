@@ -1,6 +1,7 @@
 import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 import { MessageThread } from "./dm.tsx";
-import { NostrEvent } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
+import { PlainText_Nostr_Event } from "../nostr.ts";
+import { NoteID } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nip19.ts";
 
 export function* parseContent(content: string) {
     // URLs
@@ -27,24 +28,61 @@ function* match(regex: RegExp, content: string, type: ItemType): Generator<Conte
             return;
         }
         const urlEndPosition = urlStartPosition + match[0].length - 1;
-        yield {
-            type: type,
-            start: urlStartPosition,
-            end: urlEndPosition,
-        };
+        if (type == "note") {
+            const noteID = NoteID.FromBech32(content.slice(urlStartPosition, urlEndPosition + 1));
+            if (noteID instanceof Error) {
+                // ignore
+            } else {
+                yield {
+                    type: type,
+                    noteID: noteID,
+                    start: urlStartPosition,
+                    end: urlEndPosition,
+                };
+            }
+        } else if (type == "npub") {
+            const pubkey = PublicKey.FromBech32(content.slice(urlStartPosition, urlEndPosition + 1));
+            if (pubkey instanceof Error) {
+                // ignore
+            } else {
+                yield {
+                    type: type,
+                    pubkey: pubkey.hex,
+                    start: urlStartPosition,
+                    end: urlEndPosition,
+                };
+            }
+        } else {
+            yield {
+                type: type,
+                start: urlStartPosition,
+                end: urlEndPosition,
+            };
+        }
     }
 }
 
-type ItemType = "url" | "npub" | "tag" | "note";
+type otherItemType = "url" | "tag";
+type ItemType = otherItemType | "note" | "npub";
 export type ContentItem = {
-    type: ItemType;
+    type: otherItemType;
+    start: number;
+    end: number;
+} | {
+    type: "npub";
+    pubkey: string;
+    start: number;
+    end: number;
+} | {
+    type: "note";
+    noteID: NoteID;
     start: number;
     end: number;
 };
 
 // Think of ChatMessage as an materialized view of NostrEvent
 export interface ChatMessage {
-    readonly event: NostrEvent;
+    readonly event: PlainText_Nostr_Event;
     readonly type: "image" | "text";
     readonly created_at: Date;
     readonly lamport: number | undefined;

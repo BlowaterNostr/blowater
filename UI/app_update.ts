@@ -7,7 +7,7 @@ import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master
 import { Database_Contextual_View } from "../database.ts";
 import { convertEventsToChatMessages } from "./dm.ts";
 
-import { get_Kind4_Events_Between, sendDMandImages, sendSocialPost } from "../features/dm.ts";
+import { sendDMandImages, sendSocialPost } from "../features/dm.ts";
 import { notify } from "./notification.ts";
 import { EventBus, EventEmitter } from "../event-bus.ts";
 import { ContactUpdate } from "./contact-list.tsx";
@@ -21,7 +21,6 @@ import { fromEvents, LamportTime } from "../time.ts";
 import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 import {
     NostrAccountContext,
-    NostrEvent,
     NostrKind,
     prepareCustomAppDataEvent,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";

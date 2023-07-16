@@ -308,6 +308,7 @@ export function AppComponent(props: {
                     eventEmitter={app.eventBus}
                     profilesSyncer={app.profileSyncer}
                     eventSyncer={app.eventSyncer}
+                    allUserInfo={app.allUsersInfo.userInfos}
                 />
             </div>
         );
