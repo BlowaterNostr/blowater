@@ -1,5 +1,5 @@
 /** @jsx h */
-import { Component, ComponentChildren, createRef, Fragment, h, VNode } from "https://esm.sh/preact@10.11.3";
+import { Component, ComponentChildren, createRef, h } from "https://esm.sh/preact@10.11.3";
 import { tw } from "https://esm.sh/twind@0.16.16";
 import { Editor, EditorEvent, EditorModel } from "./editor.tsx";
 
@@ -10,7 +10,7 @@ import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/maste
 import { EventEmitter } from "../event-bus.ts";
 
 import { ChatMessage, groupContinuousMessages, parseContent, sortMessage, urlIsImage } from "./message.ts";
-import { InvalidKey, PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
+import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 import {
     NostrEvent,
     NostrKind,
@@ -22,16 +22,14 @@ import {
     Profile_Nostr_Event,
     UnpinContact,
 } from "../nostr.ts";
-import { getProfileEvent, parseProfileData, ProfileData } from "../features/profile.ts";
+import { getProfileEvent, ProfileData } from "../features/profile.ts";
 import { MessageThread } from "./dm.tsx";
 import { UserDetail } from "./user-detail.tsx";
 import { MessageThreadPanel } from "./message-thread-panel.tsx";
 import { Database_Contextual_View } from "../database.ts";
 import {
-    DividerBackgroundColor,
     HoverButtonBackgroudColor,
     LinkColor,
-    PrimaryBackgroundColor,
     PrimaryTextColor,
 } from "./style/colors.ts";
 import { ProfilesSyncer } from "./contact-list.ts";
@@ -541,11 +539,7 @@ function NoteCard(
 ) {
     switch (event.kind) {
         case NostrKind.META_DATA:
-            const profileData = parseProfileData(event.content);
-            if (profileData instanceof Error) {
-                return event.content;
-            }
-            return ProfileCard(profileData, event.publicKey, eventEmitter);
+            return ProfileCard(event.profile, event.publicKey, eventEmitter);
         case NostrKind.TEXT_NOTE:
         case NostrKind.DIRECT_MESSAGE:
             const profile = getProfileEvent(db, event.publicKey);
