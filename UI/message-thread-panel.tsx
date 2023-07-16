@@ -125,7 +125,7 @@ function MessageThreadBoxGroup(props: {
                             <pre
                                 class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto`}
                             >
-                                {ParseMessageContent(msg, props.db, props.allUserInfo, props.profilesSyncer, props.eventSyncer, props.eventEmitter)}
+                                {ParseMessageContent(msg, props.allUserInfo, props.profilesSyncer, props.eventSyncer, props.eventEmitter)}
                             </pre>
                         </div>
                     </li>

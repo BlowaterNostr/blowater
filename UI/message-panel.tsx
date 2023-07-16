@@ -365,7 +365,6 @@ function MessageBoxGroup(props: {
                             >
                                 {ParseMessageContent(
                                     msg.msg,
-                                    props.db,
                                     props.allUserInfo,
                                     props.profilesSyncer,
                                     props.eventSyncer,
@@ -458,7 +457,6 @@ export function NameAndTime(message: ChatMessage, index: number, myPublicKey: Pu
 
 export function ParseMessageContent(
     message: ChatMessage,
-    db: Database_Contextual_View,
     allUserInfo: Map<string, UserInfo>,
     profilesSyncer: ProfilesSyncer,
     eventSyncer: EventSyncer,
@@ -537,7 +535,7 @@ function ProfileCard(profile: ProfileData, pubkey: PublicKey, eventEmitter: Even
             <div class={tw`flex`}>
                 <Avatar class={tw`w-10 h-10`} picture={profile.picture}></Avatar>
                 <p class={tw`text-[1.2rem] font-blod leading-10 truncate ml-2`}>
-                    {profile.name || pubkey.bech32}
+                    {profile.name || pubkey.bech32()}
                 </p>
             </div>
             <div class={tw`${DividerClass} my-[0.5rem]`}></div>
