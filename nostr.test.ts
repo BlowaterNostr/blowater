@@ -19,13 +19,15 @@ import {
     groupImageEvents,
     Parsed_Event,
     parsedTagsEvent,
+    PlainText_Nostr_Event,
     prepareNostrImageEvents,
     prepareReplyEvent,
     reassembleBase64ImageFromEvents,
 } from "./nostr.ts";
 import { LamportTime } from "./time.ts";
-import { PrivateKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
+import { PrivateKey, PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 import { ParseMessageContent } from "./UI/message-panel.tsx";
+import { parseContent } from "./UI/message.ts";
 
 Deno.test("prepareNostrImageEvents", async (t) => {
     const pri = PrivateKey.Generate();
@@ -109,7 +111,20 @@ Deno.test("groupImageEvents", async () => {
         fail(imgEvents2.message);
     }
     const [events2, id2] = imgEvents2;
-    const groups = groupImageEvents(events1.concat(events2));
+    const groups = groupImageEvents(
+        events1.concat(events2).map((e): PlainText_Nostr_Event => ({
+            kind: e.kind as NostrKind.DIRECT_MESSAGE,
+            content: e.content,
+            created_at: e.created_at,
+            id: e.id,
+            pubkey: e.pubkey,
+            sig: e.sig,
+            tags: e.tags,
+            publicKey: PublicKey.FromHex(e.pubkey) as PublicKey,
+            parsedTags: getTags(e),
+            parsedContentItems: [],
+        })),
+    );
     assertEquals(groups.size, 2);
 
     const group1 = groups.get(id1);
