@@ -506,7 +506,7 @@ export function ParseMessageContent(
                     if (event instanceof Promise) {
                         break;
                     }
-                    vnode.push(NoteCard(event, eventEmitter, db));
+                    vnode.push(NoteCard(event, eventEmitter, allUserInfo));
                 }
                 break;
             case "tag":
@@ -547,14 +547,14 @@ function ProfileCard(profile: ProfileData, pubkey: PublicKey, eventEmitter: Even
 function NoteCard(
     event: Profile_Nostr_Event | PlainText_Nostr_Event | Decrypted_Nostr_Event,
     eventEmitter: EventEmitter<ViewThread | ViewUserDetail>,
-    db: Database_Contextual_View,
+    allUserInfo: Map<string, UserInfo>,
 ) {
     switch (event.kind) {
         case NostrKind.META_DATA:
             return ProfileCard(event.profile, event.publicKey, eventEmitter);
         case NostrKind.TEXT_NOTE:
         case NostrKind.DIRECT_MESSAGE:
-            const profile = getProfileEvent(db, event.publicKey);
+            const profile = allUserInfo.get(event.pubkey)?.profile;
             return (
                 <div class={tw`px-4 my-1 py-2 border-2 border-[${PrimaryTextColor}4D] rounded-lg py-1 flex`}>
                     <Avatar class={tw`w-10 h-10`} picture={profile?.profile.picture} />
