@@ -539,25 +539,21 @@ function NoteCard(
     eventEmitter: EventEmitter<ViewThread | ViewUserDetail>,
     db: Database_Contextual_View,
 ) {
-    const pubkey = PublicKey.FromHex(event.pubkey);
-    if (pubkey instanceof InvalidKey) {
-        return event.content;
-    }
     switch (event.kind) {
         case NostrKind.META_DATA:
             const profileData = parseProfileData(event.content);
             if (profileData instanceof Error) {
                 return event.content;
             }
-            return ProfileCard(profileData, pubkey, eventEmitter);
+            return ProfileCard(profileData, event.publicKey, eventEmitter);
         case NostrKind.TEXT_NOTE:
         case NostrKind.DIRECT_MESSAGE:
-            const profile = getProfileEvent(db, pubkey);
+            const profile = getProfileEvent(db, event.publicKey);
             return (
                 <div class={tw`px-4 my-1 py-2 border-2 border-[${PrimaryTextColor}4D] rounded-lg py-1 flex`}>
                     <Avatar class={tw`w-10 h-10`} picture={profile?.profile.picture} />
                     <div class={tw`ml-2 flex-1 overflow-hidden`}>
-                        <p class={tw`truncate`}>{profile?.profile.name || pubkey.bech32()}</p>
+                        <p class={tw`truncate`}>{profile?.profile.name || event.publicKey.bech32()}</p>
                         <p class={tw`text-[0.8rem]`}>{event.content}</p>
                     </div>
                 </div>
