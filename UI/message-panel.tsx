@@ -487,16 +487,16 @@ export function ParseMessageContent(
                 break;
             case "npub":
                 {
-                    const userInfo = allUserInfo.get(item.pubkey.hex);
+                    const userInfo = allUserInfo.get(item.pubkey);
                     if (userInfo) {
                         const profile = userInfo.profile;
                         if (profile) {
-                            vnode.push(ProfileCard(profile.profile, item.pubkey, eventEmitter));
+                            vnode.push(ProfileCard(profile.profile, PublicKey.FromHex(item.pubkey) as PublicKey, eventEmitter));
                         } else {
-                            profilesSyncer.add(item.pubkey.hex);
+                            profilesSyncer.add(item.pubkey);
                         }
                     } else {
-                        profilesSyncer.add(item.pubkey.hex);
+                        profilesSyncer.add(item.pubkey);
                     }
                 }
                 break;
