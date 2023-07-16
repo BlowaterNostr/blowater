@@ -491,7 +491,13 @@ export function ParseMessageContent(
                     if (userInfo) {
                         const profile = userInfo.profile;
                         if (profile) {
-                            vnode.push(ProfileCard(profile.profile, PublicKey.FromHex(item.pubkey) as PublicKey, eventEmitter));
+                            vnode.push(
+                                ProfileCard(
+                                    profile.profile,
+                                    PublicKey.FromHex(item.pubkey) as PublicKey,
+                                    eventEmitter,
+                                ),
+                            );
                         } else {
                             profilesSyncer.add(item.pubkey);
                         }
