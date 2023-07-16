@@ -146,9 +146,9 @@ export function reassembleBase64ImageFromEvents(
     return chunks.join("");
 }
 
-export function groupImageEvents(events: Iterable<PlainText_Nostr_Event>) {
+export function groupImageEvents<T extends Parsed_Event>(events: Iterable<T>) {
     return groupBy(events, (event) => {
-        const tags = getTags(event);
+        const tags = event.parsedTags;
         const imageTag = tags.image;
         if (imageTag == undefined) {
             return undefined;
