@@ -30,6 +30,7 @@ import {
     computeThreads,
     CustomAppData_Event,
     getTags,
+    Parsed_Event,
     PinContact,
     PlainText_Nostr_Event,
     Profile_Nostr_Event,
@@ -40,8 +41,7 @@ import { DexieDatabase } from "./dexie-db.ts";
 import { getSocialPosts } from "../features/social.ts";
 import { RelayConfig } from "./setting.ts";
 import { SocialUpdates } from "./social.tsx";
-import { EventSyncer } from "./event_syncer.ts";
-import { apply } from "https://esm.sh/twind@0.16.16";
+import { NoteID } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nip19.ts";
 
 export type UI_Interaction_Event =
     | RemoveRelayButtonClicked
@@ -369,6 +369,39 @@ export async function* UI_Interaction_Update(args: {
                     model.dm.focusedContent.set(
                         model.dm.currentSelectedContact.hex,
                         event.root,
+                    );
+                }
+            }
+            model.rightPanelModel.show = true;
+        } else if (event.type == "ViewNoteThread") {
+            let root: Parsed_Event = event.event;
+            if (event.event.parsedTags.root && event.event.parsedTags.root) {
+                const res = model.app.eventSyncer.syncEvent(NoteID.FromHex(event.event.parsedTags.root[0]));
+                if (res instanceof Promise) {
+                    continue;
+                }
+                root = res;
+            } else if (event.event.parsedTags.e && event.event.parsedTags.e.length) {
+                const res = model.app.eventSyncer.syncEvent(NoteID.FromHex(event.event.parsedTags.e[0]));
+                if (res instanceof Promise) {
+                    continue;
+                }
+                root = res;
+            }
+
+            if (root.kind == NostrKind.TEXT_NOTE) {
+                model.navigationModel.activeNav = "Social";
+                model.social.focusedContent = root;
+            } else if (root.kind == NostrKind.DIRECT_MESSAGE) {
+                const myPubkey = model.app.myAccountContext.publicKey.hex;
+                if (root.publicKey.hex != myPubkey && !root.parsedTags.p.includes(myPubkey)) {
+                    continue;
+                }
+                updateConversation(model, root.publicKey);
+                if (model.dm.currentSelectedContact) {
+                    model.dm.focusedContent.set(
+                        model.dm.currentSelectedContact.hex,
+                        root,
                     );
                 }
             }

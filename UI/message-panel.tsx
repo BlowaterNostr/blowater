@@ -68,11 +68,17 @@ export type DirectMessagePanelUpdate =
         show: boolean;
     }
     | ViewThread
-    | ViewUserDetail;
+    | ViewUserDetail
+    | ViewNoteThread;
 
 export type ViewThread = {
     type: "ViewThread";
     root: NostrEvent;
+};
+
+export type ViewNoteThread = {
+    type: "ViewNoteThread";
+    event: PlainText_Nostr_Event;
 };
 
 export type ViewUserDetail = {
@@ -460,7 +466,7 @@ export function ParseMessageContent(
     allUserInfo: Map<string, UserInfo>,
     profilesSyncer: ProfilesSyncer,
     eventSyncer: EventSyncer,
-    eventEmitter: EventEmitter<ViewUserDetail | ViewThread>,
+    eventEmitter: EventEmitter<ViewUserDetail | ViewNoteThread>,
 ) {
     if (message.type == "image") {
         return <img src={message.content} />;
@@ -552,7 +558,7 @@ function ProfileCard(profile: ProfileData, pubkey: PublicKey, eventEmitter: Even
 
 function NoteCard(
     event: Profile_Nostr_Event | PlainText_Nostr_Event | CustomAppData_Event,
-    eventEmitter: EventEmitter<ViewThread | ViewUserDetail>,
+    eventEmitter: EventEmitter<ViewUserDetail | ViewNoteThread>,
     allUserInfo: Map<string, UserInfo>,
 ) {
     switch (event.kind) {
@@ -562,7 +568,15 @@ function NoteCard(
         case NostrKind.DIRECT_MESSAGE:
             const profile = allUserInfo.get(event.pubkey)?.profile;
             return (
-                <div class={tw`px-4 my-1 py-2 border-2 border-[${PrimaryTextColor}4D] rounded-lg py-1 flex`}>
+                <div
+                    class={tw`px-4 my-1 py-2 border-2 border-[${PrimaryTextColor}4D] rounded-lg py-1 hover:bg-[${HoverButtonBackgroudColor}] cursor-pointer flex`}
+                    onClick={() => {
+                        eventEmitter.emit({
+                            type: "ViewNoteThread",
+                            event: event,
+                        });
+                    }}
+                >
                     <Avatar class={tw`w-10 h-10`} picture={profile?.profile.picture} />
                     <div class={tw`ml-2 flex-1 overflow-hidden`}>
                         <p class={tw`truncate`}>{profile?.profile.name || event.publicKey.bech32()}</p>

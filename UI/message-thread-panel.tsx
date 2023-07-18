@@ -7,7 +7,7 @@ import {
     DirectMessagePanelUpdate,
     NameAndTime,
     ParseMessageContent,
-    ViewThread,
+    ViewNoteThread,
     ViewUserDetail,
 } from "./message-panel.tsx";
 import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
@@ -69,7 +69,7 @@ function MessageThreadList(props: {
     db: Database_Contextual_View;
     profilesSyncer: ProfilesSyncer;
     eventSyncer: EventSyncer;
-    eventEmitter: EventEmitter<ViewUserDetail | ViewThread>;
+    eventEmitter: EventEmitter<ViewUserDetail | ViewNoteThread>;
     allUserInfo: Map<string, UserInfo>;
 }) {
     let groups = groupContinuousMessages(props.messages, (pre, cur) => {
@@ -106,14 +106,18 @@ function MessageThreadBoxGroup(props: {
     db: Database_Contextual_View;
     profilesSyncer: ProfilesSyncer;
     eventSyncer: EventSyncer;
-    eventEmitter: EventEmitter<ViewUserDetail | ViewThread>;
+    eventEmitter: EventEmitter<ViewUserDetail | ViewNoteThread>;
     allUserInfo: Map<string, UserInfo>;
 }) {
     const vnode = (
-        <ul class={tw`py-2`}>
+        <ul
+            class={tw`py-2`}
+        >
             {props.messages.map((msg, index) => {
                 return (
-                    <li class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 group`}>
+                    <li
+                        class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 group`}
+                    >
                         {AvatarOrTime(msg, index)}
                         <div
                             class={tw`flex-1`}
