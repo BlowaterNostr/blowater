@@ -8,8 +8,9 @@ import {
     RelayResponse_REQ_Message,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 import {
+    CustomAppData,
+    CustomAppData_Event,
     Decryptable_Nostr_Event,
-    Decrypted_Nostr_Event,
     getTags,
     PlainText_Nostr_Event,
     Profile_Nostr_Event,
@@ -33,9 +34,9 @@ export interface Indices {
 
 export class Database_Contextual_View {
     private readonly sourceOfChange = csp.chan<
-        PlainText_Nostr_Event | Decrypted_Nostr_Event | Profile_Nostr_Event
+        PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event
     >(buffer_size);
-    private readonly caster = csp.multi<PlainText_Nostr_Event | Decrypted_Nostr_Event | Profile_Nostr_Event>(
+    private readonly caster = csp.multi<PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event>(
         this.sourceOfChange,
     );
 
@@ -47,7 +48,7 @@ export class Database_Contextual_View {
                 return e.kind != NostrKind.CustomAppData;
             },
         ).toArray();
-        const cache: (PlainText_Nostr_Event | Decrypted_Nostr_Event | Profile_Nostr_Event)[] = [];
+        const cache: (PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event)[] = [];
         for (const event of onload) {
             const pubkey = PublicKey.FromHex(event.pubkey);
             if (pubkey instanceof Error) {
@@ -118,15 +119,7 @@ export class Database_Contextual_View {
                     continue;
                 }
                 if (event.kind == NostrKind.CustomAppData) {
-                    const e = await transformEvent({
-                        content: event.content,
-                        created_at: event.created_at,
-                        id: event.id,
-                        kind: event.kind,
-                        pubkey: event.pubkey,
-                        sig: event.sig,
-                        tags: event.tags,
-                    }, ctx);
+                    const e = await transformEvent(event, ctx);
 
                     if (e == undefined) {
                         continue;
@@ -164,7 +157,7 @@ export class Database_Contextual_View {
 
     constructor(
         private readonly database: DexieDatabase,
-        public readonly events: (PlainText_Nostr_Event | Decrypted_Nostr_Event | Profile_Nostr_Event)[],
+        public readonly events: (PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event)[],
         private readonly ctx: NostrAccountContext,
     ) {}
 
@@ -189,7 +182,7 @@ export class Database_Contextual_View {
         }
 
         console.log("Database.addEvent", event.id);
-        let e: PlainText_Nostr_Event | Decrypted_Nostr_Event | Profile_Nostr_Event;
+        let e: PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event;
         if (event.kind == NostrKind.CustomAppData) {
             const _e = await transformEvent({
                 content: event.content,
@@ -336,9 +329,9 @@ export class Database_Contextual_View {
     //////////////////
     // On DB Change //
     //////////////////
-    onChange(filter: (e: PlainText_Nostr_Event | Decrypted_Nostr_Event | Profile_Nostr_Event) => boolean) {
+    onChange(filter: (e: PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event) => boolean) {
         const c = this.caster.copy();
-        const res = csp.chan<PlainText_Nostr_Event | Decrypted_Nostr_Event | Profile_Nostr_Event>(
+        const res = csp.chan<PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event>(
             buffer_size,
         );
         (async () => {
@@ -410,18 +403,26 @@ async function transformEvent(event: Decryptable_Nostr_Event, ctx: NostrAccountC
         if (decrypted instanceof Error) {
             return decrypted;
         }
-        const e: Decrypted_Nostr_Event = {
-            content: event.content,
-            created_at: event.created_at,
-            id: event.id,
-            kind: event.kind,
-            pubkey: event.pubkey,
-            sig: event.sig,
-            tags: event.tags,
-            parsedTags: getTags(event),
-            decryptedContent: decrypted,
-            publicKey: ctx.publicKey,
-        };
-        return e;
+        let customAppData: CustomAppData;
+        try {
+            customAppData = JSON.parse(decrypted);
+        } catch (e) {
+            return e as Error;
+        }
+        if (customAppData) {
+            const e: CustomAppData_Event = {
+                content: event.content,
+                created_at: event.created_at,
+                id: event.id,
+                kind: event.kind,
+                pubkey: event.pubkey,
+                sig: event.sig,
+                tags: event.tags,
+                parsedTags: getTags(event),
+                customAppData: customAppData,
+                publicKey: ctx.publicKey,
+            };
+            return e;
+        }
     }
 }

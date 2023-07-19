@@ -30,9 +30,9 @@ export class RelayConfig {
         return urls;
     }
 
-    async addEvents(events: { decryptedContent: string }[]) {
+    async addEvents(events: { customAppData: CustomAppData }[]) {
         for (const event of events) {
-            const obj: CustomAppData = JSON.parse(event.decryptedContent);
+            const obj = event.customAppData;
             if (obj.type == "AddRelay") {
                 this.relaySet.add(obj.url);
             } else if (obj.type == "RemoveRelay") {
