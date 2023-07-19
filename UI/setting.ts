@@ -39,6 +39,8 @@ export class RelayConfig {
                     console.error(err);
                     continue;
                 }
+            } else if (obj.type == "RemoveRelay") {
+                await this.pool.removeRelay(obj.url);
             }
         }
     }
@@ -55,6 +57,18 @@ export class RelayConfig {
         if (event instanceof Error) {
             return event;
         }
-        this.pool.sendEvent(event);
+        return this.pool.sendEvent(event);
+    }
+
+    async removeRelay(url: string) {
+        await this.pool.removeRelay(url);
+        const event = await prepareCustomAppDataEvent<CustomAppData>(this.ctx, {
+            type: "RemoveRelay",
+            url: url,
+        });
+        if (event instanceof Error) {
+            return event;
+        }
+        return this.pool.sendEvent(event);
     }
 }

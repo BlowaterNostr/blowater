@@ -156,7 +156,7 @@ export async function* UI_Interaction_Update(
         } else if (event.type == "AddRelayInputChange") {
             model.AddRelayInput = event.url;
         } else if (event.type == "RemoveRelayButtonClicked") {
-            await model.app.relayConfig.pool.removeRelay(event.url);
+            await model.app.relayConfig.removeRelay(event.url);
         } //
         //
         // Search
