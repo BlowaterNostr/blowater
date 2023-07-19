@@ -471,11 +471,17 @@ export async function* Database_Update(
         }
 
         let hasKind_1 = false;
+        {
+            const events = [];
+            for (const e of changes_events) {
+                if (e.kind == NostrKind.CustomAppData) {
+                    events.push(e);
+                }
+            }
+            await relayConfig.addEvents(events);
+        }
         for (let e of changes_events) {
             allUserInfo.addEvents([e]);
-            if (e.kind == NostrKind.CustomAppData) {
-                await relayConfig.addEvents([e]);
-            }
             const t = getTags(e).lamport_timestamp;
             if (t) {
                 lamport.set(t);

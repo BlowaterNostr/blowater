@@ -164,13 +164,17 @@ export class App {
     initApp = async (accountContext: NostrAccountContext) => {
         console.log("App.initApp");
         this.allUsersInfo.addEvents(this.database.events);
-        ///////////////////////////////////
-        // Add relays to Connection Pool //
-        ///////////////////////////////////
-        for (const event of this.database.events) {
-            if (event.kind == NostrKind.CustomAppData) {
-                await this.relayConfig.addEvents([event]);
+        {
+            ///////////////////////////////////
+            // Add relays to Connection Pool //
+            ///////////////////////////////////
+            const events = [];
+            for (const e of this.database.events) {
+                if (e.kind == NostrKind.CustomAppData) {
+                    events.push(e);
+                }
             }
+            await this.relayConfig.addEvents(events);
         }
         console.log("relay urls::", this.relayConfig.getRelayURLs());
 

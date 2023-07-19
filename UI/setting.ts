@@ -1,11 +1,9 @@
 import {
     NostrAccountContext,
-    NostrKind,
     prepareCustomAppDataEvent,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
-import { Database_Contextual_View } from "../database.ts";
 import { ConnectionPool } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
-import { CustomAppData, Decrypted_Nostr_Event, Parsed_Event } from "../nostr.ts";
+import { CustomAppData, Decrypted_Nostr_Event } from "../nostr.ts";
 
 const damus = "wss://relay.damus.io";
 const nos = "wss://nos.lol";
@@ -17,6 +15,8 @@ export const defaultRelays = [
 ];
 
 export class RelayConfig {
+    private readonly relaySet = new Set<string>();
+
     constructor(
         public readonly pool: ConnectionPool,
         public readonly ctx: NostrAccountContext,
@@ -34,13 +34,26 @@ export class RelayConfig {
         for (const event of events) {
             const obj: CustomAppData = JSON.parse(event.decryptedContent);
             if (obj.type == "AddRelay") {
-                const err = await this.pool.addRelayURL(obj.url);
+                this.relaySet.add(obj.url);
+            } else if (obj.type == "RemoveRelay") {
+                this.relaySet.delete(obj.url);
+            }
+        }
+        const s = new Set(this.pool.getRelays().map((r) => r.url));
+        // add
+        for (const url of this.relaySet) {
+            if (!s.has(url)) {
+                const err = await this.pool.addRelayURL(url);
                 if (err instanceof Error) {
                     console.error(err);
                     continue;
                 }
-            } else if (obj.type == "RemoveRelay") {
-                await this.pool.removeRelay(obj.url);
+            }
+        }
+        // remove
+        for (const url of s) {
+            if (!this.relaySet.has(url)) {
+                await this.pool.removeRelay(url);
             }
         }
     }
