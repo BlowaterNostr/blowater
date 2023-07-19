@@ -57,12 +57,12 @@ Lightning: blowater@getalby.com
 - [ ] NIP-42 - Authentication of clients to relays
 - [ ] NIP-46 - Nostr Connect
 - [ ] NIP-50 - Keywords filter
-- [x] NIP-51 - Lists [PARTIALLY]
+- [ ] NIP-51 - Lists
 - [ ] NIP-56 - Reporting
 - [ ] NIP-57 - Lightning Zaps
 - [ ] NIP-58 - Badges
 - [ ] NIP-65 - Relay List Metadata
-- [x] NIP-78 - Application-specific data
+- [x] [NIP-1078 - Application-specific data](https://github.com/BlowaterNostr/nips/blob/master/1078.md)
 
 ## Building from Source
 
