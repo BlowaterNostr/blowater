@@ -1,5 +1,5 @@
 /** @jsx h */
-import { Fragment, FunctionComponent, h } from "https://esm.sh/preact@10.11.3";
+import { Fragment, h } from "https://esm.sh/preact@10.11.3";
 import { tw } from "https://esm.sh/twind@0.16.16";
 import { EventBus } from "../event-bus.ts";
 
@@ -31,10 +31,11 @@ import {
 } from "./style/colors.ts";
 import { RelayIcon } from "./icons2/relay-icon.tsx";
 import { DeleteIcon } from "./icons2/delete-icon.tsx";
+import { RelayConfig } from "./setting.ts";
 
 export interface SettingProps {
     logout: () => void;
-    pool: ConnectionPool;
+    relayConfig: RelayConfig;
     eventBus: EventBus<UI_Interaction_Event>;
     AddRelayButtonClickedError: string;
     AddRelayInput: string;
@@ -48,8 +49,8 @@ const colors = {
     "Closed": ErrorColor,
 };
 
-export const Setting: FunctionComponent<SettingProps> = (props: SettingProps) => {
-    const relays = props.pool.getRelays().map(
+export const Setting = (props: SettingProps) => {
+    const relays = props.relayConfig.pool.getRelays().map(
         (r) => ({
             url: r.url,
             status: r.ws.status(),

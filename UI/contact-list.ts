@@ -220,9 +220,6 @@ export class AllUsersInformation {
                 case NostrKind.DELETE:
                     break;
                 case NostrKind.CustomAppData: {
-                    if (event.kind == NostrKind.CustomAppData) {
-                        event;
-                    }
                     const obj: CustomAppData = JSON.parse(event.decryptedContent);
                     if (obj.type == "PinContact" || obj.type == "UnpinContact") {
                         const userInfo = this.userInfos.get(obj.pubkey);

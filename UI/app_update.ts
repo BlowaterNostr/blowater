@@ -38,6 +38,7 @@ import {
 import { MessageThread } from "./dm.tsx";
 import { DexieDatabase } from "./dexie-db.ts";
 import { getSocialPosts } from "../features/social.ts";
+import { RelayConfig } from "./setting.ts";
 
 export type UI_Interaction_Event =
     | RemoveRelayButtonClicked
@@ -144,7 +145,7 @@ export async function* UI_Interaction_Update(
         //
         if (event.type == "AddRelayButtonClicked") {
             // todo: need to think about concurrent/async UI update
-            model.app.relayPool.addRelayURL(event.url).then((err) => {
+            model.app.relayConfig.addRelayURL(event.url).then((err) => {
                 if (err instanceof Error) {
                     model.AddRelayButtonClickedError = err.message;
                 } else {
@@ -155,7 +156,7 @@ export async function* UI_Interaction_Update(
         } else if (event.type == "AddRelayInputChange") {
             model.AddRelayInput = event.url;
         } else if (event.type == "RemoveRelayButtonClicked") {
-            await model.app.relayPool.removeRelay(event.url);
+            await model.app.relayConfig.pool.removeRelay(event.url);
         } //
         //
         // Search
@@ -220,7 +221,7 @@ export async function* UI_Interaction_Update(
                 console.error(nostrEvent);
                 continue;
             }
-            const err = await model.app.relayPool.sendEvent(nostrEvent);
+            const err = await model.app.relayConfig.pool.sendEvent(nostrEvent);
             if (err instanceof Error) {
                 console.error(err);
             }
@@ -241,7 +242,7 @@ export async function* UI_Interaction_Update(
                     files: event.files,
                     kind: event.target.kind,
                     lamport_timestamp: model.app.lamport.now(),
-                    pool: model.app.relayPool,
+                    pool: model.app.relayConfig.pool,
                     waitAll: false,
                     tags: event.tags,
                 });
@@ -259,7 +260,7 @@ export async function* UI_Interaction_Update(
                     sender: model.app.myAccountContext,
                     message: event.text,
                     lamport_timestamp: model.app.lamport.now(),
-                    pool: model.app.relayPool,
+                    pool: model.app.relayConfig.pool,
                     tags: event.tags,
                 });
                 if (event.id == "social") {
@@ -328,7 +329,7 @@ export async function* UI_Interaction_Update(
             await saveProfile(
                 event.profile,
                 model.app.myAccountContext,
-                model.app.relayPool,
+                model.app.relayConfig.pool,
             );
         } else if (event.type == "EditNewProfileFieldKey") {
             model.newProfileField.key = event.key;
@@ -450,6 +451,7 @@ export async function* Database_Update(
     lamport: LamportTime,
     eventEmitter: EventEmitter<SelectProfile>,
     allUserInfo: AllUsersInformation,
+    relayConfig: RelayConfig,
 ) {
     const changes = database.onChange((_) => true);
     while (true) {
@@ -471,6 +473,9 @@ export async function* Database_Update(
         let hasKind_1 = false;
         for (let e of changes_events) {
             allUserInfo.addEvents([e]);
+            if (e.kind == NostrKind.CustomAppData) {
+                await relayConfig.addEvents([e]);
+            }
             const t = getTags(e).lamport_timestamp;
             if (t) {
                 lamport.set(t);

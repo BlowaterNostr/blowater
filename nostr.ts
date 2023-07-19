@@ -299,7 +299,7 @@ export type PlainText_Nostr_Event =
 export type Profile_Nostr_Event = Parsed_Event<NostrKind.META_DATA> & {
     profile: ProfileData;
 };
-export type CustomAppData = PinContact | UnpinContact | UserLogin;
+export type CustomAppData = PinContact | UnpinContact | UserLogin | AddRelay;
 
 export type PinContact = {
     type: "PinContact";
@@ -313,4 +313,14 @@ export type UnpinContact = {
 
 export type UserLogin = {
     type: "UserLogin";
+};
+
+export type AddRelay = {
+    type: "AddRelay";
+    url: string;
+};
+
+export type RemoveRelay = {
+    type: "RemoveRelay";
+    url: string;
 };

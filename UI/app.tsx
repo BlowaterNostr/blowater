@@ -29,8 +29,6 @@ import { getSocialPosts } from "../features/social.ts";
 import * as time from "../time.ts";
 import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 import {
-    DecryptionFailure,
-    decryptNostrEvent,
     NostrAccountContext,
     NostrEvent,
     NostrKind,
@@ -41,13 +39,11 @@ import {
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
 import { getCurrentSignInCtx, setSignInState, SignIn } from "./signIn.tsx";
 import { AppList } from "./app-list.tsx";
-import { LinkColor, PrimaryTextColor, SecondaryBackgroundColor } from "./style/colors.ts";
+import { SecondaryBackgroundColor } from "./style/colors.ts";
 import { EventSyncer } from "./event_syncer.ts";
-import { getRelayURLs } from "./setting.ts";
+import { RelayConfig } from "./setting.ts";
 import { DexieDatabase } from "./dexie-db.ts";
-import { DividerClass } from "./components/tw.ts";
 import { About } from "./about.tsx";
-import { computeThreads } from "../nostr.ts";
 
 export async function Start(database: DexieDatabase) {
     const model = initialModel();
@@ -143,12 +139,6 @@ async function initProfileSyncer(
         }
     })();
 
-    ///////////////////////////////////
-    // Add relays to Connection Pool //
-    ///////////////////////////////////
-    const relayURLs = getRelayURLs(database);
-    pool.addRelayURLs(relayURLs);
-
     return profilesSyncer;
 }
 
@@ -156,6 +146,7 @@ export class App {
     profileSyncer!: ProfilesSyncer;
     eventSyncer: EventSyncer;
     public readonly allUsersInfo: AllUsersInformation;
+    public readonly relayConfig: RelayConfig;
 
     constructor(
         public readonly database: Database_Contextual_View,
@@ -163,24 +154,33 @@ export class App {
         public readonly model: Model,
         public readonly myAccountContext: NostrAccountContext,
         public readonly eventBus: EventBus<UI_Interaction_Event>,
-        public readonly relayPool: ConnectionPool,
+        relayPool: ConnectionPool,
     ) {
-        this.eventSyncer = new EventSyncer(this.relayPool, this.database);
+        this.eventSyncer = new EventSyncer(relayPool, this.database);
         this.allUsersInfo = new AllUsersInformation(myAccountContext);
+        this.relayConfig = new RelayConfig(relayPool, this.myAccountContext);
     }
 
     initApp = async (accountContext: NostrAccountContext) => {
-        // const events = this.database.filterEvents((e) => e.kind == NostrKind.TEXT_NOTE);
-
         console.log("App.initApp");
-        const profilesSyncer = await initProfileSyncer(this.relayPool, accountContext, this.database);
+        this.allUsersInfo.addEvents(this.database.events);
+        ///////////////////////////////////
+        // Add relays to Connection Pool //
+        ///////////////////////////////////
+        for (const event of this.database.events) {
+            if (event.kind == NostrKind.CustomAppData) {
+                await this.relayConfig.addEvents([event]);
+            }
+        }
+        console.log("relay urls::", this.relayConfig.getRelayURLs());
+
+        const profilesSyncer = await initProfileSyncer(this.relayConfig.pool, accountContext, this.database);
         if (profilesSyncer instanceof Error) {
             return profilesSyncer;
         }
 
         this.profileSyncer = profilesSyncer;
 
-        this.allUsersInfo.addEvents(this.database.events);
         console.log("App allUsersInfo");
         this.model.social.threads = getSocialPosts(this.database, this.allUsersInfo.userInfos);
 
@@ -224,6 +224,7 @@ export class App {
                     this.lamport,
                     this.eventBus,
                     this.allUsersInfo,
+                    this.relayConfig,
                 )
             ) {
                 render(<AppComponent model={this.model} eventBus={this.eventBus} />, document.body);
@@ -322,7 +323,7 @@ export function AppComponent(props: {
             >
                 {Setting({
                     logout: app.logout,
-                    pool: app.relayPool,
+                    relayConfig: app.relayConfig,
                     eventBus: app.eventBus,
                     AddRelayButtonClickedError: model.AddRelayButtonClickedError,
                     AddRelayInput: model.AddRelayInput,
@@ -361,7 +362,7 @@ export function AppComponent(props: {
                         eventEmitter: app.eventBus,
                         myAccountContext: myAccountCtx,
                         db: app.database,
-                        pool: app.relayPool,
+                        pool: app.relayConfig.pool,
                         allUserInfo: app.allUsersInfo.userInfos,
                         profilesSyncer: app.profileSyncer,
                         eventSyncer: app.eventSyncer,
@@ -386,7 +387,7 @@ export function AppComponent(props: {
                             profilePicURL: model.myProfile?.picture,
                             publicKey: myAccountCtx.publicKey,
                             database: app.database,
-                            pool: app.relayPool,
+                            pool: app.relayConfig.pool,
                             eventEmitter: app.eventBus,
                             AddRelayButtonClickedError: model.AddRelayButtonClickedError,
                             AddRelayInput: model.AddRelayInput,
@@ -421,7 +422,7 @@ export function AppComponent(props: {
                         profilePicURL={model.myProfile?.picture}
                         publicKey={myAccountCtx.publicKey}
                         database={app.database}
-                        pool={app.relayPool}
+                        pool={app.relayConfig.pool}
                         eventEmitter={app.eventBus}
                         AddRelayButtonClickedError={model.AddRelayButtonClickedError}
                         AddRelayInput={model.AddRelayInput}
