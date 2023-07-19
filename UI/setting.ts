@@ -3,7 +3,7 @@ import {
     prepareCustomAppDataEvent,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 import { ConnectionPool } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
-import { CustomAppData, Decrypted_Nostr_Event } from "../nostr.ts";
+import { CustomAppData } from "../nostr.ts";
 
 const damus = "wss://relay.damus.io";
 const nos = "wss://nos.lol";
@@ -30,7 +30,7 @@ export class RelayConfig {
         return urls;
     }
 
-    async addEvents(events: Decrypted_Nostr_Event[]) {
+    async addEvents(events: { decryptedContent: string }[]) {
         for (const event of events) {
             const obj: CustomAppData = JSON.parse(event.decryptedContent);
             if (obj.type == "AddRelay") {
