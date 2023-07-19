@@ -24,6 +24,9 @@ export class RelayConfig {
 
     getRelayURLs(): string[] {
         const urls = this.pool.getRelays().map((r) => r.url);
+        if (urls.length == 0) {
+            return defaultRelays;
+        }
         return urls;
     }
 
