@@ -22,15 +22,12 @@ export class RelayConfig {
         public readonly ctx: NostrAccountContext,
     ) {}
 
-    getRelayURLs(): string[] {
-        const urls = [];
+    getRelayURLs() {
+        const urls = new Set<string>();
         for (const v of this.relaySet.values()) {
             if (v.type == "AddRelay") {
-                urls.push(v.url);
+                urls.add(v.url);
             }
-        }
-        if (urls.length == 0) {
-            return defaultRelays;
         }
         return urls;
     }
@@ -62,7 +59,7 @@ export class RelayConfig {
         }
         const s = new Set(this.pool.getRelays().map((r) => r.url));
         // add
-        for (const url of this.relaySet.keys()) {
+        for (const url of this.getRelayURLs()) {
             if (!s.has(url)) {
                 const err = await this.pool.addRelayURL(url);
                 if (err instanceof Error) {
@@ -73,8 +70,8 @@ export class RelayConfig {
         }
         // remove
         for (const url of s) {
-            if (!this.relaySet.has(url)) {
-                this.pool.removeRelay(url);
+            if (!this.relaySet.has(url) || this.relaySet.get(url)?.type == "RemoveRelay") {
+                await this.pool.removeRelay(url);
             }
         }
     }
