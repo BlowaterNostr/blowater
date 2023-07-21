@@ -15,6 +15,8 @@ export const defaultRelays = [
 ];
 
 export class RelayConfig {
+    // This is a state based CRDT based on Vector Clock
+    // see https://www.youtube.com/watch?v=OOlnp2bZVRs
     private readonly relaySet = new Map<string, AddRelay | RemoveRelay>();
 
     constructor(
