@@ -3,7 +3,7 @@ import {
     prepareCustomAppDataEvent,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 import { ConnectionPool } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
-import { CustomAppData, CustomAppData_Event } from "../nostr.ts";
+import { AddRelay, CustomAppData, CustomAppData_Event, RemoveRelay } from "../nostr.ts";
 
 const damus = "wss://relay.damus.io";
 const nos = "wss://nos.lol";
@@ -15,7 +15,7 @@ export const defaultRelays = [
 ];
 
 export class RelayConfig {
-    private readonly relaySet = new Set<string>();
+    private readonly relaySet = new Map<string, AddRelay | RemoveRelay>();
 
     constructor(
         public readonly pool: ConnectionPool,
@@ -23,7 +23,12 @@ export class RelayConfig {
     ) {}
 
     getRelayURLs(): string[] {
-        const urls = this.pool.getRelays().map((r) => r.url);
+        const urls = [];
+        for (const v of this.relaySet.values()) {
+            if (v.type == "AddRelay") {
+                urls.push(v.url);
+            }
+        }
         if (urls.length == 0) {
             return defaultRelays;
         }
@@ -33,15 +38,31 @@ export class RelayConfig {
     async addEvents(events: CustomAppData_Event[]) {
         for (const event of events) {
             const obj = event.customAppData;
-            if (obj.type == "AddRelay") {
-                this.relaySet.add(obj.url);
-            } else if (obj.type == "RemoveRelay") {
-                this.relaySet.delete(obj.url);
+            if (!(obj.type == "AddRelay" || obj.type == "RemoveRelay")) {
+                continue;
+            }
+            const currentValue = this.relaySet.get(obj.url);
+            if (currentValue) {
+                if (obj.vc) {
+                    if (obj.vc > currentValue.vc) {
+                        this.relaySet.set(obj.url, obj);
+                    } else {
+                        continue; // current vector clock is larger
+                    }
+                } else {
+                    continue; // do not handle event without vector clock
+                }
+            } else {
+                if (obj.vc) {
+                    this.relaySet.set(obj.url, obj);
+                } else {
+                    continue; // do not handle event without vector clock
+                }
             }
         }
         const s = new Set(this.pool.getRelays().map((r) => r.url));
         // add
-        for (const url of this.relaySet) {
+        for (const url of this.relaySet.keys()) {
             if (!s.has(url)) {
                 const err = await this.pool.addRelayURL(url);
                 if (err instanceof Error) {
@@ -63,9 +84,11 @@ export class RelayConfig {
         if (err instanceof Error) {
             return err;
         }
+        const value = this.relaySet.get(url);
         const event = await prepareCustomAppDataEvent<CustomAppData>(this.ctx, {
             type: "AddRelay",
             url: url,
+            vc: value ? value.vc + 1 : 1,
         });
         if (event instanceof Error) {
             return event;
@@ -75,9 +98,11 @@ export class RelayConfig {
 
     async removeRelay(url: string) {
         await this.pool.removeRelay(url);
+        const value = this.relaySet.get(url);
         const event = await prepareCustomAppDataEvent<CustomAppData>(this.ctx, {
             type: "RemoveRelay",
             url: url,
+            vc: value ? value.vc + 1 : 1,
         });
         if (event instanceof Error) {
             return event;

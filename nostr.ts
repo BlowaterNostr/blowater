@@ -317,9 +317,11 @@ export type UserLogin = {
 export type AddRelay = {
     type: "AddRelay";
     url: string;
+    vc: number;
 };
 
 export type RemoveRelay = {
     type: "RemoveRelay";
     url: string;
+    vc: number;
 };

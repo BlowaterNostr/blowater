@@ -17,14 +17,17 @@ Deno.test("Relay Config", async () => {
         const e1 = await prepareData(ctx, {
             type: "AddRelay",
             url: "wss://nos.lol",
+            vc: 1,
         });
         const e2 = await prepareData(ctx, {
             type: "RemoveRelay",
             url: "wss://nos.lol",
+            vc: 2,
         });
         const e3 = await prepareData(ctx, {
             type: "AddRelay",
             url: "wss://relay.damus.io",
+            vc: 1,
         });
 
         const rc1 = new RelayConfig(pool, ctx);
