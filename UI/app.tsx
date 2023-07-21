@@ -170,7 +170,7 @@ export class App {
             ///////////////////////////////////
             const events = [];
             for (const e of this.database.events) {
-                console.log("!!!", e)
+                console.log("!!!", e);
                 if (e.kind == NostrKind.CustomAppData) {
                     events.push(e);
                 }
