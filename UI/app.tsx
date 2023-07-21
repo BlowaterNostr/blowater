@@ -170,13 +170,13 @@ export class App {
             ///////////////////////////////////
             const events = [];
             for (const e of this.database.events) {
+                console.log("!!!", e)
                 if (e.kind == NostrKind.CustomAppData) {
                     events.push(e);
                 }
             }
             await this.relayConfig.addEvents(events);
         }
-        console.log("relay urls::", this.relayConfig.getRelayURLs());
 
         const profilesSyncer = await initProfileSyncer(this.relayConfig.pool, accountContext, this.database);
         if (profilesSyncer instanceof Error) {
