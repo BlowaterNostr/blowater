@@ -4,6 +4,7 @@ import {
     InMemoryAccountContext,
     NostrAccountContext,
     NostrEvent,
+    NostrKind,
     UnsignedNostrEvent,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 
@@ -102,12 +103,13 @@ export class Nip7ExtensionContext implements NostrAccountContext {
         })();
     }
 
-    async signEvent(event: UnsignedNostrEvent): Promise<NostrEvent> {
+    async signEvent<T extends NostrKind = NostrKind>(event: UnsignedNostrEvent<T>): Promise<NostrEvent<T>> {
         await this.operationChan.put({ op: "signEvent", event: event });
         const res = await this.signEventChan.pop();
         if (res === closed) {
             throw new Error("unreachable");
         }
+        // @ts-ignore
         return res;
     }
 

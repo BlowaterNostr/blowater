@@ -10,7 +10,6 @@ import {
 import {
     CustomAppData,
     CustomAppData_Event,
-    Decryptable_Nostr_Event,
     getTags,
     PlainText_Nostr_Event,
     Profile_Nostr_Event,
@@ -109,9 +108,11 @@ export class Database_Contextual_View {
 
         (async () => {
             let tt = 0;
-            const events: Decryptable_Nostr_Event[] = await database.events.filter((e: NostrEvent) => {
-                return e.kind == NostrKind.CustomAppData;
-            }).toArray();
+            const events: NostrEvent<NostrKind.CustomAppData>[] = await database.events.filter(
+                (e: NostrEvent) => {
+                    return e.kind == NostrKind.CustomAppData;
+                },
+            ).toArray();
             for (const event of events) {
                 const pubkey = PublicKey.FromHex(event.pubkey);
                 if (pubkey instanceof Error) {
@@ -396,9 +397,8 @@ export function whoIamTalkingTo(event: NostrEvent, myPublicKey: PublicKey) {
     return whoIAmTalkingTo;
 }
 
-async function transformEvent(event: Decryptable_Nostr_Event, ctx: NostrAccountContext) {
-    if (event.pubkey == ctx.publicKey.hex) {
-        // if I am the author
+export async function transformEvent(event: NostrEvent<NostrKind.CustomAppData>, ctx: NostrAccountContext) {
+    if (event.pubkey == ctx.publicKey.hex) { // if I am the author
         const decrypted = await ctx.decrypt(ctx.publicKey.hex, event.content);
         if (decrypted instanceof Error) {
             return decrypted;
