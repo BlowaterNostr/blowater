@@ -70,6 +70,12 @@ export async function Start(database: DexieDatabase) {
 
     /* first render */ render(<AppComponent model={model} eventBus={eventBus} />, document.body);
 
+    (async () => {
+        for await (let _ of Relay_Update(pool)) {
+            render(<AppComponent model={model} eventBus={eventBus} />, document.body);
+        }
+    })();
+
     for await (let _ of UI_Interaction_Update(model, eventBus, database, pool)) {
         const t = Date.now();
         {
@@ -77,12 +83,6 @@ export async function Start(database: DexieDatabase) {
         }
         console.log("render", Date.now() - t);
     }
-
-    (async () => {
-        for await (let _ of Relay_Update(pool)) {
-            render(<AppComponent model={model} eventBus={eventBus} />, document.body);
-        }
-    })();
 }
 
 async function initProfileSyncer(

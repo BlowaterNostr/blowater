@@ -578,9 +578,12 @@ export async function* Database_Update(
 // Relay //
 ///////////
 export async function* Relay_Update(relayPool: ConnectionPool) {
-    for await (const _ of relayPool.onChange()) {
+    for (;;) {
+        await csp.sleep(1000 * 10); // every 10 sec
+        console.log(`Relay: checking connections`);
         for (const relay of relayPool.getRelays()) {
             if (relay.isClosed() && !relay.isClosedByClient) {
+                console.log(`Relay: ${relay.url} has been closed by remote, reconnecting`);
                 await relayPool.removeRelay(relay.url);
                 while (true) {
                     const err = await relayPool.addRelayURL(relay.url);
@@ -588,6 +591,8 @@ export async function* Relay_Update(relayPool: ConnectionPool) {
                         console.error(err);
                         continue;
                     }
+                    console.log(`Relay: ${relay.url} has been reconnected`);
+                    yield;
                     break;
                 }
             }
