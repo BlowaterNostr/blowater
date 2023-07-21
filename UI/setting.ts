@@ -70,7 +70,8 @@ export class RelayConfig {
         }
         // remove
         for (const url of s) {
-            if (!this.relaySet.has(url) || this.relaySet.get(url)?.type == "RemoveRelay") {
+            if (this.relaySet.get(url)?.type == "RemoveRelay") {
+                console.log("RelayConfig:remove url", url, this.relaySet);
                 await this.pool.removeRelay(url);
             }
         }
