@@ -175,13 +175,13 @@ export class App {
                 }
             }
             await this.relayConfig.addEvents(events);
-            const urls = this.relayConfig.getRelayURLs()
-            for(const url of urls) {
-                this.relayConfig.addRelayURL(url).then(res => {
-                    if(res instanceof Error) {
-                        console.error(res)
+            const urls = this.relayConfig.getRelayURLs();
+            for (const url of urls) {
+                this.relayConfig.addRelayURL(url).then((res) => {
+                    if (res instanceof Error) {
+                        console.error(res);
                     }
-                })
+                });
             }
         }
 
