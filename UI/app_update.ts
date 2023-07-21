@@ -28,7 +28,7 @@ import { ConnectionPool } from "https://raw.githubusercontent.com/BlowaterNostr/
 import { SignInEvent, signInWithExtension, signInWithPrivateKey } from "./signIn.tsx";
 import {
     computeThreads,
-    Decrypted_Nostr_Event,
+    CustomAppData_Event,
     getTags,
     PinContact,
     PlainText_Nostr_Event,
@@ -457,7 +457,7 @@ export async function* Database_Update(
     while (true) {
         await csp.sleep(333);
         await changes.ready();
-        const changes_events: (PlainText_Nostr_Event | Decrypted_Nostr_Event | Profile_Nostr_Event)[] = [];
+        const changes_events: (PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event)[] = [];
         while (true) {
             if (!changes.isReadyToPop()) {
                 break;

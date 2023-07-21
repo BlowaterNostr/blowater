@@ -41,7 +41,7 @@ import { getCurrentSignInCtx, setSignInState, SignIn } from "./signIn.tsx";
 import { AppList } from "./app-list.tsx";
 import { SecondaryBackgroundColor } from "./style/colors.ts";
 import { EventSyncer } from "./event_syncer.ts";
-import { RelayConfig } from "./setting.ts";
+import { defaultRelays, RelayConfig } from "./setting.ts";
 import { DexieDatabase } from "./dexie-db.ts";
 import { About } from "./about.tsx";
 
@@ -175,8 +175,11 @@ export class App {
                 }
             }
             await this.relayConfig.addEvents(events);
+            const urls = this.relayConfig.getRelayURLs();
+            if (urls.size == 0) {
+                this.relayConfig.pool.addRelayURLs(defaultRelays);
+            }
         }
-        console.log("relay urls::", this.relayConfig.getRelayURLs());
 
         const profilesSyncer = await initProfileSyncer(this.relayConfig.pool, accountContext, this.database);
         if (profilesSyncer instanceof Error) {

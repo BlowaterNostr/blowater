@@ -282,12 +282,6 @@ export function computeThreads<T extends parsedTagsEvent>(events: T[]) {
     return Array.from(resMap.values());
 }
 
-export type Decrypted_Nostr_Event = Parsed_Event<NostrKind.CustomAppData> & {
-    readonly decryptedContent: string;
-};
-
-export type Decryptable_Nostr_Event = nostr.NostrEvent<NostrKind.CustomAppData>;
-
 export type PlainText_Nostr_Event =
     & Parsed_Event<
         Exclude<NostrKind, NostrKind.CustomAppData | NostrKind.META_DATA> // todo: exclude DM as well
@@ -299,6 +293,11 @@ export type PlainText_Nostr_Event =
 export type Profile_Nostr_Event = Parsed_Event<NostrKind.META_DATA> & {
     profile: ProfileData;
 };
+
+export type CustomAppData_Event = Parsed_Event<NostrKind.CustomAppData> & {
+    readonly customAppData: CustomAppData;
+};
+
 export type CustomAppData = PinContact | UnpinContact | UserLogin | AddRelay | RemoveRelay;
 
 export type PinContact = {
@@ -318,9 +317,11 @@ export type UserLogin = {
 export type AddRelay = {
     type: "AddRelay";
     url: string;
+    vc: number;
 };
 
 export type RemoveRelay = {
     type: "RemoveRelay";
     url: string;
+    vc: number;
 };

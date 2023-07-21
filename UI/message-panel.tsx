@@ -16,13 +16,13 @@ import {
     NostrKind,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 import {
-    Decrypted_Nostr_Event,
+    CustomAppData_Event,
     PinContact,
     PlainText_Nostr_Event,
     Profile_Nostr_Event,
     UnpinContact,
 } from "../nostr.ts";
-import { getProfileEvent, ProfileData } from "../features/profile.ts";
+import { ProfileData } from "../features/profile.ts";
 import { MessageThread } from "./dm.tsx";
 import { UserDetail } from "./user-detail.tsx";
 import { MessageThreadPanel } from "./message-thread-panel.tsx";
@@ -551,7 +551,7 @@ function ProfileCard(profile: ProfileData, pubkey: PublicKey, eventEmitter: Even
 }
 
 function NoteCard(
-    event: Profile_Nostr_Event | PlainText_Nostr_Event | Decrypted_Nostr_Event,
+    event: Profile_Nostr_Event | PlainText_Nostr_Event | CustomAppData_Event,
     eventEmitter: EventEmitter<ViewThread | ViewUserDetail>,
     allUserInfo: Map<string, UserInfo>,
 ) {

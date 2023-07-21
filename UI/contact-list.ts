@@ -15,7 +15,7 @@ import {
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
 import {
     CustomAppData,
-    Decrypted_Nostr_Event,
+    CustomAppData_Event,
     getTags,
     PlainText_Nostr_Event,
     Profile_Nostr_Event,
@@ -108,7 +108,7 @@ export class AllUsersInformation {
 
     constructor(public readonly ctx: NostrAccountContext) {}
 
-    addEvents(events: (Profile_Nostr_Event | PlainText_Nostr_Event | Decrypted_Nostr_Event)[]) {
+    addEvents(events: (Profile_Nostr_Event | PlainText_Nostr_Event | CustomAppData_Event)[]) {
         // const t = Date.now();
         for (const event of events) {
             switch (event.kind) {
@@ -220,7 +220,7 @@ export class AllUsersInformation {
                 case NostrKind.DELETE:
                     break;
                 case NostrKind.CustomAppData: {
-                    const obj: CustomAppData = JSON.parse(event.decryptedContent);
+                    const obj = event.customAppData;
                     if (obj.type == "PinContact" || obj.type == "UnpinContact") {
                         const userInfo = this.userInfos.get(obj.pubkey);
                         if (userInfo) {
