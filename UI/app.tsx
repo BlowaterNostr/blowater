@@ -41,7 +41,7 @@ import { getCurrentSignInCtx, setSignInState, SignIn } from "./signIn.tsx";
 import { AppList } from "./app-list.tsx";
 import { SecondaryBackgroundColor } from "./style/colors.ts";
 import { EventSyncer } from "./event_syncer.ts";
-import { RelayConfig } from "./setting.ts";
+import { defaultRelays, RelayConfig } from "./setting.ts";
 import { DexieDatabase } from "./dexie-db.ts";
 import { About } from "./about.tsx";
 
@@ -176,12 +176,8 @@ export class App {
             }
             await this.relayConfig.addEvents(events);
             const urls = this.relayConfig.getRelayURLs();
-            for (const url of urls) {
-                this.relayConfig.addRelayURL(url).then((res) => {
-                    if (res instanceof Error) {
-                        console.error(res);
-                    }
-                });
+            if (urls.size == 0) {
+                this.relayConfig.pool.addRelayURLs(defaultRelays);
             }
         }
 
