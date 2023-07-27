@@ -16,7 +16,8 @@ import { CenterClass, LinearGradientsClass } from "./components/tw.ts";
 export type SocialUpdates =
     | SocialFilterChanged_content
     | SocialFilterChanged_authors
-    | SocialFilterChanged_adding_author;
+    | SocialFilterChanged_adding_author
+    | SocialFilterChanged_remove_author;
 
 type SocialFilterChanged_content = {
     type: "SocialFilterChanged_content";
@@ -29,6 +30,11 @@ type SocialFilterChanged_authors = {
 
 type SocialFilterChanged_adding_author = {
     type: "SocialFilterChanged_adding_author";
+    value: string;
+};
+
+type SocialFilterChanged_remove_author = {
+    type: "SocialFilterChanged_remove_author";
     value: string;
 };
 
@@ -100,9 +106,22 @@ function Filter(
     const authors = [];
     for (const author of props.model.social.filter.author) {
         authors.push(
-            <p class={tw`mx-1`}>
-                {author}
-            </p>,
+            <div class={tw`flex mx-1 border border-indigo-600`}>
+                <p class={tw`mx-1`}>
+                    {author}
+                </p>
+                <button
+                    class={tw`text-[${PrimaryTextColor}] rounded-lg ${CenterClass} bg-[#36393F] hover:bg-transparent font-bold`}
+                    onClick={(e) => {
+                        props.eventEmitter.emit({
+                            type: "SocialFilterChanged_remove_author",
+                            value: author,
+                        });
+                    }}
+                >
+                    X
+                </button>
+            </div>,
         );
     }
 
@@ -125,7 +144,7 @@ function Filter(
                     </input>
                 </div>
                 <div class={tw`flex mt-3`}>
-                    <p class={tw`mr-3`}>Author</p>
+                    <p class={tw`mr-3`}>Authors</p>
                     {authors}
                     <input
                         class={tw`text-black`}
