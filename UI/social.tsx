@@ -12,11 +12,16 @@ import { PrimaryTextColor } from "./style/colors.ts";
 import { EditorEvent } from "./editor.tsx";
 import { PinContact, UnpinContact } from "../nostr.ts";
 
-export type SocialUpdates = SocialFilterChanged;
+export type SocialUpdates = SocialFilterChanged_content | SocialFilterChanged_authors;
 
-type SocialFilterChanged = {
-    type: "SocialFilterChanged";
-    filter: string;
+type SocialFilterChanged_content = {
+    type: "SocialFilterChanged_content";
+    content: string;
+};
+
+type SocialFilterChanged_authors = {
+    type: "SocialFilterChanged_authors";
+    authors: string;
 };
 
 export function SocialPanel(props: {
@@ -35,40 +40,64 @@ export function SocialPanel(props: {
 
     const messages = [];
     for (const thread of model.social.threads) {
-        if (thread.root.content.includes(model.social.filter)) {
-            messages.push(thread);
+        if (!thread.root.content.toLowerCase().includes(model.social.filter.content.toLowerCase())) {
+            continue;
         }
+        if (!thread.root.author.name?.toLowerCase().includes(model.social.filter.author.toLowerCase())) {
+            continue;
+        }
+        messages.push(thread);
     }
 
     return (
         <div
-            class={tw`flex-1 overflow-hidden bg-[#313338]`}
+            class={tw`flex-1 overflow-hidden flex-col flex bg-[#313338]`}
         >
-            <div class={tw`text-[${PrimaryTextColor}] flex`}>
+            <div class={tw`flex-col text-[${PrimaryTextColor}] ml-5 my-3`}>
                 <p>Filter</p>
-                <input
-                    class={tw`text-black`}
-                    onInput={(e) => {
-                        props.eventEmitter.emit({
-                            type: "SocialFilterChanged",
-                            filter: e.currentTarget.value,
-                        });
-                    }}
-                >
-                </input>
+                <div class={tw`flex`}>
+                    <div class={tw`flex`}>
+                        <p class={tw`mr-3`}>Content</p>
+                        <input
+                            class={tw`text-black`}
+                            onInput={(e) => {
+                                props.eventEmitter.emit({
+                                    type: "SocialFilterChanged_content",
+                                    content: e.currentTarget.value,
+                                });
+                            }}
+                        >
+                        </input>
+                    </div>
+                    <div class={tw`flex ml-3`}>
+                        <p class={tw`mr-3`}>Author</p>
+                        <input
+                            class={tw`text-black`}
+                            onInput={(e) => {
+                                props.eventEmitter.emit({
+                                    type: "SocialFilterChanged_authors",
+                                    authors: e.currentTarget.value,
+                                });
+                            }}
+                        >
+                        </input>
+                    </div>
+                </div>
             </div>
-            <MessagePanel
-                focusedContent={props.focusedContent}
-                editorModel={model.social.editor}
-                myPublicKey={props.ctx.publicKey}
-                messages={messages}
-                rightPanelModel={model.rightPanelModel}
-                db={props.db}
-                eventEmitter={props.eventEmitter}
-                profilesSyncer={props.profileSyncer}
-                eventSyncer={props.eventSyncer}
-                allUserInfo={props.allUsersInfo.userInfos}
-            />
+            <div class={tw`flex-1 overflow-x-auto`}>
+                <MessagePanel
+                    focusedContent={props.focusedContent}
+                    editorModel={model.social.editor}
+                    myPublicKey={props.ctx.publicKey}
+                    messages={messages}
+                    rightPanelModel={model.rightPanelModel}
+                    db={props.db}
+                    eventEmitter={props.eventEmitter}
+                    profilesSyncer={props.profileSyncer}
+                    eventSyncer={props.eventSyncer}
+                    allUserInfo={props.allUsersInfo.userInfos}
+                />
+            </div>
         </div>
     );
 }

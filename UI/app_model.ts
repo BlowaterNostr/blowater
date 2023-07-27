@@ -32,7 +32,11 @@ export type Model = {
         editor: Social_EditorModel;
         replyEditors: Map<string, Social_EditorModel>;
         focusedContent: NostrEvent /* thread root event */ | PublicKey /* focused user profile */ | undefined;
-        filter: string;
+        filter: {
+            content: string;
+            pubkeys: string[];
+            author: string;
+        };
     };
 
     // relay
@@ -69,7 +73,11 @@ export function initialModel(): Model {
             editor: new_Social_EditorModel(),
             replyEditors: new Map<string, Social_EditorModel>(),
             focusedContent: undefined,
-            filter: "",
+            filter: {
+                content: "",
+                pubkeys: [],
+                author: "",
+            },
         },
         AddRelayButtonClickedError: "",
         AddRelayInput: "",

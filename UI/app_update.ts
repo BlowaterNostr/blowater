@@ -384,8 +384,10 @@ export async function* UI_Interaction_Update(
         //
         // Social
         //
-        else if (event.type == "SocialFilterChanged") {
-            model.social.filter = event.filter;
+        else if (event.type == "SocialFilterChanged_content") {
+            model.social.filter.content = event.content;
+        } else if (event.type == "SocialFilterChanged_authors") {
+            model.social.filter.author = event.authors;
         }
         yield model;
     }
