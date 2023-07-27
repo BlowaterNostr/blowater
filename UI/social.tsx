@@ -11,8 +11,13 @@ import { EventSyncer } from "./event_syncer.ts";
 import { PrimaryTextColor } from "./style/colors.ts";
 import { EditorEvent } from "./editor.tsx";
 import { PinContact, UnpinContact } from "../nostr.ts";
+import { CenterClass, LinearGradientsClass } from "./components/tw.ts";
 
-export type SocialUpdates = SocialFilterChanged_content | SocialFilterChanged_authors;
+export type SocialUpdates =
+    | SocialFilterChanged_content
+    | SocialFilterChanged_authors
+    | SocialFilterChanged_adding_author
+    | SocialFilterChanged_remove_author;
 
 type SocialFilterChanged_content = {
     type: "SocialFilterChanged_content";
@@ -21,7 +26,16 @@ type SocialFilterChanged_content = {
 
 type SocialFilterChanged_authors = {
     type: "SocialFilterChanged_authors";
-    authors: string;
+};
+
+type SocialFilterChanged_adding_author = {
+    type: "SocialFilterChanged_adding_author";
+    value: string;
+};
+
+type SocialFilterChanged_remove_author = {
+    type: "SocialFilterChanged_remove_author";
+    value: string;
 };
 
 export function SocialPanel(props: {
@@ -40,12 +54,23 @@ export function SocialPanel(props: {
 
     const messages = [];
     for (const thread of model.social.threads) {
+        // content
         if (!thread.root.content.toLowerCase().includes(model.social.filter.content.toLowerCase())) {
             continue;
         }
-        if (!thread.root.author.name?.toLowerCase().includes(model.social.filter.author.toLowerCase())) {
+
+        // authors
+        let matched_at_least_one_author = false;
+        for (const author of model.social.filter.author) {
+            if (thread.root.author.name?.toLowerCase().includes(author.toLowerCase())) {
+                matched_at_least_one_author = true;
+                break;
+            }
+        }
+        if (model.social.filter.author.size > 0 && !matched_at_least_one_author) {
             continue;
         }
+
         messages.push(thread);
     }
 
@@ -53,37 +78,7 @@ export function SocialPanel(props: {
         <div
             class={tw`flex-1 overflow-hidden flex-col flex bg-[#313338]`}
         >
-            <div class={tw`flex-col text-[${PrimaryTextColor}] ml-5 my-3`}>
-                <p>Filter</p>
-                <div class={tw`flex`}>
-                    <div class={tw`flex`}>
-                        <p class={tw`mr-3`}>Content</p>
-                        <input
-                            class={tw`text-black`}
-                            onInput={(e) => {
-                                props.eventEmitter.emit({
-                                    type: "SocialFilterChanged_content",
-                                    content: e.currentTarget.value,
-                                });
-                            }}
-                        >
-                        </input>
-                    </div>
-                    <div class={tw`flex ml-3`}>
-                        <p class={tw`mr-3`}>Author</p>
-                        <input
-                            class={tw`text-black`}
-                            onInput={(e) => {
-                                props.eventEmitter.emit({
-                                    type: "SocialFilterChanged_authors",
-                                    authors: e.currentTarget.value,
-                                });
-                            }}
-                        >
-                        </input>
-                    </div>
-                </div>
-            </div>
+            {Filter(props)}
             <div class={tw`flex-1 overflow-x-auto`}>
                 <MessagePanel
                     focusedContent={props.focusedContent}
@@ -97,6 +92,86 @@ export function SocialPanel(props: {
                     eventSyncer={props.eventSyncer}
                     allUserInfo={props.allUsersInfo.userInfos}
                 />
+            </div>
+        </div>
+    );
+}
+
+function Filter(
+    props: {
+        eventEmitter: EventEmitter<SocialUpdates>;
+        model: Model;
+    },
+) {
+    const authors = [];
+    for (const author of props.model.social.filter.author) {
+        authors.push(
+            <div class={tw`flex mx-1 border border-indigo-600`}>
+                <p class={tw`mx-1`}>
+                    {author}
+                </p>
+                <button
+                    class={tw`text-[${PrimaryTextColor}] rounded-lg ${CenterClass} bg-[#36393F] hover:bg-transparent font-bold`}
+                    onClick={(e) => {
+                        props.eventEmitter.emit({
+                            type: "SocialFilterChanged_remove_author",
+                            value: author,
+                        });
+                    }}
+                >
+                    X
+                </button>
+            </div>,
+        );
+    }
+
+    return (
+        <div class={tw`flex-col text-[${PrimaryTextColor}] ml-5 my-3`}>
+            <p>Filter</p>
+            <div class={tw`flex-col`}>
+                <div class={tw`flex`}>
+                    <p class={tw`mr-3`}>Content</p>
+                    <input
+                        class={tw`text-black`}
+                        onInput={(e) => {
+                            props.eventEmitter.emit({
+                                type: "SocialFilterChanged_content",
+                                content: e.currentTarget.value,
+                            });
+                        }}
+                        value={props.model.social.filter.content}
+                    >
+                    </input>
+                </div>
+                <div class={tw`flex mt-3`}>
+                    <p class={tw`mr-3`}>Authors</p>
+                    {authors}
+                    <input
+                        class={tw`text-black`}
+                        onInput={(e) => {
+                            props.eventEmitter.emit({
+                                type: "SocialFilterChanged_adding_author",
+                                value: e.currentTarget.value,
+                            });
+                        }}
+                        value={props.model.social.filter.adding_author}
+                    >
+                    </input>
+                    <div
+                        class={tw`ml-3 rounded-lg ${LinearGradientsClass}`}
+                    >
+                        <button
+                            class={tw`w-[4.8rem] text-[${PrimaryTextColor}] rounded-lg ${CenterClass} bg-[#36393F] hover:bg-transparent font-bold`}
+                            onClick={(e) => {
+                                props.eventEmitter.emit({
+                                    type: "SocialFilterChanged_authors",
+                                });
+                            }}
+                        >
+                            Add
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     );

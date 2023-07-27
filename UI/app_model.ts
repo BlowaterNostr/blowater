@@ -35,7 +35,8 @@ export type Model = {
         filter: {
             content: string;
             pubkeys: string[];
-            author: string;
+            author: Set<string>;
+            adding_author: string;
         };
     };
 
@@ -76,7 +77,8 @@ export function initialModel(): Model {
             filter: {
                 content: "",
                 pubkeys: [],
-                author: "",
+                author: new Set(),
+                adding_author: "",
             },
         },
         AddRelayButtonClickedError: "",
