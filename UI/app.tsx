@@ -44,6 +44,7 @@ import { EventSyncer } from "./event_syncer.ts";
 import { defaultRelays, RelayConfig } from "./setting.ts";
 import { DexieDatabase } from "./dexie-db.ts";
 import { About } from "./about.tsx";
+import { SocialPanel } from "./social.tsx";
 
 export async function Start(database: DexieDatabase) {
     const model = initialModel();
@@ -302,24 +303,16 @@ export function AppComponent(props: {
             return _;
         };
         let focusedContent = focusedContentGetter();
-        socialPostsPanel = (
-            <div
-                class={tw`flex-1 overflow-hidden bg-[#313338]`}
-            >
-                <MessagePanel
-                    focusedContent={focusedContent}
-                    editorModel={model.social.editor}
-                    myPublicKey={myAccountCtx.publicKey}
-                    messages={model.social.threads}
-                    rightPanelModel={model.rightPanelModel}
-                    db={app.database}
-                    eventEmitter={app.eventBus}
-                    profilesSyncer={app.profileSyncer}
-                    eventSyncer={app.eventSyncer}
-                    allUserInfo={app.allUsersInfo.userInfos}
-                />
-            </div>
-        );
+        socialPostsPanel = SocialPanel({
+            allUsersInfo: app.allUsersInfo,
+            ctx: app.myAccountContext,
+            db: app.database,
+            eventEmitter: app.eventBus,
+            eventSyncer: app.eventSyncer,
+            focusedContent: focusedContent,
+            model: app.model,
+            profileSyncer: app.profileSyncer,
+        });
     }
 
     let settingNode;

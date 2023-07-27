@@ -39,6 +39,7 @@ import { MessageThread } from "./dm.tsx";
 import { DexieDatabase } from "./dexie-db.ts";
 import { getSocialPosts } from "../features/social.ts";
 import { RelayConfig } from "./setting.ts";
+import { SocialUpdates } from "./social.tsx";
 
 export type UI_Interaction_Event =
     | RemoveRelayButtonClicked
@@ -53,7 +54,8 @@ export type UI_Interaction_Event =
     | MyProfileUpdate
     | PinContact
     | UnpinContact
-    | SignInEvent;
+    | SignInEvent
+    | SocialUpdates;
 
 type RemoveRelayButtonClicked = {
     type: "RemoveRelayButtonClicked";
@@ -378,6 +380,12 @@ export async function* UI_Interaction_Update(
                 }
             }
             model.rightPanelModel.show = true;
+        } //
+        //
+        // Social
+        //
+        else if (event.type == "SocialFilterChanged") {
+            model.social.filter = event.filter;
         }
         yield model;
     }
