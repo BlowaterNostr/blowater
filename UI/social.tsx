@@ -129,7 +129,7 @@ function Filter(
         <div class={tw`flex-col text-[${PrimaryTextColor}] ml-5 my-3`}>
             <p>Filter</p>
             <div class={tw`flex-col`}>
-                <div class={tw`flex`}>
+                <div class={tw`flex flex-wrap`}>
                     <p class={tw`mr-3`}>Content</p>
                     <input
                         class={tw`text-black`}
@@ -143,7 +143,7 @@ function Filter(
                     >
                     </input>
                 </div>
-                <div class={tw`flex mt-3`}>
+                <div class={tw`flex  flex-wrap mt-3`}>
                     <p class={tw`mr-3`}>Authors</p>
                     {authors}
                     <input
