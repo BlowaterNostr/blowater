@@ -387,7 +387,12 @@ export async function* UI_Interaction_Update(
         else if (event.type == "SocialFilterChanged_content") {
             model.social.filter.content = event.content;
         } else if (event.type == "SocialFilterChanged_authors") {
-            model.social.filter.author = event.authors;
+            if (model.social.filter.adding_author) {
+                model.social.filter.author.add(model.social.filter.adding_author);
+                model.social.filter.adding_author = "";
+            }
+        } else if (event.type == "SocialFilterChanged_adding_author") {
+            model.social.filter.adding_author = event.value;
         }
         yield model;
     }
