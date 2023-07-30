@@ -50,9 +50,11 @@ export function SocialPanel(props: {
     eventSyncer: EventSyncer;
     allUsersInfo: AllUsersInformation;
 }) {
+    const t = Date.now();
     const model = props.model;
 
     const messages = [];
+    // todo: can move this logic to update to speed up
     for (const thread of model.social.threads) {
         // content
         if (!thread.root.content.toLowerCase().includes(model.social.filter.content.toLowerCase())) {
@@ -73,6 +75,23 @@ export function SocialPanel(props: {
 
         messages.push(thread);
     }
+    console.log("SocialPanel:filter threads", Date.now() - t, model.social.threads.length);
+
+    const messagePanel = (
+        <MessagePanel
+            focusedContent={props.focusedContent}
+            editorModel={model.social.editor}
+            myPublicKey={props.ctx.publicKey}
+            messages={messages}
+            rightPanelModel={model.rightPanelModel}
+            db={props.db}
+            eventEmitter={props.eventEmitter}
+            profilesSyncer={props.profileSyncer}
+            eventSyncer={props.eventSyncer}
+            allUserInfo={props.allUsersInfo.userInfos}
+        />
+    );
+    console.log("SocialPanel:MessagePanel", Date.now() - t);
 
     return (
         <div
@@ -80,18 +99,7 @@ export function SocialPanel(props: {
         >
             {Filter(props)}
             <div class={tw`flex-1 overflow-x-auto`}>
-                <MessagePanel
-                    focusedContent={props.focusedContent}
-                    editorModel={model.social.editor}
-                    myPublicKey={props.ctx.publicKey}
-                    messages={messages}
-                    rightPanelModel={model.rightPanelModel}
-                    db={props.db}
-                    eventEmitter={props.eventEmitter}
-                    profilesSyncer={props.profileSyncer}
-                    eventSyncer={props.eventSyncer}
-                    allUserInfo={props.allUsersInfo.userInfos}
-                />
+                {messagePanel}
             </div>
         </div>
     );

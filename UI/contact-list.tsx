@@ -9,7 +9,7 @@ import { sortUserInfo, UserInfo } from "./contact-list.ts";
 import { EventEmitter } from "../event-bus.ts";
 import { PinIcon, UnpinIcon } from "./icons/mod.tsx";
 import { DM_EditorModel } from "./editor.tsx";
-import { Search } from "./search.tsx";
+
 import { SearchModel, SearchUpdate } from "./search_model.ts";
 import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 import {
@@ -19,6 +19,7 @@ import {
 import { PinContact, UnpinContact } from "../nostr.ts";
 import { AddIcon } from "./icons2/add-icon.tsx";
 import { PrimaryBackgroundColor, PrimaryTextColor } from "./style/colors.ts";
+import { Popover, Search } from "./search.tsx";
 
 type Props = {
     myAccountContext: NostrAccountContext;
@@ -145,11 +146,13 @@ export function ContactList(props: Props) {
 
             {props.search.isSearching
                 ? (
-                    <Search
+                    <Popover
                         model={props.search}
-                        deps={{
+                        eventEmitter={props.eventEmitter}
+                        child={Search({
                             eventEmitter: props.eventEmitter,
-                        }}
+                            model: props.search,
+                        })}
                     />
                 )
                 : undefined}

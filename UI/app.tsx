@@ -303,6 +303,7 @@ export function AppComponent(props: {
             return _;
         };
         let focusedContent = focusedContentGetter();
+        console.log("AppComponent:getFocusedContent", Date.now() - t);
         socialPostsPanel = SocialPanel({
             allUsersInfo: app.allUsersInfo,
             ctx: app.myAccountContext,
@@ -313,6 +314,7 @@ export function AppComponent(props: {
             model: app.model,
             profileSyncer: app.profileSyncer,
         });
+        console.debug("AppComponent:social done", Date.now() - t);
     }
 
     let settingNode;
@@ -375,6 +377,8 @@ export function AppComponent(props: {
             aboutNode = About();
         }
     }
+
+    console.debug("AppComponent:2", Date.now() - t);
 
     const final = (
         <div
