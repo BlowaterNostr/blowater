@@ -16,7 +16,7 @@ export function Popover(props: {
         <div
             onKeyDown={(e) => {
                 if (e.code === "Escape") {
-                    props.eventEmitter.emit({ type: "CancelSearch" });
+                    props.eventEmitter.emit({ type: "CancelPopOver" });
                 }
             }}
             class={tw`fixed inset-0 bg-[#000000C0] items-center justify-center flex z-20`}
@@ -24,7 +24,7 @@ export function Popover(props: {
             <div
                 class={tw`fixed inset-0 z-[-1]`}
                 onClick={() => {
-                    props.eventEmitter.emit({ type: "CancelSearch" });
+                    props.eventEmitter.emit({ type: "CancelPopOver" });
                 }}
             >
             </div>

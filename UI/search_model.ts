@@ -6,7 +6,7 @@ export type Start = {
     type: "StartSearch";
 };
 export type Cancel = {
-    type: "CancelSearch";
+    type: "CancelPopOver";
 };
 export type SearchPublicKey = {
     type: "Search";

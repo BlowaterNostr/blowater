@@ -163,7 +163,7 @@ export async function* UI_Interaction_Update(
         //
         // Search
         //
-        else if (event.type == "CancelSearch") {
+        else if (event.type == "CancelPopOver") {
             model.dm.search.isSearching = false;
             model.dm.search.searchResults = [];
         } else if (event.type == "StartSearch") {
