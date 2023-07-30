@@ -8,6 +8,7 @@ import { verifyEvent } from "https://raw.githubusercontent.com/BlowaterNostr/nos
 
 export class EventSyncer {
     constructor(private readonly pool: ConnectionPool, private readonly db: Database_Contextual_View) {}
+
     syncEvent(id: NoteID) {
         for (const e of this.db.events) {
             if (e.id == id.hex) {
@@ -39,5 +40,9 @@ export class EventSyncer {
                 return; // just need to read from 1 relay
             }
         })();
+    }
+
+    // todo
+    syncSocial() {
     }
 }

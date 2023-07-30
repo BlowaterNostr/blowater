@@ -47,6 +47,7 @@ export class Database_Contextual_View {
                 return e.kind != NostrKind.CustomAppData;
             },
         ).toArray();
+        console.log("Database_Contextual_View:onload", Date.now() - t);
         const cache: (PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event)[] = [];
         for (const event of onload) {
             const pubkey = PublicKey.FromHex(event.pubkey);
