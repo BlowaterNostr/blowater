@@ -12,6 +12,7 @@ import {
 import {
     ConnectionPool,
     newSubID,
+    SubscriptionAlreadyExist,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
 import {
     CustomAppData,
@@ -75,20 +76,30 @@ export class ProfilesSyncer {
 
 function socialPostsStream(pubkeys: Iterable<string>, pool: ConnectionPool) {
     const chan = new Channel<[NostrEvent, string]>();
-    let subId = newSubID();
     (async () => {
         let resp = await pool.newSub(
-            subId,
+            "social",
             {
                 authors: Array.from(pubkeys),
                 kinds: [NostrKind.TEXT_NOTE],
                 limit: 200,
             },
         );
+        if (resp instanceof SubscriptionAlreadyExist) {
+            resp = await pool.updateSub(
+                "social",
+                {
+                    authors: Array.from(pubkeys),
+                    kinds: [NostrKind.TEXT_NOTE],
+                    limit: 200,
+                },
+            );
+        }
         if (resp instanceof Error) {
             await chan.close(resp.message);
             throw resp;
         }
+
         for await (let { res: nostrMessage, url: relayUrl } of resp) {
             if (nostrMessage.type === "EVENT" && nostrMessage.event.content) {
                 const event = nostrMessage.event;
