@@ -23,6 +23,7 @@ const urls = [
     "wss://nostr-pub.wellorder.net",
     "wss://relay.snort.social",
     "wss://offchain.pub",
+    "wss://soloco.nl",
 ];
 for (const url of urls) {
     pool.addRelayURL(url);
