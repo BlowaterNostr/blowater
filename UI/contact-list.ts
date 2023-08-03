@@ -11,7 +11,6 @@ import {
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 import {
     ConnectionPool,
-    newSubID,
     SubscriptionAlreadyExist,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
 import {
@@ -45,9 +44,9 @@ export class ProfilesSyncer {
     ) {
         (async () => {
             let stream = profilesStream(this.userSet, pool);
-            let socialPosts = socialPostsStream(this.userSet, pool);
+            // let socialPosts = socialPostsStream(this.userSet, pool);
             database.syncEvents((e) => e.kind == NostrKind.META_DATA, stream);
-            database.syncEvents((e) => e.kind == NostrKind.TEXT_NOTE, socialPosts);
+            // database.syncEvents((e) => e.kind == NostrKind.TEXT_NOTE, socialPosts);
             for await (const users of this.chan) {
                 const size = this.userSet.size;
                 for (const user of users) {
@@ -56,11 +55,11 @@ export class ProfilesSyncer {
                 if (this.userSet.size > size) {
                     console.log("adding", users);
                     await stream.close();
-                    await socialPosts.close();
+                    // await socialPosts.close();
                     stream = profilesStream(this.userSet, pool);
-                    socialPosts = socialPostsStream(this.userSet, pool);
+                    // socialPosts = socialPostsStream(this.userSet, pool);
                     database.syncEvents((e) => e.kind == NostrKind.META_DATA, stream);
-                    database.syncEvents((e) => e.kind == NostrKind.TEXT_NOTE, socialPosts);
+                    // database.syncEvents((e) => e.kind == NostrKind.TEXT_NOTE, socialPosts);
                 }
             }
         })();
@@ -74,45 +73,45 @@ export class ProfilesSyncer {
     }
 }
 
-function socialPostsStream(pubkeys: Iterable<string>, pool: ConnectionPool) {
-    const chan = new Channel<[NostrEvent, string]>();
-    (async () => {
-        let resp = await pool.newSub(
-            "social",
-            {
-                authors: Array.from(pubkeys),
-                kinds: [NostrKind.TEXT_NOTE],
-                limit: 200,
-            },
-        );
-        if (resp instanceof SubscriptionAlreadyExist) {
-            resp = await pool.updateSub(
-                "social",
-                {
-                    authors: Array.from(pubkeys),
-                    kinds: [NostrKind.TEXT_NOTE],
-                    limit: 200,
-                },
-            );
-        }
-        if (resp instanceof Error) {
-            await chan.close(resp.message);
-            throw resp;
-        }
+// function socialPostsStream(pubkeys: Iterable<string>, pool: ConnectionPool) {
+//     const chan = new Channel<[NostrEvent, string]>();
+//     (async () => {
+//         let resp = await pool.newSub(
+//             "social",
+//             {
+//                 authors: Array.from(pubkeys),
+//                 kinds: [NostrKind.TEXT_NOTE],
+//                 limit: 200,
+//             },
+//         );
+//         if (resp instanceof SubscriptionAlreadyExist) {
+//             resp = await pool.updateSub(
+//                 "social",
+//                 {
+//                     authors: Array.from(pubkeys),
+//                     kinds: [NostrKind.TEXT_NOTE],
+//                     limit: 200,
+//                 },
+//             );
+//         }
+//         if (resp instanceof Error) {
+//             await chan.close(resp.message);
+//             throw resp;
+//         }
 
-        for await (let { res: nostrMessage, url: relayUrl } of resp) {
-            if (nostrMessage.type === "EVENT" && nostrMessage.event.content) {
-                const event = nostrMessage.event;
-                await chan.put([
-                    event,
-                    relayUrl,
-                ]);
-            }
-        }
-        console.log("closed");
-    })();
-    return chan;
-}
+//         for await (let { res: nostrMessage, url: relayUrl } of resp) {
+//             if (nostrMessage.type === "EVENT" && nostrMessage.event.content) {
+//                 const event = nostrMessage.event;
+//                 await chan.put([
+//                     event,
+//                     relayUrl,
+//                 ]);
+//             }
+//         }
+//         console.log("closed");
+//     })();
+//     return chan;
+// }
 
 export class AllUsersInformation {
     readonly userInfos = new Map<string, UserInfo>();

@@ -77,7 +77,7 @@ export async function Start(database: DexieDatabase) {
         }
     })();
 
-    for await (let _ of UI_Interaction_Update(model, eventBus, database, pool)) {
+    for await (let _ of UI_Interaction_Update({ model, eventBus, dexieDB: database, pool })) {
         const t = Date.now();
         {
             render(<AppComponent model={model} eventBus={eventBus} />, document.body);

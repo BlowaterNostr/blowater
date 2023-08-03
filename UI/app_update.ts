@@ -40,6 +40,8 @@ import { DexieDatabase } from "./dexie-db.ts";
 import { getSocialPosts } from "../features/social.ts";
 import { RelayConfig } from "./setting.ts";
 import { SocialUpdates } from "./social.tsx";
+import { EventSyncer } from "./event_syncer.ts";
+import { apply } from "https://esm.sh/twind@0.16.16";
 
 export type UI_Interaction_Event =
     | RemoveRelayButtonClicked
@@ -77,12 +79,13 @@ export type AppEventBus = EventBus<UI_Interaction_Event>;
 /////////////////////
 // UI Interfaction //
 /////////////////////
-export async function* UI_Interaction_Update(
-    model: Model,
-    eventBus: AppEventBus,
-    dexieDB: DexieDatabase,
-    pool: ConnectionPool,
-) {
+export async function* UI_Interaction_Update(args: {
+    model: Model;
+    eventBus: AppEventBus;
+    dexieDB: DexieDatabase;
+    pool: ConnectionPool;
+}) {
+    const { model, eventBus, dexieDB, pool } = args;
     const events = eventBus.onChange();
     for await (const event of events) {
         console.log(event);
@@ -390,6 +393,22 @@ export async function* UI_Interaction_Update(
             if (model.social.filter.adding_author) {
                 model.social.filter.author.add(model.social.filter.adding_author);
                 model.social.filter.adding_author = "";
+
+                const pubkeys: string[] = [];
+                for (const userInfo of model.app.allUsersInfo.userInfos.values()) {
+                    for (const name of model.social.filter.author) {
+                        if (userInfo.profile?.profile.name?.toLowerCase().includes(name.toLowerCase())) {
+                            pubkeys.push(userInfo.pubkey.hex);
+                            continue;
+                        }
+                    }
+                }
+
+                /* do not await */ model.app.eventSyncer.syncEvents({
+                    kinds: [NostrKind.TEXT_NOTE],
+                    authors: pubkeys,
+                });
+                // model.social.activeSyncingFilter =
             }
         } else if (event.type == "SocialFilterChanged_adding_author") {
             model.social.filter.adding_author = event.value;

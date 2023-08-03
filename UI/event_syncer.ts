@@ -4,7 +4,10 @@ import {
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
 import { Database_Contextual_View } from "../database.ts";
 import { NoteID } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nip19.ts";
-import { verifyEvent } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
+import {
+    NostrFilters,
+    verifyEvent,
+} from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 
 export class EventSyncer {
     constructor(private readonly pool: ConnectionPool, private readonly db: Database_Contextual_View) {}
@@ -42,7 +45,24 @@ export class EventSyncer {
         })();
     }
 
-    // todo
-    syncSocial() {
+    async syncEvents(filter: NostrFilters) {
+        let events = await this.pool.newSub("syncEvents", filter);
+        if (events instanceof SubscriptionAlreadyExist) {
+            events = await this.pool.updateSub("syncEvents", filter);
+        }
+        if (events instanceof Error) {
+            return events;
+        }
+        for await (const { res, url } of events) {
+            if (res.type == "EOSE") {
+                continue;
+            }
+            const ok = await verifyEvent(res.event);
+            if (!ok) {
+                console.warn(res.event, url, "not valid");
+                continue;
+            }
+            await this.db.addEvent(res.event);
+        }
     }
 }

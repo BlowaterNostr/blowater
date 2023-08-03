@@ -1,5 +1,8 @@
 import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
-import { NostrEvent } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
+import {
+    NostrEvent,
+    NostrFilters,
+} from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 
 import { DM_EditorModel, new_Social_EditorModel, Social_EditorModel } from "./editor.tsx";
 import { NavigationModel } from "./nav.tsx";
@@ -9,9 +12,7 @@ import { ProfileData } from "../features/profile.ts";
 import { RightPanelModel } from "./message-panel.tsx";
 import { DM_Container_Model } from "./dm.ts";
 import { App } from "./app.tsx";
-import { Parsed_Event } from "../nostr.ts";
 import { MessageThread } from "./dm.tsx";
-import { UserInfo } from "./contact-list.ts";
 
 export type Model = {
     app: App | undefined; // app is only available after sign-in
@@ -38,6 +39,7 @@ export type Model = {
             author: Set<string>;
             adding_author: string;
         };
+        activeSyncingFilter: NostrFilters | undefined;
     };
 
     // relay
@@ -80,6 +82,7 @@ export function initialModel(): Model {
                 author: new Set(),
                 adding_author: "",
             },
+            activeSyncingFilter: undefined,
         },
         AddRelayButtonClickedError: "",
         AddRelayInput: "",

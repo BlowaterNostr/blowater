@@ -5,7 +5,7 @@ import { AboutIcon, AppListIcon } from "./icons/mod.tsx";
 import * as db from "../database.ts";
 
 import { Avatar } from "./components/avatar.tsx";
-import { CenterClass, IconButtonClass, NoOutlineClass } from "./components/tw.ts";
+import { CenterClass, NoOutlineClass } from "./components/tw.ts";
 import { EventEmitter } from "../event-bus.ts";
 import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 import { ConnectionPool } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
@@ -53,14 +53,6 @@ const tabs = {
             }}
         />
     ),
-    // "Group": (active: boolean) => (
-    //     <UserIcon
-    //         class={tw`w-8 h-8`}
-    //         style={{
-    //             fill: active ? "#F7F7F7" : "#A7B5C1",
-    //         }}
-    //     />
-    // ),
     "Profile": (active: boolean) => (
         <UserIcon
             class={tw`w-[2rem] h-[2rem]`}
