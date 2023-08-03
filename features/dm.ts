@@ -10,10 +10,7 @@ import {
     prepareNormalNostrEvent,
     RelayResponse_Event,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
-import {
-    ConnectionPool,
-    newSubID,
-} from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
+import { ConnectionPool } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
 import { prepareNostrImageEvents, Tag } from "../nostr.ts";
 import {
     PrivateKey,
@@ -139,7 +136,7 @@ async function* getAllEncryptedMessagesSendBy(
     since?: number,
 ) {
     let resp = await relay.newSub(
-        newSubID(),
+        `getAllEncryptedMessagesSendBy ${publicKey.hex}`,
         {
             authors: [publicKey.hex],
             kinds: [4],
@@ -161,9 +158,8 @@ async function* getAllEncryptedMessagesReceivedBy(
     limit?: number,
     since?: number,
 ) {
-    const subid = newSubID();
     let resp = await relay.newSub(
-        subid,
+        `getAllEncryptedMessagesReceivedBy ${publicKey.hex}`,
         {
             kinds: [4],
             "#p": [publicKey.hex],
@@ -186,7 +182,7 @@ async function* getEncryptedMessagesBetween(
     limit: number,
 ) {
     let resp = await relay.newSub(
-        newSubID(),
+        `getEncryptedMessagesBetween ${senderPubKey.hex} ${receiverPubKey.hex}`,
         {
             authors: [senderPubKey.hex],
             kinds: [4],
