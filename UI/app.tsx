@@ -33,10 +33,7 @@ import {
     NostrEvent,
     NostrKind,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
-import {
-    ConnectionPool,
-    newSubID,
-} from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
+import { ConnectionPool } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
 import { getCurrentSignInCtx, setSignInState, SignIn } from "./signIn.tsx";
 import { AppList } from "./app-list.tsx";
 import { SecondaryBackgroundColor } from "./style/colors.ts";
@@ -77,7 +74,7 @@ export async function Start(database: DexieDatabase) {
         }
     })();
 
-    for await (let _ of UI_Interaction_Update(model, eventBus, database, pool)) {
+    for await (let _ of UI_Interaction_Update({ model, eventBus, dexieDB: database, pool })) {
         const t = Date.now();
         {
             render(<AppComponent model={model} eventBus={eventBus} />, document.body);
@@ -122,9 +119,8 @@ async function initProfileSyncer(
 
     // Sync Custom App Data
     (async () => {
-        let subId = newSubID();
         let resp = await pool.newSub(
-            subId,
+            "CustomAppData",
             {
                 authors: [myPublicKey.hex],
                 kinds: [NostrKind.CustomAppData],
@@ -219,6 +215,12 @@ export class App {
             ...Array.from(this.allUsersInfo.userInfos.keys()),
         );
         console.log("user set", profilesSyncer.userSet);
+
+        const ps = Array.from(this.allUsersInfo.userInfos.values()).map((u) => u.pubkey.hex);
+        this.eventSyncer.syncEvents({
+            kinds: [NostrKind.TEXT_NOTE],
+            authors: ps,
+        });
 
         // Database
         (async () => {

@@ -2,7 +2,7 @@ import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master
 import { Database_Contextual_View } from "../database.ts";
 import {
     ConnectionPool,
-    newSubID,
+    SubscriptionAlreadyExist,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
 import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 import {
@@ -30,17 +30,27 @@ export function profilesStream(
 ) {
     const chan = csp.chan<[NostrEvent, string]>();
     (async () => {
-        let subId = newSubID();
         let resp = await pool.newSub(
-            subId,
+            "profilesStream",
             {
                 authors: Array.from(publicKeys),
                 kinds: [NostrKind.META_DATA],
             },
         );
-        if (resp instanceof Error) {
-            throw resp;
+        if (resp instanceof SubscriptionAlreadyExist) {
+            resp = await pool.updateSub(
+                "profilesStream",
+                {
+                    authors: Array.from(publicKeys),
+                    kinds: [NostrKind.META_DATA],
+                },
+            );
         }
+        if (resp instanceof Error) {
+            console.error(resp.message);
+            return;
+        }
+        console.log("new profile stream", publicKeys);
         for await (let { res: nostrMessage, url: relayUrl } of resp) {
             if (nostrMessage.type === "EVENT" && nostrMessage.event.content) {
                 await chan.put([

@@ -10,10 +10,7 @@ import {
     prepareNormalNostrEvent,
     RelayResponse_Event,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
-import {
-    ConnectionPool,
-    newSubID,
-} from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
+import { ConnectionPool } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
 import { prepareNostrImageEvents, Tag } from "../nostr.ts";
 import {
     PrivateKey,
@@ -139,7 +136,7 @@ async function* getAllEncryptedMessagesSendBy(
     since?: number,
 ) {
     let resp = await relay.newSub(
-        newSubID(),
+        `getAllEncryptedMessagesSendBy`,
         {
             authors: [publicKey.hex],
             kinds: [4],
@@ -161,9 +158,8 @@ async function* getAllEncryptedMessagesReceivedBy(
     limit?: number,
     since?: number,
 ) {
-    const subid = newSubID();
     let resp = await relay.newSub(
-        subid,
+        `getAllEncryptedMessagesReceivedBy`,
         {
             kinds: [4],
             "#p": [publicKey.hex],
@@ -176,47 +172,6 @@ async function* getAllEncryptedMessagesReceivedBy(
     }
     for await (const nostrMessage of resp) {
         yield nostrMessage;
-    }
-}
-
-async function* getEncryptedMessagesBetween(
-    senderPubKey: PublicKey,
-    receiverPubKey: PublicKey,
-    relay: ConnectionPool,
-    limit: number,
-) {
-    let resp = await relay.newSub(
-        newSubID(),
-        {
-            authors: [senderPubKey.hex],
-            kinds: [4],
-            "#p": [receiverPubKey.hex],
-            limit: limit,
-        },
-    );
-    if (resp instanceof Error) {
-        throw resp;
-    }
-    for await (const nostrMessage of resp) {
-        yield nostrMessage;
-    }
-}
-
-async function* messagesSendByMeTo(
-    myPriKey: PrivateKey,
-    receiverPubKey: PublicKey,
-    relay: ConnectionPool,
-    limit: number,
-) {
-    for await (
-        let { res: relayResponse } of getEncryptedMessagesBetween(
-            myPriKey.toPublicKey(),
-            receiverPubKey,
-            relay,
-            limit,
-        )
-    ) {
-        yield relayResponse;
     }
 }
 
