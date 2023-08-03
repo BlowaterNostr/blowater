@@ -136,7 +136,7 @@ async function* getAllEncryptedMessagesSendBy(
     since?: number,
 ) {
     let resp = await relay.newSub(
-        `getAllEncryptedMessagesSendBy ${publicKey.hex}`,
+        `getAllEncryptedMessagesSendBy`,
         {
             authors: [publicKey.hex],
             kinds: [4],
@@ -159,7 +159,7 @@ async function* getAllEncryptedMessagesReceivedBy(
     since?: number,
 ) {
     let resp = await relay.newSub(
-        `getAllEncryptedMessagesReceivedBy ${publicKey.hex}`,
+        `getAllEncryptedMessagesReceivedBy`,
         {
             kinds: [4],
             "#p": [publicKey.hex],
@@ -172,47 +172,6 @@ async function* getAllEncryptedMessagesReceivedBy(
     }
     for await (const nostrMessage of resp) {
         yield nostrMessage;
-    }
-}
-
-async function* getEncryptedMessagesBetween(
-    senderPubKey: PublicKey,
-    receiverPubKey: PublicKey,
-    relay: ConnectionPool,
-    limit: number,
-) {
-    let resp = await relay.newSub(
-        `getEncryptedMessagesBetween ${senderPubKey.hex} ${receiverPubKey.hex}`,
-        {
-            authors: [senderPubKey.hex],
-            kinds: [4],
-            "#p": [receiverPubKey.hex],
-            limit: limit,
-        },
-    );
-    if (resp instanceof Error) {
-        throw resp;
-    }
-    for await (const nostrMessage of resp) {
-        yield nostrMessage;
-    }
-}
-
-async function* messagesSendByMeTo(
-    myPriKey: PrivateKey,
-    receiverPubKey: PublicKey,
-    relay: ConnectionPool,
-    limit: number,
-) {
-    for await (
-        let { res: relayResponse } of getEncryptedMessagesBetween(
-            myPriKey.toPublicKey(),
-            receiverPubKey,
-            relay,
-            limit,
-        )
-    ) {
-        yield relayResponse;
     }
 }
 
