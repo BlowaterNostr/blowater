@@ -180,7 +180,7 @@ export function SignIn(props: Props) {
                         });
                     }}
                     placeholder="Input your private key here"
-                    type="text"
+                    type="password"
                     class={tw`w-full px-4 py-2 focus-visible:outline-none rounded-lg mt-8`}
                 />
                 {privateKey instanceof Error
