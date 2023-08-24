@@ -92,20 +92,20 @@ async function initProfileSyncer(
     ////////////////////
     // Init Core Data //
     ////////////////////
-    // const newestEvent = dm.getNewestEventOf(database, myPublicKey);
-    // console.info("newestEvent", newestEvent);
-    // const _24h = 60 * 60 * 24;
-    // let since: number = _24h;
-    // if (newestEvent !== db.NotFound) {
-    //     since = newestEvent.created_at - _24h;
-    // }
-    // console.info("since", new Date(since * 1000));
+    const newestEvent = dm.getNewestEventOf(database, myPublicKey);
+    console.info("newestEvent", newestEvent);
+    const _24h = 60 * 60 * 24;
+    let since: number = _24h;
+    if (newestEvent !== db.NotFound) {
+        since = newestEvent.created_at - _24h;
+    }
+    console.info("since", new Date(since * 1000));
 
     // Sync DM events
     const messageStream = dm.getAllEncryptedMessagesOf(
         myPublicKey,
         pool,
-        // since,
+        since,
     );
     database.syncNewDirectMessageEventsOf(
         accountContext,
