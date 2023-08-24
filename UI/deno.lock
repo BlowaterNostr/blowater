@@ -2,6 +2,10 @@
   "version": "2",
   "remote": {
     "https://deno.land/std@0.176.0/encoding/hex.ts": "50f8c95b52eae24395d3dfcb5ec1ced37c5fe7610ef6fffdcc8b0fdc38e3b32f",
+    "https://deno.land/std@0.176.0/fmt/colors.ts": "938c5d44d889fb82eff6c358bea8baa7e85950a16c9f6dae3ec3a7a729164471",
+    "https://deno.land/std@0.176.0/testing/_diff.ts": "1a3c044aedf77647d6cac86b798c6417603361b66b54c53331b312caeb447aea",
+    "https://deno.land/std@0.176.0/testing/_format.ts": "a69126e8a469009adf4cf2a50af889aca364c349797e63174884a52ff75cf4c7",
+    "https://deno.land/std@0.176.0/testing/asserts.ts": "984ab0bfb3faeed92ffaa3a6b06536c66811185328c5dd146257c702c41b01ab",
     "https://esm.sh/preact@10.11.3": "ad3c24796c4132c84b4b392f812228d53a0fd600fa64648f27aebd05ec09b24e",
     "https://esm.sh/stable/preact@10.11.3/denonext/preact.mjs": "c828d9020ea26f07ba07b2f0a3ef97fd7ceb1c2a772c380ca05e2647ac8d3923",
     "https://esm.sh/twind@0.16.16": "b970345c75e778ac5ba6219da4c6f3057e579653e5b36c0f824d2309b56b19ba",
