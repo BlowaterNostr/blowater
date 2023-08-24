@@ -19,7 +19,8 @@ import {
 import { PinContact, UnpinContact } from "../nostr.ts";
 import { AddIcon } from "./icons2/add-icon.tsx";
 import { PrimaryBackgroundColor, PrimaryTextColor } from "./style/colors.ts";
-import { Popover, Search } from "./search.tsx";
+import { Popover } from "./components/popover.tsx";
+import { Search } from "./search.tsx";
 
 type Props = {
     myAccountContext: NostrAccountContext;
@@ -147,9 +148,14 @@ export function ContactList(props: Props) {
             {props.search.isSearching
                 ? (
                     <Popover
-                        model={props.search}
-                        eventEmitter={props.eventEmitter}
-                        child={Search({
+                        close={() => {
+                            props.eventEmitter.emit({
+                                type: "CancelPopOver",
+                            });
+                        }}
+                        escapeClose={true}
+                        blankClickClose={true}
+                        children={Search({
                             eventEmitter: props.eventEmitter,
                             model: props.search,
                         })}
