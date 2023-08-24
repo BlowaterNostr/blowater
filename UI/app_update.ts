@@ -1,7 +1,13 @@
 import { getProfileEvent, getProfilesByName, saveProfile } from "../features/profile.ts";
 
 import { App } from "./app.tsx";
-import { AllUsersInformation, getGroupOf, ProfilesSyncer, UserInfo } from "./contact-list.ts";
+import {
+    AllUsersInformation,
+    getGroupOf,
+    getUserInfoFromPublicKey,
+    ProfilesSyncer,
+    UserInfo,
+} from "./contact-list.ts";
 
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { Database_Contextual_View } from "../database.ts";
@@ -40,8 +46,6 @@ import { DexieDatabase } from "./dexie-db.ts";
 import { getSocialPosts } from "../features/social.ts";
 import { RelayConfig } from "./setting.ts";
 import { SocialUpdates } from "./social.tsx";
-import { EventSyncer } from "./event_syncer.ts";
-import { apply } from "https://esm.sh/twind@0.16.16";
 
 export type UI_Interaction_Event =
     | RemoveRelayButtonClicked
@@ -579,25 +583,7 @@ export async function* Database_Update(
                         console.error(pubkey);
                         continue;
                     }
-                    const author = getProfileEvent(database, pubkey);
                     if (e.pubkey != ctx.publicKey.hex) {
-                        notify(
-                            author?.profile.name ? author.profile.name : "",
-                            "new message",
-                            author?.profile.picture ? author.profile.picture : "",
-                            () => {
-                                const k = PublicKey.FromHex(e.pubkey);
-                                if (k instanceof Error) {
-                                    console.error(k);
-                                    return;
-                                }
-                                eventEmitter.emit({
-                                    type: "SelectProfile",
-                                    pubkey: k,
-                                });
-                            },
-                        );
-                        model.dm.currentSelectedContact;
                         if (model.dm.currentSelectedContact?.hex != e.pubkey) {
                             model.dm.hasNewMessages.add(e.pubkey);
                         }
@@ -605,6 +591,29 @@ export async function* Database_Update(
                 }
             } else if (e.kind == NostrKind.TEXT_NOTE) {
                 hasKind_1 = true;
+            }
+
+            // notification
+            {
+                const author = getUserInfoFromPublicKey(e.publicKey, allUserInfo.userInfos)?.profile;
+                if (e.pubkey != ctx.publicKey.hex && e.parsedTags.p.includes(ctx.publicKey.hex)) {
+                    notify(
+                        author?.profile.name ? author.profile.name : "",
+                        "new message",
+                        author?.profile.picture ? author.profile.picture : "",
+                        () => {
+                            const k = PublicKey.FromHex(e.pubkey);
+                            if (k instanceof Error) {
+                                console.error(k);
+                                return;
+                            }
+                            eventEmitter.emit({
+                                type: "SelectProfile",
+                                pubkey: k,
+                            });
+                        },
+                    );
+                }
             }
         }
         if (hasKind_1) {
