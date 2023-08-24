@@ -65,6 +65,11 @@ export class ProfilesSyncer {
     }
 }
 
+export function getUserInfoFromPublicKey(k: PublicKey, users: Map<string, UserInfo>) {
+    const userInfo = users.get(k.hex);
+    return userInfo;
+}
+
 export class AllUsersInformation {
     readonly userInfos = new Map<string, UserInfo>();
 

@@ -12,11 +12,7 @@ import {
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 import { ConnectionPool } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
 import { prepareNostrImageEvents, Tag } from "../nostr.ts";
-import {
-    PrivateKey,
-    PublicKey,
-    publicKeyHexFromNpub,
-} from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
+import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 
 export async function sendDMandImages(args: {
     sender: NostrAccountContext;

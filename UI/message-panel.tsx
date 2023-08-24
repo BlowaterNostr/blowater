@@ -28,7 +28,7 @@ import { UserDetail } from "./user-detail.tsx";
 import { MessageThreadPanel } from "./message-thread-panel.tsx";
 import { Database_Contextual_View } from "../database.ts";
 import { HoverButtonBackgroudColor, LinkColor, PrimaryTextColor } from "./style/colors.ts";
-import { ProfilesSyncer, UserInfo } from "./contact-list.ts";
+import { AllUsersInformation, getUserInfoFromPublicKey, ProfilesSyncer, UserInfo } from "./contact-list.ts";
 import { EventSyncer } from "./event_syncer.ts";
 
 export type RightPanelModel = {
@@ -350,15 +350,26 @@ function MessageBoxGroup(props: {
                                 }}
                             />
                         </button>
-
-                        {AvatarOrTime(msg.msg, index, props.eventEmitter)}
+                        {
+                            <Avatar
+                                class={tw`h-8 w-8 mt-[0.45rem] mr-2`}
+                                picture={getUserInfoFromPublicKey(msg.msg.event.publicKey, props.allUserInfo)
+                                    ?.profile?.profile.picture}
+                                onClick={() => {
+                                    props.eventEmitter.emit({
+                                        type: "ViewUserDetail",
+                                        pubkey: msg.msg.event.publicKey,
+                                    });
+                                }}
+                            />
+                        }
                         <div
                             class={tw`flex-1`}
                             style={{
                                 maxWidth: "calc(100% - 2.75rem)",
                             }}
                         >
-                            {NameAndTime(msg.msg, index, props.myPublicKey)}
+                            {/* {NameAndTime(msg.msg, index, props.myPublicKey)} */}
                             <pre
                                 class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto`}
                             >
@@ -398,61 +409,40 @@ function MessageBoxGroup(props: {
     return vnode;
 }
 
-export function AvatarOrTime(
-    message: ChatMessage,
-    index: number,
-    eventEmitter?: EventEmitter<ViewUserDetail>,
-) {
-    if (index === 0) {
-        return (
-            <Avatar
-                class={tw`h-8 w-8 mt-[0.45rem] mr-2`}
-                picture={message.author.picture}
-                onClick={eventEmitter
-                    ? () => {
-                        eventEmitter.emit({
-                            type: "ViewUserDetail",
-                            pubkey: message.author.pubkey,
-                        });
-                    }
-                    : undefined}
-            />
-        );
-    }
-
+export function Time(created_at: Date) {
     return (
         <div class={tw`w-8 mr-2`}>
             <span
                 class={tw`text-[#A3A6AA] text-[0.8rem] hidden group-hover:inline-block`}
             >
-                {message.created_at.toTimeString().slice(0, 5)}
+                {created_at.toTimeString().slice(0, 5)}
             </span>
         </div>
     );
 }
 
-export function NameAndTime(message: ChatMessage, index: number, myPublicKey: PublicKey) {
-    if (index === 0) {
-        return (
-            <p class={tw`overflow-hidden flex`}>
-                <p class={tw`text-[#FFFFFF] text-[0.9rem] truncate`}>
-                    {message.author
-                        ? (
-                            message.author.pubkey.hex ===
-                                    myPublicKey.hex
-                                ? "Me"
-                                : message.author.name ||
-                                    message.author.pubkey.bech32()
-                        )
-                        : "no user meta"}
-                </p>
-                <p class={tw`text-[#A3A6AA] ml-4 text-[0.8rem] whitespace-nowrap`}>
-                    {message.created_at.toLocaleString()}
-                </p>
-            </p>
-        );
-    }
-}
+// export function NameAndTime(
+//     author: Profile_Nostr_Event,
+//     index: number,
+//     myPublicKey: PublicKey,
+// ) {
+//     if (index === 0) {
+//         return (
+//             <p class={tw`overflow-hidden flex`}>
+//                 <p class={tw`text-[#FFFFFF] text-[0.9rem] truncate`}>
+//                     {author.publicKey.hex ===
+//                             myPublicKey.hex
+//                         ? "Me"
+//                         : author.profile.name ||
+//                             author.publicKey.bech32()}
+//                 </p>
+//                 <p class={tw`text-[#A3A6AA] ml-4 text-[0.8rem] whitespace-nowrap`}>
+//                     {message.created_at.toLocaleString()}
+//                 </p>
+//             </p>
+//         );
+//     }
+// }
 
 export function ParseMessageContent(
     message: ChatMessage,

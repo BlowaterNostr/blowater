@@ -1,5 +1,5 @@
 /** @jsx h */
-import { ComponentChildren, h } from "https://esm.sh/preact@10.11.3";
+import { h } from "https://esm.sh/preact@10.11.3";
 import { tw } from "https://esm.sh/twind@0.16.16";
 
 export function Avatar(props: {
