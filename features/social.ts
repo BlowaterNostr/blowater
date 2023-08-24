@@ -27,14 +27,8 @@ export function getSocialPosts(
         const messages: ChatMessage[] = [];
         for (let j = 0; j < thread.length; j++) {
             const event = thread[j];
-            let userInfo = allUsersInfo.get(event.pubkey);
             messages[j] = {
                 event: event,
-                author: {
-                    pubkey: event.publicKey,
-                    name: userInfo?.profile?.profile.name,
-                    picture: userInfo?.profile?.profile.picture,
-                },
                 content: event.content,
                 created_at: new Date(event.created_at * 1000),
                 type: "text",

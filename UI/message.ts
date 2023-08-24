@@ -86,11 +86,6 @@ export interface ChatMessage {
     readonly type: "image" | "text";
     readonly created_at: Date;
     readonly lamport: number | undefined;
-    readonly author: {
-        pubkey: PublicKey;
-        name?: string;
-        picture?: string;
-    };
     content: string;
 }
 

@@ -9,10 +9,7 @@ import {
     NostrEvent,
     NostrKind,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
-import {
-    ConnectionPool,
-    SubscriptionAlreadyExist,
-} from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
+import { ConnectionPool } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
 import {
     CustomAppData,
     CustomAppData_Event,
@@ -66,6 +63,11 @@ export class ProfilesSyncer {
             throw err; // impossible
         }
     }
+}
+
+export function getUserInfoFromPublicKey(k: PublicKey, users: Map<string, UserInfo>) {
+    const userInfo = users.get(k.hex);
+    return userInfo;
 }
 
 export class AllUsersInformation {

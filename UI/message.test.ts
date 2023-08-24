@@ -1,6 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { ChatMessage, groupContinuousMessages, parseContent } from "./message.ts";
-import { PrivateKey, PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
+import { PrivateKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 
 Deno.test("inline parse", async (t) => {
     const data = [
@@ -127,10 +127,6 @@ Deno.test("message group", () => {
             "content": "sendDirectMessage",
             "type": "text",
             "created_at": new Date("2023-03-11T09:50:47.000Z"),
-            "author": {
-                "pubkey": PrivateKey.Generate().toPublicKey(),
-                "name": "",
-            },
             lamport: 0,
         },
     ];

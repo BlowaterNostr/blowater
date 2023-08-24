@@ -12,11 +12,7 @@ import {
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 import { ConnectionPool } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
 import { prepareNostrImageEvents, Tag } from "../nostr.ts";
-import {
-    PrivateKey,
-    PublicKey,
-    publicKeyHexFromNpub,
-} from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
+import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
 
 export async function sendDMandImages(args: {
     sender: NostrAccountContext;
@@ -110,23 +106,6 @@ export function getAllEncryptedMessagesOf(
         since,
     );
     return merge(stream1, stream2);
-}
-
-export async function* getAllDecryptedMessagesOf(
-    ctx: NostrAccountContext,
-    pool: ConnectionPool,
-    limit: number,
-) {
-    const pub = ctx.publicKey;
-    const allEncryptedMessage = getAllEncryptedMessagesOf(pub, pool, 0, limit);
-    for await (const { res: message } of allEncryptedMessage) {
-        if (message.type === "EVENT") {
-            yield decryptMessage(message, ctx, message.event.pubkey);
-        } else if (message.type === "EOSE" && limit > 0) {
-            await allEncryptedMessage.close(`getAllDecryptedMessagesOf, EOSE`);
-            return; // if limit is provided, stop the stream
-        }
-    }
 }
 
 async function* getAllEncryptedMessagesSendBy(

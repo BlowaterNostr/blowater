@@ -6,7 +6,7 @@ import { Model } from "./app_model.ts";
 import { NostrAccountContext } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 import { Database_Contextual_View } from "../database.ts";
 import { EventEmitter } from "../event-bus.ts";
-import { AllUsersInformation, ProfilesSyncer } from "./contact-list.ts";
+import { AllUsersInformation, getUserInfoFromPublicKey, ProfilesSyncer } from "./contact-list.ts";
 import { EventSyncer } from "./event_syncer.ts";
 import { PrimaryTextColor } from "./style/colors.ts";
 import { EditorEvent } from "./editor.tsx";
@@ -64,7 +64,11 @@ export function SocialPanel(props: {
         // authors
         let matched_at_least_one_author = false;
         for (const author of model.social.filter.author) {
-            if (thread.root.author.name?.toLowerCase().includes(author.toLowerCase())) {
+            const userInfo = getUserInfoFromPublicKey(
+                thread.root.event.publicKey,
+                props.allUsersInfo.userInfos,
+            );
+            if (userInfo && userInfo.profile?.profile.name?.toLowerCase().includes(author.toLowerCase())) {
                 matched_at_least_one_author = true;
                 break;
             }

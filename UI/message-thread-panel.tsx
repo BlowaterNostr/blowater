@@ -3,7 +3,6 @@ import { Fragment, h } from "https://esm.sh/preact@10.11.3";
 import { tw } from "https://esm.sh/twind@0.16.16";
 import { EventEmitter } from "../event-bus.ts";
 import {
-    AvatarOrTime,
     DirectMessagePanelUpdate,
     NameAndTime,
     ParseMessageContent,
@@ -14,8 +13,9 @@ import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr
 import { ChatMessage, groupContinuousMessages } from "./message.ts";
 import { Editor, EditorEvent, EditorModel } from "./editor.tsx";
 import { Database_Contextual_View } from "../database.ts";
-import { ProfilesSyncer, UserInfo } from "./contact-list.ts";
+import { getUserInfoFromPublicKey, ProfilesSyncer, UserInfo } from "./contact-list.ts";
 import { EventSyncer } from "./event_syncer.ts";
+import { Avatar } from "./components/avatar.tsx";
 
 interface MessageThreadProps {
     eventEmitter: EventEmitter<DirectMessagePanelUpdate | EditorEvent>;
@@ -114,14 +114,33 @@ function MessageThreadBoxGroup(props: {
             {props.messages.map((msg, index) => {
                 return (
                     <li class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 group`}>
-                        {AvatarOrTime(msg, index)}
+                        {
+                            <Avatar
+                                class={tw`h-8 w-8 mt-[0.45rem] mr-2`}
+                                picture={getUserInfoFromPublicKey(msg.event.publicKey, props.allUserInfo)
+                                    ?.profile?.profile.picture}
+                                onClick={() => {
+                                    props.eventEmitter.emit({
+                                        type: "ViewUserDetail",
+                                        pubkey: msg.event.publicKey,
+                                    });
+                                }}
+                            />
+                        }
                         <div
                             class={tw`flex-1`}
                             style={{
                                 maxWidth: "calc(100% - 2.75rem)",
                             }}
                         >
-                            {NameAndTime(msg, index, props.myPublicKey)}
+                            {NameAndTime(
+                                msg.event.publicKey,
+                                getUserInfoFromPublicKey(msg.event.publicKey, props.allUserInfo)
+                                    ?.profile?.profile,
+                                index,
+                                props.myPublicKey,
+                                msg.created_at,
+                            )}
                             <pre
                                 class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto`}
                             >

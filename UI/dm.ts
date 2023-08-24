@@ -38,7 +38,6 @@ export function convertEventsToChatMessages(
     groups.delete(undefined);
 
     for (let i = 0; i < textEvents.length; i++) {
-        const author = userProfiles.get(textEvents[i].pubkey);
         const pubkey = PublicKey.FromHex(textEvents[i].pubkey);
         if (pubkey instanceof Error) {
             throw new Error(textEvents[i].pubkey);
@@ -48,11 +47,6 @@ export function convertEventsToChatMessages(
             content: textEvents[i].content,
             type: "text",
             created_at: new Date(textEvents[i].created_at * 1000),
-            author: {
-                pubkey,
-                name: author?.profile?.profile.name,
-                picture: author?.profile?.profile.picture,
-            },
             lamport: getTags(textEvents[i]).lamport_timestamp,
         });
     }
@@ -73,11 +67,6 @@ export function convertEventsToChatMessages(
             content: imageBase64,
             type: "image",
             created_at: new Date(imageEvents[0].created_at * 1000),
-            author: {
-                pubkey: pubkey,
-                name: author?.profile?.profile.name,
-                picture: author?.profile?.profile.picture,
-            },
             lamport: getTags(imageEvents[0]).lamport_timestamp,
         });
     }
