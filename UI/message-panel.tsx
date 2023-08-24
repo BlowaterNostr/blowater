@@ -568,6 +568,7 @@ export function ParseMessageContent(
                 break;
             case "npub":
                 {
+                    console.log("|||", item);
                     const userInfo = allUserInfo.get(item.pubkey);
                     if (userInfo) {
                         const profile = userInfo.profile;
@@ -579,12 +580,20 @@ export function ParseMessageContent(
                                     eventEmitter,
                                 ),
                             );
+                            break;
                         } else {
                             profilesSyncer.add(item.pubkey);
                         }
                     } else {
                         profilesSyncer.add(item.pubkey);
                     }
+                    vnode.push(
+                        ProfileCard(
+                            undefined,
+                            PublicKey.FromHex(item.pubkey) as PublicKey,
+                            eventEmitter,
+                        ),
+                    );
                 }
                 break;
             case "note":
@@ -608,7 +617,11 @@ export function ParseMessageContent(
     return vnode;
 }
 
-function ProfileCard(profile: ProfileData, pubkey: PublicKey, eventEmitter: EventEmitter<ViewUserDetail>) {
+function ProfileCard(
+    profile: ProfileData | undefined,
+    pubkey: PublicKey,
+    eventEmitter: EventEmitter<ViewUserDetail>,
+) {
     return (
         <div
             class={tw`px-4 py-2 my-1 border-2 border-[${PrimaryTextColor}4D] rounded-lg hover:bg-[${HoverButtonBackgroudColor}] cursor-pointer py-1`}
@@ -620,13 +633,13 @@ function ProfileCard(profile: ProfileData, pubkey: PublicKey, eventEmitter: Even
             }}
         >
             <div class={tw`flex`}>
-                <Avatar class={tw`w-10 h-10`} picture={profile.picture}></Avatar>
+                <Avatar class={tw`w-10 h-10`} picture={profile?.picture}></Avatar>
                 <p class={tw`text-[1.2rem] font-blod leading-10 truncate ml-2`}>
-                    {profile.name || pubkey.bech32()}
+                    {profile?.name || pubkey.bech32()}
                 </p>
             </div>
             <div class={tw`${DividerClass} my-[0.5rem]`}></div>
-            <p class={tw`text-[0.8rem]`}>{profile.about}</p>
+            <p class={tw`text-[0.8rem]`}>{profile?.about}</p>
         </div>
     );
 }

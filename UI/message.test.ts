@@ -73,6 +73,15 @@ Deno.test("inline parse", async (t) => {
                 end: 68,
             }],
         },
+        {
+            input: `npub17dxnfw2vrhgtk4fgqdmpuqxv05u9raau3w0shay7msmr0dzs4m7s6ng4yl`,
+            output: [{
+                type: "npub",
+                pubkey: "f34d34b94c1dd0bb552803761e00cc7d3851f7bc8b9f0bf49edc3637b450aefd",
+                start: 0,
+                end: 62,
+            }],
+        },
         // {
         //     input: `nostr:nevent1qqsz25j8nrppstgmyry8hgsg4fggtfa6xnym2n4c2xth7usxtydtgpcpp4mhxue69uhhjctzw5hx6egzyze7g05vclndlu36x0vjzw37jykcjkcu8ep9qfqwpjvahmlrq6947qcyqqqqqqgj5mjek`,
         //     output: [{
@@ -99,7 +108,7 @@ Deno.test("inline parse", async (t) => {
         },
     ];
     for (const [i, test] of data.entries()) {
-        await t.step(`${i}`, () => {
+        await t.step(test.input, () => {
             assertEquals(test.output, Array.from(parseContent(test.input)));
         });
     }

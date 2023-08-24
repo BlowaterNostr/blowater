@@ -19,7 +19,6 @@ import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master
 import { DexieDatabase } from "./UI/dexie-db.ts";
 import { parseProfileData } from "./features/profile.ts";
 import { parseContent } from "./UI/message.ts";
-import { NoteID } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nip19.ts";
 
 export const NotFound = Symbol("Not Found");
 const buffer_size = 1000;
