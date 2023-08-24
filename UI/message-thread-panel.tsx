@@ -4,6 +4,7 @@ import { tw } from "https://esm.sh/twind@0.16.16";
 import { EventEmitter } from "../event-bus.ts";
 import {
     DirectMessagePanelUpdate,
+    NameAndTime,
     ParseMessageContent,
     ViewThread,
     ViewUserDetail,
@@ -132,7 +133,14 @@ function MessageThreadBoxGroup(props: {
                                 maxWidth: "calc(100% - 2.75rem)",
                             }}
                         >
-                            {/* {NameAndTime(msg, index, props.myPublicKey)} */}
+                            {NameAndTime(
+                                msg.event.publicKey,
+                                getUserInfoFromPublicKey(msg.event.publicKey, props.allUserInfo)
+                                    ?.profile?.profile,
+                                index,
+                                props.myPublicKey,
+                                msg.created_at,
+                            )}
                             <pre
                                 class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto`}
                             >
