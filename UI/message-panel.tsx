@@ -29,8 +29,29 @@ import { MessageThreadPanel } from "./message-thread-panel.tsx";
 import { Database_Contextual_View } from "../database.ts";
 import { HoverButtonBackgroudColor, LinkColor, PrimaryTextColor } from "./style/colors.ts";
 import { ProfilesSyncer, UserInfo } from "./contact-list.ts";
-import { NoteID } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nip19.ts";
 import { EventSyncer } from "./event_syncer.ts";
+
+export type RightPanelModel = {
+    show: boolean;
+};
+
+export type DirectMessagePanelUpdate =
+    | {
+        type: "ToggleRightPanel";
+        show: boolean;
+    }
+    | ViewThread
+    | ViewUserDetail;
+
+export type ViewThread = {
+    type: "ViewThread";
+    root: NostrEvent;
+};
+
+export type ViewUserDetail = {
+    type: "ViewUserDetail";
+    pubkey: PublicKey;
+};
 
 interface DirectMessagePanelProps {
     myPublicKey: PublicKey;
@@ -57,28 +78,6 @@ interface DirectMessagePanelProps {
     eventSyncer: EventSyncer;
     allUserInfo: Map<string, UserInfo>;
 }
-
-export type RightPanelModel = {
-    show: boolean;
-};
-
-export type DirectMessagePanelUpdate =
-    | {
-        type: "ToggleRightPanel";
-        show: boolean;
-    }
-    | ViewThread
-    | ViewUserDetail;
-
-export type ViewThread = {
-    type: "ViewThread";
-    root: NostrEvent;
-};
-
-export type ViewUserDetail = {
-    type: "ViewUserDetail";
-    pubkey: PublicKey;
-};
 
 export function MessagePanel(props: DirectMessagePanelProps) {
     const t = Date.now();

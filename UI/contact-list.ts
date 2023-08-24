@@ -9,10 +9,7 @@ import {
     NostrEvent,
     NostrKind,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
-import {
-    ConnectionPool,
-    SubscriptionAlreadyExist,
-} from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
+import { ConnectionPool } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
 import {
     CustomAppData,
     CustomAppData_Event,

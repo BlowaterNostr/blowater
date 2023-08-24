@@ -94,20 +94,20 @@ export async function sendSocialPost(args: {
 export function getAllEncryptedMessagesOf(
     publicKey: PublicKey,
     relay: ConnectionPool,
-    since?: number,
+    // since?: number,
     limit?: number,
 ) {
     const stream1 = getAllEncryptedMessagesSendBy(
         publicKey,
         relay,
         limit,
-        since,
+        // since,
     );
     const stream2 = getAllEncryptedMessagesReceivedBy(
         publicKey,
         relay,
         limit,
-        since,
+        // since,
     );
     return merge(stream1, stream2);
 }
@@ -118,7 +118,7 @@ export async function* getAllDecryptedMessagesOf(
     limit: number,
 ) {
     const pub = ctx.publicKey;
-    const allEncryptedMessage = getAllEncryptedMessagesOf(pub, pool, 0, limit);
+    const allEncryptedMessage = getAllEncryptedMessagesOf(pub, pool, limit);
     for await (const { res: message } of allEncryptedMessage) {
         if (message.type === "EVENT") {
             yield decryptMessage(message, ctx, message.event.pubkey);
@@ -133,7 +133,7 @@ async function* getAllEncryptedMessagesSendBy(
     publicKey: PublicKey,
     relay: ConnectionPool,
     limit?: number,
-    since?: number,
+    // since?: number,
 ) {
     let resp = await relay.newSub(
         `getAllEncryptedMessagesSendBy`,
@@ -141,7 +141,7 @@ async function* getAllEncryptedMessagesSendBy(
             authors: [publicKey.hex],
             kinds: [4],
             limit: limit,
-            since: since,
+            // since: since,
         },
     );
     if (resp instanceof Error) {
@@ -156,7 +156,7 @@ async function* getAllEncryptedMessagesReceivedBy(
     publicKey: PublicKey,
     relay: ConnectionPool,
     limit?: number,
-    since?: number,
+    // since?: number,
 ) {
     let resp = await relay.newSub(
         `getAllEncryptedMessagesReceivedBy`,
@@ -164,7 +164,7 @@ async function* getAllEncryptedMessagesReceivedBy(
             kinds: [4],
             "#p": [publicKey.hex],
             limit: limit,
-            since: since,
+            // since: since,
         },
     );
     if (resp instanceof Error) {
