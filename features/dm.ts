@@ -112,23 +112,6 @@ export function getAllEncryptedMessagesOf(
     return merge(stream1, stream2);
 }
 
-export async function* getAllDecryptedMessagesOf(
-    ctx: NostrAccountContext,
-    pool: ConnectionPool,
-    limit: number,
-) {
-    const pub = ctx.publicKey;
-    const allEncryptedMessage = getAllEncryptedMessagesOf(pub, pool, limit);
-    for await (const { res: message } of allEncryptedMessage) {
-        if (message.type === "EVENT") {
-            yield decryptMessage(message, ctx, message.event.pubkey);
-        } else if (message.type === "EOSE" && limit > 0) {
-            await allEncryptedMessage.close(`getAllDecryptedMessagesOf, EOSE`);
-            return; // if limit is provided, stop the stream
-        }
-    }
-}
-
 async function* getAllEncryptedMessagesSendBy(
     publicKey: PublicKey,
     relay: ConnectionPool,
