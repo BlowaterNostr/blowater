@@ -369,7 +369,14 @@ function MessageBoxGroup(props: {
                                 maxWidth: "calc(100% - 2.75rem)",
                             }}
                         >
-                            {/* {NameAndTime(msg.msg, index, props.myPublicKey)} */}
+                            {NameAndTime(
+                                msg.msg.event.publicKey,
+                                getUserInfoFromPublicKey(msg.msg.event.publicKey, props.allUserInfo)
+                                    ?.profile?.profile,
+                                index,
+                                props.myPublicKey,
+                                msg.msg.created_at,
+                            )}
                             <pre
                                 class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto`}
                             >
@@ -421,28 +428,33 @@ export function Time(created_at: Date) {
     );
 }
 
-// export function NameAndTime(
-//     author: Profile_Nostr_Event,
-//     index: number,
-//     myPublicKey: PublicKey,
-// ) {
-//     if (index === 0) {
-//         return (
-//             <p class={tw`overflow-hidden flex`}>
-//                 <p class={tw`text-[#FFFFFF] text-[0.9rem] truncate`}>
-//                     {author.publicKey.hex ===
-//                             myPublicKey.hex
-//                         ? "Me"
-//                         : author.profile.name ||
-//                             author.publicKey.bech32()}
-//                 </p>
-//                 <p class={tw`text-[#A3A6AA] ml-4 text-[0.8rem] whitespace-nowrap`}>
-//                     {message.created_at.toLocaleString()}
-//                 </p>
-//             </p>
-//         );
-//     }
-// }
+export function NameAndTime(
+    author: PublicKey,
+    author_profile: ProfileData | undefined,
+    index: number,
+    myPublicKey: PublicKey,
+    created_at: Date,
+) {
+    if (index === 0) {
+        let show = author.bech32();
+        if (author.hex == myPublicKey.hex) {
+            show = "Me";
+        } else if (author_profile?.name) {
+            show = author_profile.name;
+        }
+
+        return (
+            <p class={tw`overflow-hidden flex`}>
+                <p class={tw`text-[#FFFFFF] text-[0.9rem] truncate`}>
+                    {show}
+                </p>
+                <p class={tw`text-[#A3A6AA] ml-4 text-[0.8rem] whitespace-nowrap`}>
+                    {created_at.toLocaleString()}
+                </p>
+            </p>
+        );
+    }
+}
 
 export function ParseMessageContent(
     message: ChatMessage,
