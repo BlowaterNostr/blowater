@@ -324,91 +324,171 @@ function MessageBoxGroup(props: {
     eventSyncer: EventSyncer;
 }) {
     // const t = Date.now();
-    const vnode = (
-        <ul class={tw`py-2`}>
-            {props.messageGroup.reverse().map((msg, index) => {
-                return (
-                    <li
-                        class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 group relative`}
-                    >
-                        <button
-                            class={tw`w-6 h-6 absolute hidden group-hover:flex top-[-0.75rem] right-[3rem] ${IconButtonClass} bg-[#42464D] hover:bg-[#2F3136]`}
-                            style={{
-                                boxShadow: "2px 2px 5px 0 black",
-                            }}
-                            onClick={() => {
-                                props.eventEmitter.emit({
-                                    type: "ViewThread",
-                                    root: msg.msg.event,
-                                });
-                            }}
-                        >
-                            <ReplyIcon
-                                class={tw`w-4 h-4`}
-                                style={{
-                                    fill: "rgb(185, 187, 190)",
-                                }}
-                            />
-                        </button>
-                        {
-                            <Avatar
-                                class={tw`h-8 w-8 mt-[0.45rem] mr-2`}
-                                picture={getUserInfoFromPublicKey(msg.msg.event.publicKey, props.allUserInfo)
-                                    ?.profile?.profile.picture}
-                                onClick={() => {
-                                    props.eventEmitter.emit({
-                                        type: "ViewUserDetail",
-                                        pubkey: msg.msg.event.publicKey,
-                                    });
-                                }}
-                            />
-                        }
-                        <div
-                            class={tw`flex-1`}
-                            style={{
-                                maxWidth: "calc(100% - 2.75rem)",
-                            }}
-                        >
-                            {NameAndTime(
-                                msg.msg.event.publicKey,
-                                getUserInfoFromPublicKey(msg.msg.event.publicKey, props.allUserInfo)
-                                    ?.profile?.profile,
-                                index,
-                                props.myPublicKey,
-                                msg.msg.created_at,
-                            )}
-                            <pre
-                                class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto`}
-                            >
+
+    const messageGroups = props.messageGroup.reverse();
+    if (messageGroups.length == 0) {
+        return;
+    }
+    const first_group = messageGroups[0];
+    const rows = [];
+    rows.push(
+        <li
+            class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 group relative`}
+        >
+            <button
+                class={tw`w-6 h-6 absolute hidden group-hover:flex top-[-0.75rem] right-[3rem] ${IconButtonClass} bg-[#42464D] hover:bg-[#2F3136]`}
+                style={{
+                    boxShadow: "2px 2px 5px 0 black",
+                }}
+                onClick={() => {
+                    props.eventEmitter.emit({
+                        type: "ViewThread",
+                        root: first_group.msg.event,
+                    });
+                }}
+            >
+                <ReplyIcon
+                    class={tw`w-4 h-4`}
+                    style={{
+                        fill: "rgb(185, 187, 190)",
+                    }}
+                />
+            </button>
+
+            <Avatar
+                class={tw`h-8 w-8 mt-[0.45rem] mr-2`}
+                picture={getUserInfoFromPublicKey(first_group.msg.event.publicKey, props.allUserInfo)
+                    ?.profile?.profile.picture}
+                onClick={() => {
+                    props.eventEmitter.emit({
+                        type: "ViewUserDetail",
+                        pubkey: first_group.msg.event.publicKey,
+                    });
+                }}
+            />
+
+            <div
+                class={tw`flex-1`}
+                style={{
+                    maxWidth: "calc(100% - 2.75rem)",
+                }}
+            >
+                {NameAndTime(
+                    first_group.msg.event.publicKey,
+                    getUserInfoFromPublicKey(first_group.msg.event.publicKey, props.allUserInfo)
+                        ?.profile?.profile,
+                    0,
+                    props.myPublicKey,
+                    first_group.msg.created_at,
+                )}
+                <pre
+                    class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto`}
+                >
                                 {ParseMessageContent(
-                                    msg.msg,
+                                    first_group.msg,
                                     props.allUserInfo,
                                     props.profilesSyncer,
                                     props.eventSyncer,
                                     props.eventEmitter,
                                     )}
-                            </pre>
-                            {msg.replyCount > 0
-                                ? (
-                                    <div class={tw`flex items-center mb-[0.45rem] ml-[1rem]`}>
-                                        <span
-                                            class={tw`text-[#A6A8AA] font-bold hover:underline cursor-pointer text-[0.8rem]`}
-                                            onClick={() => {
-                                                props.eventEmitter.emit({
-                                                    type: "ViewThread",
-                                                    root: msg.msg.event,
-                                                });
-                                            }}
-                                        >
-                                            {msg.replyCount} replies
-                                        </span>
-                                    </div>
-                                )
-                                : undefined}
+                </pre>
+                {first_group.replyCount > 0
+                    ? (
+                        <div class={tw`flex items-center mb-[0.45rem] ml-[1rem]`}>
+                            <span
+                                class={tw`text-[#A6A8AA] font-bold hover:underline cursor-pointer text-[0.8rem]`}
+                                onClick={() => {
+                                    props.eventEmitter.emit({
+                                        type: "ViewThread",
+                                        root: first_group.msg.event,
+                                    });
+                                }}
+                            >
+                                {first_group.replyCount} replies
+                            </span>
                         </div>
-                    </li>
-                );
-            })}
+                    )
+                    : undefined}
+            </div>
+        </li>,
+    );
+
+    for (let i = 1; i < messageGroups.length; i++) {
+        const msg = messageGroups[i];
+        rows.push(
+            <li
+                class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 group relative`}
+            >
+                <button
+                    class={tw`w-6 h-6 absolute hidden group-hover:flex top-[-0.75rem] right-[3rem] ${IconButtonClass} bg-[#42464D] hover:bg-[#2F3136]`}
+                    style={{
+                        boxShadow: "2px 2px 5px 0 black",
+                    }}
+                    onClick={() => {
+                        props.eventEmitter.emit({
+                            type: "ViewThread",
+                            root: msg.msg.event,
+                        });
+                    }}
+                >
+                    <ReplyIcon
+                        class={tw`w-4 h-4`}
+                        style={{
+                            fill: "rgb(185, 187, 190)",
+                        }}
+                    />
+                </button>
+                {Time(msg.msg.created_at)}
+                <div
+                    class={tw`flex-1`}
+                    style={{
+                        maxWidth: "calc(100% - 2.75rem)",
+                    }}
+                >
+                    {NameAndTime(
+                        msg.msg.event.publicKey,
+                        getUserInfoFromPublicKey(msg.msg.event.publicKey, props.allUserInfo)
+                            ?.profile?.profile,
+                        i,
+                        props.myPublicKey,
+                        msg.msg.created_at,
+                    )}
+                    <pre
+                        class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto`}
+                    >
+                    {ParseMessageContent(
+                        msg.msg,
+                        props.allUserInfo,
+                        props.profilesSyncer,
+                        props.eventSyncer,
+                        props.eventEmitter,
+                        )}
+                    </pre>
+                    {msg.replyCount > 0
+                        ? (
+                            <div class={tw`flex items-center mb-[0.45rem] ml-[1rem]`}>
+                                <span
+                                    class={tw`text-[#A6A8AA] font-bold hover:underline cursor-pointer text-[0.8rem]`}
+                                    onClick={() => {
+                                        props.eventEmitter.emit({
+                                            type: "ViewThread",
+                                            root: msg.msg.event,
+                                        });
+                                    }}
+                                >
+                                    {msg.replyCount} replies
+                                </span>
+                            </div>
+                        )
+                        : undefined}
+                </div>
+            </li>,
+        );
+    }
+
+    const vnode = (
+        <ul class={tw`py-2`}>
+            {rows}
         </ul>
     );
 
