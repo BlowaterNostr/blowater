@@ -38,7 +38,6 @@ export function convertEventsToChatMessages(
     groups.delete(undefined);
 
     for (let i = 0; i < textEvents.length; i++) {
-        const author = userProfiles.get(textEvents[i].pubkey);
         const pubkey = PublicKey.FromHex(textEvents[i].pubkey);
         if (pubkey instanceof Error) {
             throw new Error(textEvents[i].pubkey);
