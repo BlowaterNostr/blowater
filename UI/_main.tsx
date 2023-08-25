@@ -14,6 +14,11 @@ setup({
             "desktop": { "min": "1024px" },
         },
     },
+    variants: {
+        "children": "& > *",
+        "firstChild": "& > *:first-child",
+        "lastChild": "& > *:last-child",
+    },
 });
 
 const database = NewIndexedDB();
