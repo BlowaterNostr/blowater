@@ -29,11 +29,12 @@ export function profilesStream(
     pool: ConnectionPool,
 ) {
     const chan = csp.chan<[NostrEvent, string]>();
+    const publics = Array.from(publicKeys);
     (async () => {
         let resp = await pool.newSub(
             "profilesStream",
             {
-                authors: Array.from(publicKeys),
+                authors: publics,
                 kinds: [NostrKind.META_DATA],
             },
         );
@@ -41,7 +42,7 @@ export function profilesStream(
             resp = await pool.updateSub(
                 "profilesStream",
                 {
-                    authors: Array.from(publicKeys),
+                    authors: publics,
                     kinds: [NostrKind.META_DATA],
                 },
             );
@@ -50,7 +51,7 @@ export function profilesStream(
             console.error(resp.message);
             return;
         }
-        console.log("new profile stream", publicKeys);
+        console.log("new profile stream", publics);
         for await (let { res: nostrMessage, url: relayUrl } of resp) {
             if (nostrMessage.type === "EVENT" && nostrMessage.event.content) {
                 await chan.put([
