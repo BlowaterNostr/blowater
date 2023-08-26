@@ -6,10 +6,14 @@ import { NoOutlineClass } from "./tw.ts";
 
 export function ButtonGroup(props: {
     children: ComponentChildren;
+    class?: string | h.JSX.SignalLike<string | undefined> | undefined;
 }) {
     return (
         <div
-            class={tw`flex w-min bg-[${DividerBackgroundColor}] rounded children:hover:bg-[${HoverButtonBackgroudColor}] children:${NoOutlineClass} children:px-2 children:py-1 firstChild:rounded-l lastChild:rounded-r`}
+            class={[
+                tw`flex w-min bg-[${DividerBackgroundColor}] rounded children:hover:bg-[${HoverButtonBackgroudColor}] children:${NoOutlineClass} children:px-2 children:py-1 firstChild:rounded-l lastChild:rounded-r`,
+                props.class,
+            ].join(" ")}
         >
             {props.children}
         </div>
