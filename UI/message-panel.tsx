@@ -568,7 +568,6 @@ export function ParseMessageContent(
                 break;
             case "npub":
                 {
-                    console.log("|||", item);
                     const userInfo = allUserInfo.get(item.pubkey);
                     if (userInfo) {
                         const profile = userInfo.profile;
