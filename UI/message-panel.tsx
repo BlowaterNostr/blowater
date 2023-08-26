@@ -463,44 +463,44 @@ function MessageBoxGroup(props: {
 export function Actions(event: PlainText_Nostr_Event, eventEmitter: EventEmitter<ViewThread>) {
     return (
         <div
-                class={tw`hidden group-hover:flex absolute top-[-0.75rem] right-[3rem]`}
-                style={{
-                    boxShadow: "2px 2px 5px 0 black",
-                }}
-            >
-                <ButtonGroup>
-                    <button
-                        class={tw`w-6 h-6 flex items-center justify-center`}
-                        onClick={() => {
-                            eventEmitter.emit({
-                                type: "ViewThread",
-                                root: event,
-                            });
+            class={tw`hidden group-hover:flex absolute top-[-0.75rem] right-[3rem]`}
+            style={{
+                boxShadow: "2px 2px 5px 0 black",
+            }}
+        >
+            <ButtonGroup>
+                <button
+                    class={tw`w-6 h-6 flex items-center justify-center`}
+                    onClick={() => {
+                        eventEmitter.emit({
+                            type: "ViewThread",
+                            root: event,
+                        });
+                    }}
+                >
+                    <ReplyIcon
+                        class={tw`w-4 h-4 scale-150`}
+                        style={{
+                            fill: PrimaryTextColor,
                         }}
-                    >
-                        <ReplyIcon
-                            class={tw`w-4 h-4 scale-150`}
-                            style={{
-                                fill: PrimaryTextColor,
-                            }}
-                        />
-                    </button>
+                    />
+                </button>
 
-                    <button
-                        class={tw`w-6 h-6 flex items-center justify-center`}
-                        onClick={() => {
+                <button
+                    class={tw`w-6 h-6 flex items-center justify-center`}
+                    onClick={() => {
+                    }}
+                >
+                    <AboutIcon
+                        class={tw`w-4 h-4 scale-150`}
+                        style={{
+                            fill: PrimaryTextColor,
                         }}
-                    >
-                        <AboutIcon
-                            class={tw`w-4 h-4 scale-150`}
-                            style={{
-                                fill: PrimaryTextColor,
-                            }}
-                        />
-                    </button>
-                </ButtonGroup>
-            </div>
-    )
+                    />
+                </button>
+            </ButtonGroup>
+        </div>
+    );
 }
 
 export function Time(created_at: Date) {
