@@ -38,6 +38,19 @@ export function UserDetail(props: UserDetailProps) {
                     {props.pubkey.bech32()}
                 </p>
             </div>
+            <div class={tw`flex items-start overflow-hidden w-full mt-1 group`}>
+                <KeyIcon
+                    class={tw`w-6 h-6 mr-2`}
+                    style={{
+                        fill: "#7A818C",
+                    }}
+                />
+                <p
+                    class={tw`flex-1 text-[#7A818C] group-hover:text-[#F3F4EA] break-words overflow-hidden`}
+                >
+                    {props.pubkey.hex}
+                </p>
+            </div>
             {props.targetUserProfile.about
                 ? (
                     <div class={tw`flex items-start overflow-hidden w-full mt-4 group`}>
