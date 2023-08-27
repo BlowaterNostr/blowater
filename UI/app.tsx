@@ -314,6 +314,7 @@ export function AppComponent(props: {
             focusedContent: focusedContent,
             model: app.model,
             profileSyncer: app.profileSyncer,
+            focusedPlainTextEvent: model.focusedPlainTextEvent,
         });
         console.debug("AppComponent:social done", Date.now() - t);
     }
@@ -369,6 +370,7 @@ export function AppComponent(props: {
                         allUserInfo: app.allUsersInfo.userInfos,
                         profilesSyncer: app.profileSyncer,
                         eventSyncer: app.eventSyncer,
+                        focusedPlainTextEvent: model.focusedPlainTextEvent,
                     })}
                 </div>
             );

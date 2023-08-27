@@ -20,6 +20,7 @@ import { ChatMessage } from "./message.ts";
 import { DM_Container_Model } from "./dm.ts";
 import { getFocusedContent } from "./app.tsx";
 import { EventSyncer } from "./event_syncer.ts";
+import { PlainText_Nostr_Event } from "../nostr.ts";
 
 type DirectMessageContainerProps = {
     editors: Map<string, DM_EditorModel>;
@@ -31,6 +32,7 @@ type DirectMessageContainerProps = {
     allUserInfo: Map<string, UserInfo>;
     profilesSyncer: ProfilesSyncer;
     eventSyncer: EventSyncer;
+    focusedPlainTextEvent: PlainText_Nostr_Event | undefined;
 } & DM_Container_Model;
 
 export type MessageThread = {
@@ -110,6 +112,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
             profilesSyncer: props.profilesSyncer,
             eventSyncer: props.eventSyncer,
             allUserInfo: props.allUserInfo,
+            focusedPlainTextEvent: props.focusedPlainTextEvent,
         });
     }
 

@@ -3,9 +3,16 @@ import { Component, ComponentChildren, createRef, h } from "https://esm.sh/preac
 import { tw } from "https://esm.sh/twind@0.16.16";
 import { Editor, EditorEvent, EditorModel } from "./editor.tsx";
 
-import { AboutIcon, CloseIcon, LeftArrowIcon, ReplyIcon } from "./icons/mod.tsx";
+import { AboutIcon, CloseIcon, CopyIcon, LeftArrowIcon, ReplyIcon } from "./icons/mod.tsx";
 import { Avatar } from "./components/avatar.tsx";
-import { DividerClass, IconButtonClass } from "./components/tw.ts";
+import {
+    CenterClass,
+    DividerClass,
+    IconButtonClass,
+    inputBorderClass,
+    InputClass,
+    NoOutlineClass,
+} from "./components/tw.ts";
 import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { EventEmitter } from "../event-bus.ts";
 
@@ -27,10 +34,19 @@ import { MessageThread } from "./dm.tsx";
 import { UserDetail } from "./user-detail.tsx";
 import { MessageThreadPanel } from "./message-thread-panel.tsx";
 import { Database_Contextual_View } from "../database.ts";
-import { HoverButtonBackgroudColor, LinkColor, PrimaryTextColor } from "./style/colors.ts";
+import {
+    DividerBackgroundColor,
+    HoverButtonBackgroudColor,
+    LinkColor,
+    PrimaryTextColor,
+    TitleIconColor,
+} from "./style/colors.ts";
 import { getUserInfoFromPublicKey, ProfilesSyncer, UserInfo } from "./contact-list.ts";
 import { EventSyncer } from "./event_syncer.ts";
 import { ButtonGroup } from "./components/button-group.tsx";
+import { Popover } from "./components/popover.tsx";
+import { NoteID } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nip19.ts";
+import { PlainTextEventDetail } from "./plain-text-event-detail.tsx";
 
 export type RightPanelModel = {
     show: boolean;
@@ -42,8 +58,18 @@ export type DirectMessagePanelUpdate =
         show: boolean;
     }
     | ViewThread
-    | ViewUserDetail;
+    | ViewUserDetail
+    | ViewPlainTextEvent
+    | CancelViewPlainTextEvent;
 
+export type ViewPlainTextEvent = {
+    type: "ViewPlainTexEvent";
+    event: PlainText_Nostr_Event;
+};
+
+export type CancelViewPlainTextEvent = {
+    type: "CancelViewPlainTextEvent";
+};
 export type ViewThread = {
     type: "ViewThread";
     root: NostrEvent;
@@ -78,6 +104,7 @@ interface DirectMessagePanelProps {
     profilesSyncer: ProfilesSyncer;
     eventSyncer: EventSyncer;
     allUserInfo: Map<string, UserInfo>;
+    focusedPlainTextEvent: PlainText_Nostr_Event | undefined;
 }
 
 export function MessagePanel(props: DirectMessagePanelProps) {
@@ -177,6 +204,20 @@ export function MessagePanel(props: DirectMessagePanelProps) {
                 )
                 : undefined}
             {rightPanel}
+            {props.focusedPlainTextEvent
+                ? (
+                    <Popover
+                        blankClickClose={true}
+                        close={() => {
+                            props.eventEmitter.emit({
+                                type: "CancelViewPlainTextEvent",
+                            });
+                        }}
+                    >
+                        <PlainTextEventDetail {...props.focusedPlainTextEvent} />
+                    </Popover>
+                )
+                : undefined}
         </div>
     );
     console.log("DirectMessagePanel:end", Date.now() - t);
@@ -460,7 +501,10 @@ function MessageBoxGroup(props: {
     return vnode;
 }
 
-export function Actions(event: PlainText_Nostr_Event, eventEmitter: EventEmitter<ViewThread>) {
+export function Actions(
+    event: PlainText_Nostr_Event,
+    eventEmitter: EventEmitter<ViewThread | ViewPlainTextEvent>,
+) {
     return (
         <div
             class={tw`hidden group-hover:flex absolute top-[-0.75rem] right-[3rem]`}
@@ -489,6 +533,10 @@ export function Actions(event: PlainText_Nostr_Event, eventEmitter: EventEmitter
                 <button
                     class={tw`w-6 h-6 flex items-center justify-center`}
                     onClick={() => {
+                        eventEmitter.emit({
+                            type: "ViewPlainTexEvent",
+                            event: event,
+                        });
                     }}
                 >
                     <AboutIcon

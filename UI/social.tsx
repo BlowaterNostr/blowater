@@ -10,7 +10,7 @@ import { AllUsersInformation, getUserInfoFromPublicKey, ProfilesSyncer } from ".
 import { EventSyncer } from "./event_syncer.ts";
 import { PrimaryTextColor } from "./style/colors.ts";
 import { EditorEvent } from "./editor.tsx";
-import { PinContact, UnpinContact } from "../nostr.ts";
+import { PinContact, PlainText_Nostr_Event, UnpinContact } from "../nostr.ts";
 import { CenterClass, LinearGradientsClass } from "./components/tw.ts";
 
 export type SocialUpdates =
@@ -49,6 +49,7 @@ export function SocialPanel(props: {
     profileSyncer: ProfilesSyncer;
     eventSyncer: EventSyncer;
     allUsersInfo: AllUsersInformation;
+    focusedPlainTextEvent: PlainText_Nostr_Event | undefined;
 }) {
     const t = Date.now();
     const model = props.model;
@@ -93,6 +94,7 @@ export function SocialPanel(props: {
             profilesSyncer={props.profileSyncer}
             eventSyncer={props.eventSyncer}
             allUserInfo={props.allUsersInfo.userInfos}
+            focusedPlainTextEvent={props.focusedPlainTextEvent}
         />
     );
     console.log("SocialPanel:MessagePanel", Date.now() - t);

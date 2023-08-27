@@ -422,6 +422,11 @@ export async function* UI_Interaction_Update(args: {
             model.social.filter.adding_author = event.value;
         } else if (event.type == "SocialFilterChanged_remove_author") {
             model.social.filter.author.delete(event.value);
+        } // message panel
+        else if (event.type == "ViewPlainTexEvent") {
+            model.focusedPlainTextEvent = event.event;
+        } else if (event.type == "CancelViewPlainTextEvent") {
+            model.focusedPlainTextEvent = undefined;
         }
         yield model;
     }
