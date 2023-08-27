@@ -19,7 +19,7 @@ export function Popover(props: {
             }}
         >
             <div
-                class={tw`fixed inset-0 z-[-1] backdrop-filter backdrop-blur`}
+                class={tw`fixed inset-0 z-[-1] backdrop-filter backdrop-blur cursor-pointer`}
                 onClick={props.blankClickClose
                     ? () => {
                         props.close();
