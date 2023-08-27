@@ -504,7 +504,7 @@ function MessageBoxGroup(props: {
 export function Actions(
     event: PlainText_Nostr_Event,
     eventEmitter: EventEmitter<ViewThread | ViewPlainTextEvent>,
-    noReply?: boolean
+    noReply?: boolean,
 ) {
     return (
         <div
@@ -514,26 +514,26 @@ export function Actions(
             }}
         >
             <ButtonGroup>
-                {
-                    !noReply
-                        ? <button
-                        class={tw`w-6 h-6 flex items-center justify-center`}
-                        onClick={() => {
-                            eventEmitter.emit({
-                                type: "ViewThread",
-                                root: event,
-                            });
-                        }}
-                    >
-                        <ReplyIcon
-                            class={tw`w-4 h-4 scale-150`}
-                            style={{
-                                fill: PrimaryTextColor,
+                {!noReply
+                    ? (
+                        <button
+                            class={tw`w-6 h-6 flex items-center justify-center`}
+                            onClick={() => {
+                                eventEmitter.emit({
+                                    type: "ViewThread",
+                                    root: event,
+                                });
                             }}
-                        />
-                    </button>
-                    : undefined
-                }
+                        >
+                            <ReplyIcon
+                                class={tw`w-4 h-4 scale-150`}
+                                style={{
+                                    fill: PrimaryTextColor,
+                                }}
+                            />
+                        </button>
+                    )
+                    : undefined}
 
                 <button
                     class={tw`w-6 h-6 flex items-center justify-center`}

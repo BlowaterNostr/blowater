@@ -3,7 +3,7 @@ import { Fragment, h } from "https://esm.sh/preact@10.11.3";
 import { tw } from "https://esm.sh/twind@0.16.16";
 import { EventEmitter } from "../event-bus.ts";
 import {
-Actions,
+    Actions,
     DirectMessagePanelUpdate,
     NameAndTime,
     ParseMessageContent,
@@ -115,7 +115,9 @@ function MessageThreadBoxGroup(props: {
         <ul class={tw`py-4`}>
             {props.messages.map((msg, index) => {
                 return (
-                    <li class={tw`relative px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 group`}>
+                    <li
+                        class={tw`relative px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 group`}
+                    >
                         {Actions(msg.event, props.eventEmitter, true)}
                         {
                             <Avatar
