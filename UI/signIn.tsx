@@ -157,20 +157,15 @@ export function SignIn(props: Props) {
         <div
             class={tw`fixed inset-0 bg-[#313338] flex items-center justify-center px-4`}
         >
-            <div class={tw`w-[40rem] relative`}>
-                <img
-                    class={tw`w-40 h-40 m-auto mb-16 absolute`}
-                    style={{
-                        top: "-12rem",
-                        left: "calc(50% - 5rem)",
-                    }}
-                    src="logo.png"
-                    alt="Logo"
-                />
+            <div class={tw`w-[40rem]`}>
                 <h1
-                    class={tw`text-[#F3F4EA] text-center text-[2rem]`}
+                    class={tw`text-[#F3F4EA] text-center text-[2rem] flex items-center justify-center`}
                 >
-                    Welcome to Blowater
+                    <img
+                        class={tw`w-20 h-20 mr-4`}
+                        src="logo.png"
+                        alt="Logo"
+                    /> Welcome to Blowater
                 </h1>
                 <input
                     onInput={(e) => {
