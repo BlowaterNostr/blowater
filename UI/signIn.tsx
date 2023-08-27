@@ -165,7 +165,8 @@ export function SignIn(props: Props) {
                         class={tw`w-20 h-20 mr-4`}
                         src="logo.png"
                         alt="Logo"
-                    /> Welcome to Blowater
+                    />{" "}
+                    Welcome to Blowater
                 </h1>
                 <input
                     onInput={(e) => {
