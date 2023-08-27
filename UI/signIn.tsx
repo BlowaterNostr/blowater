@@ -155,17 +155,17 @@ export function SignIn(props: Props) {
 
     return (
         <div
-            class={tw`fixed inset-0 bg-[#313338] flex items-center justify-center px-4`}
+            class={tw`h-screen w-screen bg-[#313338] flex items-center justify-center p-4 overflow-y-auto`}
         >
             <div class={tw`w-[40rem]`}>
+                <img
+                    class={tw`w-32 h-32 mx-auto`}
+                    src="logo.png"
+                    alt="Logo"
+                />
                 <h1
-                    class={tw`text-[#F3F4EA] text-center text-[2rem] flex items-center justify-center`}
+                    class={tw`text-[#F3F4EA] text-center text-[2rem]`}
                 >
-                    <img
-                        class={tw`w-20 h-20 mr-4`}
-                        src="logo.png"
-                        alt="Logo"
-                    />{" "}
                     Welcome to Blowater
                 </h1>
                 <input
