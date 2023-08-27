@@ -155,15 +155,11 @@ export function SignIn(props: Props) {
 
     return (
         <div
-            class={tw`fixed inset-0 bg-[#313338] flex items-center justify-center px-4`}
+            class={tw`h-screen w-screen bg-[#313338] flex items-center justify-center p-4 overflow-y-auto`}
         >
-            <div class={tw`w-[40rem] relative`}>
+            <div class={tw`w-[40rem]`}>
                 <img
-                    class={tw`w-40 h-40 m-auto mb-16 absolute`}
-                    style={{
-                        top: "-12rem",
-                        left: "calc(50% - 5rem)",
-                    }}
+                    class={tw`w-32 h-32 mx-auto`}
                     src="logo.png"
                     alt="Logo"
                 />
