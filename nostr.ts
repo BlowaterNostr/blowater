@@ -1,15 +1,15 @@
 /*
     Extension to common Nostr types
 */
-import { PrivateKey, PublicKey } from "./lib/nostr.ts/key.ts";
-import * as nostr from "./lib/nostr.ts/nostr.ts";
+import { PrivateKey, PublicKey } from "./lib/nostr-ts/key.ts";
+import * as nostr from "./lib/nostr-ts/nostr.ts";
 import {
     groupBy,
     NostrKind,
     prepareEncryptedNostrEvent,
     prepareNormalNostrEvent,
     TagPubKey,
-} from "./lib/nostr.ts/nostr.ts";
+} from "./lib/nostr-ts/nostr.ts";
 import { ProfileData } from "./features/profile.ts";
 import { ContentItem } from "./UI/message.ts";
 

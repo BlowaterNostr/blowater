@@ -17,8 +17,8 @@ import {
     NostrEvent,
     NostrKind,
     RelayResponse_REQ_Message,
-} from "./lib/nostr.ts/nostr.ts";
-import { PublicKey } from "./lib/nostr.ts/key.ts";
+} from "./lib/nostr-ts/nostr.ts";
+import { PublicKey } from "./lib/nostr-ts/key.ts";
 
 export const NotFound = Symbol("Not Found");
 const buffer_size = 1000;

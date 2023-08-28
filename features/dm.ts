@@ -9,10 +9,10 @@ import {
     prepareEncryptedNostrEvent,
     prepareNormalNostrEvent,
     RelayResponse_Event,
-} from "../lib/nostr.ts/nostr.ts";
-import { ConnectionPool } from "../lib/nostr.ts/relay.ts";
+} from "../lib/nostr-ts/nostr.ts";
+import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { prepareNostrImageEvents, Tag } from "../nostr.ts";
-import { PublicKey } from "../lib/nostr.ts/key.ts";
+import { PublicKey } from "../lib/nostr-ts/key.ts";
 
 export async function sendDMandImages(args: {
     sender: NostrAccountContext;

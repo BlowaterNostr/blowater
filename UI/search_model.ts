@@ -1,4 +1,4 @@
-import { PublicKey } from "../lib/nostr.ts/key.ts";
+import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { ProfileData } from "../features/profile.ts";
 
 export type SearchUpdate = Cancel | SearchPublicKey | SelectProfile | Start;

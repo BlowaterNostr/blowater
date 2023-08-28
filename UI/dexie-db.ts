@@ -1,5 +1,5 @@
 import * as dexie from "https://unpkg.com/dexie@3.2.3/dist/modern/dexie.mjs";
-import { NostrEvent } from "../lib/nostr.ts/nostr.ts";
+import { NostrEvent } from "../lib/nostr-ts/nostr.ts";
 
 export class DexieDatabase extends dexie.Dexie {
     // 'friends' is added by dexie when declaring the stores()

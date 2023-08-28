@@ -1,7 +1,7 @@
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { Database_Contextual_View } from "../database.ts";
-import { ConnectionPool, SubscriptionAlreadyExist } from "../lib/nostr.ts/relay.ts";
-import { PublicKey } from "../lib/nostr.ts/key.ts";
+import { ConnectionPool, SubscriptionAlreadyExist } from "../lib/nostr-ts/relay.ts";
+import { PublicKey } from "../lib/nostr-ts/key.ts";
 import {
     groupBy,
     NostrAccountContext,
@@ -10,7 +10,7 @@ import {
     NostrKind,
     prepareNormalNostrEvent,
     RelayResponse_REQ_Message,
-} from "../lib/nostr.ts/nostr.ts";
+} from "../lib/nostr-ts/nostr.ts";
 import { Parsed_Event, Profile_Nostr_Event } from "../nostr.ts";
 
 // nip01 meta data

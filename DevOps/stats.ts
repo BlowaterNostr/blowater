@@ -1,6 +1,6 @@
 import { DB } from "https://deno.land/x/sqlite@v3.7.2/mod.ts";
-import { NostrKind } from "../lib/nostr.ts/nostr.ts";
-import { ConnectionPool } from "../lib/nostr.ts/relay.ts";
+import { NostrKind } from "../lib/nostr-ts/nostr.ts";
+import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 
 // Open a database
 const db = new DB("stats.sqlite");

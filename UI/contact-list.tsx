@@ -11,8 +11,8 @@ import { PinIcon, UnpinIcon } from "./icons/mod.tsx";
 import { DM_EditorModel } from "./editor.tsx";
 
 import { SearchModel, SearchUpdate } from "./search_model.ts";
-import { PublicKey } from "../lib/nostr.ts/key.ts";
-import { groupBy, NostrAccountContext } from "../lib/nostr.ts/nostr.ts";
+import { PublicKey } from "../lib/nostr-ts/key.ts";
+import { groupBy, NostrAccountContext } from "../lib/nostr-ts/nostr.ts";
 import { PinContact, UnpinContact } from "../nostr.ts";
 import { AddIcon } from "./icons2/add-icon.tsx";
 import { PrimaryBackgroundColor, PrimaryTextColor } from "./style/colors.ts";

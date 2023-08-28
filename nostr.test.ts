@@ -11,7 +11,7 @@ import {
     NostrEvent,
     NostrKind,
     prepareNormalNostrEvent,
-} from "./lib/nostr.ts/nostr.ts";
+} from "./lib/nostr-ts/nostr.ts";
 import {
     computeThreads,
     getTags,
@@ -23,8 +23,8 @@ import {
     reassembleBase64ImageFromEvents,
 } from "./nostr.ts";
 import { LamportTime } from "./time.ts";
-import { PrivateKey, PublicKey } from "./lib/nostr.ts/key.ts";
-import { utf8Decode } from "./lib/nostr.ts/ende.ts";
+import { PrivateKey, PublicKey } from "./lib/nostr-ts/key.ts";
+import { utf8Decode } from "./lib/nostr-ts/ende.ts";
 
 Deno.test("prepareNostrImageEvents", async (t) => {
     const pri = PrivateKey.Generate();

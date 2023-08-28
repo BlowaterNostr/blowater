@@ -1,11 +1,11 @@
-import { ConnectionPool } from "../lib/nostr.ts/relay.ts";
+import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { RelayConfig } from "./setting.ts";
 import {
     InMemoryAccountContext,
     NostrAccountContext,
     prepareCustomAppDataEvent,
-} from "../lib/nostr.ts/nostr.ts";
-import { PrivateKey } from "../lib/nostr.ts/key.ts";
+} from "../lib/nostr-ts/nostr.ts";
+import { PrivateKey } from "../lib/nostr-ts/key.ts";
 import { assertEquals, fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { transformEvent } from "../database.ts";
 import { CustomAppData } from "../nostr.ts";

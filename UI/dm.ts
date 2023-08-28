@@ -1,4 +1,4 @@
-import { NostrEvent } from "../lib/nostr.ts/nostr.ts";
+import { NostrEvent } from "../lib/nostr-ts/nostr.ts";
 import {
     getTags,
     groupImageEvents,
@@ -6,7 +6,7 @@ import {
     reassembleBase64ImageFromEvents,
 } from "../nostr.ts";
 import { ChatMessage } from "./message.ts";
-import { PublicKey } from "../lib/nostr.ts/key.ts";
+import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { ContactGroup } from "./contact-list.tsx";
 
 import { SearchModel } from "./search_model.ts";

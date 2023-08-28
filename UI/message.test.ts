@@ -1,6 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { ChatMessage, groupContinuousMessages, parseContent } from "./message.ts";
-import { PrivateKey } from "../lib/nostr.ts/key.ts";
+import { PrivateKey } from "../lib/nostr-ts/key.ts";
 
 Deno.test("inline parse", async (t) => {
     const data = [

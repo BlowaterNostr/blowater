@@ -4,7 +4,7 @@ import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/maste
 import { EventBus } from "../event-bus.ts";
 import { UI_Interaction_Event } from "./app_update.ts";
 import { RelaySetting } from "./setting.tsx";
-import { ConnectionPool } from "../lib/nostr.ts/relay.ts";
+import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { defaultRelays } from "./setting.ts";
 
 const pool = new ConnectionPool();
