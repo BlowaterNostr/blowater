@@ -1,15 +1,15 @@
 /*
     Extension to common Nostr types
 */
-import { PrivateKey, PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
-import * as nostr from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
+import { PrivateKey, PublicKey } from "./lib/nostr-ts/key.ts";
+import * as nostr from "./lib/nostr-ts/nostr.ts";
 import {
     groupBy,
     NostrKind,
     prepareEncryptedNostrEvent,
     prepareNormalNostrEvent,
     TagPubKey,
-} from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
+} from "./lib/nostr-ts/nostr.ts";
 import { ProfileData } from "./features/profile.ts";
 import { ContentItem } from "./UI/message.ts";
 

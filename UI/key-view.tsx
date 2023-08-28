@@ -1,7 +1,7 @@
 /** @jsx h */
 import { Fragment, h } from "https://esm.sh/preact@10.11.3";
 import { tw } from "https://esm.sh/twind@0.16.16";
-import { PrivateKey, PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
+import { PrivateKey, PublicKey } from "../lib/nostr-ts/key.ts";
 import { CenterClass, IconButtonClass, InputClass, NoOutlineClass } from "./components/tw.ts";
 import { DividerBackgroundColor, PrimaryTextColor, TitleIconColor, WarnColor } from "./style/colors.ts";
 import { KeyIcon } from "./icons2/key-icon.tsx";

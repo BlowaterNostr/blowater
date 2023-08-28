@@ -4,7 +4,6 @@ import {
     assertNotEquals,
     fail,
 } from "https://deno.land/std@0.176.0/testing/asserts.ts";
-import { utf8Decode } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/ende.ts";
 import {
     blobToBase64,
     decryptNostrEvent,
@@ -12,22 +11,20 @@ import {
     NostrEvent,
     NostrKind,
     prepareNormalNostrEvent,
-} from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
+} from "./lib/nostr-ts/nostr.ts";
 import {
     computeThreads,
     getTags,
     groupImageEvents,
     Parsed_Event,
     parsedTagsEvent,
-    PlainText_Nostr_Event,
     prepareNostrImageEvents,
     prepareReplyEvent,
     reassembleBase64ImageFromEvents,
 } from "./nostr.ts";
 import { LamportTime } from "./time.ts";
-import { PrivateKey, PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
-import { ParseMessageContent } from "./UI/message-panel.tsx";
-import { parseContent } from "./UI/message.ts";
+import { PrivateKey, PublicKey } from "./lib/nostr-ts/key.ts";
+import { utf8Decode } from "./lib/nostr-ts/ende.ts";
 
 Deno.test("prepareNostrImageEvents", async (t) => {
     const pri = PrivateKey.Generate();

@@ -7,8 +7,8 @@ import * as db from "../database.ts";
 import { Avatar } from "./components/avatar.tsx";
 import { CenterClass, NoOutlineClass } from "./components/tw.ts";
 import { EventEmitter } from "../event-bus.ts";
-import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
-import { ConnectionPool } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
+import { PublicKey } from "../lib/nostr-ts/key.ts";
+import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import {
     PrimaryBackgroundColor,
     PrimaryTextColor,

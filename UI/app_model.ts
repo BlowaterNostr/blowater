@@ -1,8 +1,5 @@
-import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
-import {
-    NostrEvent,
-    NostrFilters,
-} from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
+import { PublicKey } from "../lib/nostr-ts/key.ts";
+import { NostrEvent, NostrFilters } from "../lib/nostr-ts/nostr.ts";
 
 import { DM_EditorModel, new_Social_EditorModel, Social_EditorModel } from "./editor.tsx";
 import { NavigationModel } from "./nav.tsx";

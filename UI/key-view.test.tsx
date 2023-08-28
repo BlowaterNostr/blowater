@@ -2,7 +2,7 @@
 import { h, render } from "https://esm.sh/preact@10.11.3";
 
 import KeyView from "./key-view.tsx";
-import { PrivateKey, PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
+import { PrivateKey, PublicKey } from "../lib/nostr-ts/key.ts";
 
 const key = PrivateKey.Generate();
 

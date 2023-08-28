@@ -1,12 +1,12 @@
 import { chan, closed, sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { PrivateKey, PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
+import { PrivateKey, PublicKey } from "../lib/nostr-ts/key.ts";
 import {
     InMemoryAccountContext,
     NostrAccountContext,
     NostrEvent,
     NostrKind,
     UnsignedNostrEvent,
-} from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
+} from "../lib/nostr-ts/nostr.ts";
 
 type NIP07 = {
     getPublicKey(): Promise<string>;

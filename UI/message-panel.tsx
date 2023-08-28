@@ -10,11 +10,8 @@ import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/maste
 import { EventEmitter } from "../event-bus.ts";
 
 import { ChatMessage, groupContinuousMessages, sortMessage, urlIsImage } from "./message.ts";
-import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
-import {
-    NostrEvent,
-    NostrKind,
-} from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
+import { PublicKey } from "../lib/nostr-ts/key.ts";
+import { NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import {
     CustomAppData_Event,
     PinContact,
@@ -568,7 +565,6 @@ export function ParseMessageContent(
                 break;
             case "npub":
                 {
-                    console.log("|||", item);
                     const userInfo = allUserInfo.get(item.pubkey);
                     if (userInfo) {
                         const profile = userInfo.profile;

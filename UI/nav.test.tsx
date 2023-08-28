@@ -8,8 +8,8 @@ import { tw } from "https://esm.sh/twind@0.16.16";
 
 import { EventBus } from "../event-bus.ts";
 import { UI_Interaction_Event } from "./app_update.ts";
-import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
-import { ConnectionPool } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
+import { PublicKey } from "../lib/nostr-ts/key.ts";
+import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 
 const db = await NewIndexedDB();
 if (db instanceof Error) {

@@ -4,11 +4,8 @@ import { tw } from "https://esm.sh/twind@0.16.16";
 import { GetLocalStorageAccountContext, Nip7ExtensionContext } from "./account-context.ts";
 import { ButtonClass, CenterClass, DividerClass } from "./components/tw.ts";
 import KeyView from "./key-view.tsx";
-import { PrivateKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
-import {
-    InMemoryAccountContext,
-    NostrAccountContext,
-} from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
+import { PrivateKey } from "../lib/nostr-ts/key.ts";
+import { InMemoryAccountContext, NostrAccountContext } from "../lib/nostr-ts/nostr.ts";
 import { EventBus, EventEmitter } from "../event-bus.ts";
 
 export type SignInEvent = {

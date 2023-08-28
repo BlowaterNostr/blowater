@@ -1,6 +1,6 @@
 import { ChatMessage } from "../UI/message.ts";
 import { Database_Contextual_View } from "../database.ts";
-import { NostrKind } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
+import { NostrKind } from "../lib/nostr-ts/nostr.ts";
 
 import { computeThreads } from "../nostr.ts";
 

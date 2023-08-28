@@ -1,13 +1,8 @@
-import {
-    ConnectionPool,
-    SubscriptionAlreadyExist,
-} from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
+import { ConnectionPool, SubscriptionAlreadyExist } from "../lib/nostr-ts/relay.ts";
 import { Database_Contextual_View } from "../database.ts";
-import { NoteID } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nip19.ts";
-import {
-    NostrFilters,
-    verifyEvent,
-} from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
+import { NostrFilters, RelayResponse_REQ_Message, verifyEvent } from "../lib/nostr-ts/nostr.ts";
+import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { NoteID } from "../lib/nostr-ts/nip19.ts";
 
 export class EventSyncer {
     constructor(private readonly pool: ConnectionPool, private readonly db: Database_Contextual_View) {}
@@ -19,7 +14,13 @@ export class EventSyncer {
             }
         }
         return (async () => {
-            let events = await this.pool.newSub("EventSyncer", {
+            let events: Error | {
+                filter: NostrFilters;
+                chan: Channel<{
+                    res: RelayResponse_REQ_Message;
+                    url: string;
+                }>;
+            } = await this.pool.newSub("EventSyncer", {
                 ids: [id.hex],
             });
             if (events instanceof SubscriptionAlreadyExist) {
@@ -30,7 +31,7 @@ export class EventSyncer {
             if (events instanceof Error) {
                 return events;
             }
-            for await (const { res, url } of events) {
+            for await (const { res, url } of events.chan) {
                 if (res.type == "EOSE") {
                     continue;
                 }
@@ -46,14 +47,20 @@ export class EventSyncer {
     }
 
     async syncEvents(filter: NostrFilters) {
-        let events = await this.pool.newSub("syncEvents", filter);
+        let events: Error | {
+            filter: NostrFilters;
+            chan: Channel<{
+                res: RelayResponse_REQ_Message;
+                url: string;
+            }>;
+        } = await this.pool.newSub("syncEvents", filter);
         if (events instanceof SubscriptionAlreadyExist) {
             events = await this.pool.updateSub("syncEvents", filter);
         }
         if (events instanceof Error) {
             return events;
         }
-        for await (const { res, url } of events) {
+        for await (const { res, url } of events.chan) {
             if (res.type == "EOSE") {
                 continue;
             }

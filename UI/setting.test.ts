@@ -1,11 +1,11 @@
-import { ConnectionPool } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
+import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { RelayConfig } from "./setting.ts";
 import {
     InMemoryAccountContext,
     NostrAccountContext,
     prepareCustomAppDataEvent,
-} from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
-import { PrivateKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
+} from "../lib/nostr-ts/nostr.ts";
+import { PrivateKey } from "../lib/nostr-ts/key.ts";
 import { assertEquals, fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { transformEvent } from "../database.ts";
 import { CustomAppData } from "../nostr.ts";
