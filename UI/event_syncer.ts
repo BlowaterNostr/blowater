@@ -27,7 +27,7 @@ export class EventSyncer {
                     res: RelayResponse_REQ_Message;
                     url: string;
                 }>;
-            }
+            };
             events = await this.pool.newSub("EventSyncer", {
                 ids: [id.hex],
             });
@@ -60,8 +60,8 @@ export class EventSyncer {
             chan: Channel<{
                 res: RelayResponse_REQ_Message;
                 url: string;
-            }>
-        }
+            }>;
+        };
         events = await this.pool.newSub("syncEvents", filter);
         if (events instanceof SubscriptionAlreadyExist) {
             events = await this.pool.updateSub("syncEvents", filter);
