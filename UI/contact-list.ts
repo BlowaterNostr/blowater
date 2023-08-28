@@ -3,13 +3,13 @@ import { profilesStream } from "../features/profile.ts";
 
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { ContactGroup } from "./contact-list.tsx";
-import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
+import { PublicKey } from "../lib/nostr.ts/key.ts";
 import {
     NostrAccountContext,
     NostrEvent,
     NostrKind,
-} from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
-import { ConnectionPool } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
+} from "../lib/nostr.ts/nostr.ts";
+import { ConnectionPool } from "../lib/nostr.ts/relay.ts";
 import {
     CustomAppData,
     CustomAppData_Event,

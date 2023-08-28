@@ -9,7 +9,7 @@ import {
     ViewThread,
     ViewUserDetail,
 } from "./message-panel.tsx";
-import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
+import { PublicKey } from "../lib/nostr.ts/key.ts";
 import { ChatMessage, groupContinuousMessages } from "./message.ts";
 import { Editor, EditorEvent, EditorModel } from "./editor.tsx";
 import { Database_Contextual_View } from "../database.ts";

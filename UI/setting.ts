@@ -1,8 +1,8 @@
 import {
     NostrAccountContext,
     prepareCustomAppDataEvent,
-} from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
-import { ConnectionPool } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
+} from "../lib/nostr.ts/nostr.ts";
+import { ConnectionPool } from "../lib/nostr.ts/relay.ts";
 import { AddRelay, CustomAppData, CustomAppData_Event, RemoveRelay } from "../nostr.ts";
 
 const damus = "wss://relay.damus.io";

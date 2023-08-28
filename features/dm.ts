@@ -9,10 +9,10 @@ import {
     prepareEncryptedNostrEvent,
     prepareNormalNostrEvent,
     RelayResponse_Event,
-} from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
-import { ConnectionPool } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
+} from "../lib/nostr.ts/nostr.ts";
+import { ConnectionPool } from "../lib/nostr.ts/relay.ts";
 import { prepareNostrImageEvents, Tag } from "../nostr.ts";
-import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
+import { PublicKey } from "../lib/nostr.ts/key.ts";
 
 export async function sendDMandImages(args: {
     sender: NostrAccountContext;
@@ -126,7 +126,7 @@ async function* getAllEncryptedMessagesSendBy(
     if (resp instanceof Error) {
         throw resp;
     }
-    for await (const nostrMessage of resp) {
+    for await (const nostrMessage of resp.chan) {
         yield nostrMessage;
     }
 }
@@ -149,7 +149,7 @@ async function* getAllEncryptedMessagesReceivedBy(
     if (resp instanceof Error) {
         throw resp;
     }
-    for await (const nostrMessage of resp) {
+    for await (const nostrMessage of resp.chan) {
         yield nostrMessage;
     }
 }

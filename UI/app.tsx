@@ -26,13 +26,13 @@ import {
 } from "./app_update.ts";
 import { getSocialPosts } from "../features/social.ts";
 import * as time from "../time.ts";
-import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
+import { PublicKey } from "../lib/nostr.ts/key.ts";
 import {
     NostrAccountContext,
     NostrEvent,
     NostrKind,
-} from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
-import { ConnectionPool } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
+} from "../lib/nostr.ts/nostr.ts";
+import { ConnectionPool } from "../lib/nostr.ts/relay.ts";
 import { getCurrentSignInCtx, setSignInState, SignIn } from "./signIn.tsx";
 import { AppList } from "./app-list.tsx";
 import { SecondaryBackgroundColor } from "./style/colors.ts";
@@ -128,7 +128,7 @@ async function initProfileSyncer(
         if (resp instanceof Error) {
             throw resp;
         }
-        for await (const { res, url } of resp) {
+        for await (const { res, url } of resp.chan) {
             if (res.type == "EVENT") {
                 database.addEvent(res.event);
             }

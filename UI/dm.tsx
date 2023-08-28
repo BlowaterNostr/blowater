@@ -12,8 +12,8 @@ import { getConversationMessages, UI_Interaction_Event } from "./app_update.ts";
 import {
     NostrAccountContext,
     NostrKind,
-} from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
-import { ConnectionPool } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
+} from "../lib/nostr.ts/nostr.ts";
+import { ConnectionPool } from "../lib/nostr.ts/relay.ts";
 import { getProfileEvent } from "../features/profile.ts";
 import { ProfilesSyncer, UserInfo } from "./contact-list.ts";
 import { ChatMessage } from "./message.ts";

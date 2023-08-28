@@ -3,7 +3,7 @@ import { Fragment, h } from "https://esm.sh/preact@10.11.3";
 import { tw } from "https://esm.sh/twind@0.16.16";
 import { Avatar } from "./components/avatar.tsx";
 import { CloseIcon, HomeIcon, KeyIcon, UserIcon } from "./icons/mod.tsx";
-import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
+import { PublicKey } from "../lib/nostr.ts/key.ts";
 import { ProfileData } from "../features/profile.ts";
 import { IconButtonClass } from "./components/tw.ts";
 import { EventEmitter } from "../event-bus.ts";

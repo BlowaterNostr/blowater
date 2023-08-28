@@ -3,7 +3,7 @@ import { Fragment, h } from "https://esm.sh/preact@10.11.3";
 import { tw } from "https://esm.sh/twind@0.16.16";
 import { EventBus } from "../event-bus.ts";
 
-import { WebSocketReadyState } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/websocket.ts";
+import { WebSocketReadyState } from "../lib/nostr.ts/websocket.ts";
 
 import {
     CenterClass,
@@ -13,13 +13,13 @@ import {
     NoOutlineClass,
 } from "./components/tw.ts";
 import { UI_Interaction_Event } from "./app_update.ts";
-import { ConnectionPool } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/relay.ts";
+import { ConnectionPool } from "../lib/nostr.ts/relay.ts";
 import KeyView from "./key-view.tsx";
 import {
     InMemoryAccountContext,
     NostrAccountContext,
-} from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
-import { PrivateKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
+} from "../lib/nostr.ts/nostr.ts";
+import { PrivateKey } from "../lib/nostr.ts/key.ts";
 import {
     DividerBackgroundColor,
     ErrorColor,

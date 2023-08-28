@@ -4,8 +4,8 @@ import { h, render } from "https://esm.sh/preact@10.11.3";
 import { NewIndexedDB } from "./dexie-db.ts";
 import { MessagePanel } from "./message-panel.tsx";
 import { EventBus } from "../event-bus.ts";
-import { PrivateKey, PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
-import { NostrKind } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
+import { PrivateKey, PublicKey } from "../lib/nostr.ts/key.ts";
+import { NostrKind } from "../lib/nostr.ts/nostr.ts";
 import { ChatMessage } from "./message.ts";
 
 // const myPrivateKey = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"

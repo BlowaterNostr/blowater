@@ -1,7 +1,7 @@
-import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
+import { PublicKey } from "../lib/nostr.ts/key.ts";
 import { MessageThread } from "./dm.tsx";
 import { PlainText_Nostr_Event } from "../nostr.ts";
-import { NoteID } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nip19.ts";
+import { NoteID } from "../lib/nostr.ts/nip19.ts";
 
 export function* parseContent(content: string) {
     // URLs

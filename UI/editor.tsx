@@ -10,8 +10,8 @@ import {
 } from "./components/tw.ts";
 import { EventEmitter } from "../event-bus.ts";
 
-import { NostrKind } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
-import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
+import { NostrKind } from "../lib/nostr.ts/nostr.ts";
+import { PublicKey } from "../lib/nostr.ts/key.ts";
 import { Tag } from "../nostr.ts";
 import { ImageIcon } from "./icons2/image-icon.tsx";
 import {

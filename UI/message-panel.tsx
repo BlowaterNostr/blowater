@@ -10,11 +10,11 @@ import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/maste
 import { EventEmitter } from "../event-bus.ts";
 
 import { ChatMessage, groupContinuousMessages, sortMessage, urlIsImage } from "./message.ts";
-import { PublicKey } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/key.ts";
+import { PublicKey } from "../lib/nostr.ts/key.ts";
 import {
     NostrEvent,
     NostrKind,
-} from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
+} from "../lib/nostr.ts/nostr.ts";
 import {
     CustomAppData_Event,
     PinContact,
