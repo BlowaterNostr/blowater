@@ -288,6 +288,7 @@ export type PlainText_Nostr_Event =
     >
     & {
         parsedContentItems: ContentItem[];
+        originalEvent: Event; // only for user to copy
     };
 
 export type Profile_Nostr_Event = Parsed_Event<NostrKind.META_DATA> & {

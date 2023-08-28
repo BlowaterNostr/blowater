@@ -91,6 +91,7 @@ export class Database_Contextual_View {
                             parsedTags: getTags(event),
                             publicKey: pubkey,
                             parsedContentItems: Array.from(parseContent(event.content)),
+                            originalEvent: event,
                         };
                         cache.push(e);
                     }
@@ -144,6 +145,7 @@ export class Database_Contextual_View {
                         parsedTags: getTags(event),
                         publicKey: pubkey,
                         parsedContentItems: Array.from(parseContent(event.content)),
+                        originalEvent: event,
                     };
                     cache.push(e);
                     await db.sourceOfChange.put(e);
@@ -228,6 +230,7 @@ export class Database_Contextual_View {
                     parsedTags: getTags(event),
                     publicKey: pubkey,
                     parsedContentItems: Array.from(parseContent(event.content)),
+                    originalEvent: event,
                 };
             }
         }
