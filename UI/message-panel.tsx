@@ -208,6 +208,7 @@ export function MessagePanel(props: DirectMessagePanelProps) {
                 ? (
                     <Popover
                         blankClickClose={true}
+                        escapeClose={true}
                         close={() => {
                             props.eventEmitter.emit({
                                 type: "CancelViewPlainTextEvent",

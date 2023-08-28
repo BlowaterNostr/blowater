@@ -12,12 +12,12 @@ export function PlainTextEventDetail(plainTextEvent: PlainText_Nostr_Event) {
     const eventID = plainTextEvent.id;
     const eventIDBech32 = NoteID.FromString(plainTextEvent.id).bech32();
     const authorPubkey = plainTextEvent.publicKey.hex;
-    const authorPubkeyBech32 = NoteID.FromHex(plainTextEvent.publicKey.hex).bech32();
+    const authorPubkeyBech32 = plainTextEvent.publicKey.bech32();
     const content = plainTextEvent.content;
-    const createAt = new Date(plainTextEvent.created_at * 1000).toLocaleString();
+    const originalEventRaw = JSON.stringify(plainTextEvent.originalEvent, null, 4);
 
     return (
-        <div class={tw`max-w-[60%] m-auto py-[1.5rem]`}>
+        <div class={tw`py-[1.5rem] px-4`}>
             <p class={tw`text-[${PrimaryTextColor}] text-[1.3125rem] flex`}>
                 <AboutIcon
                     class={tw`w-[2rem] h-[2rem] mr-[1rem]`}
@@ -143,18 +143,15 @@ export function PlainTextEventDetail(plainTextEvent: PlainText_Nostr_Event) {
                 </button>
             </div>
 
-            <p class={tw`mt-[1.75rem] text-[${PrimaryTextColor}]`}>Created At</p>
+            <p class={tw`mt-[1.75rem] text-[${PrimaryTextColor}]`}>Raw</p>
             <div class={tw`relative`}>
-                <input
-                    value={createAt}
-                    disabled
-                    type="text"
-                    class={tw`${InputClass} truncate pr-[4rem]`}
-                />
+                <pre class={tw`${InputClass} truncate pr-[4rem] whitespace-pre resize-none`}>
+                    {originalEventRaw}
+                </pre>
                 <button
                     class={tw`absolute w-[2rem] h-[2rem] rounded-lg top-[0.5rem] right-[1rem] hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
                     onClick={async () => {
-                        await navigator.clipboard.writeText(createAt);
+                        await navigator.clipboard.writeText(originalEventRaw);
                     }}
                 >
                     <CopyIcon
