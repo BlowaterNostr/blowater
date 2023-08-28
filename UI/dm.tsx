@@ -11,12 +11,13 @@ import { DM_EditorModel } from "./editor.tsx";
 import { getConversationMessages, UI_Interaction_Event } from "./app_update.ts";
 import { NostrAccountContext, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
-import { getProfileEvent } from "../features/profile.ts";
-import { ProfilesSyncer, UserInfo } from "./contact-list.ts";
+import { getProfileEvent, ProfilesSyncer } from "../features/profile.ts";
+
 import { ChatMessage } from "./message.ts";
 import { DM_Container_Model } from "./dm.ts";
 import { getFocusedContent } from "./app.tsx";
 import { EventSyncer } from "./event_syncer.ts";
+import { UserInfo } from "./contact-list.ts";
 
 type DirectMessageContainerProps = {
     editors: Map<string, DM_EditorModel>;

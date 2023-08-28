@@ -1,13 +1,7 @@
-import { getProfileEvent, getProfilesByName, saveProfile } from "../features/profile.ts";
+import { getProfileEvent, getProfilesByName, ProfilesSyncer, saveProfile } from "../features/profile.ts";
 
 import { App } from "./app.tsx";
-import {
-    AllUsersInformation,
-    getGroupOf,
-    getUserInfoFromPublicKey,
-    ProfilesSyncer,
-    UserInfo,
-} from "./contact-list.ts";
+import { AllUsersInformation, getGroupOf, getUserInfoFromPublicKey, UserInfo } from "./contact-list.ts";
 
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { Database_Contextual_View } from "../database.ts";

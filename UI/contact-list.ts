@@ -1,11 +1,7 @@
-import { Database_Contextual_View } from "../database.ts";
-import { profilesStream } from "../features/profile.ts";
-
-import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { ContactGroup } from "./contact-list.tsx";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
-import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
+
 import {
     CustomAppData,
     CustomAppData_Event,
@@ -24,41 +20,6 @@ export interface UserInfo {
         readonly content: CustomAppData;
     } | undefined;
     events: PlainText_Nostr_Event[];
-}
-
-export class ProfilesSyncer {
-    readonly userSet = new Set<string>();
-
-    private chan = new Channel<string[]>();
-
-    constructor(
-        private readonly database: Database_Contextual_View,
-        private readonly pool: ConnectionPool,
-    ) {
-        (async () => {
-            let stream = profilesStream(this.userSet, pool);
-            database.syncEvents((e) => e.kind == NostrKind.META_DATA, stream);
-            for await (const users of this.chan) {
-                const size = this.userSet.size;
-                for (const user of users) {
-                    this.userSet.add(user);
-                }
-                if (this.userSet.size > size) {
-                    console.log("adding", users);
-                    await stream.close();
-                    stream = profilesStream(this.userSet, pool);
-                    database.syncEvents((e) => e.kind == NostrKind.META_DATA, stream);
-                }
-            }
-        })();
-    }
-
-    async add(...users: string[]) {
-        const err = await this.chan.put(users);
-        if (err instanceof Error) {
-            throw err; // impossible
-        }
-    }
 }
 
 export function getUserInfoFromPublicKey(k: PublicKey, users: Map<string, UserInfo>) {

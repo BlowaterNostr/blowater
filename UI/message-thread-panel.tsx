@@ -13,9 +13,10 @@ import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { ChatMessage, groupContinuousMessages } from "./message.ts";
 import { Editor, EditorEvent, EditorModel } from "./editor.tsx";
 import { Database_Contextual_View } from "../database.ts";
-import { getUserInfoFromPublicKey, ProfilesSyncer, UserInfo } from "./contact-list.ts";
+import { getUserInfoFromPublicKey, UserInfo } from "./contact-list.ts";
 import { EventSyncer } from "./event_syncer.ts";
 import { Avatar } from "./components/avatar.tsx";
+import { ProfilesSyncer } from "../features/profile.ts";
 
 interface MessageThreadProps {
     eventEmitter: EventEmitter<DirectMessagePanelUpdate | EditorEvent>;
