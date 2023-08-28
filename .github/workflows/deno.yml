@@ -51,6 +51,8 @@ jobs:
     steps:
       - name: Clone repository
         uses: actions/checkout@v3
+        with:
+          submodules: 'true'
 
       - name: Setup Deno
         uses: denoland/setup-deno@v1
