@@ -126,7 +126,7 @@ async function* getAllEncryptedMessagesSendBy(
     if (resp instanceof Error) {
         throw resp;
     }
-    for await (const nostrMessage of resp) {
+    for await (const nostrMessage of resp.chan) {
         yield nostrMessage;
     }
 }
@@ -149,7 +149,7 @@ async function* getAllEncryptedMessagesReceivedBy(
     if (resp instanceof Error) {
         throw resp;
     }
-    for await (const nostrMessage of resp) {
+    for await (const nostrMessage of resp.chan) {
         yield nostrMessage;
     }
 }

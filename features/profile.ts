@@ -9,8 +9,10 @@ import {
     groupBy,
     NostrAccountContext,
     NostrEvent,
+    NostrFilters,
     NostrKind,
     prepareNormalNostrEvent,
+RelayResponse_REQ_Message,
 } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
 import { Parsed_Event, Profile_Nostr_Event } from "../nostr.ts";
 
@@ -31,7 +33,15 @@ export function profilesStream(
     const chan = csp.chan<[NostrEvent, string]>();
     const publics = Array.from(publicKeys);
     (async () => {
-        let resp = await pool.newSub(
+        let resp: Error | SubscriptionAlreadyExist | {
+            filter: NostrFilters;
+            chan: csp.Channel<{
+                res: RelayResponse_REQ_Message;
+                url: string;
+            }>
+        }
+
+        resp = await pool.newSub(
             "profilesStream",
             {
                 authors: publics,
@@ -52,7 +62,7 @@ export function profilesStream(
             return;
         }
         console.log("new profile stream", publics);
-        for await (let { res: nostrMessage, url: relayUrl } of resp) {
+        for await (let { res: nostrMessage, url: relayUrl } of resp.chan) {
             if (nostrMessage.type === "EVENT" && nostrMessage.event.content) {
                 await chan.put([
                     nostrMessage.event,
