@@ -1,9 +1,6 @@
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { Database_Contextual_View } from "../database.ts";
-import {
-    ConnectionPool,
-    SubscriptionAlreadyExist,
-} from "../lib/nostr.ts/relay.ts";
+import { ConnectionPool, SubscriptionAlreadyExist } from "../lib/nostr.ts/relay.ts";
 import { PublicKey } from "../lib/nostr.ts/key.ts";
 import {
     groupBy,

@@ -25,11 +25,7 @@ import { Model } from "./app_model.ts";
 import { SearchUpdate, SelectProfile } from "./search_model.ts";
 import { fromEvents, LamportTime } from "../time.ts";
 import { PublicKey } from "../lib/nostr.ts/key.ts";
-import {
-    NostrAccountContext,
-    NostrKind,
-    prepareCustomAppDataEvent,
-} from "../lib/nostr.ts/nostr.ts";
+import { NostrAccountContext, NostrKind, prepareCustomAppDataEvent } from "../lib/nostr.ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr.ts/relay.ts";
 import { SignInEvent, signInWithExtension, signInWithPrivateKey } from "./signIn.tsx";
 import {

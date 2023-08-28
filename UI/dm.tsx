@@ -9,10 +9,7 @@ import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
 import { IconButtonClass } from "./components/tw.ts";
 import { DM_EditorModel } from "./editor.tsx";
 import { getConversationMessages, UI_Interaction_Event } from "./app_update.ts";
-import {
-    NostrAccountContext,
-    NostrKind,
-} from "../lib/nostr.ts/nostr.ts";
+import { NostrAccountContext, NostrKind } from "../lib/nostr.ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr.ts/relay.ts";
 import { getProfileEvent } from "../features/profile.ts";
 import { ProfilesSyncer, UserInfo } from "./contact-list.ts";

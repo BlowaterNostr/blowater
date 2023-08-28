@@ -15,10 +15,7 @@ import {
 import { UI_Interaction_Event } from "./app_update.ts";
 import { ConnectionPool } from "../lib/nostr.ts/relay.ts";
 import KeyView from "./key-view.tsx";
-import {
-    InMemoryAccountContext,
-    NostrAccountContext,
-} from "../lib/nostr.ts/nostr.ts";
+import { InMemoryAccountContext, NostrAccountContext } from "../lib/nostr.ts/nostr.ts";
 import { PrivateKey } from "../lib/nostr.ts/key.ts";
 import {
     DividerBackgroundColor,

@@ -5,10 +5,7 @@ import { GetLocalStorageAccountContext, Nip7ExtensionContext } from "./account-c
 import { ButtonClass, CenterClass, DividerClass } from "./components/tw.ts";
 import KeyView from "./key-view.tsx";
 import { PrivateKey } from "../lib/nostr.ts/key.ts";
-import {
-    InMemoryAccountContext,
-    NostrAccountContext,
-} from "../lib/nostr.ts/nostr.ts";
+import { InMemoryAccountContext, NostrAccountContext } from "../lib/nostr.ts/nostr.ts";
 import { EventBus, EventEmitter } from "../event-bus.ts";
 
 export type SignInEvent = {

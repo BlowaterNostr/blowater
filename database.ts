@@ -10,7 +10,14 @@ import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master
 import { DexieDatabase } from "./UI/dexie-db.ts";
 import { parseProfileData } from "./features/profile.ts";
 import { parseContent } from "./UI/message.ts";
-import { DecryptionFailure, decryptNostrEvent, NostrAccountContext, NostrEvent, NostrKind, RelayResponse_REQ_Message } from "./lib/nostr.ts/nostr.ts";
+import {
+    DecryptionFailure,
+    decryptNostrEvent,
+    NostrAccountContext,
+    NostrEvent,
+    NostrKind,
+    RelayResponse_REQ_Message,
+} from "./lib/nostr.ts/nostr.ts";
 import { PublicKey } from "./lib/nostr.ts/key.ts";
 
 export const NotFound = Symbol("Not Found");
