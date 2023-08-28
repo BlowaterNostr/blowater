@@ -1,5 +1,11 @@
 /** @jsx h */
-import { ComponentChildren, h, Component, ComponentChild, RenderableProps } from "https://esm.sh/preact@10.11.3";
+import {
+    Component,
+    ComponentChild,
+    ComponentChildren,
+    h,
+    RenderableProps,
+} from "https://esm.sh/preact@10.11.3";
 import { tw } from "https://esm.sh/twind@0.16.16";
 import { SecondaryBackgroundColor } from "../style/colors.ts";
 
@@ -8,7 +14,7 @@ type PopoverProps = {
     blankClickClose?: boolean;
     close: () => void;
     children: ComponentChildren;
-}
+};
 
 export class Popover extends Component<PopoverProps> {
     componentDidMount() {
@@ -21,11 +27,11 @@ export class Popover extends Component<PopoverProps> {
         window.removeEventListener("keydown", this.handleKeyDown);
     }
 
-    handleKeyDown = (e: KeyboardEvent) =>  {
+    handleKeyDown = (e: KeyboardEvent) => {
         if (e.code === "Escape") {
             this.props.close();
         }
-    }
+    };
 
     render() {
         return (

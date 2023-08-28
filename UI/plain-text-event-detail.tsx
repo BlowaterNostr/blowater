@@ -7,6 +7,7 @@ import { AboutIcon } from "./icons/about-icon.tsx";
 import { CopyIcon } from "./icons/copy-icon.tsx";
 import { DividerBackgroundColor, PrimaryTextColor, TitleIconColor } from "./style/colors.ts";
 import { PlainText_Nostr_Event } from "../nostr.ts";
+import { CopyButton } from "./components/copy-button.tsx";
 
 export function PlainTextEventDetail(plainTextEvent: PlainText_Nostr_Event) {
     const eventID = plainTextEvent.id;
@@ -33,44 +34,24 @@ export function PlainTextEventDetail(plainTextEvent: PlainText_Nostr_Event) {
                     value={eventIDBech32}
                     disabled
                     type="text"
-                    class={tw`${InputClass} truncate pr-[4rem]`}
+                    class={tw`${InputClass} overflow-x-auto pr-[4rem]`}
                 />
-                <button
-                    class={tw`absolute w-[2rem] h-[2rem] rounded-lg top-[0.5rem] right-[1rem] hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
-                    onClick={async () => {
-                        await navigator.clipboard.writeText(eventIDBech32);
-                    }}
-                >
-                    <CopyIcon
-                        class={tw`w-[1rem] h-[1rem]`}
-                        style={{
-                            fill: "none",
-                            stroke: PrimaryTextColor,
-                        }}
-                    />
-                </button>
+                <CopyButton
+                    copyContent={eventIDBech32}
+                    class={tw`absolute right-4 top-4`}
+                />
             </div>
             <div class={tw`relative mt-4`}>
                 <input
                     value={eventID}
                     disabled
                     type="text"
-                    class={tw`${InputClass} truncate pr-[4rem]`}
+                    class={tw`${InputClass} overflow-x-auto pr-[4rem]`}
                 />
-                <button
-                    class={tw`absolute w-[2rem] h-[2rem] rounded-lg top-[0.5rem] right-[1rem] hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
-                    onClick={async () => {
-                        await navigator.clipboard.writeText(eventID);
-                    }}
-                >
-                    <CopyIcon
-                        class={tw`w-[1rem] h-[1rem]`}
-                        style={{
-                            fill: "none",
-                            stroke: PrimaryTextColor,
-                        }}
-                    />
-                </button>
+                <CopyButton
+                    copyContent={eventID}
+                    class={tw`absolute right-4 top-4`}
+                />
             </div>
 
             <p class={tw`mt-[1.75rem] text-[${PrimaryTextColor}]`}>Author</p>
@@ -79,44 +60,24 @@ export function PlainTextEventDetail(plainTextEvent: PlainText_Nostr_Event) {
                     value={authorPubkeyBech32}
                     disabled
                     type="text"
-                    class={tw`${InputClass} truncate pr-[4rem]`}
+                    class={tw`${InputClass} overflow-x-auto pr-[4rem]`}
                 />
-                <button
-                    class={tw`absolute w-[2rem] h-[2rem] rounded-lg top-[0.5rem] right-[1rem] hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
-                    onClick={async () => {
-                        await navigator.clipboard.writeText(authorPubkeyBech32);
-                    }}
-                >
-                    <CopyIcon
-                        class={tw`w-[1rem] h-[1rem]`}
-                        style={{
-                            fill: "none",
-                            stroke: PrimaryTextColor,
-                        }}
-                    />
-                </button>
+                <CopyButton
+                    copyContent={authorPubkeyBech32}
+                    class={tw`absolute right-4 top-4`}
+                />
             </div>
             <div class={tw`relative mt-4`}>
                 <input
                     value={authorPubkey}
                     disabled
                     type="text"
-                    class={tw`${InputClass} truncate pr-[4rem]`}
+                    class={tw`${InputClass} overflow-x-auto pr-[4rem]`}
                 />
-                <button
-                    class={tw`absolute w-[2rem] h-[2rem] rounded-lg top-[0.5rem] right-[1rem] hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
-                    onClick={async () => {
-                        await navigator.clipboard.writeText(authorPubkey);
-                    }}
-                >
-                    <CopyIcon
-                        class={tw`w-[1rem] h-[1rem]`}
-                        style={{
-                            fill: "none",
-                            stroke: PrimaryTextColor,
-                        }}
-                    />
-                </button>
+                <CopyButton
+                    copyContent={authorPubkey}
+                    class={tw`absolute right-4 top-4`}
+                />
             </div>
 
             <p class={tw`mt-[1.75rem] text-[${PrimaryTextColor}]`}>Content</p>
@@ -125,43 +86,23 @@ export function PlainTextEventDetail(plainTextEvent: PlainText_Nostr_Event) {
                     value={content}
                     disabled
                     type="text"
-                    class={tw`${InputClass} truncate pr-[4rem]`}
+                    class={tw`${InputClass} overflow-x-auto pr-[4rem]`}
                 />
-                <button
-                    class={tw`absolute w-[2rem] h-[2rem] rounded-lg top-[0.5rem] right-[1rem] hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
-                    onClick={async () => {
-                        await navigator.clipboard.writeText(content);
-                    }}
-                >
-                    <CopyIcon
-                        class={tw`w-[1rem] h-[1rem]`}
-                        style={{
-                            fill: "none",
-                            stroke: PrimaryTextColor,
-                        }}
-                    />
-                </button>
+                <CopyButton
+                    copyContent={content}
+                    class={tw`absolute right-4 top-4`}
+                />
             </div>
 
             <p class={tw`mt-[1.75rem] text-[${PrimaryTextColor}]`}>Raw</p>
             <div class={tw`relative`}>
-                <pre class={tw`${InputClass} truncate pr-[4rem] whitespace-pre resize-none`}>
+                <pre class={tw`${InputClass} pr-[4rem] whitespace-pre resize-none overflow-x-auto`}>
                     {originalEventRaw}
                 </pre>
-                <button
-                    class={tw`absolute w-[2rem] h-[2rem] rounded-lg top-[0.5rem] right-[1rem] hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
-                    onClick={async () => {
-                        await navigator.clipboard.writeText(originalEventRaw);
-                    }}
-                >
-                    <CopyIcon
-                        class={tw`w-[1rem] h-[1rem]`}
-                        style={{
-                            fill: "none",
-                            stroke: PrimaryTextColor,
-                        }}
-                    />
-                </button>
+                <CopyButton
+                    copyContent={originalEventRaw}
+                    class={tw`absolute right-4 top-4`}
+                />
             </div>
         </div>
     );

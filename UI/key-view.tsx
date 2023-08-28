@@ -6,6 +6,7 @@ import { CenterClass, IconButtonClass, InputClass, NoOutlineClass } from "./comp
 import { DividerBackgroundColor, PrimaryTextColor, TitleIconColor, WarnColor } from "./style/colors.ts";
 import { KeyIcon } from "./icons2/key-icon.tsx";
 import { CopyIcon } from "./icons2/copy-icon.tsx";
+import { CopyButton } from "./components/copy-button.tsx";
 
 export default function KeyView(props: {
     publicKey: PublicKey;
@@ -30,22 +31,12 @@ export default function KeyView(props: {
                     value={props.publicKey.bech32()}
                     disabled
                     type="text"
-                    class={tw`${InputClass} truncate pr-[4rem]`}
+                    class={tw`${InputClass} overflow-x-auto pr-[4rem]`}
                 />
-                <button
-                    class={tw`absolute w-[2rem] h-[2rem] rounded-lg top-[0.5rem] right-[1rem] hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
-                    onClick={async () => {
-                        await navigator.clipboard.writeText(props.publicKey.bech32());
-                    }}
-                >
-                    <CopyIcon
-                        class={tw`w-[1rem] h-[1rem]`}
-                        style={{
-                            fill: "none",
-                            stroke: PrimaryTextColor,
-                        }}
-                    />
-                </button>
+                <CopyButton
+                    copyContent={props.publicKey.bech32()}
+                    class={tw`absolute right-4 top-4`}
+                />
             </div>
             <p class={tw`mt-[1.5rem] text-[${PrimaryTextColor}]`}>Private Key</p>
             <div class={tw`relative`}>
@@ -53,25 +44,15 @@ export default function KeyView(props: {
                     value="●●●●●●"
                     disabled
                     type="text"
-                    class={tw`${InputClass} truncate pr-[4rem]`}
+                    class={tw`${InputClass} overflow-x-auto pr-[4rem]`}
                 />
 
                 {privateKey
                     ? (
-                        <button
-                            class={tw`absolute w-[2rem] h-[2rem] rounded-lg top-[0.5rem] right-[1rem] hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
-                            onClick={async () => {
-                                await navigator.clipboard.writeText(privateKey.bech32);
-                            }}
-                        >
-                            <CopyIcon
-                                class={tw`w-[1rem] h-[1rem]`}
-                                style={{
-                                    fill: "none",
-                                    stroke: PrimaryTextColor,
-                                }}
-                            />
-                        </button>
+                        <CopyButton
+                            copyContent={privateKey.bech32}
+                            class={tw`absolute right-4 top-4`}
+                        />
                     )
                     : undefined}
             </div>
