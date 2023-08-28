@@ -128,7 +128,7 @@ async function initProfileSyncer(
         if (resp instanceof Error) {
             throw resp;
         }
-        for await (const { res, url } of resp) {
+        for await (const { res, url } of resp.chan) {
             if (res.type == "EVENT") {
                 database.addEvent(res.event);
             }
