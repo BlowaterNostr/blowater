@@ -6,12 +6,13 @@ import { Model } from "./app_model.ts";
 import { NostrAccountContext } from "../lib/nostr-ts/nostr.ts";
 import { Database_Contextual_View } from "../database.ts";
 import { EventEmitter } from "../event-bus.ts";
-import { AllUsersInformation, getUserInfoFromPublicKey, ProfilesSyncer } from "./contact-list.ts";
+import { AllUsersInformation, getUserInfoFromPublicKey } from "./contact-list.ts";
 import { EventSyncer } from "./event_syncer.ts";
 import { PrimaryTextColor } from "./style/colors.ts";
 import { EditorEvent } from "./editor.tsx";
 import { PinContact, UnpinContact } from "../nostr.ts";
 import { CenterClass, LinearGradientsClass } from "./components/tw.ts";
+import { ProfilesSyncer } from "../features/profile.ts";
 
 export type SocialUpdates =
     | SocialFilterChanged_content

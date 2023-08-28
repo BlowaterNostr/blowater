@@ -12,62 +12,56 @@ import {
     RelayResponse_REQ_Message,
 } from "../lib/nostr-ts/nostr.ts";
 import { Parsed_Event, Profile_Nostr_Event } from "../nostr.ts";
+import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 
-// nip01 meta data
-// https://github.com/nostr-protocol/nips/blob/master/05.md
-// get the profile from a public key
-export class UserMetaDataNotExist {
+export class ProfilesSyncer {
+    readonly userSet = new Set<string>();
+
+    private chan = new Channel<string[]>();
+
     constructor(
-        public readonly publicKey: string,
-        public readonly relay: string,
-    ) {}
-}
+        private readonly database: Database_Contextual_View,
+        private readonly pool: ConnectionPool,
+    ) {
+        (async () => {
+            for await (const users of this.chan) {
+                const size = this.userSet.size;
+                for (const user of users) {
+                    this.userSet.add(user);
+                }
+                if (this.userSet.size > size) {
+                    console.log("adding", users);
+                    const resp = await pool.updateSub(
+                        "profilesStream",
+                        {
+                            authors: Array.from(this.userSet),
+                            kinds: [NostrKind.META_DATA],
+                        },
+                    );
 
-export function profilesStream(
-    publicKeys: Iterable<string>,
-    pool: ConnectionPool,
-) {
-    const chan = csp.chan<[NostrEvent, string]>();
-    const publics = Array.from(publicKeys);
-    (async () => {
-        let resp: Error | {
-            filter: NostrFilters;
-            chan: csp.Channel<{
-                res: RelayResponse_REQ_Message;
-                url: string;
-            }>;
-        } = await pool.newSub(
-            "profilesStream",
-            {
-                authors: publics,
-                kinds: [NostrKind.META_DATA],
-            },
-        );
-        if (resp instanceof SubscriptionAlreadyExist) {
-            resp = await pool.updateSub(
-                "profilesStream",
-                {
-                    authors: publics,
-                    kinds: [NostrKind.META_DATA],
-                },
-            );
-        }
-        if (resp instanceof Error) {
-            console.error(resp.message);
-            return;
-        }
-        console.log("new profile stream", publics);
-        for await (let { res: nostrMessage, url: relayUrl } of resp.chan) {
-            if (nostrMessage.type === "EVENT" && nostrMessage.event.content) {
-                await chan.put([
-                    nostrMessage.event,
-                    relayUrl,
-                ]);
+                    if (resp instanceof Error) {
+                        console.error(resp.message);
+                        return;
+                    }
+                    for await (let { res: nostrMessage, url: relayUrl } of resp.chan) {
+                        if (nostrMessage.type === "EVENT" && nostrMessage.event.content) {
+                            database.addEvent(nostrMessage.event);
+                        }
+                        if (nostrMessage.type == "EOSE") {
+                            break;
+                        }
+                    }
+                }
             }
+        })();
+    }
+
+    async add(...users: string[]) {
+        const err = await this.chan.put(users);
+        if (err instanceof Error) {
+            throw err; // impossible
         }
-        await chan.close(`pool sub has been clsoed`);
-    })();
-    return chan;
+    }
 }
 
 export async function saveProfile(

@@ -19,13 +19,13 @@ import {
     Profile_Nostr_Event,
     UnpinContact,
 } from "../nostr.ts";
-import { ProfileData } from "../features/profile.ts";
+import { ProfileData, ProfilesSyncer } from "../features/profile.ts";
 import { MessageThread } from "./dm.tsx";
 import { UserDetail } from "./user-detail.tsx";
 import { MessageThreadPanel } from "./message-thread-panel.tsx";
 import { Database_Contextual_View } from "../database.ts";
 import { HoverButtonBackgroudColor, LinkColor, PrimaryTextColor } from "./style/colors.ts";
-import { getUserInfoFromPublicKey, ProfilesSyncer, UserInfo } from "./contact-list.ts";
+import { getUserInfoFromPublicKey, UserInfo } from "./contact-list.ts";
 import { EventSyncer } from "./event_syncer.ts";
 
 export type RightPanelModel = {

@@ -13,7 +13,7 @@ import { EventBus } from "../event-bus.ts";
 import { Setting } from "./setting.tsx";
 import { Database_Contextual_View } from "../database.ts";
 
-import { AllUsersInformation, ProfilesSyncer, UserInfo } from "./contact-list.ts";
+import { AllUsersInformation, UserInfo } from "./contact-list.ts";
 
 import { new_DM_EditorModel } from "./editor.tsx";
 import { initialModel, Model } from "./app_model.ts";
@@ -37,16 +37,17 @@ import { defaultRelays, RelayConfig } from "./setting.ts";
 import { DexieDatabase } from "./dexie-db.ts";
 import { About } from "./about.tsx";
 import { SocialPanel } from "./social.tsx";
+import { ProfilesSyncer } from "../features/profile.ts";
 
 export async function Start(database: DexieDatabase) {
+    console.log("Start the application");
+
     const model = initialModel();
     const eventBus = new EventBus<UI_Interaction_Event>();
     const pool = new ConnectionPool();
 
-    console.log("Start the application");
-
     const ctx = await getCurrentSignInCtx();
-    console.log("Start:", ctx);
+    console.log("Start::with context", ctx);
     if (ctx instanceof Error) {
         console.error(ctx);
         model.signIn.warningString = "Please add your private key to your NIP-7 extension";

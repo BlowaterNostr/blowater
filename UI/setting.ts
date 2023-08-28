@@ -6,9 +6,9 @@ const damus = "wss://relay.damus.io";
 const nos = "wss://nos.lol";
 
 export const defaultRelays = [
-    // nos,
+    nos,
     damus,
-    // "wss://relay.nostr.wirednet.jp",
+    "wss://relay.nostr.wirednet.jp",
 ];
 
 export class RelayConfig {
