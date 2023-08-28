@@ -4,7 +4,7 @@ import { tw } from "https://esm.sh/twind@0.16.16";
 import { NoteID } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nip19.ts";
 import { InputClass } from "./components/tw.ts";
 import { AboutIcon } from "./icons/about-icon.tsx";
-import {  PrimaryTextColor, TitleIconColor } from "./style/colors.ts";
+import { PrimaryTextColor, TitleIconColor } from "./style/colors.ts";
 import { PlainText_Nostr_Event } from "../nostr.ts";
 import { CopyButton } from "./components/copy-button.tsx";
 import { NostrEvent } from "https://raw.githubusercontent.com/BlowaterNostr/nostr.ts/main/nostr.ts";
@@ -15,15 +15,19 @@ export function PlainTextEventDetail(plainTextEvent: PlainText_Nostr_Event) {
     const authorPubkey = plainTextEvent.publicKey.hex;
     const authorPubkeyBech32 = plainTextEvent.publicKey.bech32();
     const content = plainTextEvent.content;
-    const originalEventRaw = JSON.stringify({
-        content: plainTextEvent.content,
-        created_at: plainTextEvent.created_at,
-        kind: plainTextEvent.kind,
-        tags: plainTextEvent.tags,
-        pubkey: plainTextEvent.pubkey,
-        id: plainTextEvent.id,
-        sig: plainTextEvent.sig,
-    }, null, 4);
+    const originalEventRaw = JSON.stringify(
+        {
+            content: plainTextEvent.content,
+            created_at: plainTextEvent.created_at,
+            kind: plainTextEvent.kind,
+            tags: plainTextEvent.tags,
+            pubkey: plainTextEvent.pubkey,
+            id: plainTextEvent.id,
+            sig: plainTextEvent.sig,
+        },
+        null,
+        4,
+    );
 
     return (
         <div class={tw`py-[1.5rem] px-4`}>
