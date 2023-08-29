@@ -14,6 +14,13 @@ setup({
             "desktop": { "min": "1024px" },
         },
     },
+    // https://twind.dev/handbook/extended-functionality.html
+    // https://sass-lang.com/documentation/style-rules/parent-selector/
+    variants: {
+        "children": "& > *",
+        "firstChild": "& > *:first-child",
+        "lastChild": "& > *:last-child",
+    },
 });
 
 const database = NewIndexedDB();
