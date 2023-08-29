@@ -168,7 +168,7 @@ export async function* UI_Interaction_Update(args: {
         } else if (event.type == "Search") {
             const pubkey = PublicKey.FromString(event.text);
             if (pubkey instanceof PublicKey) {
-                await model.app.profileSyncer.add(pubkey.hex);
+                model.app.profileSyncer.add(pubkey.hex);
                 const profile = getProfileEvent(model.app.database, pubkey);
                 model.app.eventSyncer.syncEvents({
                     authors: [pubkey.hex],
@@ -522,7 +522,7 @@ export async function* Database_Update(
             }
             const key = PublicKey.FromHex(e.pubkey);
             if (key instanceof PublicKey) {
-                await profileSyncer.add(key.hex);
+                profileSyncer.add(key.hex);
             }
             if (e.kind == NostrKind.META_DATA || e.kind == NostrKind.DIRECT_MESSAGE) {
                 for (const contact of allUserInfo.userInfos.values()) {

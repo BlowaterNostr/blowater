@@ -110,8 +110,8 @@ async function initProfileSyncer(
     );
 
     // Sync my profile events
-    const profilesSyncer = new ProfilesSyncer(database, pool);
-    await profilesSyncer.add(myPublicKey.hex);
+    const profilesSyncer = new ProfilesSyncer(database, pool.getRelays()[0]);
+    profilesSyncer.add(myPublicKey.hex);
 
     // Sync Custom App Data
     (async () => {
@@ -207,7 +207,7 @@ export class App {
             }
         }
 
-        await profilesSyncer.add(
+        profilesSyncer.add(
             ...Array.from(this.allUsersInfo.userInfos.keys()),
         );
         console.log("user set", profilesSyncer.userSet);
