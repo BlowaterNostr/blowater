@@ -1,65 +1,40 @@
-import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { Database_Contextual_View } from "../database.ts";
-import { ConnectionPool, SubscriptionAlreadyExist } from "../lib/nostr-ts/relay.ts";
+import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
-import {
-    groupBy,
-    NostrAccountContext,
-    NostrEvent,
-    NostrFilters,
-    NostrKind,
-    prepareNormalNostrEvent,
-    RelayResponse_REQ_Message,
-} from "../lib/nostr-ts/nostr.ts";
+import { groupBy, NostrAccountContext, NostrKind, prepareNormalNostrEvent } from "../lib/nostr-ts/nostr.ts";
 import { Parsed_Event, Profile_Nostr_Event } from "../nostr.ts";
-import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 
 export class ProfilesSyncer {
     readonly userSet = new Set<string>();
 
-    private chan = new Channel<string[]>();
-
     constructor(
         private readonly database: Database_Contextual_View,
         private readonly pool: ConnectionPool,
-    ) {
-        (async () => {
-            for await (const users of this.chan) {
-                const size = this.userSet.size;
-                for (const user of users) {
-                    this.userSet.add(user);
-                }
-                if (this.userSet.size > size) {
-                    console.log("adding", users);
-                    const resp = await pool.updateSub(
-                        "profilesStream",
-                        {
-                            authors: Array.from(this.userSet),
-                            kinds: [NostrKind.META_DATA],
-                        },
-                    );
-
-                    if (resp instanceof Error) {
-                        console.error(resp.message);
-                        return;
-                    }
-                    for await (let { res: nostrMessage, url: relayUrl } of resp.chan) {
-                        if (nostrMessage.type === "EVENT" && nostrMessage.event.content) {
-                            database.addEvent(nostrMessage.event);
-                        }
-                        if (nostrMessage.type == "EOSE") {
-                            break;
-                        }
-                    }
-                }
-            }
-        })();
-    }
+    ) {}
 
     async add(...users: string[]) {
-        const err = await this.chan.put(users);
-        if (err instanceof Error) {
-            throw err; // impossible
+        const size = this.userSet.size;
+        for (const user of users) {
+            this.userSet.add(user);
+        }
+        if (this.userSet.size == size) {
+            return;
+        }
+        const resp = await this.pool.updateSub(
+            "profilesStream",
+            {
+                authors: Array.from(this.userSet),
+                kinds: [NostrKind.META_DATA],
+            },
+        );
+        if (resp instanceof Error) {
+            console.error(resp.message);
+            return;
+        }
+        for await (let { res: nostrMessage, url: relayUrl } of resp.chan) {
+            if (nostrMessage.type === "EVENT" && nostrMessage.event.content) {
+                this.database.addEvent(nostrMessage.event);
+            }
         }
     }
 }
