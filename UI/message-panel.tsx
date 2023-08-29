@@ -27,6 +27,7 @@ import { Database_Contextual_View } from "../database.ts";
 import { HoverButtonBackgroudColor, LinkColor, PrimaryTextColor } from "./style/colors.ts";
 import { getUserInfoFromPublicKey, UserInfo } from "./contact-list.ts";
 import { EventSyncer } from "./event_syncer.ts";
+import { ButtonGroup } from "./components/button-group.tsx";
 
 export type RightPanelModel = {
     show: boolean;
@@ -332,26 +333,7 @@ function MessageBoxGroup(props: {
         <li
             class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 group relative`}
         >
-            <button
-                class={tw`w-6 h-6 absolute hidden group-hover:flex top-[-0.75rem] right-[3rem] ${IconButtonClass} bg-[#42464D] hover:bg-[#2F3136]`}
-                style={{
-                    boxShadow: "2px 2px 5px 0 black",
-                }}
-                onClick={() => {
-                    props.eventEmitter.emit({
-                        type: "ViewThread",
-                        root: first_group.msg.event,
-                    });
-                }}
-            >
-                <ReplyIcon
-                    class={tw`w-4 h-4`}
-                    style={{
-                        fill: "rgb(185, 187, 190)",
-                    }}
-                />
-            </button>
-
+            {MessageActions(first_group.msg.event, props.eventEmitter)}
             <Avatar
                 class={tw`h-8 w-8 mt-[0.45rem] mr-2`}
                 picture={getUserInfoFromPublicKey(first_group.msg.event.publicKey, props.allUserInfo)
@@ -416,25 +398,7 @@ function MessageBoxGroup(props: {
             <li
                 class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 group relative`}
             >
-                <button
-                    class={tw`w-6 h-6 absolute hidden group-hover:flex top-[-0.75rem] right-[3rem] ${IconButtonClass} bg-[#42464D] hover:bg-[#2F3136]`}
-                    style={{
-                        boxShadow: "2px 2px 5px 0 black",
-                    }}
-                    onClick={() => {
-                        props.eventEmitter.emit({
-                            type: "ViewThread",
-                            root: msg.msg.event,
-                        });
-                    }}
-                >
-                    <ReplyIcon
-                        class={tw`w-4 h-4`}
-                        style={{
-                            fill: "rgb(185, 187, 190)",
-                        }}
-                    />
-                </button>
+                {MessageActions(msg.msg.event, props.eventEmitter)}
                 {Time(msg.msg.created_at)}
                 <div
                     class={tw`flex-1`}
@@ -491,6 +455,37 @@ function MessageBoxGroup(props: {
 
     // console.log("MessageBoxGroup", Date.now() - t);
     return vnode;
+}
+
+export function MessageActions(
+    event: PlainText_Nostr_Event,
+    eventEmitter: EventEmitter<ViewThread>,
+) {
+    return (
+        <ButtonGroup
+            class={tw`hidden group-hover:flex absolute top-[-0.75rem] right-[3rem]`}
+            style={{
+                boxShadow: "2px 2px 5px 0 black",
+            }}
+        >
+            <button
+                class={tw`w-6 h-6 flex items-center justify-center`}
+                onClick={() => {
+                    eventEmitter.emit({
+                        type: "ViewThread",
+                        root: event,
+                    });
+                }}
+            >
+                <ReplyIcon
+                    class={tw`w-4 h-4 scale-150`}
+                    style={{
+                        fill: PrimaryTextColor,
+                    }}
+                />
+            </button>
+        </ButtonGroup>
+    );
 }
 
 export function Time(created_at: Date) {
