@@ -1,9 +1,8 @@
 import { Database_Contextual_View } from "../database.ts";
-import { ConnectionPool, SingleRelayConnection } from "../lib/nostr-ts/relay.ts";
+import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { groupBy, NostrAccountContext, NostrKind, prepareNormalNostrEvent } from "../lib/nostr-ts/nostr.ts";
 import { Parsed_Event, Profile_Nostr_Event } from "../nostr.ts";
-import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 
 export class ProfilesSyncer {
     readonly userSet = new Set<string>();
@@ -33,8 +32,6 @@ export class ProfilesSyncer {
             return;
         }
         for await (let { res: nostrMessage, url: relayUrl } of resp.chan) {
-            // for await (const nostrMessage of resp.chan) {
-            console.log("res", nostrMessage);
             if (nostrMessage.type === "EVENT" && nostrMessage.event.content) {
                 this.database.addEvent(nostrMessage.event);
             }
