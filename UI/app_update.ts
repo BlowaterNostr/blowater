@@ -170,10 +170,6 @@ export async function* UI_Interaction_Update(args: {
             if (pubkey instanceof PublicKey) {
                 model.app.profileSyncer.add(pubkey.hex);
                 const profile = getProfileEvent(model.app.database, pubkey);
-                model.app.eventSyncer.syncEvents({
-                    authors: [pubkey.hex],
-                    kinds: [NostrKind.META_DATA],
-                });
                 model.dm.search.searchResults = [{
                     pubkey: pubkey,
                     profile: profile?.profile,

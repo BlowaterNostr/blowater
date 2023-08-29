@@ -110,7 +110,7 @@ async function initProfileSyncer(
     );
 
     // Sync my profile events
-    const profilesSyncer = new ProfilesSyncer(database, pool.getRelays()[0]);
+    const profilesSyncer = new ProfilesSyncer(database, pool);
     profilesSyncer.add(myPublicKey.hex);
 
     // Sync Custom App Data

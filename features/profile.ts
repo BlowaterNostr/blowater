@@ -8,55 +8,36 @@ import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/mas
 export class ProfilesSyncer {
     readonly userSet = new Set<string>();
 
-    private chan = new Channel<string[]>();
-
     constructor(
         private readonly database: Database_Contextual_View,
-        private readonly pool: SingleRelayConnection,
-    ) {
-        (async () => {
-            for await (const users of this.chan) {
-                const size = this.userSet.size;
-                for (const user of users) {
-                    this.userSet.add(user);
-                }
-                if (this.userSet.size == size) {
-                    continue;
-                }
-                console.log("adding", users);
-                const resp = await pool.newSub(
-                    "profilesStream",
-                    {
-                        authors: Array.from(this.userSet),
-                        kinds: [NostrKind.META_DATA],
-                    },
-                );
-
-                if (resp instanceof Error) {
-                    console.error(resp.message);
-                    return;
-                }
-                console.log("\\\\", pool);
-                // for await (let { res: nostrMessage, url: relayUrl } of resp.chan) {
-                for await (const nostrMessage of resp.chan) {
-                    console.log("res", nostrMessage);
-                    if (nostrMessage.type === "EVENT" && nostrMessage.event.content) {
-                        database.addEvent(nostrMessage.event);
-                    }
-                    // if (nostrMessage.type == "EOSE") {
-                    //     break;
-                    // }
-                }
-                throw "not"
-                // await resp.chan.close();
-            }
-        })();
-    }
+        private readonly pool: ConnectionPool,
+    ) {}
 
     async add(...users: string[]) {
-        const err = await this.chan.put(users);
-        if (err instanceof Error) {
-            throw err; // impossible
+        const size = this.userSet.size;
+        for (const user of users) {
+            this.userSet.add(user);
+        }
+        if (this.userSet.size == size) {
+            return;
+        }
+        const resp = await this.pool.updateSub(
+            "profilesStream",
+            {
+                authors: Array.from(this.userSet),
+                kinds: [NostrKind.META_DATA],
+            },
+        );
+        if (resp instanceof Error) {
+            console.error(resp.message);
+            return;
+        }
+        for await (let { res: nostrMessage, url: relayUrl } of resp.chan) {
+            // for await (const nostrMessage of resp.chan) {
+            console.log("res", nostrMessage);
+            if (nostrMessage.type === "EVENT" && nostrMessage.event.content) {
+                this.database.addEvent(nostrMessage.event);
+            }
         }
     }
 }
