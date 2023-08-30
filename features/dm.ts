@@ -90,20 +90,14 @@ export async function sendSocialPost(args: {
 export function getAllEncryptedMessagesOf(
     publicKey: PublicKey,
     relay: ConnectionPool,
-    since?: number,
-    limit?: number,
 ) {
     const stream1 = getAllEncryptedMessagesSendBy(
         publicKey,
         relay,
-        limit,
-        since,
     );
     const stream2 = getAllEncryptedMessagesReceivedBy(
         publicKey,
         relay,
-        limit,
-        since,
     );
     return merge(stream1, stream2);
 }
@@ -111,16 +105,12 @@ export function getAllEncryptedMessagesOf(
 async function* getAllEncryptedMessagesSendBy(
     publicKey: PublicKey,
     relay: ConnectionPool,
-    limit?: number,
-    since?: number,
 ) {
     let resp = await relay.newSub(
         `getAllEncryptedMessagesSendBy`,
         {
             authors: [publicKey.hex],
             kinds: [4],
-            limit: limit,
-            since: since,
         },
     );
     if (resp instanceof Error) {
@@ -134,16 +124,12 @@ async function* getAllEncryptedMessagesSendBy(
 async function* getAllEncryptedMessagesReceivedBy(
     publicKey: PublicKey,
     relay: ConnectionPool,
-    limit?: number,
-    since?: number,
 ) {
     let resp = await relay.newSub(
         `getAllEncryptedMessagesReceivedBy`,
         {
             kinds: [4],
             "#p": [publicKey.hex],
-            limit: limit,
-            since: since,
         },
     );
     if (resp instanceof Error) {
