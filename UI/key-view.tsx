@@ -5,7 +5,7 @@ import { PrivateKey, PublicKey } from "../lib/nostr-ts/key.ts";
 import { InputClass } from "./components/tw.ts";
 import { PrimaryTextColor, TitleIconColor, WarnColor } from "./style/colors.ts";
 import { KeyIcon } from "./icons2/key-icon.tsx";
-import { OnClickTransitionButton } from "./components/on-click-transition-button.tsx";
+import { OnFocusTransitionButton } from "./components/on-focus-transition-button.tsx";
 
 export default function KeyView(props: {
     publicKey: PublicKey;
@@ -32,9 +32,9 @@ export default function KeyView(props: {
                     type="text"
                     class={tw`${InputClass} overflow-x-auto pr-[4rem]`}
                 />
-                <OnClickTransitionButton
+                <OnFocusTransitionButton
                     class={tw`absolute right-4 top-4`}
-                    onClick={async () => {
+                    onFocus={async () => {
                         await navigator.clipboard.writeText(props.publicKey.bech32());
                     }}
                 />
@@ -50,9 +50,9 @@ export default function KeyView(props: {
 
                 {privateKey
                     ? (
-                        <OnClickTransitionButton
+                        <OnFocusTransitionButton
                             class={tw`absolute right-4 top-4`}
-                            onClick={async () => {
+                            onFocus={async () => {
                                 await navigator.clipboard.writeText(privateKey.bech32);
                             }}
                         />

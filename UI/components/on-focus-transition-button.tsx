@@ -6,9 +6,9 @@ import { CopyIcon } from "../icons2/copy-icon.tsx";
 import { CenterClass, NoOutlineClass } from "./tw.ts";
 import { CheckIcon } from "../icons2/check-icon.tsx";
 
-export function OnClickTransitionButton(props: {
+export function OnFocusTransitionButton(props: {
     class?: string | h.JSX.SignalLike<string | undefined> | undefined;
-    onClick?: h.JSX.MouseEventHandler<HTMLButtonElement>;
+    onFocus?: h.JSX.FocusEventHandler<HTMLButtonElement>;
 }) {
     return (
         <button
@@ -16,7 +16,7 @@ export function OnClickTransitionButton(props: {
                 tw`w-6 h-6 rounded-lg hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass} group`,
                 props.class,
             ].join(" ")}
-            onClick={props.onClick}
+            onFocus={props.onFocus}
         >
             <CheckIcon
                 class={tw`w-4 h-4 hidden group-focus:block`}
