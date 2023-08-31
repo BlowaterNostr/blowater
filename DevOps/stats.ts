@@ -35,7 +35,7 @@ if (r instanceof Error) {
     throw r;
 }
 
-for await (const { res: e, url } of r) {
+for await (const { res: e, url } of r.chan) {
     console.log(url);
     if (e.type != "EVENT") {
         continue;
