@@ -10,6 +10,7 @@ import { RightPanelModel } from "./message-panel.tsx";
 import { DM_Container_Model } from "./dm.ts";
 import { App } from "./app.tsx";
 import { MessageThread } from "./dm.tsx";
+import { PlainText_Nostr_Event } from "../nostr.ts";
 
 export type Model = {
     app: App | undefined; // app is only available after sign-in
@@ -49,6 +50,9 @@ export type Model = {
 
     // sign in
     signIn: SignInModel;
+
+    // focused PlainText event
+    focusedPlainTextEvent: PlainText_Nostr_Event | undefined;
 };
 
 export function initialModel(): Model {
@@ -94,5 +98,6 @@ export function initialModel(): Model {
             privateKey: "",
             state: "enterPrivateKey",
         },
+        focusedPlainTextEvent: undefined,
     };
 }

@@ -6,6 +6,7 @@ import {
     DirectMessagePanelUpdate,
     NameAndTime,
     ParseMessageContent,
+    ViewPlainTextEvent,
     ViewThread,
     ViewUserDetail,
 } from "./message-panel.tsx";
@@ -17,6 +18,10 @@ import { getUserInfoFromPublicKey, UserInfo } from "./contact-list.ts";
 import { EventSyncer } from "./event_syncer.ts";
 import { Avatar } from "./components/avatar.tsx";
 import { ProfilesSyncer } from "../features/profile.ts";
+import { PlainText_Nostr_Event } from "../nostr.ts";
+import { ButtonGroup } from "./components/button-group.tsx";
+import { AboutIcon } from "./icons/about-icon.tsx";
+import { PrimaryTextColor } from "./style/colors.ts";
 
 interface MessageThreadProps {
     eventEmitter: EventEmitter<DirectMessagePanelUpdate | EditorEvent>;
@@ -70,7 +75,7 @@ function MessageThreadList(props: {
     db: Database_Contextual_View;
     profilesSyncer: ProfilesSyncer;
     eventSyncer: EventSyncer;
-    eventEmitter: EventEmitter<ViewUserDetail | ViewThread>;
+    eventEmitter: EventEmitter<ViewUserDetail | ViewThread | ViewPlainTextEvent>;
     allUserInfo: Map<string, UserInfo>;
 }) {
     let groups = groupContinuousMessages(props.messages, (pre, cur) => {
@@ -107,14 +112,17 @@ function MessageThreadBoxGroup(props: {
     db: Database_Contextual_View;
     profilesSyncer: ProfilesSyncer;
     eventSyncer: EventSyncer;
-    eventEmitter: EventEmitter<ViewUserDetail | ViewThread>;
+    eventEmitter: EventEmitter<ViewUserDetail | ViewThread | ViewPlainTextEvent>;
     allUserInfo: Map<string, UserInfo>;
 }) {
     const vnode = (
-        <ul class={tw`py-2`}>
+        <ul class={tw`py-4`}>
             {props.messages.map((msg, index) => {
                 return (
-                    <li class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 group`}>
+                    <li
+                        class={tw`relative px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 group`}
+                    >
+                        {MessageThreadActions(msg.event, props.eventEmitter)}
                         {
                             <Avatar
                                 class={tw`h-8 w-8 mt-[0.45rem] mr-2`}
@@ -156,4 +164,35 @@ function MessageThreadBoxGroup(props: {
 
     // console.log("MessageBoxGroup", Date.now() - t)
     return vnode;
+}
+
+function MessageThreadActions(
+    event: PlainText_Nostr_Event,
+    eventEmitter: EventEmitter<ViewThread | ViewPlainTextEvent>,
+) {
+    return (
+        <ButtonGroup
+            class={tw`hidden group-hover:flex absolute top-[-0.75rem] right-[3rem]`}
+            style={{
+                boxShadow: "2px 2px 5px 0 black",
+            }}
+        >
+            <button
+                class={tw`w-6 h-6 flex items-center justify-center`}
+                onClick={() => {
+                    eventEmitter.emit({
+                        type: "ViewPlainTextEvent",
+                        event: event,
+                    });
+                }}
+            >
+                <AboutIcon
+                    class={tw`w-4 h-4 scale-150`}
+                    style={{
+                        fill: PrimaryTextColor,
+                    }}
+                />
+            </button>
+        </ButtonGroup>
+    );
 }

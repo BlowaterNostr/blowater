@@ -3,7 +3,7 @@ import { Component, ComponentChildren, createRef, h } from "https://esm.sh/preac
 import { tw } from "https://esm.sh/twind@0.16.16";
 import { Editor, EditorEvent, EditorModel } from "./editor.tsx";
 
-import { CloseIcon, LeftArrowIcon, ReplyIcon } from "./icons/mod.tsx";
+import { AboutIcon, CloseIcon, LeftArrowIcon, ReplyIcon } from "./icons/mod.tsx";
 import { Avatar } from "./components/avatar.tsx";
 import { DividerClass, IconButtonClass } from "./components/tw.ts";
 import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
@@ -28,6 +28,8 @@ import { HoverButtonBackgroudColor, LinkColor, PrimaryTextColor } from "./style/
 import { getUserInfoFromPublicKey, UserInfo } from "./contact-list.ts";
 import { EventSyncer } from "./event_syncer.ts";
 import { ButtonGroup } from "./components/button-group.tsx";
+import { Popover } from "./components/popover.tsx";
+import { PlainTextEventDetail } from "./plain-text-event-detail.tsx";
 
 export type RightPanelModel = {
     show: boolean;
@@ -39,7 +41,9 @@ export type DirectMessagePanelUpdate =
         show: boolean;
     }
     | ViewThread
-    | ViewUserDetail;
+    | ViewUserDetail
+    | ViewPlainTextEvent
+    | CancelViewPlainTextEvent;
 
 export type ViewThread = {
     type: "ViewThread";
@@ -49,6 +53,15 @@ export type ViewThread = {
 export type ViewUserDetail = {
     type: "ViewUserDetail";
     pubkey: PublicKey;
+};
+
+export type ViewPlainTextEvent = {
+    type: "ViewPlainTextEvent";
+    event: PlainText_Nostr_Event;
+};
+
+export type CancelViewPlainTextEvent = {
+    type: "CancelViewPlainTextEvent";
 };
 
 interface DirectMessagePanelProps {
@@ -75,6 +88,7 @@ interface DirectMessagePanelProps {
     profilesSyncer: ProfilesSyncer;
     eventSyncer: EventSyncer;
     allUserInfo: Map<string, UserInfo>;
+    focusedPlainTextEvent: PlainText_Nostr_Event | undefined;
 }
 
 export function MessagePanel(props: DirectMessagePanelProps) {
@@ -174,6 +188,22 @@ export function MessagePanel(props: DirectMessagePanelProps) {
                 )
                 : undefined}
             {rightPanel}
+
+            {props.focusedPlainTextEvent
+                ? (
+                    <Popover
+                        blankClickClose={true}
+                        escapeClose={true}
+                        close={() => {
+                            props.eventEmitter.emit({
+                                type: "CancelViewPlainTextEvent",
+                            });
+                        }}
+                    >
+                        <PlainTextEventDetail {...props.focusedPlainTextEvent} />
+                    </Popover>
+                )
+                : undefined}
         </div>
     );
     console.log("DirectMessagePanel:end", Date.now() - t);
@@ -457,9 +487,9 @@ function MessageBoxGroup(props: {
     return vnode;
 }
 
-export function MessageActions(
+function MessageActions(
     event: PlainText_Nostr_Event,
-    eventEmitter: EventEmitter<ViewThread>,
+    eventEmitter: EventEmitter<ViewThread | ViewPlainTextEvent>,
 ) {
     return (
         <ButtonGroup
@@ -478,6 +508,23 @@ export function MessageActions(
                 }}
             >
                 <ReplyIcon
+                    class={tw`w-4 h-4 scale-150`}
+                    style={{
+                        fill: PrimaryTextColor,
+                    }}
+                />
+            </button>
+
+            <button
+                class={tw`w-6 h-6 flex items-center justify-center`}
+                onClick={() => {
+                    eventEmitter.emit({
+                        type: "ViewPlainTextEvent",
+                        event: event,
+                    });
+                }}
+            >
+                <AboutIcon
                     class={tw`w-4 h-4 scale-150`}
                     style={{
                         fill: PrimaryTextColor,

@@ -94,6 +94,7 @@ export function SocialPanel(props: {
             profilesSyncer={props.profileSyncer}
             eventSyncer={props.eventSyncer}
             allUserInfo={props.allUsersInfo.userInfos}
+            focusedPlainTextEvent={model.focusedPlainTextEvent}
         />
     );
     console.log("SocialPanel:MessagePanel", Date.now() - t);
