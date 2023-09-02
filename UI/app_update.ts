@@ -15,7 +15,7 @@ import { MyProfileUpdate } from "./edit-profile.tsx";
 import { EditorEvent, new_DM_EditorModel } from "./editor.tsx";
 import { DirectMessagePanelUpdate } from "./message-panel.tsx";
 import { NavigationUpdate } from "./nav.tsx";
-import { Model } from "./app_model.ts";
+import { Model, PopoverType } from "./app_model.ts";
 import { SearchUpdate, SelectProfile } from "./search_model.ts";
 import { fromEvents, LamportTime } from "../time.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
@@ -167,16 +167,10 @@ export async function* UI_Interaction_Update(args: {
         // Search
         //
         else if (event.type == "CancelSearch") {
-            model.popoverModel = {
-                show: false,
-                type: undefined,
-            }
+            hidePopover(model);
             model.dm.search.searchResults = [];
         } else if (event.type == "StartSearch") {
-            model.popoverModel = {
-                show: true,
-                type: "SearchUser"
-            }
+            showPopover(model, "SearchUser");
         } else if (event.type == "Search") {
             const pubkey = PublicKey.FromString(event.text);
             if (pubkey instanceof PublicKey) {
@@ -204,11 +198,7 @@ export async function* UI_Interaction_Update(args: {
         // Contacts
         //
         else if (event.type == "SelectProfile") {
-            model.popoverModel = {
-                show: false,
-                type: undefined,
-            }
-
+            hidePopover(model);
             model.dm.search.searchResults = [];
             model.rightPanelModel = {
                 show: false,
@@ -427,24 +417,15 @@ export async function* UI_Interaction_Update(args: {
         } // message panel
         //
         else if (event.type == "ViewPlainTextEvent") {
-            model.popoverModel = {
-                show: true,
-                type: "PlainTextEventDetail",
-            }
+            showPopover(model, "PlainTextEventDetail");
             model.focusedPlainTextEvent = event.event;
         } else if (event.type == "CancelViewPlainTextEvent") {
-            model.popoverModel = {
-                show: false,
-                type: undefined,
-            }
+            hidePopover(model);
             model.focusedPlainTextEvent = undefined;
         } // popover
         //
         else if (event.type == "ClosePopover") {
-            model.popoverModel = {
-                show: false,
-                type: undefined,
-            }
+            hidePopover(model);
         }
         yield model;
     }
@@ -682,5 +663,19 @@ function InsertNewProfileField(model: Model) {
             key: "",
             value: "",
         };
+    }
+}
+
+function hidePopover(model: Model) {
+    model.popoverModel = {
+        show: false,
+        type: undefined,
+    }
+}
+
+function showPopover(model: Model, popoverType: PopoverType) {
+    model.popoverModel = {
+        show: true,
+        type: popoverType
     }
 }

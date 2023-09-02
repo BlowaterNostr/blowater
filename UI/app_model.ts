@@ -60,8 +60,10 @@ export type Model = {
 
 export type PopoverModel = {
     show: boolean;
-    type: "SearchUser" | "PlainTextEventDetail" | undefined;
+    type: PopoverType;
 }
+
+export type PopoverType = "SearchUser" | "PlainTextEventDetail" | undefined;
 
 export function initialModel(): Model {
     const editors: Map<string, DM_EditorModel> = new Map();

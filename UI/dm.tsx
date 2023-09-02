@@ -18,7 +18,6 @@ import { DM_Container_Model } from "./dm.ts";
 import { getFocusedContent } from "./app.tsx";
 import { EventSyncer } from "./event_syncer.ts";
 import { UserInfo } from "./contact-list.ts";
-import { PlainText_Nostr_Event } from "../nostr.ts";
 
 type DirectMessageContainerProps = {
     editors: Map<string, DM_EditorModel>;
