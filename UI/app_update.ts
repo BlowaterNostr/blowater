@@ -142,7 +142,7 @@ export async function* UI_Interaction_Update(args: {
             console.warn("This could not happen!");
             continue;
         }
-        
+
         // All events below are only valid after signning in
         //
 
@@ -670,12 +670,12 @@ function hidePopover(model: Model) {
     model.popoverModel = {
         show: false,
         type: undefined,
-    }
+    };
 }
 
 function showPopover(model: Model, popoverType: PopoverType) {
     model.popoverModel = {
         show: true,
-        type: popoverType
-    }
+        type: popoverType,
+    };
 }

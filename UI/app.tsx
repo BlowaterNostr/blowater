@@ -432,19 +432,19 @@ export function AppComponent(props: {
                     {settingNode}
                     {socialPostsPanel}
                     {appList}
-                    {
-                        model.popoverModel.show
+                    {model.popoverModel.show
                         ? (
-                            <Popover close={() => {
-                                props.eventBus.emit({
-                                    type: "ClosePopover"
-                                });
-                            }}>
+                            <Popover
+                                close={() => {
+                                    props.eventBus.emit({
+                                        type: "ClosePopover",
+                                    });
+                                }}
+                            >
                                 {popoverChildren}
                             </Popover>
                         )
-                        : undefined
-                    }
+                        : undefined}
                 </div>
 
                 <div class={tw`desktop:hidden`}>

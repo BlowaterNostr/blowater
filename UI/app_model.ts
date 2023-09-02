@@ -61,7 +61,7 @@ export type Model = {
 export type PopoverModel = {
     show: boolean;
     type: PopoverType;
-}
+};
 
 export type PopoverType = "SearchUser" | "PlainTextEventDetail" | undefined;
 
@@ -111,7 +111,7 @@ export function initialModel(): Model {
         focusedPlainTextEvent: undefined,
         popoverModel: {
             show: false,
-            type: undefined
-        }
+            type: undefined,
+        },
     };
 }
