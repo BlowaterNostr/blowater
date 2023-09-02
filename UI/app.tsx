@@ -40,6 +40,7 @@ import { SocialPanel } from "./social.tsx";
 import { ProfilesSyncer } from "../features/profile.ts";
 import { Popover } from "./components/popover.tsx";
 import { Search } from "./search.tsx";
+import { PlainTextEventDetail } from "./plain-text-event-detail.tsx";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
@@ -379,11 +380,16 @@ export function AppComponent(props: {
     }
 
     let popoverChildren;
-    if (model.popoverModel.type == "SearchUser") {
-        popoverChildren = Search({
-            eventEmitter: props.eventBus,
-            model: model.dm.search,
-        });
+    switch (model.popoverModel.type) {
+        case "SearchUser":
+            popoverChildren = Search({
+                eventEmitter: props.eventBus,
+                model: model.dm.search,
+            });
+            break;
+        case "PlainTextEventDetail":
+            popoverChildren = PlainTextEventDetail(model.focusedPlainTextEvent!);
+            break;
     }
 
     console.debug("AppComponent:2", Date.now() - t);

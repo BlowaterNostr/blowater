@@ -427,8 +427,16 @@ export async function* UI_Interaction_Update(args: {
         } // message panel
         //
         else if (event.type == "ViewPlainTextEvent") {
+            model.popoverModel = {
+                show: true,
+                type: "PlainTextEventDetail",
+            }
             model.focusedPlainTextEvent = event.event;
         } else if (event.type == "CancelViewPlainTextEvent") {
+            model.popoverModel = {
+                show: false,
+                type: undefined,
+            }
             model.focusedPlainTextEvent = undefined;
         } // popover
         //

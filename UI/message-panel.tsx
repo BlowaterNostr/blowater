@@ -28,8 +28,6 @@ import { HoverButtonBackgroudColor, LinkColor, PrimaryTextColor } from "./style/
 import { getUserInfoFromPublicKey, UserInfo } from "./contact-list.ts";
 import { EventSyncer } from "./event_syncer.ts";
 import { ButtonGroup } from "./components/button-group.tsx";
-import { Popover } from "./components/popover.tsx";
-import { PlainTextEventDetail } from "./plain-text-event-detail.tsx";
 
 export type RightPanelModel = {
     show: boolean;
@@ -188,20 +186,6 @@ export function MessagePanel(props: DirectMessagePanelProps) {
                 )
                 : undefined}
             {rightPanel}
-
-            {props.focusedPlainTextEvent
-                ? (
-                    <Popover
-                        close={() => {
-                            props.eventEmitter.emit({
-                                type: "CancelViewPlainTextEvent",
-                            });
-                        }}
-                    >
-                        <PlainTextEventDetail {...props.focusedPlainTextEvent} />
-                    </Popover>
-                )
-                : undefined}
         </div>
     );
     console.log("DirectMessagePanel:end", Date.now() - t);
