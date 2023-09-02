@@ -86,7 +86,6 @@ interface DirectMessagePanelProps {
     profilesSyncer: ProfilesSyncer;
     eventSyncer: EventSyncer;
     allUserInfo: Map<string, UserInfo>;
-    focusedPlainTextEvent: PlainText_Nostr_Event | undefined;
 }
 
 export function MessagePanel(props: DirectMessagePanelProps) {

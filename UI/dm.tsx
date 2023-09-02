@@ -30,7 +30,6 @@ type DirectMessageContainerProps = {
     allUserInfo: Map<string, UserInfo>;
     profilesSyncer: ProfilesSyncer;
     eventSyncer: EventSyncer;
-    focusedPlainTextEvent: PlainText_Nostr_Event | undefined;
 } & DM_Container_Model;
 
 export type MessageThread = {
@@ -110,7 +109,6 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
             profilesSyncer: props.profilesSyncer,
             eventSyncer: props.eventSyncer,
             allUserInfo: props.allUserInfo,
-            focusedPlainTextEvent: props.focusedPlainTextEvent,
         });
     }
 

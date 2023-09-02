@@ -368,7 +368,6 @@ export function AppComponent(props: {
                         allUserInfo: app.allUsersInfo.userInfos,
                         profilesSyncer: app.profileSyncer,
                         eventSyncer: app.eventSyncer,
-                        focusedPlainTextEvent: model.focusedPlainTextEvent,
                     })}
                 </div>
             );
