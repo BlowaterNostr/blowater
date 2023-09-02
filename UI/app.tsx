@@ -324,8 +324,6 @@ export function AppComponent(props: {
                     logout: app.logout,
                     relayConfig: app.relayConfig,
                     eventBus: app.eventBus,
-                    AddRelayButtonClickedError: model.AddRelayButtonClickedError,
-                    AddRelayInput: model.AddRelayInput,
                     myAccountContext: myAccountCtx,
                 })}
             </div>
@@ -390,8 +388,6 @@ export function AppComponent(props: {
                             database: app.database,
                             pool: app.relayConfig.pool,
                             eventEmitter: app.eventBus,
-                            AddRelayButtonClickedError: model.AddRelayButtonClickedError,
-                            AddRelayInput: model.AddRelayInput,
                             ...model.navigationModel,
                         })}
                     </div>
@@ -425,8 +421,6 @@ export function AppComponent(props: {
                         database={app.database}
                         pool={app.relayConfig.pool}
                         eventEmitter={app.eventBus}
-                        AddRelayButtonClickedError={model.AddRelayButtonClickedError}
-                        AddRelayInput={model.AddRelayInput}
                         {...model.navigationModel}
                     />
                 </div>

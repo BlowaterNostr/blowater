@@ -25,8 +25,6 @@ export type Props = {
     publicKey: PublicKey;
     database: db.Database_Contextual_View;
     pool: ConnectionPool;
-    AddRelayButtonClickedError: string;
-    AddRelayInput: string;
     eventEmitter: EventEmitter<NavigationUpdate>;
 } & NavigationModel;
 

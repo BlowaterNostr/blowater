@@ -2,12 +2,9 @@ import { NostrAccountContext, prepareCustomAppDataEvent } from "../lib/nostr-ts/
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { AddRelay, CustomAppData, CustomAppData_Event, RemoveRelay } from "../nostr.ts";
 
-const damus = "wss://relay.damus.io";
-const nos = "wss://nos.lol";
-
 export const defaultRelays = [
-    nos,
-    damus,
+    "wss://nos.lol",
+    "wss://relay.damus.io",
     "wss://relay.nostr.wirednet.jp",
 ];
 

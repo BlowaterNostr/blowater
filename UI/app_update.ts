@@ -36,6 +36,7 @@ import { DexieDatabase } from "./dexie-db.ts";
 import { getSocialPosts } from "../features/social.ts";
 import { RelayConfig } from "./setting.ts";
 import { SocialUpdates } from "./social.tsx";
+import { addRelayError } from "./setting.tsx";
 
 export type UI_Interaction_Event =
     | RemoveRelayButtonClicked
@@ -146,14 +147,11 @@ export async function* UI_Interaction_Update(args: {
             // todo: need to think about concurrent/async UI update
             model.app.relayConfig.addRelayURL(event.url).then((err) => {
                 if (err instanceof Error) {
-                    model.AddRelayButtonClickedError = err.message;
+                    addRelayError.value = err.message;
                 } else {
-                    model.AddRelayButtonClickedError = "";
+                    addRelayError.value = "";
                 }
             });
-            model.AddRelayInput = "";
-        } else if (event.type == "AddRelayInputChange") {
-            model.AddRelayInput = event.url;
         } else if (event.type == "RemoveRelayButtonClicked") {
             await model.app.relayConfig.removeRelay(event.url);
         } //

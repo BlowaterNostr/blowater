@@ -39,10 +39,6 @@ export type Model = {
         activeSyncingFilter: NostrFilters | undefined;
     };
 
-    // relay
-    AddRelayButtonClickedError: string;
-    AddRelayInput: string;
-
     // UI
     navigationModel: NavigationModel;
     rightPanelModel: RightPanelModel;
@@ -81,8 +77,6 @@ export function initialModel(): Model {
             },
             activeSyncingFilter: undefined,
         },
-        AddRelayButtonClickedError: "",
-        AddRelayInput: "",
         navigationModel: {
             activeNav: "DM",
         },

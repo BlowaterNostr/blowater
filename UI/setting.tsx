@@ -5,6 +5,8 @@ import { EventBus } from "../event-bus.ts";
 
 import { WebSocketReadyState } from "../lib/nostr-ts/websocket.ts";
 
+import { signal } from "https://esm.sh/@preact/signals@1.2.1";
+
 import {
     CenterClass,
     inputBorderClass,
@@ -13,7 +15,6 @@ import {
     NoOutlineClass,
 } from "./components/tw.ts";
 import { UI_Interaction_Event } from "./app_update.ts";
-import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import KeyView from "./key-view.tsx";
 import { InMemoryAccountContext, NostrAccountContext } from "../lib/nostr-ts/nostr.ts";
 import { PrivateKey } from "../lib/nostr-ts/key.ts";
@@ -34,8 +35,6 @@ export interface SettingProps {
     logout: () => void;
     relayConfig: RelayConfig;
     eventBus: EventBus<UI_Interaction_Event>;
-    AddRelayButtonClickedError: string;
-    AddRelayInput: string;
     myAccountContext: NostrAccountContext;
 }
 
@@ -62,9 +61,7 @@ export const Setting = (props: SettingProps) => {
         <div class={tw`max-w-[41rem] m-auto py-[1.5rem]`}>
             <div class={tw`px-[1rem] py-[1.5rem] ${inputBorderClass} rounded-lg mt-[1.5rem]`}>
                 <RelaySetting
-                    err={props.AddRelayButtonClickedError}
                     eventBus={props.eventBus}
-                    input={props.AddRelayInput}
                     relays={relays}
                 />
             </div>
@@ -85,13 +82,13 @@ export const Setting = (props: SettingProps) => {
     );
 };
 
+const addRelayInput = signal("");
+export const addRelayError = signal("");
 export function RelaySetting(props: {
     relays: {
         url: string;
         status: WebSocketReadyState;
     }[];
-    input: string;
-    err: string;
     eventBus: EventBus<UI_Interaction_Event>;
 }) {
     const relays = props.relays;
@@ -113,29 +110,29 @@ export function RelaySetting(props: {
                 <input
                     autofocus={true}
                     onInput={(e) => {
-                        props.eventBus.emit({
-                            type: "AddRelayInputChange",
-                            url: e.currentTarget.value,
-                        });
+                        addRelayInput.value = e.currentTarget.value;
                     }}
-                    value={props.input}
+                    value={addRelayInput.value}
                     placeholder="wss://"
                     type="text"
                     class={tw`${InputClass}`}
                 />
                 <button
                     class={tw`ml-[0.75rem] w-[5.9375rem] h-[3rem] p-[0.75rem] rounded-lg ${NoOutlineClass} text-[${PrimaryTextColor}] bg-[${DividerBackgroundColor}] hover:bg-[${HoverButtonBackgroudColor}] ${CenterClass}`}
-                    onClick={() => {
-                        props.eventBus.emit({
+                    onClick={async () => {
+                        await props.eventBus.emit({
                             type: "AddRelayButtonClicked",
-                            url: props.input,
+                            url: addRelayInput.value,
                         });
+                        addRelayInput.value = "";
                     }}
                 >
                     Add
                 </button>
             </div>
-            {props.err ? <p class={tw`mt-2 text-[${ErrorColor}] text-[0.875rem]`}>{props.err}</p> : undefined}
+            {addRelayError.value
+                ? <p class={tw`mt-2 text-[${ErrorColor}] text-[0.875rem]`}>{addRelayError.value}</p>
+                : undefined}
             <ul class={tw`mt-[1.5rem]`}>
                 {relays.map((r) => {
                     return (
