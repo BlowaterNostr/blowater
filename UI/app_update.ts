@@ -41,7 +41,6 @@ import { addRelayError } from "./setting.tsx";
 export type UI_Interaction_Event =
     | RemoveRelayButtonClicked
     | AddRelayButtonClicked
-    | AddRelayInputChange
     | SearchUpdate
     | ContactUpdate
     | EditorEvent
@@ -145,13 +144,13 @@ export async function* UI_Interaction_Update(args: {
         //
         if (event.type == "AddRelayButtonClicked") {
             // todo: need to think about concurrent/async UI update
-            model.app.relayConfig.addRelayURL(event.url).then((err) => {
-                if (err instanceof Error) {
-                    addRelayError.value = err.message;
-                } else {
-                    addRelayError.value = "";
-                }
-            });
+            // model.app.relayConfig.addRelayURL(event.url).then((err) => {
+            //     if (err instanceof Error) {
+            //         addRelayError.value = err.message;
+            //     } else {
+            //         addRelayError.value = "";
+            //     }
+            // });
         } else if (event.type == "RemoveRelayButtonClicked") {
             await model.app.relayConfig.removeRelay(event.url);
         } //

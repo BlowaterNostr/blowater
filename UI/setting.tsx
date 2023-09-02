@@ -63,6 +63,7 @@ export const Setting = (props: SettingProps) => {
                 <RelaySetting
                     eventBus={props.eventBus}
                     relays={relays}
+                    relayConfig={props.relayConfig}
                 />
             </div>
 
@@ -89,9 +90,21 @@ export function RelaySetting(props: {
         url: string;
         status: WebSocketReadyState;
     }[];
+    relayConfig: RelayConfig;
     eventBus: EventBus<UI_Interaction_Event>;
 }) {
     const relays = props.relays;
+
+    const addRelay = async () => {
+        const err = await props.relayConfig.addRelayURL(addRelayInput.value);
+        if (err instanceof Error) {
+            addRelayError.value = err.message;
+        } else {
+            addRelayError.value = "";
+        }
+        addRelayInput.value = "";
+    };
+
     return (
         <Fragment>
             <p class={tw`text-[${PrimaryTextColor}] text-[1.3125rem] flex`}>
@@ -119,13 +132,7 @@ export function RelaySetting(props: {
                 />
                 <button
                     class={tw`ml-[0.75rem] w-[5.9375rem] h-[3rem] p-[0.75rem] rounded-lg ${NoOutlineClass} text-[${PrimaryTextColor}] bg-[${DividerBackgroundColor}] hover:bg-[${HoverButtonBackgroudColor}] ${CenterClass}`}
-                    onClick={async () => {
-                        await props.eventBus.emit({
-                            type: "AddRelayButtonClicked",
-                            url: addRelayInput.value,
-                        });
-                        addRelayInput.value = "";
-                    }}
+                    onClick={addRelay}
                 >
                     Add
                 </button>
