@@ -51,7 +51,12 @@ export type UI_Interaction_Event =
     | PinContact
     | UnpinContact
     | SignInEvent
-    | SocialUpdates;
+    | SocialUpdates
+    | ClosePopover;
+
+type ClosePopover = {
+    type: "ClosePopover";
+};
 
 type RemoveRelayButtonClicked = {
     type: "RemoveRelayButtonClicked";
@@ -137,6 +142,7 @@ export async function* UI_Interaction_Update(args: {
             console.warn("This could not happen!");
             continue;
         }
+        
         // All events below are only valid after signning in
         //
 
@@ -160,11 +166,17 @@ export async function* UI_Interaction_Update(args: {
         //
         // Search
         //
-        else if (event.type == "CancelPopOver") {
-            model.dm.search.isSearching = false;
+        else if (event.type == "CancelSearch") {
+            model.popoverModel = {
+                show: false,
+                type: undefined,
+            }
             model.dm.search.searchResults = [];
         } else if (event.type == "StartSearch") {
-            model.dm.search.isSearching = true;
+            model.popoverModel = {
+                show: true,
+                type: "SearchUser"
+            }
         } else if (event.type == "Search") {
             const pubkey = PublicKey.FromString(event.text);
             if (pubkey instanceof PublicKey) {
@@ -192,7 +204,11 @@ export async function* UI_Interaction_Update(args: {
         // Contacts
         //
         else if (event.type == "SelectProfile") {
-            model.dm.search.isSearching = false;
+            model.popoverModel = {
+                show: false,
+                type: undefined,
+            }
+
             model.dm.search.searchResults = [];
             model.rightPanelModel = {
                 show: false,
@@ -414,6 +430,13 @@ export async function* UI_Interaction_Update(args: {
             model.focusedPlainTextEvent = event.event;
         } else if (event.type == "CancelViewPlainTextEvent") {
             model.focusedPlainTextEvent = undefined;
+        } // popover
+        //
+        else if (event.type == "ClosePopover") {
+            model.popoverModel = {
+                show: false,
+                type: undefined,
+            }
         }
         yield model;
     }

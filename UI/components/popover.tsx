@@ -4,8 +4,6 @@ import { tw } from "https://esm.sh/twind@0.16.16";
 import { SecondaryBackgroundColor } from "../style/colors.ts";
 
 export function Popover(props: {
-    escapeClose?: boolean;
-    blankClickClose?: boolean;
     close: () => void;
     children: ComponentChildren;
 }) {
@@ -13,18 +11,16 @@ export function Popover(props: {
         <div
             class={tw`fixed inset-0 z-20`}
             onKeyDown={(e) => {
-                if (props.escapeClose && e.code === "Escape") {
+                if (e.code === "Escape") {
                     props.close();
                 }
             }}
         >
             <div
                 class={tw`fixed inset-0 z-[-1] backdrop-filter backdrop-blur`}
-                onClick={props.blankClickClose
-                    ? () => {
-                        props.close();
-                    }
-                    : undefined}
+                onClick={() => {
+                    props.close();
+                }}
             >
             </div>
             <div

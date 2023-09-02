@@ -6,7 +6,7 @@ export type Start = {
     type: "StartSearch";
 };
 export type Cancel = {
-    type: "CancelPopOver";
+    type: "CancelSearch";
 };
 export type SearchPublicKey = {
     type: "Search";
@@ -19,7 +19,6 @@ export type SelectProfile = {
 };
 
 export type SearchModel = {
-    isSearching: boolean;
     searchResults: {
         pubkey: PublicKey;
         profile: ProfileData | undefined;
@@ -29,6 +28,5 @@ export type SearchModel = {
 export const SearchInitModel = (): SearchModel => {
     return {
         searchResults: [],
-        isSearching: false,
     };
 };

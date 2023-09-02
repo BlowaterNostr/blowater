@@ -141,24 +141,6 @@ export function ContactList(props: Props) {
                 currentSelected={props.currentSelected}
                 eventEmitter={props.eventEmitter}
             />
-
-            {props.search.isSearching
-                ? (
-                    <Popover
-                        close={() => {
-                            props.eventEmitter.emit({
-                                type: "CancelPopOver",
-                            });
-                        }}
-                        escapeClose={true}
-                        blankClickClose={true}
-                        children={Search({
-                            eventEmitter: props.eventEmitter,
-                            model: props.search,
-                        })}
-                    />
-                )
-                : undefined}
         </div>
     );
 }

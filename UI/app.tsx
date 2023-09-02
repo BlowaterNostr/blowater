@@ -38,6 +38,8 @@ import { DexieDatabase } from "./dexie-db.ts";
 import { About } from "./about.tsx";
 import { SocialPanel } from "./social.tsx";
 import { ProfilesSyncer } from "../features/profile.ts";
+import { Popover } from "./components/popover.tsx";
+import { Search } from "./search.tsx";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
@@ -376,6 +378,14 @@ export function AppComponent(props: {
         }
     }
 
+    let popoverChildren;
+    if (model.popoverModel.type == "SearchUser") {
+        popoverChildren = Search({
+            eventEmitter: props.eventBus,
+            model: model.dm.search,
+        });
+    }
+
     console.debug("AppComponent:2", Date.now() - t);
 
     const final = (
@@ -417,6 +427,19 @@ export function AppComponent(props: {
                     {settingNode}
                     {socialPostsPanel}
                     {appList}
+                    {
+                        model.popoverModel.show
+                        ? (
+                            <Popover close={() => {
+                                props.eventBus.emit({
+                                    type: "ClosePopover"
+                                });
+                            }}>
+                                {popoverChildren}
+                            </Popover>
+                        )
+                        : undefined
+                    }
                 </div>
 
                 <div class={tw`desktop:hidden`}>

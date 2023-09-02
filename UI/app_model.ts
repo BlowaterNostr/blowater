@@ -51,9 +51,17 @@ export type Model = {
     // sign in
     signIn: SignInModel;
 
+    // popover
+    popoverModel: PopoverModel;
+
     // focused PlainText event
     focusedPlainTextEvent: PlainText_Nostr_Event | undefined;
 };
+
+export type PopoverModel = {
+    show: boolean;
+    type: "SearchUser" | "PlainTextEventDetail" | undefined;
+}
 
 export function initialModel(): Model {
     const editors: Map<string, DM_EditorModel> = new Map();
@@ -99,5 +107,9 @@ export function initialModel(): Model {
             state: "enterPrivateKey",
         },
         focusedPlainTextEvent: undefined,
+        popoverModel: {
+            show: false,
+            type: undefined
+        }
     };
 }
