@@ -63,6 +63,7 @@ export const Setting = (props: SettingProps) => {
                 <RelaySetting
                     eventBus={props.eventBus}
                     relays={relays}
+                    relayConfig={props.relayConfig}
                 />
             </div>
 
@@ -83,15 +84,27 @@ export const Setting = (props: SettingProps) => {
 };
 
 const addRelayInput = signal("");
-export const addRelayError = signal("");
+const error = signal("");
 export function RelaySetting(props: {
     relays: {
         url: string;
         status: WebSocketReadyState;
     }[];
+    relayConfig: RelayConfig;
     eventBus: EventBus<UI_Interaction_Event>;
 }) {
     const relays = props.relays;
+
+    const addRelay = async () => {
+        const err = await props.relayConfig.addRelayURL(addRelayInput.value);
+        if (err instanceof Error) {
+            error.value = err.message;
+        } else {
+            error.value = "";
+        }
+        addRelayInput.value = "";
+    };
+
     return (
         <Fragment>
             <p class={tw`text-[${PrimaryTextColor}] text-[1.3125rem] flex`}>
@@ -119,19 +132,13 @@ export function RelaySetting(props: {
                 />
                 <button
                     class={tw`ml-[0.75rem] w-[5.9375rem] h-[3rem] p-[0.75rem] rounded-lg ${NoOutlineClass} text-[${PrimaryTextColor}] bg-[${DividerBackgroundColor}] hover:bg-[${HoverButtonBackgroudColor}] ${CenterClass}`}
-                    onClick={async () => {
-                        await props.eventBus.emit({
-                            type: "AddRelayButtonClicked",
-                            url: addRelayInput.value,
-                        });
-                        addRelayInput.value = "";
-                    }}
+                    onClick={addRelay}
                 >
                     Add
                 </button>
             </div>
-            {addRelayError.value
-                ? <p class={tw`mt-2 text-[${ErrorColor}] text-[0.875rem]`}>{addRelayError.value}</p>
+            {error.value
+                ? <p class={tw`mt-2 text-[${ErrorColor}] text-[0.875rem]`}>{error.value}</p>
                 : undefined}
             <ul class={tw`mt-[1.5rem]`}>
                 {relays.map((r) => {
@@ -152,11 +159,11 @@ export function RelaySetting(props: {
 
                             <button
                                 class={tw`w-[2rem] h-[2rem] rounded-lg bg-transparent hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
-                                onClick={() => {
-                                    props.eventBus.emit({
-                                        type: "RemoveRelayButtonClicked",
-                                        url: r.url,
-                                    });
+                                onClick={async () => {
+                                    const err = await props.relayConfig.removeRelay(r.url);
+                                    if (err instanceof Error) {
+                                        error.value = err.message;
+                                    }
                                 }}
                             >
                                 <DeleteIcon
