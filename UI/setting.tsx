@@ -84,7 +84,7 @@ export const Setting = (props: SettingProps) => {
 };
 
 const addRelayInput = signal("");
-export const addRelayError = signal("");
+const error = signal("");
 export function RelaySetting(props: {
     relays: {
         url: string;
@@ -98,9 +98,9 @@ export function RelaySetting(props: {
     const addRelay = async () => {
         const err = await props.relayConfig.addRelayURL(addRelayInput.value);
         if (err instanceof Error) {
-            addRelayError.value = err.message;
+            error.value = err.message;
         } else {
-            addRelayError.value = "";
+            error.value = "";
         }
         addRelayInput.value = "";
     };
@@ -137,8 +137,8 @@ export function RelaySetting(props: {
                     Add
                 </button>
             </div>
-            {addRelayError.value
-                ? <p class={tw`mt-2 text-[${ErrorColor}] text-[0.875rem]`}>{addRelayError.value}</p>
+            {error.value
+                ? <p class={tw`mt-2 text-[${ErrorColor}] text-[0.875rem]`}>{error.value}</p>
                 : undefined}
             <ul class={tw`mt-[1.5rem]`}>
                 {relays.map((r) => {
@@ -159,11 +159,11 @@ export function RelaySetting(props: {
 
                             <button
                                 class={tw`w-[2rem] h-[2rem] rounded-lg bg-transparent hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
-                                onClick={() => {
-                                    props.eventBus.emit({
-                                        type: "RemoveRelayButtonClicked",
-                                        url: r.url,
-                                    });
+                                onClick={async () => {
+                                    const err = await props.relayConfig.removeRelay(r.url);
+                                    if (err instanceof Error) {
+                                        error.value = err.message;
+                                    }
                                 }}
                             >
                                 <DeleteIcon
