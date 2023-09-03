@@ -2,15 +2,16 @@
   "version": "2",
   "remote": {
     "https://deno.land/std@0.176.0/encoding/hex.ts": "50f8c95b52eae24395d3dfcb5ec1ced37c5fe7610ef6fffdcc8b0fdc38e3b32f",
+    "https://esm.sh/@preact/signals@1.2.1": "e7d6138ae262a71b624eeeabe67c387786843399e2593409d394920d74692e99",
     "https://esm.sh/preact@10.11.3": "ad3c24796c4132c84b4b392f812228d53a0fd600fa64648f27aebd05ec09b24e",
     "https://esm.sh/stable/preact@10.11.3/denonext/preact.mjs": "c828d9020ea26f07ba07b2f0a3ef97fd7ceb1c2a772c380ca05e2647ac8d3923",
+    "https://esm.sh/stable/preact@10.17.0/denonext/hooks.js": "b51c969439b19f5edc61ac6a99689a38ba76ae8e36127d2dc0293830849fd56a",
+    "https://esm.sh/stable/preact@10.17.0/denonext/preact.mjs": "38d273934e973d9698e98f053e89c1233b1102baf9800ceef0e22781c2702395",
     "https://esm.sh/twind@0.16.16": "b970345c75e778ac5ba6219da4c6f3057e579653e5b36c0f824d2309b56b19ba",
-    "https://esm.sh/v128/preact@10.11.3/src/index.d.ts": "76842a9d103548261ee001f2aee5fa5cacc8b1b4b4032af537ed84603c8f4a31",
-    "https://esm.sh/v128/preact@10.11.3/src/jsx.d.ts": "77ce5bd7324455c9f6dc85bfc3c94b733acb92cc98fdf82e4b1059c8bca7866d",
-    "https://esm.sh/v131/csstype@3.1.2/index.d.ts": "4c68749a564a6facdf675416d75789ee5a557afda8960e0803cf6711fa569288",
+    "https://esm.sh/v131/@preact/signals-core@1.4.0/denonext/signals-core.mjs": "be3db12ec548198be64192e9dd6c89de76d4cb5b363c04bb24cd4008af69aaa4",
+    "https://esm.sh/v131/@preact/signals@1.2.1/denonext/signals.mjs": "792838e6106580217d5f2a78f68fd80091e2fe445085cb1dfa4f45ee4a07346b",
     "https://esm.sh/v131/style-vendorizer@2.2.3/denonext/style-vendorizer.mjs": "121455e7b04b631ef6463ce63cdcd29febd74d88c37713c774ceca8a1561c83d",
     "https://esm.sh/v131/twind@0.16.16/denonext/twind.mjs": "da59286ec21545fe326d0e04d5c92e5abf70cfcf14d6285a32fc0c4f1a6eb1d6",
-    "https://esm.sh/v131/twind@0.16.16/twind.d.ts": "814ca7a2d9deaf7efe817e7327c8f0d1eaa0ec035235a5626eddc241ba5059e6",
     "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts": "3e8eed3d933748d48c83e2ae583bf86748621bcd6e8f181bef8a6ae8e5a4bfac",
     "https://unpkg.com/dexie@3.2.3/dist/modern/dexie.mjs": "63f0ed30a7ac5698fe88152899fd526ac1294067dc28283505151b436c2ee1ba"
   }
