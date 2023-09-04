@@ -7,3 +7,5 @@ test.ts
 cov_profile*
 Elm
 DevOps/stats.sqlite
+*.DS_Store
+.DS_Store

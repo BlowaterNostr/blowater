@@ -1,33 +1,26 @@
 /** @jsx h */
-import { h, render } from "https://esm.sh/preact@10.11.3";
-import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { h, render } from "https://esm.sh/preact@10.17.1";
 import { EventBus } from "../event-bus.ts";
-import { UI_Interaction_Event } from "./app_update.ts";
-import { RelaySetting } from "./setting.tsx";
+import { Setting } from "./setting.tsx";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
-import { defaultRelays } from "./setting.ts";
+import { defaultRelays, RelayConfig } from "./setting.ts";
+import { InMemoryAccountContext } from "../lib/nostr-ts/nostr.ts";
+import { PrivateKey } from "../lib/nostr-ts/key.ts";
 
 const pool = new ConnectionPool();
-pool.addRelayURLs(defaultRelays).then((errs) => {
-    if (errs) {
-        console.log(errs);
-    }
-});
-
-const bus = new EventBus<UI_Interaction_Event>();
-
-for (;;) {
-    render(
-        <RelaySetting
-            err=""
-            eventBus={bus}
-            input=""
-            relays={pool.getRelays().map((r) => ({
-                status: r.ws.status(),
-                url: r.url,
-            }))}
-        />,
-        document.body,
-    );
-    await sleep(100); // 10 FPS
+const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
+const relayConfig = new RelayConfig();
+for (const url of defaultRelays) {
+    relayConfig.add(url);
 }
+render(
+    Setting({
+        relayConfig: relayConfig,
+        relayPool: pool,
+        myAccountContext: ctx,
+        logout: () => {
+            console.log("logout is clicked");
+        },
+    }),
+    document.body,
+);

@@ -104,10 +104,10 @@ export async function* UI_Interaction_Update(args: {
                     const dbView = await Database_Contextual_View.New(dexieDB, ctx);
                     const lamport = fromEvents(dbView.filterEvents((_) => true));
                     const app = new App(dbView, lamport, model, ctx, eventBus, pool);
-                    const err = await app.initApp(ctx);
-                    if (err instanceof Error) {
-                        console.error(err.message);
-                    }
+                    const err = await app.initApp(ctx, pool);
+                    // if (err instanceof Error) {
+                    //     console.error(err.message);
+                    // }
                     model.app = app;
                 } else {
                     console.error("failed to sign in");
@@ -187,7 +187,7 @@ export async function* UI_Interaction_Update(args: {
                 console.error(nostrEvent);
                 continue;
             }
-            const err = await model.app.relayConfig.pool.sendEvent(nostrEvent);
+            const err = await pool.sendEvent(nostrEvent);
             if (err instanceof Error) {
                 console.error(err);
             }
@@ -208,7 +208,7 @@ export async function* UI_Interaction_Update(args: {
                     files: event.files,
                     kind: event.target.kind,
                     lamport_timestamp: model.app.lamport.now(),
-                    pool: model.app.relayConfig.pool,
+                    pool,
                     waitAll: false,
                     tags: event.tags,
                 });
@@ -226,7 +226,7 @@ export async function* UI_Interaction_Update(args: {
                     sender: model.app.myAccountContext,
                     message: event.text,
                     lamport_timestamp: model.app.lamport.now(),
-                    pool: model.app.relayConfig.pool,
+                    pool,
                     tags: event.tags,
                 });
                 if (event.id == "social") {
@@ -295,7 +295,7 @@ export async function* UI_Interaction_Update(args: {
             await saveProfile(
                 event.profile,
                 model.app.myAccountContext,
-                model.app.relayConfig.pool,
+                pool,
             );
         } else if (event.type == "EditNewProfileFieldKey") {
             model.newProfileField.key = event.key;
@@ -475,7 +475,7 @@ export async function* Database_Update(
                     events.push(e);
                 }
             }
-            await relayConfig.addEvents(events);
+            // await relayConfig.addEvents(events);
         }
         for (let e of changes_events) {
             allUserInfo.addEvents([e]);
@@ -579,24 +579,22 @@ export async function* Database_Update(
 ///////////
 // Relay //
 ///////////
-export async function* Relay_Update(relayPool: ConnectionPool) {
+export async function* Relay_Update(relayPool: ConnectionPool, relayConfig: RelayConfig) {
     for (;;) {
-        await csp.sleep(1000 * 10); // every 10 sec
+        await csp.sleep(1000 * 2.5); // every 2.5 sec
         console.log(`Relay: checking connections`);
-        for (const relay of relayPool.getRelays()) {
-            if (relay.isClosed() && !relay.isClosedByClient) {
-                console.log(`Relay: ${relay.url} has been closed by remote, reconnecting`);
+        // first, remove closed relays
+        const relays = relayPool.getRelays();
+        for (const relay of relays) {
+            if (relay.isClosed()) {
                 await relayPool.removeRelay(relay.url);
-                while (true) {
-                    const err = await relayPool.addRelayURL(relay.url);
-                    if (err) {
-                        console.error(err);
-                        continue;
-                    }
-                    console.log(`Relay: ${relay.url} has been reconnected`);
-                    yield;
-                    break;
-                }
+            }
+        }
+        // second, add urls
+        for (const url of relayConfig.getRelayURLs()) {
+            const err = await relayPool.addRelayURL(url);
+            if (err instanceof Error) {
+                console.log(err.message);
             }
         }
         yield;

@@ -1,5 +1,5 @@
 /** @jsx h */
-import { h, render, VNode } from "https://esm.sh/preact@10.11.3";
+import { h, render, VNode } from "https://esm.sh/preact@10.17.1";
 import * as dm from "../features/dm.ts";
 
 import { DirectMessageContainer, MessageThread } from "./dm.tsx";
@@ -55,25 +55,33 @@ export async function Start(database: DexieDatabase) {
         const dbView = await Database_Contextual_View.New(database, ctx);
         const lamport = time.fromEvents(dbView.filterEvents((_) => true));
         const app = new App(dbView, lamport, model, ctx, eventBus, pool);
-        const err = await app.initApp(ctx);
-        if (err instanceof Error) {
-            throw err;
-        }
+        const err = await app.initApp(ctx, pool);
+        // if (err instanceof Error) {
+        //     throw err;
+        // }
         model.app = app;
     }
 
-    /* first render */ render(<AppComponent model={model} eventBus={eventBus} />, document.body);
-
-    (async () => {
-        for await (let _ of Relay_Update(pool)) {
-            render(<AppComponent model={model} eventBus={eventBus} />, document.body);
-        }
-    })();
+    /* first render */ render(
+        AppComponent({
+            eventBus,
+            model,
+            pool,
+        }),
+        document.body,
+    );
 
     for await (let _ of UI_Interaction_Update({ model, eventBus, dexieDB: database, pool })) {
         const t = Date.now();
         {
-            render(<AppComponent model={model} eventBus={eventBus} />, document.body);
+            render(
+                AppComponent({
+                    eventBus,
+                    model,
+                    pool,
+                }),
+                document.body,
+            );
         }
         console.log("render", Date.now() - t);
     }
@@ -150,10 +158,28 @@ export class App {
     ) {
         this.eventSyncer = new EventSyncer(relayPool, this.database);
         this.allUsersInfo = new AllUsersInformation(myAccountContext);
-        this.relayConfig = new RelayConfig(relayPool, this.myAccountContext);
+        this.relayConfig = new RelayConfig();
+        if (this.relayConfig.getRelayURLs().size == 0) {
+            for (const url of defaultRelays) {
+                this.relayConfig.add(url);
+            }
+        }
+
+        (async (config: RelayConfig) => {
+            for await (let _ of Relay_Update(relayPool, config)) {
+                render(
+                    AppComponent({
+                        eventBus,
+                        model,
+                        pool: relayPool,
+                    }),
+                    document.body,
+                );
+            }
+        })(this.relayConfig);
     }
 
-    initApp = async (accountContext: NostrAccountContext) => {
+    initApp = async (accountContext: NostrAccountContext, pool: ConnectionPool) => {
         console.log("App.initApp");
         this.allUsersInfo.addEvents(this.database.events);
         {
@@ -166,18 +192,23 @@ export class App {
                     events.push(e);
                 }
             }
-            await this.relayConfig.addEvents(events);
-            const urls = this.relayConfig.getRelayURLs();
-            if (urls.size == 0) {
-                this.relayConfig.pool.addRelayURLs(defaultRelays);
+            {
+                // relay config synchronization
+                for (const e of events) {
+                    const _relayConfig = await RelayConfig.FromNostrEvent(e, this.myAccountContext);
+                    if (_relayConfig instanceof Error) {
+                        console.log(_relayConfig.message);
+                        continue;
+                    }
+                    this.relayConfig.merge(_relayConfig.save());
+                }
             }
         }
 
-        const profilesSyncer = await initProfileSyncer(this.relayConfig.pool, accountContext, this.database);
+        const profilesSyncer = await initProfileSyncer(pool, accountContext, this.database);
         if (profilesSyncer instanceof Error) {
             return profilesSyncer;
         }
-
         this.profileSyncer = profilesSyncer;
 
         console.log("App allUsersInfo");
@@ -206,10 +237,10 @@ export class App {
             }
         }
 
-        profilesSyncer.add(
-            ...Array.from(this.allUsersInfo.userInfos.keys()),
-        );
-        console.log("user set", profilesSyncer.userSet);
+        // profilesSyncer.add(
+        //     ...Array.from(this.allUsersInfo.userInfos.keys()),
+        // );
+        // console.log("user set", profilesSyncer.userSet);
 
         const ps = Array.from(this.allUsersInfo.userInfos.values()).map((u) => u.pubkey.hex);
         this.eventSyncer.syncEvents({
@@ -232,7 +263,14 @@ export class App {
                     this.relayConfig,
                 )
             ) {
-                render(<AppComponent model={this.model} eventBus={this.eventBus} />, document.body);
+                render(
+                    AppComponent({
+                        eventBus: this.eventBus,
+                        model: this.model,
+                        pool,
+                    }),
+                    document.body,
+                );
                 console.log(`render ${++i} times`);
             }
         })();
@@ -247,6 +285,7 @@ export class App {
 export function AppComponent(props: {
     model: Model;
     eventBus: AppEventBus;
+    pool: ConnectionPool;
 }) {
     const t = Date.now();
     const model = props.model;
@@ -323,8 +362,8 @@ export function AppComponent(props: {
                 {Setting({
                     logout: app.logout,
                     relayConfig: app.relayConfig,
-                    eventBus: app.eventBus,
                     myAccountContext: myAccountCtx,
+                    relayPool: props.pool,
                 })}
             </div>
         );
@@ -359,7 +398,7 @@ export function AppComponent(props: {
                         eventEmitter: app.eventBus,
                         myAccountContext: myAccountCtx,
                         db: app.database,
-                        pool: app.relayConfig.pool,
+                        pool: props.pool,
                         allUserInfo: app.allUsersInfo.userInfos,
                         profilesSyncer: app.profileSyncer,
                         eventSyncer: app.eventSyncer,
@@ -386,7 +425,7 @@ export function AppComponent(props: {
                             profilePicURL: model.myProfile?.picture,
                             publicKey: myAccountCtx.publicKey,
                             database: app.database,
-                            pool: app.relayConfig.pool,
+                            pool: props.pool,
                             eventEmitter: app.eventBus,
                             ...model.navigationModel,
                         })}
@@ -415,14 +454,16 @@ export function AppComponent(props: {
                 </div>
 
                 <div class={tw`desktop:hidden`}>
-                    <nav.MobileNavBar
+                    {
+                        /* <nav.MobileNavBar
                         profilePicURL={model.myProfile?.picture}
                         publicKey={myAccountCtx.publicKey}
                         database={app.database}
                         pool={app.relayConfig.pool}
                         eventEmitter={app.eventBus}
                         {...model.navigationModel}
-                    />
+                    /> */
+                    }
                 </div>
             </div>
         </div>

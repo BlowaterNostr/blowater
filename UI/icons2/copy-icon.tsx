@@ -1,5 +1,5 @@
 /** @jsx h */
-import { h } from "https://esm.sh/preact@10.11.3";
+import { h } from "https://esm.sh/preact@10.17.1";
 
 export function CopyIcon(props: {
     class?: string | h.JSX.SignalLike<string | undefined> | undefined;

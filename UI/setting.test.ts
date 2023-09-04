@@ -1,82 +1,95 @@
-import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
-import { RelayConfig } from "./setting.ts";
-import {
-    InMemoryAccountContext,
-    NostrAccountContext,
-    prepareCustomAppDataEvent,
-} from "../lib/nostr-ts/nostr.ts";
 import { PrivateKey } from "../lib/nostr-ts/key.ts";
-import { assertEquals, fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
-import { transformEvent } from "../database.ts";
-import { CustomAppData } from "../nostr.ts";
+import { InMemoryAccountContext } from "../lib/nostr-ts/nostr.ts";
+import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
+import { defaultRelays, RelayConfig } from "./setting.ts";
+import { assertEquals, assertNotInstanceOf, fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 
 Deno.test("Relay Config", async () => {
-    const pool1 = new ConnectionPool();
-    const pool2 = new ConnectionPool();
+    const relayConfig = new RelayConfig();
     {
-        const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
-        const e1 = await prepareData(ctx, {
-            type: "AddRelay",
-            url: "wss://nos.lol",
-            vc: 1,
-        });
-        const e2 = await prepareData(ctx, {
-            type: "RemoveRelay",
-            url: "wss://nos.lol",
-            vc: 2,
-        });
-        const e3 = await prepareData(ctx, {
-            type: "AddRelay",
-            url: "wss://relay.damus.io",
-            vc: 1,
-        });
-        const e4 = await prepareData(ctx, {
-            type: "RemoveRelay",
-            url: "wss://relay.damus.io",
-            vc: 2,
-        });
-        const e5 = await prepareData(ctx, {
-            type: "AddRelay",
-            url: "wss://relay.damus.io",
-            vc: 3,
-        });
+        const urls = relayConfig.getRelayURLs();
+        assertEquals(urls.size, 0);
 
-        const rc1 = new RelayConfig(pool1, ctx);
-        await rc1.addEvents([e1]);
-        assertEquals(rc1.getRelayURLs(), new Set(["wss://nos.lol"]));
-        assertEquals(new Set(pool1.getRelays().map((r) => r.url)), rc1.getRelayURLs());
+        relayConfig.add("wss://nos.lol");
+        const urls2 = relayConfig.getRelayURLs();
+        assertEquals(urls2, new Set(["wss://nos.lol"]));
 
-        await rc1.addEvents([e2, e3, e4, e5]);
-
-        const events = [e1, e2, e3, e4, e5].sort((_) => Math.random() - 1);
-        const chunkSize = Math.random() * 5;
-        const chunk1 = events.slice(0, chunkSize);
-        const chunk2 = events.slice(chunkSize);
-        const rc2 = new RelayConfig(pool2, ctx);
-        await rc2.addEvents(chunk1);
-        await rc2.addEvents(chunk2);
-
-        assertEquals(rc1.getRelayURLs(), rc2.getRelayURLs());
-        assertEquals(rc1.getRelayURLs(), new Set(["wss://relay.damus.io"]));
-
-        assertEquals(new Set(pool1.getRelays().map((r) => r.url)), rc1.getRelayURLs());
-        assertEquals(new Set(pool2.getRelays().map((r) => r.url)), rc2.getRelayURLs());
+        relayConfig.add("nos.lol"); // will add protocol prefix
+        assertEquals(relayConfig.getRelayURLs(), new Set(["wss://nos.lol"]));
     }
-    await pool1.close();
-    await pool2.close();
+
+    const relayConfig2 = new RelayConfig();
+    {
+        const urls = relayConfig2.getRelayURLs();
+        assertEquals(urls.size, 0);
+
+        relayConfig2.add("wss://relay.damus.io");
+        const urls2 = relayConfig2.getRelayURLs();
+        assertEquals(urls2, new Set(["wss://relay.damus.io"]));
+    }
+
+    relayConfig.merge(relayConfig2.save());
+    relayConfig2.merge(relayConfig.save());
+
+    assertEquals(relayConfig.getRelayURLs(), relayConfig2.getRelayURLs());
+    assertEquals(relayConfig.getRelayURLs(), new Set(["wss://nos.lol", "wss://relay.damus.io"]));
+
+    {
+        relayConfig.remove("not exist");
+        assertEquals(relayConfig.getRelayURLs(), new Set(["wss://nos.lol", "wss://relay.damus.io"]));
+
+        relayConfig.remove("wss://nos.lol");
+        assertEquals(relayConfig.getRelayURLs(), new Set(["wss://relay.damus.io"]));
+
+        relayConfig2.add("wss://somewhere");
+        assertEquals(
+            relayConfig2.getRelayURLs(),
+            new Set(["wss://nos.lol", "wss://relay.damus.io", "wss://somewhere"]),
+        );
+
+        relayConfig.merge(relayConfig2.save());
+        relayConfig2.merge(relayConfig.save());
+
+        assertEquals(relayConfig.getRelayURLs(), relayConfig2.getRelayURLs());
+        assertEquals(relayConfig.getRelayURLs(), new Set(["wss://relay.damus.io", "wss://somewhere"]));
+    }
+
+    const pri = PrivateKey.Generate();
+    const ctx = InMemoryAccountContext.New(pri);
+    const event = await relayConfig.toNostrEvent(ctx, true);
+    if (event instanceof Error) fail(event.message);
+
+    const relayConfig3 = await RelayConfig.FromNostrEvent(event, ctx);
+    if (relayConfig3 instanceof Error) fail(relayConfig3.message);
+
+    assertEquals(relayConfig3.getRelayURLs(), relayConfig.getRelayURLs());
+
+    { // synchronize with connection pool
+        const pool = new ConnectionPool();
+        {
+            const err = await relayConfig.syncWithPool(pool);
+            if (err != undefined) {
+                assertEquals(err.length, 1);
+                assertEquals(err[0].message, "wss://somewhere has been closed, can't wait for it to open");
+            }
+
+            // add one relay to the pool directly
+            assertNotInstanceOf(pool.addRelayURL("wss://relay.nostr.wirednet.jp"), Error);
+            assertEquals(pool.getRelays().map((r) => r.url), [
+                "wss://relay.damus.io",
+                "wss://relay.nostr.wirednet.jp",
+            ]);
+
+            assertEquals(relayConfig.getRelayURLs(), new Set(["wss://relay.damus.io", "wss://somewhere"]));
+
+            // will remove urls that's in the pool but not in the config
+            const err2 = await relayConfig.syncWithPool(pool);
+            if (err2 != undefined) {
+                assertEquals(err2.length, 1);
+                assertEquals(err2[0].message, "wss://somewhere has been closed, can't wait for it to open");
+            }
+            assertEquals(pool.getRelays().map((r) => r.url), ["wss://relay.damus.io"]); // wirednet is removed
+        }
+        await pool.close();
+    }
 });
-
-async function prepareData(ctx: NostrAccountContext, data: CustomAppData) {
-    const e = await prepareCustomAppDataEvent(ctx, data);
-    if (e instanceof Error) {
-        fail(e.message);
-    }
-    const customAppDataEvent = await transformEvent(e, ctx);
-    if (customAppDataEvent instanceof Error) {
-        fail(customAppDataEvent.message);
-    }
-    if (customAppDataEvent == undefined) {
-        fail();
-    }
-    return customAppDataEvent;
-}

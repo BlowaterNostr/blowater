@@ -1,5 +1,5 @@
 /** @jsx h */
-import { h, render } from "https://esm.sh/preact@10.11.3";
+import { h, render } from "https://esm.sh/preact@10.17.1";
 
 import { NewIndexedDB } from "./dexie-db.ts";
 import { MessagePanel } from "./message-panel.tsx";

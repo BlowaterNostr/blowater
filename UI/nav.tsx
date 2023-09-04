@@ -1,5 +1,5 @@
 /** @jsx h */
-import { h } from "https://esm.sh/preact@10.11.3";
+import { h } from "https://esm.sh/preact@10.17.1";
 import { tw } from "https://esm.sh/twind@0.16.16";
 import { AboutIcon, AppListIcon } from "./icons/mod.tsx";
 import * as db from "../database.ts";

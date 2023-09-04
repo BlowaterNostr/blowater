@@ -1,5 +1,5 @@
 /** @jsx h */
-import { h, render } from "https://esm.sh/preact@10.11.3";
+import { h, render } from "https://esm.sh/preact@10.17.1";
 
 import KeyView from "./key-view.tsx";
 import { PrivateKey, PublicKey } from "../lib/nostr-ts/key.ts";

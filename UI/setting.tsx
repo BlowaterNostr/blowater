@@ -1,11 +1,8 @@
 /** @jsx h */
-import { Fragment, h } from "https://esm.sh/preact@10.11.3";
+import { Fragment, h } from "https://esm.sh/preact@10.17.1";
 import { tw } from "https://esm.sh/twind@0.16.16";
-import { EventBus } from "../event-bus.ts";
 
-import { WebSocketReadyState } from "../lib/nostr-ts/websocket.ts";
-
-import { signal } from "https://esm.sh/@preact/signals@1.2.1";
+import { computed, signal } from "https://esm.sh/@preact/signals@1.2.1";
 
 import {
     CenterClass,
@@ -14,7 +11,6 @@ import {
     LinearGradientsClass,
     NoOutlineClass,
 } from "./components/tw.ts";
-import { UI_Interaction_Event } from "./app_update.ts";
 import KeyView from "./key-view.tsx";
 import { InMemoryAccountContext, NostrAccountContext } from "../lib/nostr-ts/nostr.ts";
 import { PrivateKey } from "../lib/nostr-ts/key.ts";
@@ -30,11 +26,12 @@ import {
 import { RelayIcon } from "./icons2/relay-icon.tsx";
 import { DeleteIcon } from "./icons2/delete-icon.tsx";
 import { RelayConfig } from "./setting.ts";
+import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 
 export interface SettingProps {
     logout: () => void;
     relayConfig: RelayConfig;
-    eventBus: EventBus<UI_Interaction_Event>;
+    relayPool: ConnectionPool;
     myAccountContext: NostrAccountContext;
 }
 
@@ -43,15 +40,10 @@ const colors = {
     "Open": SuccessColor,
     "Closing": WarnColor,
     "Closed": ErrorColor,
+    "Not In Pool": ErrorColor,
 };
 
 export const Setting = (props: SettingProps) => {
-    const relays = props.relayConfig.pool.getRelays().map(
-        (r) => ({
-            url: r.url,
-            status: r.ws.status(),
-        }),
-    );
     let priKey: PrivateKey | undefined;
     const ctx = props.myAccountContext;
     if (ctx instanceof InMemoryAccountContext) {
@@ -60,11 +52,7 @@ export const Setting = (props: SettingProps) => {
     return (
         <div class={tw`max-w-[41rem] m-auto py-[1.5rem]`}>
             <div class={tw`px-[1rem] py-[1.5rem] ${inputBorderClass} rounded-lg mt-[1.5rem]`}>
-                <RelaySetting
-                    eventBus={props.eventBus}
-                    relays={relays}
-                    relayConfig={props.relayConfig}
-                />
+                {RelaySetting(props)}
             </div>
 
             <div class={tw`px-[1rem] py-[0.5rem] ${inputBorderClass} rounded-lg mt-[1.5rem]`}>
@@ -74,7 +62,7 @@ export const Setting = (props: SettingProps) => {
                 />
             </div>
             <button
-                class={tw`w-full p-[0.75rem] mt-[1.5rem] rounded-lg ${NoOutlineClass} text-[${PrimaryTextColor}] ${CenterClass} ${LinearGradientsClass}  hover:bg-gradient-to-l`}
+                class={tw`w-full p-[0.75rem] mt-[1.5rem] rounded-lg ${NoOutlineClass} ${CenterClass} ${LinearGradientsClass}  hover:bg-gradient-to-l`}
                 onClick={props.logout}
             >
                 Logout
@@ -83,31 +71,57 @@ export const Setting = (props: SettingProps) => {
     );
 };
 
-const addRelayInput = signal("");
 const error = signal("");
+const addRelayInput = signal("");
+const relayStatus = signal<{ url: string; status: keyof typeof colors }[]>([]);
 export function RelaySetting(props: {
-    relays: {
-        url: string;
-        status: WebSocketReadyState;
-    }[];
     relayConfig: RelayConfig;
-    eventBus: EventBus<UI_Interaction_Event>;
+    relayPool: ConnectionPool;
 }) {
-    const relays = props.relays;
+    function computeRelayStatus() {
+        const _relayStatus: { url: string; status: keyof typeof colors }[] = [];
+        for (const url of props.relayConfig.getRelayURLs()) {
+            const relay = props.relayPool.getRelay(url);
+            let status: keyof typeof colors = "Not In Pool";
+            if (relay) {
+                status = relay.ws.status();
+            }
+            _relayStatus.push({
+                url,
+                status,
+            });
+        }
+        return _relayStatus;
+    }
+
+    (async () => {
+        console.log("relayConfig.syncWithPool", props.relayConfig, props.relayPool);
+        const err = await props.relayConfig.syncWithPool(props.relayPool);
+        if (err != undefined) {
+            error.value = err.map((e) => e.message).join("\n");
+        }
+        relayStatus.value = computeRelayStatus();
+    })();
+
+    relayStatus.value = computeRelayStatus();
 
     const addRelay = async () => {
-        const err = await props.relayConfig.addRelayURL(addRelayInput.value);
-        if (err instanceof Error) {
-            error.value = err.message;
-        } else {
-            error.value = "";
+        // props.eventBus.emit({ type: "AddRelay" });
+        console.log("add", addRelayInput.value);
+        if (addRelayInput.value.length > 0) {
+            props.relayConfig.add(addRelayInput.value);
+            addRelayInput.value = "";
+            relayStatus.value = computeRelayStatus();
+            const err = await props.relayConfig.syncWithPool(props.relayPool);
+            if (err != undefined) {
+                error.value = err.map((e) => e.message).join("\n");
+            }
+            relayStatus.value = computeRelayStatus();
         }
-        addRelayInput.value = "";
     };
-
     return (
         <Fragment>
-            <p class={tw`text-[${PrimaryTextColor}] text-[1.3125rem] flex`}>
+            <p class={tw`text-[1.3125rem] flex`}>
                 <RelayIcon
                     class={tw`w-[2rem] h-[2rem] mr-[1rem]`}
                     style={{
@@ -116,7 +130,7 @@ export function RelaySetting(props: {
                 />
                 Relays
             </p>
-            <p class={tw`mt-[1.75rem] text-[${PrimaryTextColor}]`}>
+            <p class={tw`mt-[1.75rem]`}>
                 Add Relay
             </p>
             <div class={tw`mt-[0.5rem] flex`}>
@@ -124,14 +138,15 @@ export function RelaySetting(props: {
                     autofocus={true}
                     onInput={(e) => {
                         addRelayInput.value = e.currentTarget.value;
+                        console.log("|", addRelayInput.value);
                     }}
-                    value={addRelayInput.value}
+                    value={addRelayInput}
                     placeholder="wss://"
                     type="text"
                     class={tw`${InputClass}`}
                 />
                 <button
-                    class={tw`ml-[0.75rem] w-[5.9375rem] h-[3rem] p-[0.75rem] rounded-lg ${NoOutlineClass} text-[${PrimaryTextColor}] bg-[${DividerBackgroundColor}] hover:bg-[${HoverButtonBackgroudColor}] ${CenterClass}`}
+                    class={tw`ml-[0.75rem] w-[5.9375rem] h-[3rem] p-[0.75rem] rounded-lg ${NoOutlineClass} bg-[${DividerBackgroundColor}] hover:bg-[${HoverButtonBackgroudColor}] ${CenterClass}`}
                     onClick={addRelay}
                 >
                     Add
@@ -141,40 +156,46 @@ export function RelaySetting(props: {
                 ? <p class={tw`mt-2 text-[${ErrorColor}] text-[0.875rem]`}>{error.value}</p>
                 : undefined}
             <ul class={tw`mt-[1.5rem]`}>
-                {relays.map((r) => {
-                    return (
-                        <li
-                            class={tw`w-full px-[1rem] py-[0.75rem] rounded-lg bg-[${DividerBackgroundColor}80] mb-[0.5rem] text-[${PrimaryTextColor}] flex items-center justify-between`}
-                        >
-                            <div class={tw`flex items-center flex-1 overflow-hidden`}>
-                                <span
-                                    class={tw`bg-[${
-                                        colors[r.status]
-                                    }] text-center block py-1 px-2 rounded text-[0.8rem] mr-2 font-bold`}
-                                >
-                                    {r.status}
-                                </span>
-                                <span class={tw`truncate`}>{r.url}</span>
-                            </div>
-
-                            <button
-                                class={tw`w-[2rem] h-[2rem] rounded-lg bg-transparent hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
-                                onClick={async () => {
-                                    const err = await props.relayConfig.removeRelay(r.url);
-                                    if (err instanceof Error) {
-                                        error.value = err.message;
-                                    }
-                                }}
+                {computed(() => {
+                    return relayStatus.value.map((r) => {
+                        return (
+                            <li
+                                class={tw`w-full px-[1rem] py-[0.75rem] rounded-lg bg-[${DividerBackgroundColor}80] mb-[0.5rem]  flex items-center justify-between`}
                             >
-                                <DeleteIcon
-                                    class={tw`w-[1rem] h-[1rem]`}
-                                    style={{
-                                        stroke: ErrorColor,
+                                <div class={tw`flex items-center flex-1 overflow-hidden`}>
+                                    <span
+                                        class={tw`bg-[${
+                                            colors[r.status]
+                                        }] text-center block py-1 px-2 rounded text-[0.8rem] mr-2 font-bold`}
+                                    >
+                                        {r.status}
+                                    </span>
+                                    <span class={tw`truncate`}>{r.url}</span>
+                                </div>
+
+                                <button
+                                    class={tw`w-[2rem] h-[2rem] rounded-lg bg-transparent hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
+                                    onClick={async () => {
+                                        props.relayConfig.remove(r.url);
+                                        relayStatus.value = computeRelayStatus();
+                                        const err = await props.relayConfig.syncWithPool(props.relayPool);
+                                        if (err != undefined) {
+                                            error.value = err.map((e) => e.message).join("\n");
+                                        }
+                                        relayStatus.value = computeRelayStatus();
+                                        console.log(relayStatus.value);
                                     }}
-                                />
-                            </button>
-                        </li>
-                    );
+                                >
+                                    <DeleteIcon
+                                        class={tw`w-[1rem] h-[1rem]`}
+                                        style={{
+                                            stroke: ErrorColor,
+                                        }}
+                                    />
+                                </button>
+                            </li>
+                        );
+                    });
                 })}
             </ul>
         </Fragment>
