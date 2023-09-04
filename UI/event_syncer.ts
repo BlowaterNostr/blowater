@@ -32,7 +32,7 @@ export class EventSyncer {
                 return events;
             }
             for await (const { res, url } of events.chan) {
-                if (res.type == "EOSE") {
+                if (res.type != "EVENT") {
                     continue;
                 }
                 const ok = await verifyEvent(res.event);
@@ -61,7 +61,7 @@ export class EventSyncer {
             return events;
         }
         for await (const { res, url } of events.chan) {
-            if (res.type == "EOSE") {
+            if (res.type != "EVENT") {
                 continue;
             }
             const ok = await verifyEvent(res.event);
