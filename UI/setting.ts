@@ -1,6 +1,12 @@
-import { NostrAccountContext, prepareCustomAppDataEvent } from "../lib/nostr-ts/nostr.ts";
-import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
-import { AddRelay, CustomAppData, CustomAppData_Event, RemoveRelay } from "../nostr.ts";
+import * as Automerge from "https://deno.land/x/automerge@2.1.0-alpha.12/index.ts";
+import {
+    NostrAccountContext,
+    NostrEvent,
+    NostrKind,
+    prepareCustomAppDataEvent,
+} from "../lib/nostr-ts/nostr.ts";
+import * as secp256k1 from "../lib/nostr-ts/vendor/secp256k1.js";
+import { ConnectionPool, RelayAlreadyRegistered } from "../lib/nostr-ts/relay.ts";
 
 export const defaultRelays = [
     "wss://nos.lol",
@@ -8,99 +14,94 @@ export const defaultRelays = [
     "wss://relay.nostr.wirednet.jp",
 ];
 
+type Config = {
+    [key: string]: boolean;
+};
+
 export class RelayConfig {
     // This is a state based CRDT based on Vector Clock
     // see https://www.youtube.com/watch?v=OOlnp2bZVRs
-    private readonly relaySet = new Map<string, AddRelay | RemoveRelay>();
+    private config: Automerge.next.Doc<Config> = Automerge.init();
 
-    constructor(
-        public readonly pool: ConnectionPool,
-        public readonly ctx: NostrAccountContext,
-    ) {}
+    static async FromNostrEvent(event: NostrEvent<NostrKind.CustomAppData>, ctx: NostrAccountContext) {
+        const decrypted = await ctx.decrypt(ctx.publicKey.hex, event.content);
+        if (decrypted instanceof Error) {
+            return decrypted;
+        }
+        const json = JSON.parse(decrypted);
+        const relayConfig = new RelayConfig();
+        relayConfig.merge(secp256k1.utils.hexToBytes(json.data));
+        return relayConfig;
+    }
+
+    async toNostrEvent(ctx: NostrAccountContext, needEncryption: boolean) {
+        if (needEncryption) {
+            const hex = secp256k1.utils.bytesToHex(this.save());
+            const event = await prepareCustomAppDataEvent(ctx, {
+                type: "relayConfig",
+                data: hex,
+            });
+            return event;
+        }
+        throw "not implemented";
+        // prepareNormalNostrEvent(ctx, NostrKind.)
+    }
 
     getRelayURLs() {
-        const urls = new Set<string>();
-        for (const v of this.relaySet.values()) {
-            if (v.type == "AddRelay") {
-                urls.add(v.url);
-            }
-        }
-        return urls;
+        return new Set(Object.keys(this.config));
     }
 
-    async addEvents(events: CustomAppData_Event[]) {
-        for (const event of events) {
-            const obj = event.customAppData;
-            if (!(obj.type == "AddRelay" || obj.type == "RemoveRelay")) {
+    save() {
+        return Automerge.save(this.config);
+    }
+
+    merge(bytes: Uint8Array) {
+        const otherDoc = Automerge.load<Config>(bytes);
+        this.config = Automerge.merge(this.config, otherDoc);
+    }
+
+    async add(url: string) {
+        if (this.config[url] != undefined) {
+            return;
+        }
+        if (!url.startsWith("wss://") && !url.startsWith("ws://")) {
+            url = "wss://" + url;
+        }
+        this.config = Automerge.change(this.config, "add", (config) => {
+            config[url] = true;
+        });
+        const hex = secp256k1.utils.bytesToHex(this.save());
+    }
+
+    async remove(url: string) {
+        this.config = Automerge.change(this.config, "remove", (config) => {
+            delete config[url];
+        });
+    }
+
+    async syncWithPool(pool: ConnectionPool) {
+        const errors = [];
+        for (const url of Object.keys(this.config)) {
+            const err = await pool.addRelayURL(url);
+            if (err instanceof RelayAlreadyRegistered) {
                 continue;
-            }
-            const currentValue = this.relaySet.get(obj.url);
-            if (currentValue) {
-                if (obj.vc) {
-                    if (obj.vc > currentValue.vc) {
-                        this.relaySet.set(obj.url, obj);
-                    } else {
-                        continue; // current vector clock is larger
-                    }
-                } else {
-                    continue; // do not handle event without vector clock
-                }
-            } else {
-                if (obj.vc) {
-                    this.relaySet.set(obj.url, obj);
-                } else {
-                    continue; // do not handle event without vector clock
-                }
+            } else if (err instanceof Error) {
+                errors.push(err);
             }
         }
-        const s = new Set(this.pool.getRelays().map((r) => r.url));
-        // add
-        for (const url of this.getRelayURLs()) {
-            if (!s.has(url)) {
-                const err = await this.pool.addRelayURL(url);
-                if (err instanceof Error) {
-                    console.error(err);
-                    continue;
-                }
+        for (const r of pool.getRelays()) {
+            if (this.config[r.url] == undefined) {
+                await pool.removeRelay(r.url);
             }
         }
-        // remove
-        for (const url of s) {
-            if (this.relaySet.get(url)?.type == "RemoveRelay") {
-                console.log("RelayConfig:remove url", url, this.relaySet);
-                await this.pool.removeRelay(url);
-            }
+        if (errors.length > 0) {
+            return errors;
         }
     }
+}
 
-    async addRelayURL(url: string) {
-        const err = await this.pool.addRelayURL(url);
-        if (err instanceof Error) {
-            return err;
-        }
-        const value = this.relaySet.get(url);
-        const event = await prepareCustomAppDataEvent<CustomAppData>(this.ctx, {
-            type: "AddRelay",
-            url: url,
-            vc: value ? value.vc + 1 : 1,
-        });
-        if (event instanceof Error) {
-            return event;
-        }
-        return this.pool.sendEvent(event);
-    }
-
-    async removeRelay(url: string) {
-        await this.pool.removeRelay(url);
-        const value = this.relaySet.get(url);
-        const event = await prepareCustomAppDataEvent<CustomAppData>(this.ctx, {
-            type: "RemoveRelay",
-            url: url,
-            vc: value ? value.vc + 1 : 1,
-        });
-        if (event instanceof Error) {
-            return event;
-        }
-        return this.pool.sendEvent(event);
+export function applyPoolToRelayConfig(pool: ConnectionPool, relayConfig: RelayConfig) {
+    for (const relay of pool.getRelays()) {
+        relayConfig.add(relay.url);
     }
 }

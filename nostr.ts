@@ -298,7 +298,7 @@ export type CustomAppData_Event = Parsed_Event<NostrKind.CustomAppData> & {
     readonly customAppData: CustomAppData;
 };
 
-export type CustomAppData = PinContact | UnpinContact | UserLogin | AddRelay | RemoveRelay;
+export type CustomAppData = PinContact | UnpinContact | UserLogin;
 
 export type PinContact = {
     type: "PinContact";
@@ -312,16 +312,4 @@ export type UnpinContact = {
 
 export type UserLogin = {
     type: "UserLogin";
-};
-
-export type AddRelay = {
-    type: "AddRelay";
-    url: string;
-    vc: number;
-};
-
-export type RemoveRelay = {
-    type: "RemoveRelay";
-    url: string;
-    vc: number;
 };
