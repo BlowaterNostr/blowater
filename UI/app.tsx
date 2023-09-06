@@ -166,7 +166,7 @@ export class App {
         }
 
         (async (config: RelayConfig) => {
-            for await (let _ of Relay_Update(relayPool, config)) {
+            for await (let _ of Relay_Update(relayPool, config, myAccountContext)) {
                 render(
                     AppComponent({
                         eventBus,

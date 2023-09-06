@@ -20,7 +20,7 @@ import { SearchUpdate, SelectProfile } from "./search_model.ts";
 import { fromEvents, LamportTime } from "../time.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrAccountContext, NostrKind } from "../lib/nostr-ts/nostr.ts";
-import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
+import { ConnectionPool, RelayAlreadyRegistered } from "../lib/nostr-ts/relay.ts";
 import { SignInEvent, signInWithExtension, signInWithPrivateKey } from "./signIn.tsx";
 import {
     computeThreads,
@@ -37,8 +37,7 @@ import { getSocialPosts } from "../features/social.ts";
 import { RelayConfig } from "./setting.ts";
 import { SocialUpdates } from "./social.tsx";
 import { RelayConfigChange } from "./setting.tsx";
-import { prepareCustomAppDataEvent, prepareParameterizedEvent } from "../lib/nostr-ts/event.ts";
-import { relays } from "../lib/nostr-ts/relay-list.test.ts";
+import { prepareCustomAppDataEvent } from "../lib/nostr-ts/event.ts";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -590,22 +589,34 @@ export async function* Database_Update(
 ///////////
 // Relay //
 ///////////
-export async function* Relay_Update(relayPool: ConnectionPool, relayConfig: RelayConfig) {
+export async function* Relay_Update(
+    relayPool: ConnectionPool,
+    relayConfig: RelayConfig,
+    ctx: NostrAccountContext,
+) {
     for (;;) {
-        await csp.sleep(1000 * 10); // every 2.5 sec
+        await csp.sleep(1000 * 2.5); // every 2.5 sec
         console.log(`Relay: checking connections`);
+        let changed = false;
         // first, remove closed relays
         const relays = relayPool.getRelays();
         for (const relay of relays) {
             if (relay.isClosed()) {
                 await relayPool.removeRelay(relay.url);
+                changed = true;
             }
         }
         // second, add urls
         for (const url of relayConfig.getRelayURLs()) {
             const err = await relayPool.addRelayURL(url);
-            if (err instanceof Error) {
+            if (err instanceof Error && !(err instanceof RelayAlreadyRegistered)) {
                 console.log(err.message);
+            }
+        }
+        if (changed) {
+            const event = await relayConfig.toNostrEvent(ctx, true);
+            if (!(event instanceof Error)) {
+                relayPool.sendEvent(event);
             }
         }
         yield;
