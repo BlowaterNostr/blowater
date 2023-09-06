@@ -191,8 +191,6 @@ export class App {
                 if (e.kind == NostrKind.CustomAppData) {
                     events_CustomAppData.push(e);
                 } else if (e.kind == NostrKind.Custom_App_Data) {
-                    // @ts-ignore
-                    events_Custom_App_Data.push(e);
                 }
             }
             {
