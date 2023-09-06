@@ -10,7 +10,6 @@ import {
     InMemoryAccountContext,
     NostrEvent,
     NostrKind,
-    prepareNormalNostrEvent,
 } from "./lib/nostr-ts/nostr.ts";
 import {
     computeThreads,
@@ -25,6 +24,7 @@ import {
 import { LamportTime } from "./time.ts";
 import { PrivateKey, PublicKey } from "./lib/nostr-ts/key.ts";
 import { utf8Decode } from "./lib/nostr-ts/ende.ts";
+import { prepareNormalNostrEvent } from "./lib/nostr-ts/event.ts";
 
 Deno.test("prepareNostrImageEvents", async (t) => {
     const pri = PrivateKey.Generate();
@@ -145,7 +145,6 @@ Deno.test("groupImageEvents", async () => {
 
 Deno.test("Generate reply event", async () => {
     const userAPrivateKey = PrivateKey.Generate();
-    const userBPrivateKey = PrivateKey.Generate();
     const userAContext = InMemoryAccountContext.New(userAPrivateKey);
 
     const message1 = await prepareNormalNostrEvent(

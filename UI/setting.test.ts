@@ -5,7 +5,7 @@ import { defaultRelays, RelayConfig } from "./setting.ts";
 import { assertEquals, assertNotInstanceOf, fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 
 Deno.test("Relay Config", async () => {
-    const relayConfig = new RelayConfig();
+    const relayConfig = RelayConfig.Empty();
     {
         const urls = relayConfig.getRelayURLs();
         assertEquals(urls.size, 0);
@@ -18,7 +18,7 @@ Deno.test("Relay Config", async () => {
         assertEquals(relayConfig.getRelayURLs(), new Set(["wss://nos.lol"]));
     }
 
-    const relayConfig2 = new RelayConfig();
+    const relayConfig2 = RelayConfig.Empty();
     {
         const urls = relayConfig2.getRelayURLs();
         assertEquals(urls.size, 0);
