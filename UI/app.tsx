@@ -208,7 +208,7 @@ export class App {
                         if (msg.res.type == "EOSE") {
                             continue;
                         }
-                        console.log(msg.res)
+                        console.log(msg.res);
                         RelayConfig.FromNostrEvent(msg.res.event, accountContext);
                         const _relayConfig = await RelayConfig.FromNostrEvent(
                             msg.res.event,
@@ -219,7 +219,7 @@ export class App {
                             continue;
                         }
                         this.relayConfig.merge(_relayConfig.save());
-                        this.relayConfig.saveToLocalStorage(accountContext)
+                        this.relayConfig.saveToLocalStorage(accountContext);
                     }
                 })();
             }
