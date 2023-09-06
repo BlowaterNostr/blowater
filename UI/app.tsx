@@ -158,7 +158,7 @@ export class App {
     ) {
         this.eventSyncer = new EventSyncer(relayPool, this.database);
         this.allUsersInfo = new AllUsersInformation(myAccountContext);
-        this.relayConfig = new RelayConfig();
+        this.relayConfig = RelayConfig.FromLocalStorage(myAccountContext);
         if (this.relayConfig.getRelayURLs().size == 0) {
             for (const url of defaultRelays) {
                 this.relayConfig.add(url);
@@ -186,22 +186,42 @@ export class App {
             ///////////////////////////////////
             // Add relays to Connection Pool //
             ///////////////////////////////////
-            const events = [];
+            const events_CustomAppData = [];
             for (const e of this.database.events) {
                 if (e.kind == NostrKind.CustomAppData) {
-                    events.push(e);
+                    events_CustomAppData.push(e);
+                } else if (e.kind == NostrKind.Custom_App_Data) {
                 }
             }
             {
-                // relay config synchronization
-                for (const e of events) {
-                    const _relayConfig = await RelayConfig.FromNostrEvent(e, this.myAccountContext);
-                    if (_relayConfig instanceof Error) {
-                        console.log(_relayConfig.message);
-                        continue;
+                // relay config synchronization, need to refactor later
+                (async () => {
+                    const stream = await pool.newSub("relay config", {
+                        "#d": ["RelayConfig"],
+                        authors: [accountContext.publicKey.hex],
+                        kinds: [NostrKind.Custom_App_Data],
+                    });
+                    if (stream instanceof Error) {
+                        throw stream; // impossible
                     }
-                    this.relayConfig.merge(_relayConfig.save());
-                }
+                    for await (const msg of stream.chan) {
+                        if (msg.res.type == "EOSE") {
+                            continue;
+                        }
+                        console.log(msg.res);
+                        RelayConfig.FromNostrEvent(msg.res.event, accountContext);
+                        const _relayConfig = await RelayConfig.FromNostrEvent(
+                            msg.res.event,
+                            this.myAccountContext,
+                        );
+                        if (_relayConfig instanceof Error) {
+                            console.log(_relayConfig.message);
+                            continue;
+                        }
+                        this.relayConfig.merge(_relayConfig.save());
+                        this.relayConfig.saveToLocalStorage(accountContext);
+                    }
+                })();
             }
         }
 
@@ -364,6 +384,7 @@ export function AppComponent(props: {
                     relayConfig: app.relayConfig,
                     myAccountContext: myAccountCtx,
                     relayPool: props.pool,
+                    emit: props.eventBus.emit,
                 })}
             </div>
         );

@@ -27,12 +27,14 @@ import { RelayIcon } from "./icons2/relay-icon.tsx";
 import { DeleteIcon } from "./icons2/delete-icon.tsx";
 import { RelayConfig } from "./setting.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
+import { emit, EventEmitter } from "../event-bus.ts";
 
 export interface SettingProps {
     logout: () => void;
     relayConfig: RelayConfig;
     relayPool: ConnectionPool;
     myAccountContext: NostrAccountContext;
+    emit: emit<RelayConfigChange>;
 }
 
 const colors = {
@@ -76,9 +78,13 @@ export const Setting = (props: SettingProps) => {
 const error = signal("");
 const addRelayInput = signal("");
 const relayStatus = signal<{ url: string; status: keyof typeof colors }[]>([]);
+export type RelayConfigChange = {
+    type: "RelayConfigChange";
+};
 export function RelaySetting(props: {
     relayConfig: RelayConfig;
     relayPool: ConnectionPool;
+    emit: emit<RelayConfigChange>;
 }) {
     function computeRelayStatus() {
         const _relayStatus: { url: string; status: keyof typeof colors }[] = [];
@@ -119,6 +125,7 @@ export function RelaySetting(props: {
                 error.value = err.map((e) => e.message).join("\n");
             }
             relayStatus.value = computeRelayStatus();
+            props.emit({ type: "RelayConfigChange" });
         }
     };
     return (
@@ -178,7 +185,7 @@ export function RelaySetting(props: {
 
                                 <button
                                     class={tw`w-[2rem] h-[2rem] rounded-lg bg-transparent hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
-                                    onClick={async () => {
+                                    onClick={async function remove() {
                                         props.relayConfig.remove(r.url);
                                         relayStatus.value = computeRelayStatus();
                                         const err = await props.relayConfig.syncWithPool(props.relayPool);
@@ -186,7 +193,7 @@ export function RelaySetting(props: {
                                             error.value = err.map((e) => e.message).join("\n");
                                         }
                                         relayStatus.value = computeRelayStatus();
-                                        console.log(relayStatus.value);
+                                        props.emit({ type: "RelayConfigChange" });
                                     }}
                                 >
                                     <DeleteIcon

@@ -1,8 +1,9 @@
 import { Database_Contextual_View } from "../database.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
-import { groupBy, NostrAccountContext, NostrKind, prepareNormalNostrEvent } from "../lib/nostr-ts/nostr.ts";
+import { groupBy, NostrAccountContext, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { Parsed_Event, Profile_Nostr_Event } from "../nostr.ts";
+import { prepareNormalNostrEvent } from "../lib/nostr-ts/event.ts";
 
 export class ProfilesSyncer {
     readonly userSet = new Set<string>();

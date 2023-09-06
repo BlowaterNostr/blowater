@@ -5,7 +5,7 @@ import { defaultRelays, RelayConfig } from "./setting.ts";
 import { assertEquals, assertNotInstanceOf, fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 
 Deno.test("Relay Config", async () => {
-    const relayConfig = new RelayConfig();
+    const relayConfig = RelayConfig.Empty();
     {
         const urls = relayConfig.getRelayURLs();
         assertEquals(urls.size, 0);
@@ -18,7 +18,7 @@ Deno.test("Relay Config", async () => {
         assertEquals(relayConfig.getRelayURLs(), new Set(["wss://nos.lol"]));
     }
 
-    const relayConfig2 = new RelayConfig();
+    const relayConfig2 = RelayConfig.Empty();
     {
         const urls = relayConfig2.getRelayURLs();
         assertEquals(urls.size, 0);
@@ -92,4 +92,19 @@ Deno.test("Relay Config", async () => {
         }
         await pool.close();
     }
+});
+
+Deno.test("RelayConfig: Nostr Encoding Decoding", async () => {
+    const config = RelayConfig.Empty();
+    config.add("something");
+
+    const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
+    const event = await config.toNostrEvent(ctx, true);
+    if (event instanceof Error) fail(event.message);
+
+    const config2 = await RelayConfig.FromNostrEvent(event, ctx);
+    if (config2 instanceof Error) fail(config2.message);
+
+    console.log(config.getRelayURLs(), config2.getRelayURLs());
+    assertEquals(config.getRelayURLs(), config2.getRelayURLs());
 });

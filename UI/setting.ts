@@ -1,12 +1,8 @@
 import * as Automerge from "https://deno.land/x/automerge@2.1.0-alpha.12/index.ts";
-import {
-    NostrAccountContext,
-    NostrEvent,
-    NostrKind,
-    prepareCustomAppDataEvent,
-} from "../lib/nostr-ts/nostr.ts";
+import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import * as secp256k1 from "../lib/nostr-ts/vendor/secp256k1.js";
 import { ConnectionPool, RelayAlreadyRegistered } from "../lib/nostr-ts/relay.ts";
+import { prepareCustomAppDataEvent, prepareParameterizedEvent } from "../lib/nostr-ts/event.ts";
 
 export const defaultRelays = [
     "wss://nos.lol",
@@ -22,12 +18,36 @@ export class RelayConfig {
     // This is a state based CRDT based on Vector Clock
     // see https://www.youtube.com/watch?v=OOlnp2bZVRs
     private config: Automerge.next.Doc<Config> = Automerge.init();
+    private constructor() {}
 
-    static async FromNostrEvent(event: NostrEvent<NostrKind.CustomAppData>, ctx: NostrAccountContext) {
+    static Empty() {
+        return new RelayConfig();
+    }
+
+    // The the relay config of this account from local storage
+    static FromLocalStorage(ctx: NostrAccountContext) {
+        const encodedConfigStr = localStorage.getItem(this.localStorageKey(ctx));
+        if (encodedConfigStr == null) {
+            return RelayConfig.Empty();
+        }
+        const config = Automerge.load<Config>(secp256k1.utils.hexToBytes(encodedConfigStr));
+        const relayConfig = new RelayConfig();
+        relayConfig.config = config;
+        return relayConfig;
+    }
+    static localStorageKey(ctx: NostrAccountContext) {
+        return `${RelayConfig.name}-${ctx.publicKey.bech32()}`;
+    }
+
+    /////////////////////////////
+    // Nostr Encoding Decoding //
+    /////////////////////////////
+    static async FromNostrEvent(event: NostrEvent, ctx: NostrAccountContext) {
         const decrypted = await ctx.decrypt(ctx.publicKey.hex, event.content);
         if (decrypted instanceof Error) {
             return decrypted;
         }
+
         const json = JSON.parse(decrypted);
         const relayConfig = new RelayConfig();
         relayConfig.merge(secp256k1.utils.hexToBytes(json.data));
@@ -36,10 +56,18 @@ export class RelayConfig {
 
     async toNostrEvent(ctx: NostrAccountContext, needEncryption: boolean) {
         if (needEncryption) {
-            const hex = secp256k1.utils.bytesToHex(this.save());
-            const event = await prepareCustomAppDataEvent(ctx, {
-                type: "relayConfig",
-                data: hex,
+            const configJSON = JSON.stringify({
+                type: RelayConfig.name,
+                data: secp256k1.utils.bytesToHex(this.save()),
+            });
+            const encrypted = await ctx.encrypt(ctx.publicKey.hex, configJSON);
+            if (encrypted instanceof Error) {
+                return encrypted;
+            }
+            const event = await prepareParameterizedEvent(ctx, {
+                content: encrypted,
+                d: RelayConfig.name,
+                kind: NostrKind.Custom_App_Data,
             });
             return event;
         }
@@ -53,6 +81,14 @@ export class RelayConfig {
 
     save() {
         return Automerge.save(this.config);
+    }
+    saveAsHex() {
+        const bytes = this.save();
+        return secp256k1.utils.bytesToHex(bytes);
+    }
+    saveToLocalStorage(ctx: NostrAccountContext) {
+        const hex = this.saveAsHex();
+        localStorage.setItem(RelayConfig.localStorageKey(ctx), hex);
     }
 
     merge(bytes: Uint8Array) {

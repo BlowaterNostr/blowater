@@ -6,13 +6,12 @@ import {
     NostrAccountContext,
     NostrEvent,
     NostrKind,
-    prepareEncryptedNostrEvent,
-    prepareNormalNostrEvent,
     RelayResponse_Event,
 } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { prepareNostrImageEvents, Tag } from "../nostr.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
+import { prepareEncryptedNostrEvent, prepareNormalNostrEvent } from "../lib/nostr-ts/event.ts";
 
 export async function sendDMandImages(args: {
     sender: NostrAccountContext;

@@ -3,15 +3,10 @@
 */
 import { PrivateKey, PublicKey } from "./lib/nostr-ts/key.ts";
 import * as nostr from "./lib/nostr-ts/nostr.ts";
-import {
-    groupBy,
-    NostrKind,
-    prepareEncryptedNostrEvent,
-    prepareNormalNostrEvent,
-    TagPubKey,
-} from "./lib/nostr-ts/nostr.ts";
+import { groupBy, NostrKind, TagPubKey } from "./lib/nostr-ts/nostr.ts";
 import { ProfileData } from "./features/profile.ts";
 import { ContentItem } from "./UI/message.ts";
+import { prepareEncryptedNostrEvent, prepareNormalNostrEvent } from "./lib/nostr-ts/event.ts";
 
 type TotolChunks = string;
 type ChunkIndex = string; // 0-indexed
