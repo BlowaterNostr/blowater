@@ -455,14 +455,14 @@ export function AppComponent(props: {
 
                 <div class={tw`desktop:hidden`}>
                     {
-                        /* <nav.MobileNavBar
-                        profilePicURL={model.myProfile?.picture}
-                        publicKey={myAccountCtx.publicKey}
-                        database={app.database}
-                        pool={app.relayConfig.pool}
-                        eventEmitter={app.eventBus}
-                        {...model.navigationModel}
-                    /> */
+                        <nav.MobileNavBar
+                            profilePicURL={model.myProfile?.picture}
+                            publicKey={myAccountCtx.publicKey}
+                            database={app.database}
+                            pool={props.pool}
+                            eventEmitter={app.eventBus}
+                            {...model.navigationModel}
+                        />
                     }
                 </div>
             </div>
