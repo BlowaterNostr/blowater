@@ -1,6 +1,5 @@
 /** @jsx h */
 import { h, render } from "https://esm.sh/preact@10.17.1";
-import { EventBus } from "../event-bus.ts";
 import { Setting } from "./setting.tsx";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { defaultRelays, RelayConfig } from "./setting.ts";
