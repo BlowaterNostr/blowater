@@ -24,17 +24,6 @@ export class RelayConfig {
         return new RelayConfig();
     }
 
-    static async FromNostrEvent(event: NostrEvent, ctx: NostrAccountContext) {
-        const decrypted = await ctx.decrypt(ctx.publicKey.hex, event.content);
-        if (decrypted instanceof Error) {
-            return decrypted;
-        }
-        const json = JSON.parse(decrypted);
-        const relayConfig = new RelayConfig();
-        relayConfig.merge(secp256k1.utils.hexToBytes(json.data));
-        return relayConfig;
-    }
-
     // The the relay config of this account from local storage
     static FromLocalStorage(ctx: NostrAccountContext) {
         const encodedConfigStr = localStorage.getItem(this.localStorageKey(ctx));
@@ -48,6 +37,21 @@ export class RelayConfig {
     }
     static localStorageKey(ctx: NostrAccountContext) {
         return `${RelayConfig.name}-${ctx.publicKey.bech32()}`;
+    }
+
+    /////////////////////////////
+    // Nostr Encoding Decoding //
+    /////////////////////////////
+    static async FromNostrEvent(event: NostrEvent, ctx: NostrAccountContext) {
+        const decrypted = await ctx.decrypt(ctx.publicKey.hex, event.content);
+        if (decrypted instanceof Error) {
+            return decrypted;
+        }
+        console.log(decrypted);
+        const json = JSON.parse(decrypted);
+        const relayConfig = new RelayConfig();
+        relayConfig.merge(secp256k1.utils.hexToBytes(json.data));
+        return relayConfig;
     }
 
     async toNostrEvent(ctx: NostrAccountContext, needEncryption: boolean) {

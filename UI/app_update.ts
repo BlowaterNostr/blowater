@@ -380,11 +380,10 @@ export async function* UI_Interaction_Update(args: {
         } else if (event.type == "SocialFilterChanged_remove_author") {
             model.social.filter.author.delete(event.value);
         } else if (event.type == "RelayConfigChange") {
-            const e = await prepareParameterizedEvent(model.app.myAccountContext, {
-                content: model.app.relayConfig.saveAsHex(),
-                d: event.type,
-                kind: NostrKind.Custom_App_Data,
-            });
+            const e = await model.app.relayConfig.toNostrEvent(model.app.myAccountContext, true);
+            if (e instanceof Error) {
+                throw e; // impossible
+            }
             pool.sendEvent(e);
             model.app.relayConfig.saveToLocalStorage(model.app.myAccountContext);
         }
