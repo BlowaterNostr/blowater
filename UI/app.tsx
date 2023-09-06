@@ -237,10 +237,10 @@ export class App {
             }
         }
 
-        // profilesSyncer.add(
-        //     ...Array.from(this.allUsersInfo.userInfos.keys()),
-        // );
-        // console.log("user set", profilesSyncer.userSet);
+        profilesSyncer.add(
+            ...Array.from(this.allUsersInfo.userInfos.keys()),
+        );
+        console.log("user set", profilesSyncer.userSet);
 
         const ps = Array.from(this.allUsersInfo.userInfos.values()).map((u) => u.pubkey.hex);
         this.eventSyncer.syncEvents({

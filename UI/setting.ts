@@ -71,7 +71,6 @@ export class RelayConfig {
             config[url] = true;
         });
         const hex = secp256k1.utils.bytesToHex(this.save());
-        // localStorage.setItem(RelayConfig.name, hex);
     }
 
     async remove(url: string) {

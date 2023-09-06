@@ -55,7 +55,9 @@ export const Setting = (props: SettingProps) => {
                 {RelaySetting(props)}
             </div>
 
-            <div class={tw`px-[1rem] py-[0.5rem] ${inputBorderClass} rounded-lg mt-[1.5rem]`}>
+            <div
+                class={tw`px-[1rem] py-[0.5rem] ${inputBorderClass} rounded-lg mt-[1.5rem] text-[${PrimaryTextColor}]`}
+            >
                 <KeyView
                     privateKey={priKey}
                     publicKey={props.myAccountContext.publicKey}
@@ -121,7 +123,7 @@ export function RelaySetting(props: {
     };
     return (
         <Fragment>
-            <p class={tw`text-[1.3125rem] flex`}>
+            <p class={tw`text-[1.3125rem] flex text-[${PrimaryTextColor}]`}>
                 <RelayIcon
                     class={tw`w-[2rem] h-[2rem] mr-[1rem]`}
                     style={{
@@ -130,10 +132,10 @@ export function RelaySetting(props: {
                 />
                 Relays
             </p>
-            <p class={tw`mt-[1.75rem]`}>
+            <p class={tw`mt-[1.75rem] text-[${PrimaryTextColor}]`}>
                 Add Relay
             </p>
-            <div class={tw`mt-[0.5rem] flex`}>
+            <div class={tw`mt-[0.5rem] flex text-[${PrimaryTextColor}]`}>
                 <input
                     autofocus={true}
                     onInput={(e) => {
@@ -146,7 +148,7 @@ export function RelaySetting(props: {
                     class={tw`${InputClass}`}
                 />
                 <button
-                    class={tw`ml-[0.75rem] w-[5.9375rem] h-[3rem] p-[0.75rem] rounded-lg ${NoOutlineClass} bg-[${DividerBackgroundColor}] hover:bg-[${HoverButtonBackgroudColor}] ${CenterClass}`}
+                    class={tw`ml-[0.75rem] w-[5.9375rem] h-[3rem] p-[0.75rem] rounded-lg ${NoOutlineClass} bg-[${DividerBackgroundColor}] hover:bg-[${HoverButtonBackgroudColor}] ${CenterClass} text-[${PrimaryTextColor}]`}
                     onClick={addRelay}
                 >
                     Add
@@ -156,7 +158,7 @@ export function RelaySetting(props: {
                 ? <p class={tw`mt-2 text-[${ErrorColor}] text-[0.875rem]`}>{error.value}</p>
                 : undefined}
 
-            <ul class={tw`mt-[1.5rem]`}>
+            <ul class={tw`mt-[1.5rem] text-[${PrimaryTextColor}]`}>
                 {computed(() => {
                     return relayStatus.value.map((r) => {
                         return (
