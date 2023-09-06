@@ -19,7 +19,7 @@ import { Model } from "./app_model.ts";
 import { SearchUpdate, SelectProfile } from "./search_model.ts";
 import { fromEvents, LamportTime } from "../time.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
-import { NostrAccountContext, NostrKind, prepareCustomAppDataEvent } from "../lib/nostr-ts/nostr.ts";
+import { NostrAccountContext, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { SignInEvent, signInWithExtension, signInWithPrivateKey } from "./signIn.tsx";
 import {
@@ -36,6 +36,9 @@ import { DexieDatabase } from "./dexie-db.ts";
 import { getSocialPosts } from "../features/social.ts";
 import { RelayConfig } from "./setting.ts";
 import { SocialUpdates } from "./social.tsx";
+import { RelayConfigChange } from "./setting.tsx";
+import { prepareCustomAppDataEvent, prepareParameterizedEvent } from "../lib/nostr-ts/event.ts";
+import { relays } from "../lib/nostr-ts/relay-list.test.ts";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -48,7 +51,8 @@ export type UI_Interaction_Event =
     | PinContact
     | UnpinContact
     | SignInEvent
-    | SocialUpdates;
+    | SocialUpdates
+    | RelayConfigChange;
 
 type BackToContactList = {
     type: "BackToContactList";
@@ -375,6 +379,13 @@ export async function* UI_Interaction_Update(args: {
             model.social.filter.adding_author = event.value;
         } else if (event.type == "SocialFilterChanged_remove_author") {
             model.social.filter.author.delete(event.value);
+        } else if (event.type == "RelayConfigChange") {
+            const e = await prepareParameterizedEvent(model.app.myAccountContext, {
+                content: model.app.relayConfig.saveAsHex(),
+                d: event.type,
+                kind: NostrKind.Custom_App_Data,
+            });
+            pool.sendEvent(e);
         }
         yield model;
     }
@@ -581,7 +592,7 @@ export async function* Database_Update(
 ///////////
 export async function* Relay_Update(relayPool: ConnectionPool, relayConfig: RelayConfig) {
     for (;;) {
-        await csp.sleep(1000 * 2.5); // every 2.5 sec
+        await csp.sleep(1000 * 10); // every 2.5 sec
         console.log(`Relay: checking connections`);
         // first, remove closed relays
         const relays = relayPool.getRelays();

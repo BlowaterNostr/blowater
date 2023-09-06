@@ -1,12 +1,8 @@
 import * as Automerge from "https://deno.land/x/automerge@2.1.0-alpha.12/index.ts";
-import {
-    NostrAccountContext,
-    NostrEvent,
-    NostrKind,
-    prepareCustomAppDataEvent,
-} from "../lib/nostr-ts/nostr.ts";
+import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import * as secp256k1 from "../lib/nostr-ts/vendor/secp256k1.js";
 import { ConnectionPool, RelayAlreadyRegistered } from "../lib/nostr-ts/relay.ts";
+import { prepareCustomAppDataEvent } from "../lib/nostr-ts/event.ts";
 
 export const defaultRelays = [
     "wss://nos.lol",
@@ -53,6 +49,10 @@ export class RelayConfig {
 
     save() {
         return Automerge.save(this.config);
+    }
+    saveAsHex() {
+        const bytes = this.save();
+        return secp256k1.utils.bytesToHex(bytes);
     }
 
     merge(bytes: Uint8Array) {

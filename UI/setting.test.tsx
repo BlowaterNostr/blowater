@@ -5,6 +5,7 @@ import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { defaultRelays, RelayConfig } from "./setting.ts";
 import { InMemoryAccountContext } from "../lib/nostr-ts/nostr.ts";
 import { PrivateKey } from "../lib/nostr-ts/key.ts";
+import { EventBus } from "../event-bus.ts";
 
 const pool = new ConnectionPool();
 const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
@@ -12,6 +13,8 @@ const relayConfig = new RelayConfig();
 for (const url of defaultRelays) {
     relayConfig.add(url);
 }
+const emitter = new EventBus();
+
 render(
     Setting({
         relayConfig: relayConfig,
@@ -20,6 +23,7 @@ render(
         logout: () => {
             console.log("logout is clicked");
         },
+        emit: emitter.emit,
     }),
     document.body,
 );

@@ -364,6 +364,7 @@ export function AppComponent(props: {
                     relayConfig: app.relayConfig,
                     myAccountContext: myAccountCtx,
                     relayPool: props.pool,
+                    emit: props.eventBus.emit,
                 })}
             </div>
         );
