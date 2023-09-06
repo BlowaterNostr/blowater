@@ -197,7 +197,7 @@ export class App {
                 // relay config synchronization, need to refactor later
                 (async () => {
                     const stream = await pool.newSub("relay config", {
-                        "#d": ["RelayConfigChange"],
+                        "#d": ["RelayConfig"],
                         authors: [accountContext.publicKey.hex],
                         kinds: [NostrKind.Custom_App_Data],
                     });
@@ -208,6 +208,7 @@ export class App {
                         if (msg.res.type == "EOSE") {
                             continue;
                         }
+                        console.log(msg.res)
                         RelayConfig.FromNostrEvent(msg.res.event, accountContext);
                         const _relayConfig = await RelayConfig.FromNostrEvent(
                             msg.res.event,
@@ -218,6 +219,7 @@ export class App {
                             continue;
                         }
                         this.relayConfig.merge(_relayConfig.save());
+                        this.relayConfig.saveToLocalStorage(accountContext)
                     }
                 })();
             }
