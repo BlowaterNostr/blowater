@@ -105,9 +105,9 @@ export async function* UI_Interaction_Update(args: {
                     const lamport = fromEvents(dbView.filterEvents((_) => true));
                     const app = new App(dbView, lamport, model, ctx, eventBus, pool);
                     const err = await app.initApp(ctx, pool);
-                    // if (err instanceof Error) {
-                    //     console.error(err.message);
-                    // }
+                    if (err instanceof Error) {
+                        console.error(err.message);
+                    }
                     model.app = app;
                 } else {
                     console.error("failed to sign in");

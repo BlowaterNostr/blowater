@@ -56,9 +56,9 @@ export async function Start(database: DexieDatabase) {
         const lamport = time.fromEvents(dbView.filterEvents((_) => true));
         const app = new App(dbView, lamport, model, ctx, eventBus, pool);
         const err = await app.initApp(ctx, pool);
-        // if (err instanceof Error) {
-        //     throw err;
-        // }
+        if (err instanceof Error) {
+            throw err;
+        }
         model.app = app;
     }
 
