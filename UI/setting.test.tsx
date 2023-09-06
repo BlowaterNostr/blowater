@@ -9,7 +9,7 @@ import { EventBus } from "../event-bus.ts";
 
 const pool = new ConnectionPool();
 const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
-const relayConfig = new RelayConfig();
+const relayConfig = RelayConfig.Empty();
 for (const url of defaultRelays) {
     relayConfig.add(url);
 }

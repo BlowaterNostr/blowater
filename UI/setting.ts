@@ -18,8 +18,13 @@ export class RelayConfig {
     // This is a state based CRDT based on Vector Clock
     // see https://www.youtube.com/watch?v=OOlnp2bZVRs
     private config: Automerge.next.Doc<Config> = Automerge.init();
+    private constructor() {}
 
-    static async FromNostrEvent(event: NostrEvent<NostrKind.CustomAppData>, ctx: NostrAccountContext) {
+    static Empty() {
+        return new RelayConfig();
+    }
+
+    static async FromNostrEvent(event: NostrEvent, ctx: NostrAccountContext) {
         const decrypted = await ctx.decrypt(ctx.publicKey.hex, event.content);
         if (decrypted instanceof Error) {
             return decrypted;
@@ -28,6 +33,21 @@ export class RelayConfig {
         const relayConfig = new RelayConfig();
         relayConfig.merge(secp256k1.utils.hexToBytes(json.data));
         return relayConfig;
+    }
+
+    // The the relay config of this account from local storage
+    static FromLocalStorage(ctx: NostrAccountContext) {
+        const encodedConfigStr = localStorage.getItem(this.localStorageKey(ctx));
+        if (encodedConfigStr == null) {
+            return RelayConfig.Empty();
+        }
+        const config = Automerge.load<Config>(secp256k1.utils.hexToBytes(encodedConfigStr));
+        const relayConfig = new RelayConfig();
+        relayConfig.config = config;
+        return relayConfig;
+    }
+    static localStorageKey(ctx: NostrAccountContext) {
+        return `${RelayConfig.name}-${ctx.publicKey.bech32()}`;
     }
 
     async toNostrEvent(ctx: NostrAccountContext, needEncryption: boolean) {
@@ -53,6 +73,10 @@ export class RelayConfig {
     saveAsHex() {
         const bytes = this.save();
         return secp256k1.utils.bytesToHex(bytes);
+    }
+    saveToLocalStorage(ctx: NostrAccountContext) {
+        const hex = this.saveAsHex();
+        localStorage.setItem(RelayConfig.localStorageKey(ctx), hex);
     }
 
     merge(bytes: Uint8Array) {

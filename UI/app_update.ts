@@ -386,6 +386,7 @@ export async function* UI_Interaction_Update(args: {
                 kind: NostrKind.Custom_App_Data,
             });
             pool.sendEvent(e);
+            model.app.relayConfig.saveToLocalStorage(model.app.myAccountContext);
         }
         yield model;
     }

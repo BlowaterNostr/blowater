@@ -125,6 +125,7 @@ export function RelaySetting(props: {
                 error.value = err.map((e) => e.message).join("\n");
             }
             relayStatus.value = computeRelayStatus();
+            props.emit({ type: "RelayConfigChange" });
         }
     };
     return (
