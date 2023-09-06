@@ -2,7 +2,7 @@ import * as Automerge from "https://deno.land/x/automerge@2.1.0-alpha.12/index.t
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import * as secp256k1 from "../lib/nostr-ts/vendor/secp256k1.js";
 import { ConnectionPool, RelayAlreadyRegistered } from "../lib/nostr-ts/relay.ts";
-import { prepareCustomAppDataEvent } from "../lib/nostr-ts/event.ts";
+import { prepareCustomAppDataEvent, prepareParameterizedEvent } from "../lib/nostr-ts/event.ts";
 
 export const defaultRelays = [
     "wss://nos.lol",
@@ -47,7 +47,7 @@ export class RelayConfig {
         if (decrypted instanceof Error) {
             return decrypted;
         }
-        console.log(decrypted);
+
         const json = JSON.parse(decrypted);
         const relayConfig = new RelayConfig();
         relayConfig.merge(secp256k1.utils.hexToBytes(json.data));
@@ -56,10 +56,18 @@ export class RelayConfig {
 
     async toNostrEvent(ctx: NostrAccountContext, needEncryption: boolean) {
         if (needEncryption) {
-            const hex = secp256k1.utils.bytesToHex(this.save());
-            const event = await prepareCustomAppDataEvent(ctx, {
-                type: "relayConfig",
-                data: hex,
+            const configJSON = JSON.stringify({
+                type: RelayConfig.name,
+                data: secp256k1.utils.bytesToHex(this.save()),
+            });
+            const encrypted = await ctx.encrypt(ctx.publicKey.hex, configJSON);
+            if (encrypted instanceof Error) {
+                return encrypted;
+            }
+            const event = await prepareParameterizedEvent(ctx, {
+                content: encrypted,
+                d: RelayConfig.name,
+                kind: NostrKind.Custom_App_Data,
             });
             return event;
         }

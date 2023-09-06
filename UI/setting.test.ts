@@ -101,7 +101,6 @@ Deno.test("RelayConfig: Nostr Encoding Decoding", async () => {
     const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
     const event = await config.toNostrEvent(ctx, true);
     if (event instanceof Error) fail(event.message);
-    console.log(event);
 
     const config2 = await RelayConfig.FromNostrEvent(event, ctx);
     if (config2 instanceof Error) fail(config2.message);
