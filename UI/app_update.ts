@@ -77,16 +77,6 @@ export async function* UI_Interaction_Update(args: {
                 yield model;
                 continue;
                 break;
-            case "createNewAccount":
-                model.signIn.state = "newAccount";
-                yield model;
-                continue;
-                break;
-            case "backToSignInPage":
-                model.signIn.state = "enterPrivateKey";
-                yield model;
-                continue;
-                break;
             case "signin":
                 let ctx;
                 if (event.privateKey) {

@@ -316,7 +316,6 @@ export function AppComponent(props: {
             <SignIn
                 eventBus={props.eventBus}
                 privateKey={model.signIn.privateKey}
-                state={model.signIn.state}
                 warningString={model.signIn.warningString}
             />
         );
