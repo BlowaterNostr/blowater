@@ -111,7 +111,7 @@ type State = { state: "newAccount" | "enterPrivateKey" };
 export class SignIn extends Component<Props, State> {
     render() {
         const props = this.props;
-        console.log(this.state);
+
         if (this.state.state == "newAccount") {
             const privateKey = PrivateKey.Generate();
             return (
@@ -149,7 +149,7 @@ export class SignIn extends Component<Props, State> {
         if (privateKey instanceof Error) {
             privateKey = PrivateKey.FromBech32(props.privateKey);
         }
-        console.log("ewrr");
+
         return (
             <div
                 class={tw`h-screen w-screen bg-[#313338] flex items-center justify-center p-4 overflow-y-auto`}
