@@ -38,6 +38,8 @@ import { DexieDatabase } from "./dexie-db.ts";
 import { About } from "./about.tsx";
 import { SocialPanel } from "./social.tsx";
 import { ProfilesSyncer } from "../features/profile.ts";
+import { Popover } from "./components/popover.tsx";
+import { Search } from "./search.tsx";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
@@ -472,6 +474,13 @@ export function AppComponent(props: {
                     {settingNode}
                     {socialPostsPanel}
                     {appList}
+
+                    {Popover({
+                        children: Search({
+                            eventEmitter: props.eventBus,
+                            model: model.dm.search,
+                        }),
+                    })}
                 </div>
 
                 <div class={tw`desktop:hidden`}>

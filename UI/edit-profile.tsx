@@ -251,7 +251,7 @@ export function EditProfile(props: {
                 })
                 : undefined}
             <div class={tw`${DividerClass}`}></div>
-            <p class={tw`text-[${PrimaryTextColor}] font-blod text-[0.8125rem]`}>Custom Fields</p>
+            <p class={tw`text-[${PrimaryTextColor}] font-bold text-[0.8125rem]`}>Custom Fields</p>
             <span class={tw`text-[${HintTextColor}] text-[0.875rem]`}>
                 Create your own custom fields, anything goes!
             </span>

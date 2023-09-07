@@ -22,7 +22,7 @@ export function hidePopover(onHide?: () => void) {
 }
 
 function onEscKeyDown(e: h.JSX.TargetedKeyboardEvent<HTMLDivElement>, onHide?: () => void) {
-    if ( e.code != "Escape") {
+    if (e.code != "Escape") {
         return;
     }
 
@@ -30,21 +30,23 @@ function onEscKeyDown(e: h.JSX.TargetedKeyboardEvent<HTMLDivElement>, onHide?: (
 }
 
 // view
-const popoverStyle = {
-    container: tw`fixed inset-0 z-20`,
-    backdrop: tw`fixed inset-0 z-[-1] backdrop-filter backdrop-blur`,
-    childrenContainer: tw`h-[80%] absolute top-[20%] overflow-auto bg-[${SecondaryBackgroundColor}] w-full shadow-lg`,
-}
 
 export function Popover(props: {
-    children: ComponentChildren,
-    onHide?: () => void,
+    children: ComponentChildren;
+    onHide?: () => void;
 }) {
     const { children, onHide } = props;
+    const popoverStyle = {
+        container: tw`fixed inset-0 z-20`,
+        backdrop: tw`fixed inset-0 z-[-1] backdrop-filter backdrop-blur`,
+        childrenContainer:
+            tw`h-[80%] absolute top-[20%] overflow-auto bg-[${SecondaryBackgroundColor}] w-full shadow-lg`,
+    };
 
     const popoverView = computed(() => (
         popoverStatus.value == "show"
-            ?   <div
+            ? (
+                <div
                     class={popoverStyle.container}
                     onKeyDown={(e) => onEscKeyDown(e, onHide)}
                 >
@@ -59,6 +61,7 @@ export function Popover(props: {
                         {children}
                     </div>
                 </div>
+            )
             : <Fragment></Fragment>
     ));
 

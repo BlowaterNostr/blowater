@@ -625,7 +625,7 @@ function ProfileCard(
         >
             <div class={tw`flex`}>
                 <Avatar class={tw`w-10 h-10`} picture={profile?.picture}></Avatar>
-                <p class={tw`text-[1.2rem] font-blod leading-10 truncate ml-2`}>
+                <p class={tw`text-[1.2rem] font-bold leading-10 truncate ml-2`}>
                     {profile?.name || pubkey.bech32()}
                 </p>
             </div>

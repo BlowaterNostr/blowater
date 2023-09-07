@@ -15,9 +15,8 @@ import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { groupBy, NostrAccountContext } from "../lib/nostr-ts/nostr.ts";
 import { PinContact, UnpinContact } from "../nostr.ts";
 import { AddIcon } from "./icons2/add-icon.tsx";
-import { PrimaryBackgroundColor, PrimaryTextColor } from "./style/colors.ts";
-import { Popover } from "./components/popover.tsx";
-import { Search } from "./search.tsx";
+import { PrimaryTextColor } from "./style/colors.ts";
+import { showPopover } from "./components/popover.tsx";
 
 type Props = {
     myAccountContext: NostrAccountContext;
@@ -86,9 +85,7 @@ export function ContactList(props: Props) {
             >
                 <button
                     onClick={() => {
-                        props.eventEmitter.emit({
-                            type: "StartSearch",
-                        });
+                        showPopover();
                     }}
                     class={tw`w-full h-[2.5rem] text-[${PrimaryTextColor}] ${IconButtonClass} ${LinearGradientsClass} hover:bg-gradient-to-l`}
                 >
@@ -141,24 +138,6 @@ export function ContactList(props: Props) {
                 currentSelected={props.currentSelected}
                 eventEmitter={props.eventEmitter}
             />
-
-            {props.search.isSearching
-                ? (
-                    <Popover
-                        close={() => {
-                            props.eventEmitter.emit({
-                                type: "CancelPopOver",
-                            });
-                        }}
-                        escapeClose={true}
-                        blankClickClose={true}
-                        children={Search({
-                            eventEmitter: props.eventEmitter,
-                            model: props.search,
-                        })}
-                    />
-                )
-                : undefined}
         </div>
     );
 }
