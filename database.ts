@@ -183,7 +183,7 @@ export class Database_Contextual_View {
 
     public readonly getEvent = async (keys: Indices): Promise<NostrEvent | undefined> => {
         const e = await this.eventsAdapter.get(keys);
-        return e
+        return e;
     };
 
     public readonly filterEvents = (filter: (e: NostrEvent) => boolean) => {
