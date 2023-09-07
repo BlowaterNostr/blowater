@@ -30,7 +30,7 @@ export interface Indices {
 }
 
 export interface EventsFilter {
-    filter<T extends NostrKind>(f: (e: NostrEvent) => boolean): Promise<NostrEvent<T>[]>;
+    filter(f: (e: NostrEvent) => boolean): Promise<NostrEvent[]>;
 }
 
 export interface EventDeleter {
@@ -38,7 +38,7 @@ export interface EventDeleter {
 }
 
 export interface EventGetter {
-    get(keys: Indices): Promise<NostrEvent>;
+    get(keys: Indices): Promise<NostrEvent | undefined>;
 }
 
 export interface EventPutter {
@@ -65,7 +65,7 @@ export class Database_Contextual_View {
         );
         console.log("Database_Contextual_View:onload", Date.now() - t);
         const cache: (PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event)[] = [];
-        for (const event of onload) {
+        for await (const event of onload) {
             const pubkey = PublicKey.FromHex(event.pubkey);
             if (pubkey instanceof Error) {
                 console.error(pubkey);
@@ -125,7 +125,7 @@ export class Database_Contextual_View {
 
         (async () => {
             let tt = 0;
-            const events: NostrEvent<NostrKind.CustomAppData>[] = await eventsAdapter.filter(
+            const events: NostrEvent[] = await eventsAdapter.filter(
                 (e: NostrEvent) => {
                     return e.kind == NostrKind.CustomAppData;
                 },
@@ -137,6 +137,7 @@ export class Database_Contextual_View {
                     continue;
                 }
                 if (event.kind == NostrKind.CustomAppData) {
+                    // @ts-ignore
                     const e = await transformEvent(event, ctx);
 
                     if (e == undefined) {
@@ -154,6 +155,7 @@ export class Database_Contextual_View {
                         content: event.content,
                         created_at: event.created_at,
                         id: event.id,
+                        // @ts-ignore
                         kind: event.kind,
                         pubkey: event.pubkey,
                         sig: event.sig,

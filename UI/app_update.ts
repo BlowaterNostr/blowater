@@ -94,7 +94,7 @@ export async function* UI_Interaction_Update(args: {
                 }
                 if (ctx) {
                     console.log("sign in as", ctx.publicKey.bech32());
-                    const dbView = await Database_Contextual_View.New(dexieDB.events, ctx);
+                    const dbView = await Database_Contextual_View.New(dexieDB, ctx);
                     const lamport = fromEvents(dbView.filterEvents((_) => true));
                     const app = new App(dbView, lamport, model, ctx, eventBus, pool);
                     const err = await app.initApp(ctx, pool);
