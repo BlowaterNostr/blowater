@@ -7,7 +7,6 @@ import KeyView from "./key-view.tsx";
 import { PrivateKey } from "../lib/nostr-ts/key.ts";
 import { InMemoryAccountContext } from "../lib/nostr-ts/nostr.ts";
 import { emitFunc, EventEmitter } from "../event-bus.ts";
-import { Signal, signal } from "https://esm.sh/@preact/signals@1.2.1";
 
 export type SignInEvent = {
     type: "signin";
@@ -120,7 +119,7 @@ export class SignIn extends Component<Props, State> {
                             publicKey={privateKey.toPublicKey()}
                         />
                         <button
-                            onClick={on_BackToSignInPage_click(props.eventBus.emit, this.setState.bind(this))}
+                            onClick={on_BackToSignInPage_click(this.setState.bind(this))}
                             class={tw`w-full mt-8 bg-[#404249] hover:bg-[#2B2D31] ${ButtonClass}`}
                         >
                             Back
@@ -205,7 +204,7 @@ export class SignIn extends Component<Props, State> {
                         Sign in with Alby
                     </button>
                     <button
-                        onClick={on_CreateAccount_clicked(props.eventBus.emit, this.setState.bind(this))}
+                        onClick={on_CreateAccount_clicked(this.setState.bind(this))}
                         class={tw`${ButtonClass} w-full bg-[#2B2D31] hover:bg-[#404249] mt-4`}
                     >
                         Create an account
@@ -220,7 +219,7 @@ export class SignIn extends Component<Props, State> {
     }
 }
 
-const on_CreateAccount_clicked = (emit: emitFunc<SignInEvent>, setState: (state: State) => void) => () => {
+const on_CreateAccount_clicked = (setState: (state: State) => void) => () => {
     setState({ state: "newAccount" });
 };
 
@@ -241,6 +240,6 @@ const on_EditSignInPrivateKey_clicked =
         });
     };
 
-const on_BackToSignInPage_click = (emit: emitFunc<SignInEvent>, setState: (state: State) => void) => () => {
+const on_BackToSignInPage_click = (setState: (state: State) => void) => () => {
     setState({ state: "enterPrivateKey" });
 };
