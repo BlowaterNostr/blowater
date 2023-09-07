@@ -15,8 +15,10 @@ test-db:
 test-features:
 	deno test --config=deno.json --coverage=$(coverage_dir) --allow-net --trace-ops features/$(file).test.ts
 
-coverage:
-	deno coverage cov_profile
+cov:
+	deno coverage cov_profile --lcov --output=cov_profile.lcov
+	genhtml --ignore-errors unmapped -o cov_profile/html cov_profile.lcov
+	file_server cov_profile/html
 
 fmt:
 	deno fmt --options-indent-width 4 --options-line-width 110
