@@ -170,12 +170,7 @@ export class SignIn extends Component<Props, State> {
                         Welcome to Blowater
                     </h1>
                     <input
-                        onInput={(e) => {
-                            props.eventBus.emit({
-                                type: "editSignInPrivateKey",
-                                privateKey: e.currentTarget.value,
-                            });
-                        }}
+                        onInput={editSignInPrivateKey(props.eventBus.emit)}
                         placeholder="Input your private key here"
                         type="password"
                         class={tw`w-full px-4 py-2 focus-visible:outline-none rounded-lg mt-8`}
@@ -248,3 +243,11 @@ const onSignInClicked = (privateKey: PrivateKey | Error, emit: emitFunc<SignInEv
         });
     }
 };
+
+const editSignInPrivateKey =
+    (emit: emitFunc<SignInEvent>) => (e: h.JSX.TargetedEvent<HTMLInputElement, Event>) => {
+        emit({
+            type: "editSignInPrivateKey",
+            privateKey: e.currentTarget.value,
+        });
+    };
