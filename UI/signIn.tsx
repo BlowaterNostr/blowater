@@ -124,7 +124,7 @@ export class SignIn extends Component<Props, State> {
                             publicKey={privateKey.toPublicKey()}
                         />
                         <button
-                            onClick={on_BackToSignInPage_Click(props.eventBus.emit, this.setState.bind(this))}
+                            onClick={on_BackToSignInPage_click(props.eventBus.emit, this.setState.bind(this))}
                             class={tw`w-full mt-8 bg-[#404249] hover:bg-[#2B2D31] ${ButtonClass}`}
                         >
                             Back
@@ -166,7 +166,7 @@ export class SignIn extends Component<Props, State> {
                         Welcome to Blowater
                     </h1>
                     <input
-                        onInput={on_EditSignInPrivateKey_Clicked(props.eventBus.emit)}
+                        onInput={on_EditSignInPrivateKey_clicked(props.eventBus.emit)}
                         placeholder="Input your private key here"
                         type="password"
                         class={tw`w-full px-4 py-2 focus-visible:outline-none rounded-lg mt-8`}
@@ -179,7 +179,7 @@ export class SignIn extends Component<Props, State> {
                         )
                         : undefined}
                     <button
-                        onClick={onSignInClicked(privateKey, props.eventBus.emit)}
+                        onClick={on_SignIn_clicked(privateKey, props.eventBus.emit)}
                         disabled={privateKey instanceof Error}
                         class={tw`w-full bg-[#2B2D31] hover:bg-[#404249] mt-4 disabled:bg-[#404249] ${ButtonClass}`}
                     >
@@ -209,7 +209,7 @@ export class SignIn extends Component<Props, State> {
                         Sign in with Alby
                     </button>
                     <button
-                        onClick={onCreateAccountClicked(props.eventBus.emit, this.setState.bind(this))}
+                        onClick={on_CreateAccount_clicked(props.eventBus.emit, this.setState.bind(this))}
                         class={tw`${ButtonClass} w-full bg-[#2B2D31] hover:bg-[#404249] mt-4`}
                     >
                         Create an account
@@ -224,14 +224,14 @@ export class SignIn extends Component<Props, State> {
     }
 }
 
-const onCreateAccountClicked = (emit: emitFunc<SignInEvent>, setState: (state: State) => void) => () => {
+const on_CreateAccount_clicked = (emit: emitFunc<SignInEvent>, setState: (state: State) => void) => () => {
     setState({ state: "newAccount" });
     emit({
         type: "createNewAccount",
     });
 };
 
-const onSignInClicked = (privateKey: PrivateKey | Error, emit: emitFunc<SignInEvent>) => () => {
+const on_SignIn_clicked = (privateKey: PrivateKey | Error, emit: emitFunc<SignInEvent>) => () => {
     if (privateKey instanceof PrivateKey) {
         emit({
             type: "signin",
@@ -240,7 +240,7 @@ const onSignInClicked = (privateKey: PrivateKey | Error, emit: emitFunc<SignInEv
     }
 };
 
-const on_EditSignInPrivateKey_Clicked =
+const on_EditSignInPrivateKey_clicked =
     (emit: emitFunc<SignInEvent>) => (e: h.JSX.TargetedEvent<HTMLInputElement, Event>) => {
         emit({
             type: "editSignInPrivateKey",
@@ -248,7 +248,7 @@ const on_EditSignInPrivateKey_Clicked =
         });
     };
 
-const on_BackToSignInPage_Click = (emit: emitFunc<SignInEvent>, setState: (state: State) => void) => () => {
+const on_BackToSignInPage_click = (emit: emitFunc<SignInEvent>, setState: (state: State) => void) => () => {
     setState({ state: "enterPrivateKey" });
     emit({
         type: "backToSignInPage",
