@@ -3,7 +3,11 @@
 */
 import { PrivateKey, PublicKey } from "./lib/nostr-ts/key.ts";
 import * as nostr from "./lib/nostr-ts/nostr.ts";
-import { groupBy, NostrKind, TagPubKey } from "./lib/nostr-ts/nostr.ts";
+import {
+    groupBy,
+    NostrKind,
+    TagPubKey,
+} from "./lib/nostr-ts/nostr.ts";
 import { ProfileData } from "./features/profile.ts";
 import { ContentItem } from "./UI/message.ts";
 import { prepareEncryptedNostrEvent, prepareNormalNostrEvent } from "./lib/nostr-ts/event.ts";
@@ -153,7 +157,7 @@ export function groupImageEvents<T extends Parsed_Event>(events: Iterable<T>) {
     });
 }
 
-export function prepareReplyEvent(
+export async function prepareReplyEvent(
     sender: nostr.NostrAccountContext,
     targetEvent: nostr.NostrEvent,
     tags: Tag[],
@@ -161,9 +165,13 @@ export function prepareReplyEvent(
 ): Promise<nostr.NostrEvent | Error> {
     const ps = getTags(targetEvent).p;
     if (targetEvent.kind == NostrKind.DIRECT_MESSAGE) {
+        const replyTo = PublicKey.FromHex(targetEvent.pubkey);
+        if(replyTo instanceof Error) {
+            return replyTo
+        }
         return prepareEncryptedNostrEvent(
             sender,
-            targetEvent.pubkey,
+            replyTo,
             targetEvent.kind,
             [
                 [
