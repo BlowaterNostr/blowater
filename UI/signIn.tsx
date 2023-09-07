@@ -124,11 +124,7 @@ export class SignIn extends Component<Props, State> {
                             publicKey={privateKey.toPublicKey()}
                         />
                         <button
-                            onClick={() => {
-                                props.eventBus.emit({
-                                    type: "backToSignInPage",
-                                });
-                            }}
+                            onClick={on_BackToSignInPage_Click(props.eventBus.emit, this.setState.bind(this))}
                             class={tw`w-full mt-8 bg-[#404249] hover:bg-[#2B2D31] ${ButtonClass}`}
                         >
                             Back
@@ -170,7 +166,7 @@ export class SignIn extends Component<Props, State> {
                         Welcome to Blowater
                     </h1>
                     <input
-                        onInput={editSignInPrivateKey(props.eventBus.emit)}
+                        onInput={on_EditSignInPrivateKey_Clicked(props.eventBus.emit)}
                         placeholder="Input your private key here"
                         type="password"
                         class={tw`w-full px-4 py-2 focus-visible:outline-none rounded-lg mt-8`}
@@ -244,10 +240,17 @@ const onSignInClicked = (privateKey: PrivateKey | Error, emit: emitFunc<SignInEv
     }
 };
 
-const editSignInPrivateKey =
+const on_EditSignInPrivateKey_Clicked =
     (emit: emitFunc<SignInEvent>) => (e: h.JSX.TargetedEvent<HTMLInputElement, Event>) => {
         emit({
             type: "editSignInPrivateKey",
             privateKey: e.currentTarget.value,
         });
     };
+
+const on_BackToSignInPage_Click = (emit: emitFunc<SignInEvent>, setState: (state: State) => void) => () => {
+    setState({ state: "enterPrivateKey" });
+    emit({
+        type: "backToSignInPage",
+    });
+};
