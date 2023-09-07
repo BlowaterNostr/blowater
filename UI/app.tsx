@@ -52,7 +52,7 @@ export async function Start(database: DexieDatabase) {
         console.error(ctx);
         model.signIn.warningString = "Please add your private key to your NIP-7 extension";
     } else if (ctx) {
-        const dbView = await Database_Contextual_View.New(database, ctx);
+        const dbView = await Database_Contextual_View.New(database.events, ctx);
         const lamport = time.fromEvents(dbView.filterEvents((_) => true));
         const app = new App(dbView, lamport, model, ctx, eventBus, pool);
         const err = await app.initApp(ctx, pool);

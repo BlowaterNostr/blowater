@@ -7,7 +7,6 @@ import {
     Tag,
 } from "./nostr.ts";
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { DexieDatabase } from "./UI/dexie-db.ts";
 import { parseProfileData } from "./features/profile.ts";
 import { parseContent } from "./UI/message.ts";
 import {
@@ -30,6 +29,24 @@ export interface Indices {
     readonly pubkey?: string;
 }
 
+export interface EventsFilter {
+    filter<T extends NostrKind>(f: (e: NostrEvent) => boolean): Promise<NostrEvent<T>[]>;
+}
+
+export interface EventDeleter {
+    delete(id: string): void;
+}
+
+export interface EventGetter {
+    get(keys: Indices): Promise<NostrEvent>;
+}
+
+export interface EventPutter {
+    put(e: NostrEvent): Promise<void>;
+}
+
+export type EventsAdapter = EventsFilter & EventDeleter & EventGetter & EventPutter;
+
 export class Database_Contextual_View {
     private readonly sourceOfChange = csp.chan<
         PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event
@@ -38,14 +55,14 @@ export class Database_Contextual_View {
         this.sourceOfChange,
     );
 
-    static async New(database: DexieDatabase, ctx: NostrAccountContext) {
+    static async New(eventsAdapter: EventsAdapter, ctx: NostrAccountContext) {
         const t = Date.now();
 
-        const onload: (NostrEvent)[] = await database.events.filter(
+        const onload: (NostrEvent)[] = await eventsAdapter.filter(
             (e: NostrEvent) => {
                 return e.kind != NostrKind.CustomAppData;
             },
-        ).toArray();
+        );
         console.log("Database_Contextual_View:onload", Date.now() - t);
         const cache: (PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event)[] = [];
         for (const event of onload) {
@@ -61,7 +78,7 @@ export class Database_Contextual_View {
                         if (profileData instanceof Error) {
                             console.error(profileData);
                             console.log("Database:delete", event.id);
-                            database.events.delete(event.id);
+                            eventsAdapter.delete(event.id);
                             continue;
                         }
                         const e: Profile_Nostr_Event = {
@@ -101,18 +118,18 @@ export class Database_Contextual_View {
             }
         }
         const db = new Database_Contextual_View(
-            database,
+            eventsAdapter,
             cache,
             ctx,
         );
 
         (async () => {
             let tt = 0;
-            const events: NostrEvent<NostrKind.CustomAppData>[] = await database.events.filter(
+            const events: NostrEvent<NostrKind.CustomAppData>[] = await eventsAdapter.filter(
                 (e: NostrEvent) => {
                     return e.kind == NostrKind.CustomAppData;
                 },
-            ).toArray();
+            );
             for (const event of events) {
                 const pubkey = PublicKey.FromHex(event.pubkey);
                 if (pubkey instanceof Error) {
@@ -127,7 +144,7 @@ export class Database_Contextual_View {
                     }
                     if (e instanceof Error) {
                         console.log("Database:delete", event.id);
-                        database.events.delete(event.id);
+                        eventsAdapter.delete(event.id);
                         continue;
                     }
                     cache.push(e);
@@ -156,14 +173,14 @@ export class Database_Contextual_View {
         return db;
     }
 
-    constructor(
-        private readonly database: DexieDatabase,
+    private constructor(
+        private readonly eventsAdapter: EventsAdapter,
         public readonly events: (PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event)[],
         private readonly ctx: NostrAccountContext,
     ) {}
 
     public readonly getEvent = async (keys: Indices): Promise<NostrEvent | undefined> => {
-        return this.database.events.get(keys);
+        return this.eventsAdapter.get(keys);
     };
 
     public readonly filterEvents = (filter: (e: NostrEvent) => boolean) => {
@@ -199,7 +216,7 @@ export class Database_Contextual_View {
             }
             if (_e instanceof Error) {
                 console.log("Database:delete", event.id);
-                this.database.events.delete(event.id); // todo: remove
+                this.eventsAdapter.delete(event.id); // todo: remove
                 return false;
             }
             e = _e;
@@ -231,7 +248,7 @@ export class Database_Contextual_View {
                 };
             }
         }
-        await this.database.events.put(event);
+        await this.eventsAdapter.put(event);
         this.events.push(e);
         /* not await */ this.sourceOfChange.put(e);
         return true;
