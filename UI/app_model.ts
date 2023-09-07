@@ -4,12 +4,12 @@ import { NostrEvent, NostrFilters } from "../lib/nostr-ts/nostr.ts";
 import { DM_EditorModel, new_Social_EditorModel, Social_EditorModel } from "./editor.tsx";
 import { NavigationModel } from "./nav.tsx";
 import { SearchInitModel } from "./search_model.ts";
-import { SignInModel } from "./signIn.tsx";
 import { ProfileData } from "../features/profile.ts";
 import { RightPanelModel } from "./message-panel.tsx";
 import { DM_Container_Model } from "./dm.ts";
 import { App } from "./app.tsx";
 import { MessageThread } from "./dm.tsx";
+import { SignInModel } from "./signIn.tsx";
 
 export type Model = {
     app: App | undefined; // app is only available after sign-in
@@ -86,7 +86,6 @@ export function initialModel(): Model {
         myProfile: undefined,
         signIn: {
             privateKey: "",
-            state: "enterPrivateKey",
         },
     };
 }

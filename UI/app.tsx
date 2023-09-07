@@ -316,7 +316,6 @@ export function AppComponent(props: {
             <SignIn
                 eventBus={props.eventBus}
                 privateKey={model.signIn.privateKey}
-                state={model.signIn.state}
                 warningString={model.signIn.warningString}
             />
         );
@@ -377,7 +376,7 @@ export function AppComponent(props: {
     if (model.navigationModel.activeNav == "Setting") {
         settingNode = (
             <div
-                class={tw`flex-1 overflow-hidden overflow-y-auto`}
+                class={tw`flex-1 overflow-hidden overflow-y-auto bg-[${SecondaryBackgroundColor}]`}
             >
                 {Setting({
                     logout: app.logout,
