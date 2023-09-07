@@ -21,15 +21,16 @@
     "https://deno.land/x/uuid@v0.1.2/mod.ts": "efc48233163b385262e5ec79662ad76f7684ad80080fc69a140c6e01e56c75d8",
     "https://deno.land/x/uuid@v0.1.2/v4.ts": "00392ef1efb815545d6b0ec5fb0260d4ed4295259abc3162766e397c47226a7b",
     "https://esm.sh/@preact/signals@1.2.1": "3784f71be94d1bc22978edc9cd0045b9dee17444c36b941909fe7ad4d1ae091a",
+    "https://esm.sh/dexie@3.2.4": "5d908c1f86c55a61f0605f844f10466cd38b8130d1a9c3e2c9fb8a0c65ecf602",
     "https://esm.sh/preact@10.17.1": "d9d10d95cd047fd2c26bb68e760a87d3747fafc64a1e54049095682c69c7491a",
     "https://esm.sh/stable/preact@10.17.1/denonext/hooks.js": "94d145427fa80ea3b1667e694638518f15eab9523bc7db6cb99a1b88edab39bf",
     "https://esm.sh/stable/preact@10.17.1/denonext/preact.mjs": "0f2f159289b4502eea839f4b57cef910ad03d63213ac5301e6767326b060d8f6",
     "https://esm.sh/twind@0.16.16": "36d4bf5244664242e59292ef1076e4220e3dbeca933d46c1c26471927d6a9356",
     "https://esm.sh/v132/@preact/signals-core@1.4.0/denonext/signals-core.mjs": "be3db12ec548198be64192e9dd6c89de76d4cb5b363c04bb24cd4008af69aaa4",
     "https://esm.sh/v132/@preact/signals@1.2.1/denonext/signals.mjs": "cdf6874cc390541c39d3ceb55ae0b9f8909093f7acfc909510a731388db3cb4c",
+    "https://esm.sh/v132/dexie@3.2.4/denonext/dexie.mjs": "f685622969b950b64d250903851542a2152e831c05c260c708adb344a973f591",
     "https://esm.sh/v132/style-vendorizer@2.2.3/denonext/style-vendorizer.mjs": "121455e7b04b631ef6463ce63cdcd29febd74d88c37713c774ceca8a1561c83d",
     "https://esm.sh/v132/twind@0.16.16/denonext/twind.mjs": "339383caa7e65e597b8bb7a9dd2a79af80ae15be47632f21394ee4fc35ffd6a8",
-    "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts": "3e8eed3d933748d48c83e2ae583bf86748621bcd6e8f181bef8a6ae8e5a4bfac",
-    "https://unpkg.com/dexie@3.2.3/dist/modern/dexie.mjs": "63f0ed30a7ac5698fe88152899fd526ac1294067dc28283505151b436c2ee1ba"
+    "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts": "3e8eed3d933748d48c83e2ae583bf86748621bcd6e8f181bef8a6ae8e5a4bfac"
   }
 }
