@@ -15,4 +15,28 @@ const adapter: EventsAdapter = {
     put: async (e: NostrEvent) => {
     },
 };
-const db = Database_Contextual_View.New(adapter, ctx);
+
+
+Deno.test("Database", async () => {
+    const db = await Database_Contextual_View.New(adapter, ctx);
+    console.log(db.events)
+
+    const changes = db.onChange();
+
+    db.addEvent(await prepareNormalNostrEvent(ctx, 1, [], ""))
+
+    const x = await changes.pop()
+    // console.log(x)
+})
+
+function testEvent(c: string): NostrEvent {
+    return {
+        content: c,
+        created_at: Date.now(),
+        id: "",
+        kind: NostrKind.CONTACTS,
+        pubkey: "",
+        sig: "",
+        tags: []
+    }
+}
