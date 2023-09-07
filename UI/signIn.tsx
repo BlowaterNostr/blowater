@@ -1,5 +1,6 @@
 /** @jsx h */
 import { h } from "https://esm.sh/preact@10.17.1";
+import { StateUpdater, useState } from "https://esm.sh/stable/preact@10.17.1/hooks";
 import { tw } from "https://esm.sh/twind@0.16.16";
 import { GetLocalStorageAccountContext, Nip7ExtensionContext } from "./account-context.ts";
 import { ButtonClass, CenterClass, DividerClass } from "./components/tw.ts";
@@ -7,8 +8,7 @@ import KeyView from "./key-view.tsx";
 import { PrivateKey } from "../lib/nostr-ts/key.ts";
 import { InMemoryAccountContext } from "../lib/nostr-ts/nostr.ts";
 import { emitFunc, EventEmitter } from "../event-bus.ts";
-import { Signal } from "https://esm.sh/@preact/signals@1.2.1";
-import { signal } from "https://esm.sh/@preact/signals@1.2.1";
+
 
 export type SignInEvent = {
     type: "signin";
@@ -109,9 +109,12 @@ export function signInWithPrivateKey(privateKey: PrivateKey) {
     return ctx;
 }
 
-const signInState = signal<"newAccount" | "enterPrivateKey">("enterPrivateKey");
+
 export function SignIn(props: Props) {
-    if (props.state == "newAccount") {
+
+    const [signInState, setSignInState] = useState<"newAccount" | "enterPrivateKey">("enterPrivateKey");
+
+    if (signInState == "newAccount") {
         const privateKey = PrivateKey.Generate();
         return (
             <div
@@ -217,7 +220,7 @@ export function SignIn(props: Props) {
                     Sign in with Alby
                 </button>
                 <button
-                    onClick={onCreateAccountClicked(props.eventBus.emit)}
+                    onClick={onCreateAccountClicked(props.eventBus.emit, setSignInState)}
                     class={tw`${ButtonClass} w-full bg-[#2B2D31] hover:bg-[#404249] mt-4`}
                 >
                     Create an account
@@ -231,8 +234,8 @@ export function SignIn(props: Props) {
     );
 }
 
-const onCreateAccountClicked = (emit: emitFunc<SignInEvent>) => () => {
-    signInState.value = "newAccount";
+const onCreateAccountClicked = (emit: emitFunc<SignInEvent>, set: StateUpdater<"newAccount" | "enterPrivateKey">) => () => {
+    set("newAccount");
     emit({
         type: "createNewAccount",
     });
