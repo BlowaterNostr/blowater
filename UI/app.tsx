@@ -377,7 +377,7 @@ export function AppComponent(props: {
     if (model.navigationModel.activeNav == "Setting") {
         settingNode = (
             <div
-                class={tw`flex-1 overflow-hidden overflow-y-auto bg-[${SecondaryBackgroundColor}]`}
+                class={tw`flex-1 overflow-hidden overflow-y-auto`}
             >
                 {Setting({
                     logout: app.logout,
