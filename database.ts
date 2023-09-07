@@ -182,7 +182,8 @@ export class Database_Contextual_View {
     ) {}
 
     public readonly getEvent = async (keys: Indices): Promise<NostrEvent | undefined> => {
-        return this.eventsAdapter.get(keys);
+        const e = await this.eventsAdapter.get(keys);
+        return e
     };
 
     public readonly filterEvents = (filter: (e: NostrEvent) => boolean) => {
@@ -250,8 +251,8 @@ export class Database_Contextual_View {
                 };
             }
         }
-        await this.eventsAdapter.put(event);
         this.events.push(e);
+        await this.eventsAdapter.put(event);
         /* not await */ this.sourceOfChange.put(e);
         return true;
     }
