@@ -6,7 +6,7 @@ import { SignIn } from "./signIn.tsx";
 render(
     SignIn({
         eventBus: eventBus,
-        state: "newAccount",
+        state: "enterPrivateKey",
         privateKey: PrivateKey.Generate().bech32,
     }),
     document.body,

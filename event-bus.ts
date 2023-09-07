@@ -16,4 +16,4 @@ export class EventBus<T> implements EventEmitter<T> {
 export type EventEmitter<T> = {
     emit: (event: T) => void;
 };
-export type emit<T extends { type: string }> = (event: T) => void;
+export type emitFunc<T extends { type: string }> = (event: T) => void;

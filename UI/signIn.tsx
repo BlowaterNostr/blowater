@@ -6,7 +6,9 @@ import { ButtonClass, CenterClass, DividerClass } from "./components/tw.ts";
 import KeyView from "./key-view.tsx";
 import { PrivateKey } from "../lib/nostr-ts/key.ts";
 import { InMemoryAccountContext } from "../lib/nostr-ts/nostr.ts";
-import { EventEmitter } from "../event-bus.ts";
+import { emitFunc, EventEmitter } from "../event-bus.ts";
+import { Signal } from "https://esm.sh/@preact/signals@1.2.1";
+import { signal } from "https://esm.sh/@preact/signals@1.2.1";
 
 export type SignInEvent = {
     type: "signin";
@@ -107,6 +109,7 @@ export function signInWithPrivateKey(privateKey: PrivateKey) {
     return ctx;
 }
 
+const signInState = signal<"newAccount" | "enterPrivateKey">("enterPrivateKey");
 export function SignIn(props: Props) {
     if (props.state == "newAccount") {
         const privateKey = PrivateKey.Generate();
@@ -184,14 +187,7 @@ export function SignIn(props: Props) {
                     )
                     : undefined}
                 <button
-                    onClick={() => {
-                        if (privateKey instanceof PrivateKey) {
-                            props.eventBus.emit({
-                                type: "signin",
-                                privateKey: privateKey,
-                            });
-                        }
-                    }}
+                    onClick={onSignInClicked(privateKey, props.eventBus.emit)}
                     disabled={privateKey instanceof Error}
                     class={tw`w-full bg-[#2B2D31] hover:bg-[#404249] mt-4 disabled:bg-[#404249] ${ButtonClass}`}
                 >
@@ -221,11 +217,7 @@ export function SignIn(props: Props) {
                     Sign in with Alby
                 </button>
                 <button
-                    onClick={() => {
-                        props.eventBus.emit({
-                            type: "createNewAccount",
-                        });
-                    }}
+                    onClick={onCreateAccountClicked(props.eventBus.emit)}
                     class={tw`${ButtonClass} w-full bg-[#2B2D31] hover:bg-[#404249] mt-4`}
                 >
                     Create an account
@@ -238,3 +230,19 @@ export function SignIn(props: Props) {
         </div>
     );
 }
+
+const onCreateAccountClicked = (emit: emitFunc<SignInEvent>) => () => {
+    signInState.value = "newAccount";
+    emit({
+        type: "createNewAccount",
+    });
+};
+
+const onSignInClicked = (privateKey: PrivateKey | Error, emit: emitFunc<SignInEvent>) => () => {
+    if (privateKey instanceof PrivateKey) {
+        emit({
+            type: "signin",
+            privateKey: privateKey,
+        });
+    }
+};

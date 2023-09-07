@@ -28,14 +28,14 @@ import { RelayIcon } from "./icons2/relay-icon.tsx";
 import { DeleteIcon } from "./icons2/delete-icon.tsx";
 import { RelayConfig } from "./setting.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
-import { emit, EventEmitter } from "../event-bus.ts";
+import { emitFunc, EventEmitter } from "../event-bus.ts";
 
 export interface SettingProps {
     logout: () => void;
     relayConfig: RelayConfig;
     relayPool: ConnectionPool;
     myAccountContext: NostrAccountContext;
-    emit: emit<RelayConfigChange>;
+    emit: emitFunc<RelayConfigChange>;
 }
 
 const colors = {
@@ -87,7 +87,7 @@ export type RelayConfigChange = {
 export function RelaySetting(props: {
     relayConfig: RelayConfig;
     relayPool: ConnectionPool;
-    emit: emit<RelayConfigChange>;
+    emit: emitFunc<RelayConfigChange>;
 }) {
     function computeRelayStatus() {
         const _relayStatus: { url: string; status: keyof typeof colors }[] = [];
