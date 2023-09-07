@@ -15,10 +15,6 @@ export type SignInEvent = {
 } | {
     type: "editSignInPrivateKey";
     privateKey: string;
-} | {
-    type: "createNewAccount";
-} | {
-    type: "backToSignInPage";
 };
 
 const AlbyURL = "https://getalby.com/";
@@ -226,9 +222,6 @@ export class SignIn extends Component<Props, State> {
 
 const on_CreateAccount_clicked = (emit: emitFunc<SignInEvent>, setState: (state: State) => void) => () => {
     setState({ state: "newAccount" });
-    emit({
-        type: "createNewAccount",
-    });
 };
 
 const on_SignIn_clicked = (privateKey: PrivateKey | Error, emit: emitFunc<SignInEvent>) => () => {
@@ -250,7 +243,4 @@ const on_EditSignInPrivateKey_clicked =
 
 const on_BackToSignInPage_click = (emit: emitFunc<SignInEvent>, setState: (state: State) => void) => () => {
     setState({ state: "enterPrivateKey" });
-    emit({
-        type: "backToSignInPage",
-    });
 };

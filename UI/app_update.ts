@@ -77,14 +77,6 @@ export async function* UI_Interaction_Update(args: {
                 yield model;
                 continue;
                 break;
-            case "createNewAccount":
-                yield model;
-                continue;
-                break;
-            case "backToSignInPage":
-                yield model;
-                continue;
-                break;
             case "signin":
                 let ctx;
                 if (event.privateKey) {
