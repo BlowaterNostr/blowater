@@ -31,7 +31,7 @@ export async function sendDMandImages(args: {
         // build the nostr event
         const nostrEvent = await prepareEncryptedNostrEvent(
             sender,
-            receiverPublicKey.hex,
+            receiverPublicKey,
             kind,
             [
                 ["p", receiverPublicKey.hex],

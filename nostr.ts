@@ -153,7 +153,7 @@ export function groupImageEvents<T extends Parsed_Event>(events: Iterable<T>) {
     });
 }
 
-export function prepareReplyEvent(
+export async function prepareReplyEvent(
     sender: nostr.NostrAccountContext,
     targetEvent: nostr.NostrEvent,
     tags: Tag[],
@@ -161,9 +161,13 @@ export function prepareReplyEvent(
 ): Promise<nostr.NostrEvent | Error> {
     const ps = getTags(targetEvent).p;
     if (targetEvent.kind == NostrKind.DIRECT_MESSAGE) {
+        const replyTo = PublicKey.FromHex(targetEvent.pubkey);
+        if (replyTo instanceof Error) {
+            return replyTo;
+        }
         return prepareEncryptedNostrEvent(
             sender,
-            targetEvent.pubkey,
+            replyTo,
             targetEvent.kind,
             [
                 [

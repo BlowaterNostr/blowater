@@ -171,7 +171,7 @@ export class Database_Contextual_View {
             console.log("Database_Contextual_View:transformEvent", tt);
         })();
 
-        console.log("Database_Contextual_View:New", Date.now() - t);
+        console.log("Database_Contextual_View:New time spent", Date.now() - t);
         return db;
     }
 
@@ -182,7 +182,8 @@ export class Database_Contextual_View {
     ) {}
 
     public readonly getEvent = async (keys: Indices): Promise<NostrEvent | undefined> => {
-        return this.eventsAdapter.get(keys);
+        const e = await this.eventsAdapter.get(keys);
+        return e;
     };
 
     public readonly filterEvents = (filter: (e: NostrEvent) => boolean) => {
@@ -250,8 +251,8 @@ export class Database_Contextual_View {
                 };
             }
         }
-        await this.eventsAdapter.put(event);
         this.events.push(e);
+        await this.eventsAdapter.put(event);
         /* not await */ this.sourceOfChange.put(e);
         return true;
     }
@@ -349,14 +350,14 @@ export class Database_Contextual_View {
     //////////////////
     // On DB Change //
     //////////////////
-    onChange(filter: (e: PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event) => boolean) {
+    onChange(filter?: (e: PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event) => boolean) {
         const c = this.caster.copy();
         const res = csp.chan<PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event>(
             buffer_size,
         );
         (async () => {
             for await (const newE of c) {
-                if (filter(newE)) {
+                if (filter == undefined || filter(newE)) {
                     const err = await res.put(newE);
                     if (err instanceof csp.PutToClosedChannelError) {
                         await c.close(
