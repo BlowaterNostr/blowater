@@ -20,7 +20,7 @@ import {
 import { PublicKey } from "./lib/nostr-ts/key.ts";
 
 export const NotFound = Symbol("Not Found");
-const buffer_size = 1000;
+// const buffer_size = 1000;
 export interface Indices {
     readonly id?: string;
     readonly create_at?: number;
@@ -50,7 +50,7 @@ export type EventsAdapter = EventsFilter & EventDeleter & EventGetter & EventPut
 export class Database_Contextual_View {
     private readonly sourceOfChange = csp.chan<
         PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event
-    >(buffer_size);
+    >();
     private readonly caster = csp.multi<PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event>(
         this.sourceOfChange,
     );
@@ -261,7 +261,7 @@ export class Database_Contextual_View {
         filter: (e: NostrEvent) => boolean,
         events: csp.Channel<[NostrEvent, string /*relay url*/]>,
     ): csp.Channel<NostrEvent> {
-        const resChan = csp.chan<NostrEvent>(buffer_size);
+        const resChan = csp.chan<NostrEvent>();
         (async () => {
             for await (const [e, url] of events) {
                 if (resChan.closed()) {
@@ -292,7 +292,7 @@ export class Database_Contextual_View {
         accountContext: NostrAccountContext,
         msgs: csp.Channel<{ res: RelayResponse_REQ_Message; url: string }>,
     ): Promise<csp.Channel<NostrEvent | DecryptionFailure>> {
-        const resChan = csp.chan<NostrEvent | DecryptionFailure>(buffer_size);
+        const resChan = csp.chan<NostrEvent | DecryptionFailure>();
         const publicKey = accountContext.publicKey;
         (async () => {
             for await (const { res: msg, url } of msgs) {
@@ -352,9 +352,7 @@ export class Database_Contextual_View {
     //////////////////
     onChange(filter?: (e: PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event) => boolean) {
         const c = this.caster.copy();
-        const res = csp.chan<PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event>(
-            buffer_size,
-        );
+        const res = csp.chan<PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event>();
         (async () => {
             for await (const newE of c) {
                 if (filter == undefined || filter(newE)) {
