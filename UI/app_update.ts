@@ -38,7 +38,6 @@ import { RelayConfig } from "./setting.ts";
 import { SocialUpdates } from "./social.tsx";
 import { RelayConfigChange } from "./setting.tsx";
 import { prepareCustomAppDataEvent } from "../lib/nostr-ts/event.ts";
-import { popoverStatus } from "./components/popover.tsx";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -122,11 +121,9 @@ export async function* UI_Interaction_Update(args: {
         // Search
         //
         else if (event.type == "CancelPopOver") {
-            popoverStatus.value = "Hide";
             model.dm.search.isSearching = false;
             model.dm.search.searchResults = [];
         } else if (event.type == "StartSearch") {
-            popoverStatus.value = "Show";
             model.dm.search.isSearching = true;
         } else if (event.type == "Search") {
             const pubkey = PublicKey.FromString(event.text);
@@ -155,7 +152,6 @@ export async function* UI_Interaction_Update(args: {
         // Contacts
         //
         else if (event.type == "SelectProfile") {
-            popoverStatus.value = "Hide";
             model.dm.search.isSearching = false;
             model.dm.search.searchResults = [];
             model.rightPanelModel = {

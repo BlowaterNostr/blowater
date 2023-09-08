@@ -434,9 +434,19 @@ export function AppComponent(props: {
         }
     }
 
-    let popoverChildren: ComponentChildren;
+    let popover: h.JSX.Element | undefined;
     if (model.dm.search.isSearching) {
-        popoverChildren = <Search eventEmitter={props.eventBus} model={model.dm.search} />;
+        popover = (
+            <Popover
+                close={() => {
+                    props.eventBus.emit({
+                        type: "CancelPopOver",
+                    });
+                }}
+            >
+                <Search eventEmitter={props.eventBus} model={model.dm.search} />
+            </Popover>
+        );
     }
 
     console.debug("AppComponent:2", Date.now() - t);
@@ -478,10 +488,7 @@ export function AppComponent(props: {
                     {settingNode}
                     {socialPostsPanel}
                     {appList}
-
-                    <Popover>
-                        {popoverChildren}
-                    </Popover>
+                    {popover}
                 </div>
 
                 <div class={tw`desktop:hidden`}>

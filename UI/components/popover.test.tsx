@@ -1,33 +1,42 @@
 /** @jsx h */
 import { Fragment, h, render } from "https://esm.sh/preact@10.17.1";
-import { Popover, popoverStatus } from "./popover.tsx";
+import { Popover } from "./popover.tsx";
+import { signal } from "https://esm.sh/@preact/signals@1.2.1";
+
+const show = signal(false);
 
 function PopoverTest() {
-    const showPopover = () => {
-        popoverStatus.value = "Show";
-    };
-
     return (
         <Fragment>
-            <button onClick={showPopover}>show</button>
-
-            <Popover
-                onClose={() => {
-                    console.log("close");
+            <button
+                onClick={() => {
+                    show.value = true;
                 }}
             >
-                <div
-                    style={{
-                        color: "#fff",
-                        textAlign: "center",
-                        padding: "5rem",
-                    }}
-                >
-                    Popover
+                Show
+            </button>
 
-                    <input type="text" />
-                </div>
-            </Popover>
+            {show.value
+                ? (
+                    <Popover
+                        close={() => {
+                            show.value = false;
+                        }}
+                    >
+                        <div
+                            style={{
+                                color: "#fff",
+                                textAlign: "center",
+                                padding: "5rem",
+                            }}
+                        >
+                            Popover
+
+                            <input type="text" />
+                        </div>
+                    </Popover>
+                )
+                : undefined}
         </Fragment>
     );
 }
