@@ -20,7 +20,7 @@ import {
 import { PublicKey } from "./lib/nostr-ts/key.ts";
 
 export const NotFound = Symbol("Not Found");
-const buffer_size = 1000;
+const buffer_size = 2000;
 export interface Indices {
     readonly id?: string;
     readonly create_at?: number;
@@ -350,11 +350,9 @@ export class Database_Contextual_View {
     //////////////////
     // On DB Change //
     //////////////////
-    onChange(filter?: (e: PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event) => boolean) {
+    subscribe(filter?: (e: PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event) => boolean) {
         const c = this.caster.copy();
-        const res = csp.chan<PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event>(
-            buffer_size,
-        );
+        const res = csp.chan<PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event>(buffer_size);
         (async () => {
             for await (const newE of c) {
                 if (filter == undefined || filter(newE)) {

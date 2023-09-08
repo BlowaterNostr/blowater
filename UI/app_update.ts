@@ -450,7 +450,7 @@ export async function* Database_Update(
     allUserInfo: AllUsersInformation,
     relayConfig: RelayConfig,
 ) {
-    const changes = database.onChange((_) => true);
+    const changes = database.subscribe((_) => true);
     while (true) {
         await csp.sleep(333);
         await changes.ready();
