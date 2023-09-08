@@ -24,10 +24,12 @@ function PopoverTest() {
                     }}
                 >
                     Popover
+
+                    <input type="text" />
                 </div>
             </Popover>
         </Fragment>
     );
 }
 
-render(PopoverTest(), document.body);
+render(<PopoverTest />, document.body);

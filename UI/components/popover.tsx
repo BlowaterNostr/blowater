@@ -14,13 +14,13 @@ export function Popover(props: {
 
     const styles = {
         container: tw`fixed inset-0 z-20`,
-        backdrop: tw`fixed inset-0 z-[-1] backdrop-filter backdrop-blur`,
+        backdrop: tw`fixed inset-0 z-[-1] backdrop-filter backdrop-blur cursor-pointer`,
         childrenContainer:
-            tw`h-[80%] absolute top-[20%] overflow-auto bg-[${SecondaryBackgroundColor}] w-full shadow-2xl`,
+            tw`h-[80%] absolute top-[20%] overflow-auto bg-[${SecondaryBackgroundColor}] w-full shadow-inner`,
     };
 
-    const onEscKeyDown = (e: h.JSX.TargetedKeyboardEvent<HTMLDivElement>) => {
-        if (e.code === "Escape") {
+    const onEscKeyDown = (e: KeyboardEvent) => {
+        if (e.code == "Escape") {
             popoverStatus.value = "Hide";
 
             if (onClose) {
@@ -41,18 +41,10 @@ export function Popover(props: {
         <Fragment>
             {popoverStatus.value == "Show"
                 ? (
-                    <div
-                        class={styles.container}
-                        onKeyDown={onEscKeyDown}
-                    >
-                        <div
-                            class={styles.backdrop}
-                            onClick={onBackdropClick}
-                        >
+                    <div class={styles.container} onKeyDown={onEscKeyDown}>
+                        <div class={styles.backdrop} onClick={onBackdropClick}>
                         </div>
-                        <div
-                            class={styles.childrenContainer}
-                        >
+                        <div class={styles.childrenContainer}>
                             {props.children}
                         </div>
                     </div>
