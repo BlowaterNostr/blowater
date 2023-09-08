@@ -38,6 +38,8 @@ import { DexieDatabase } from "./dexie-db.ts";
 import { About } from "./about.tsx";
 import { SocialPanel } from "./social.tsx";
 import { ProfilesSyncer } from "../features/profile.ts";
+import { Popover } from "./components/popover.tsx";
+import { Search } from "./search.tsx";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
@@ -432,6 +434,21 @@ export function AppComponent(props: {
         }
     }
 
+    let popover: h.JSX.Element | undefined;
+    if (model.dm.search.isSearching) {
+        popover = (
+            <Popover
+                close={() => {
+                    props.eventBus.emit({
+                        type: "CancelPopOver",
+                    });
+                }}
+            >
+                <Search eventEmitter={props.eventBus} model={model.dm.search} />
+            </Popover>
+        );
+    }
+
     console.debug("AppComponent:2", Date.now() - t);
 
     const final = (
@@ -471,6 +488,7 @@ export function AppComponent(props: {
                     {settingNode}
                     {socialPostsPanel}
                     {appList}
+                    {popover}
                 </div>
 
                 <div class={tw`desktop:hidden`}>
