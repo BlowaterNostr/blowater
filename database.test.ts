@@ -1,9 +1,8 @@
-import { chan, sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { Database_Contextual_View, EventsAdapter, Indices } from "./database.ts";
 import { prepareNormalNostrEvent } from "./lib/nostr-ts/event.ts";
 import { PrivateKey } from "./lib/nostr-ts/key.ts";
 import { InMemoryAccountContext, NostrEvent, NostrKind } from "./lib/nostr-ts/nostr.ts";
-import { assertAlmostEquals, assertEquals } from "https://deno.land/std@0.176.0/testing/asserts.ts";
+import { assertEquals } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 
 const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
 const data = new Map();
@@ -25,9 +24,8 @@ Deno.test("Database", async () => {
     console.log(db.events);
 
     const changes = db.onChange();
-    const e = await prepareNormalNostrEvent(ctx, 1, [], "");
-    await db.addEvent(e);
-    // const e = await changes.pop()
+    const event_to_add = await prepareNormalNostrEvent(ctx, 1, [], "");
+    await db.addEvent(event_to_add);
     assertEquals(
         db.events.map((e): NostrEvent => {
             return {
@@ -40,6 +38,20 @@ Deno.test("Database", async () => {
                 tags: e.tags,
             };
         }),
-        [e],
+        [event_to_add],
+    );
+
+    const e = await changes.pop() as NostrEvent;
+    assertEquals(
+        {
+            content: e.content,
+            created_at: e.created_at,
+            id: e.id,
+            kind: e.kind,
+            pubkey: e.pubkey,
+            sig: e.sig,
+            tags: e.tags,
+        },
+        event_to_add,
     );
 });
