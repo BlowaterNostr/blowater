@@ -350,7 +350,7 @@ export class Database_Contextual_View {
     //////////////////
     // On DB Change //
     //////////////////
-    onChange(filter?: (e: PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event) => boolean) {
+    subscribe(filter?: (e: PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event) => boolean) {
         const c = this.caster.copy();
         const res = csp.chan<PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event>();
         (async () => {
