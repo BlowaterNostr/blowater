@@ -21,7 +21,6 @@ const adapter: EventsAdapter = {
 
 Deno.test("Database", async () => {
     const db = await Database_Contextual_View.New(adapter, ctx);
-    console.log(db.events);
 
     const changes = db.onChange();
     const event_to_add = await prepareNormalNostrEvent(ctx, 1, [], "");
