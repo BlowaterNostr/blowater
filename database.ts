@@ -2,6 +2,7 @@ import {
     CustomAppData,
     CustomAppData_Event,
     getTags,
+    Parsed_Event,
     PlainText_Nostr_Event,
     Profile_Nostr_Event,
     Tag,
@@ -20,7 +21,6 @@ import {
 import { PublicKey } from "./lib/nostr-ts/key.ts";
 
 export const NotFound = Symbol("Not Found");
-const buffer_size = 2000;
 export interface Indices {
     readonly id?: string;
     readonly create_at?: number;
@@ -47,11 +47,20 @@ export interface EventPutter {
 
 export type EventsAdapter = EventsFilter & EventDeleter & EventGetter & EventPutter;
 
+const buffer_size = 2000;
 export class Database_Contextual_View {
     private readonly sourceOfChange = csp.chan<
-        PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event
+        | PlainText_Nostr_Event
+        | CustomAppData_Event
+        | Profile_Nostr_Event
+        | Parsed_Event<NostrKind.DIRECT_MESSAGE>
     >(buffer_size);
-    private readonly caster = csp.multi<PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event>(
+    private readonly caster = csp.multi<
+        | PlainText_Nostr_Event
+        | CustomAppData_Event
+        | Profile_Nostr_Event
+        | Parsed_Event<NostrKind.DIRECT_MESSAGE>
+    >(
         this.sourceOfChange,
     );
 
@@ -94,7 +103,6 @@ export class Database_Contextual_View {
                 case NostrKind.TEXT_NOTE:
                 case NostrKind.RECOMMED_SERVER:
                 case NostrKind.CONTACTS:
-                case NostrKind.DIRECT_MESSAGE:
                 case NostrKind.DELETE:
                     {
                         const e: PlainText_Nostr_Event = {
@@ -114,6 +122,8 @@ export class Database_Contextual_View {
                     break;
                 case NostrKind.CustomAppData:
                     // ignore
+                    break;
+                case NostrKind.DIRECT_MESSAGE:
                     break;
             }
         }
@@ -177,7 +187,12 @@ export class Database_Contextual_View {
 
     private constructor(
         private readonly eventsAdapter: EventsAdapter,
-        public readonly events: (PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event)[],
+        public readonly events: (
+            | PlainText_Nostr_Event
+            | CustomAppData_Event
+            | Profile_Nostr_Event
+            | Parsed_Event<NostrKind.DIRECT_MESSAGE>
+        )[],
         private readonly ctx: NostrAccountContext,
     ) {}
 
@@ -203,7 +218,11 @@ export class Database_Contextual_View {
         }
 
         console.log("Database.addEvent", event.id);
-        let e: PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event;
+        let e:
+            | PlainText_Nostr_Event
+            | CustomAppData_Event
+            | Profile_Nostr_Event
+            | Parsed_Event<NostrKind.DIRECT_MESSAGE>;
         if (event.kind == NostrKind.CustomAppData) {
             const _e = await transformEvent({
                 content: event.content,
@@ -259,11 +278,12 @@ export class Database_Contextual_View {
 
     syncEvents(
         filter: (e: NostrEvent) => boolean,
-        events: csp.Channel<[NostrEvent, string /*relay url*/]>,
+        events: csp.Channel<{ event: NostrEvent; url: string /*relay url*/ }>,
     ): csp.Channel<NostrEvent> {
         const resChan = csp.chan<NostrEvent>(buffer_size);
         (async () => {
-            for await (const [e, url] of events) {
+            for await (const { event, url } of events) {
+                const e = event;
                 if (resChan.closed()) {
                     await events.close(
                         "db syncEvents, resChan is closed, closing the source events",
@@ -288,71 +308,84 @@ export class Database_Contextual_View {
         return resChan;
     }
 
-    async syncNewDirectMessageEventsOf(
-        accountContext: NostrAccountContext,
-        msgs: csp.Channel<{ res: RelayResponse_REQ_Message; url: string }>,
-    ): Promise<csp.Channel<NostrEvent | DecryptionFailure>> {
-        const resChan = csp.chan<NostrEvent | DecryptionFailure>(buffer_size);
-        const publicKey = accountContext.publicKey;
-        (async () => {
-            for await (const { res: msg, url } of msgs) {
-                if (msg.type !== "EVENT") {
-                    continue;
-                }
-                const encryptedEvent = msg.event;
-                const theirPubKey = whoIamTalkingTo(encryptedEvent, publicKey);
-                if (theirPubKey instanceof Error) {
-                    // this could happen if the user send an event without p tag
-                    // because the application is subscribing all events send by the user
-                    console.warn(theirPubKey);
-                    continue;
-                }
+    // async syncNewDirectMessageEventsOf(
+    //     accountContext: NostrAccountContext,
+    //     msgs: csp.Channel<{ res: RelayResponse_REQ_Message; url: string }>,
+    // ): Promise<csp.Channel<NostrEvent | DecryptionFailure>> {
+    //     const resChan = csp.chan<NostrEvent | DecryptionFailure>();
+    //     const publicKey = accountContext.publicKey;
+    //     (async () => {
+    //         for await (const { res: msg, url } of msgs) {
+    //             if (msg.type !== "EVENT") {
+    //                 continue;
+    //             }
+    //             const encryptedEvent = msg.event;
+    //             const theirPubKey = whoIamTalkingTo(encryptedEvent, publicKey);
+    //             if (theirPubKey instanceof Error) {
+    //                 // this could happen if the user send an event without p tag
+    //                 // because the application is subscribing all events send by the user
+    //                 console.warn(theirPubKey);
+    //                 continue;
+    //             }
 
-                const decryptedEvent = await decryptNostrEvent(
-                    encryptedEvent,
-                    accountContext,
-                    theirPubKey,
-                );
-                if (decryptedEvent instanceof DecryptionFailure) {
-                    resChan.put(decryptedEvent).then(async (res) => {
-                        if (res instanceof csp.PutToClosedChannelError) {
-                            await msgs.close(
-                                "resChan has been closed, closing the source chan",
-                            );
-                        }
-                    });
-                    continue;
-                }
-                const storedEvent = await this.getEvent({
-                    id: encryptedEvent.id,
-                });
-                if (storedEvent === undefined) {
-                    try {
-                        await this.addEvent(decryptedEvent);
-                    } catch (e) {
-                        console.log(e.message);
-                    }
-                    resChan.put(decryptedEvent).then(async (res) => {
-                        if (res instanceof csp.PutToClosedChannelError) {
-                            await msgs.close(
-                                "resChan has been closed, closing the source chan",
-                            );
-                        }
-                    });
-                }
-                // else do nothing
-            }
-            await resChan.close("source chan is clsoed, closing the resChan");
-        })();
-        return resChan;
-    }
+    //             const decryptedEvent = await decryptNostrEvent(
+    //                 encryptedEvent,
+    //                 accountContext,
+    //                 theirPubKey,
+    //             );
+    //             if (decryptedEvent instanceof DecryptionFailure) {
+    //                 resChan.put(decryptedEvent).then(async (res) => {
+    //                     if (res instanceof csp.PutToClosedChannelError) {
+    //                         await msgs.close(
+    //                             "resChan has been closed, closing the source chan",
+    //                         );
+    //                     }
+    //                 });
+    //                 continue;
+    //             }
+    //             const storedEvent = await this.getEvent({
+    //                 id: encryptedEvent.id,
+    //             });
+    //             if (storedEvent === undefined) {
+    //                 try {
+    //                     await this.addEvent(decryptedEvent);
+    //                 } catch (e) {
+    //                     console.log(e.message);
+    //                 }
+    //                 resChan.put(decryptedEvent).then(async (res) => {
+    //                     if (res instanceof csp.PutToClosedChannelError) {
+    //                         await msgs.close(
+    //                             "resChan has been closed, closing the source chan",
+    //                         );
+    //                     }
+    //                 });
+    //             }
+    //             // else do nothing
+    //         }
+    //         await resChan.close("source chan is clsoed, closing the resChan");
+    //     })();
+    //     return resChan;
+    // }
 
     //////////////////
     // On DB Change //
     //////////////////
-    subscribe(filter?: (e: PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event) => boolean) {
+    subscribe(
+        filter?: (
+            e:
+                | PlainText_Nostr_Event
+                | CustomAppData_Event
+                | Profile_Nostr_Event
+                | Parsed_Event<NostrKind.DIRECT_MESSAGE>,
+        ) => boolean,
+    ) {
         const c = this.caster.copy();
-        const res = csp.chan<PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event>(buffer_size);
+        const res = csp.chan<
+            | PlainText_Nostr_Event
+            | CustomAppData_Event
+            | Profile_Nostr_Event
+            | Parsed_Event<NostrKind.DIRECT_MESSAGE>
+        >(buffer_size);
         (async () => {
             for await (const newE of c) {
                 if (filter == undefined || filter(newE)) {

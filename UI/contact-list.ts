@@ -6,6 +6,7 @@ import {
     CustomAppData,
     CustomAppData_Event,
     getTags,
+    Parsed_Event,
     PlainText_Nostr_Event,
     Profile_Nostr_Event,
 } from "../nostr.ts";
@@ -19,7 +20,7 @@ export interface UserInfo {
         readonly created_at: number;
         readonly content: CustomAppData;
     } | undefined;
-    events: PlainText_Nostr_Event[];
+    events: Parsed_Event<NostrKind.DIRECT_MESSAGE>[];
 }
 
 export function getUserInfoFromPublicKey(k: PublicKey, users: Map<string, UserInfo>) {
@@ -32,7 +33,14 @@ export class AllUsersInformation {
 
     constructor(public readonly ctx: NostrAccountContext) {}
 
-    addEvents(events: (Profile_Nostr_Event | PlainText_Nostr_Event | CustomAppData_Event)[]) {
+    addEvents(
+        events: (
+            | Profile_Nostr_Event
+            | PlainText_Nostr_Event
+            | CustomAppData_Event
+            | Parsed_Event<NostrKind.DIRECT_MESSAGE>
+        )[],
+    ) {
         // const t = Date.now();
         for (const event of events) {
             switch (event.kind) {

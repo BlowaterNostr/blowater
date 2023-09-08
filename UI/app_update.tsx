@@ -34,6 +34,7 @@ import {
     computeThreads,
     CustomAppData_Event,
     getTags,
+    Parsed_Event,
     PinContact,
     PlainText_Nostr_Event,
     Profile_Nostr_Event,
@@ -503,7 +504,7 @@ export async function* Database_Update(
     while (true) {
         await csp.sleep(333);
         await changes.ready();
-        const changes_events: (PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event)[] = [];
+        const changes_events: (PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event | Parsed_Event<NostrKind.DIRECT_MESSAGE>)[] = [];
         while (true) {
             if (!changes.isReadyToPop()) {
                 break;

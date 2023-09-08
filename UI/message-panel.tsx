@@ -14,6 +14,7 @@ import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import {
     CustomAppData_Event,
+    Parsed_Event,
     PinContact,
     PlainText_Nostr_Event,
     Profile_Nostr_Event,
@@ -660,7 +661,11 @@ function ProfileCard(
 }
 
 function NoteCard(
-    event: Profile_Nostr_Event | PlainText_Nostr_Event | CustomAppData_Event,
+    event:
+        | Profile_Nostr_Event
+        | PlainText_Nostr_Event
+        | CustomAppData_Event
+        | Parsed_Event<NostrKind.DIRECT_MESSAGE>,
     eventEmitter: EventEmitter<ViewThread | ViewUserDetail>,
     allUserInfo: Map<string, UserInfo>,
 ) {

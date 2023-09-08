@@ -221,6 +221,7 @@ export function compare(a: parsedTagsEvent, b: parsedTagsEvent) {
 export type Parsed_Event<Kind extends NostrKind = NostrKind> = nostr.NostrEvent<Kind> & {
     readonly parsedTags: Tags;
     readonly publicKey: PublicKey;
+    readonly parsedContentItems: ContentItem[];
 };
 export function computeThreads<T extends parsedTagsEvent>(events: T[]) {
     events.sort(compare);
@@ -281,11 +282,8 @@ export function computeThreads<T extends parsedTagsEvent>(events: T[]) {
 
 export type PlainText_Nostr_Event =
     & Parsed_Event<
-        Exclude<NostrKind, NostrKind.CustomAppData | NostrKind.META_DATA> // todo: exclude DM as well
-    >
-    & {
-        parsedContentItems: ContentItem[];
-    };
+        Exclude<NostrKind, NostrKind.CustomAppData | NostrKind.META_DATA | NostrKind.DIRECT_MESSAGE> // todo: exclude DM as well
+    >;
 
 export type Profile_Nostr_Event = Parsed_Event<NostrKind.META_DATA> & {
     profile: ProfileData;
