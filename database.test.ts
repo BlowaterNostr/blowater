@@ -28,17 +28,18 @@ Deno.test("Database", async () => {
     const e = await prepareNormalNostrEvent(ctx, 1, [], "");
     await db.addEvent(e);
     // const e = await changes.pop()
-    assertEquals(db.events, [e]);
+    assertEquals(
+        db.events.map((e): NostrEvent => {
+            return {
+                content: e.content,
+                created_at: e.created_at,
+                id: e.id,
+                kind: e.kind,
+                pubkey: e.pubkey,
+                sig: e.sig,
+                tags: e.tags,
+            };
+        }),
+        [e],
+    );
 });
-
-function testEvent(c: string): NostrEvent {
-    return {
-        content: c,
-        created_at: Date.now(),
-        id: "",
-        kind: NostrKind.CONTACTS,
-        pubkey: "",
-        sig: "",
-        tags: [],
-    };
-}
