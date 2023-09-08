@@ -1,5 +1,5 @@
 /** @jsx h */
-import { ComponentChildren, h, render, VNode } from "https://esm.sh/preact@10.17.1";
+import { h, render, VNode } from "https://esm.sh/preact@10.17.1";
 import * as dm from "../features/dm.ts";
 
 import { DirectMessageContainer, MessageThread } from "./dm.tsx";
