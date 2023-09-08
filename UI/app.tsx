@@ -1,5 +1,5 @@
 /** @jsx h */
-import { h, render, VNode } from "https://esm.sh/preact@10.17.1";
+import { ComponentChildren, h, render, VNode } from "https://esm.sh/preact@10.17.1";
 import * as dm from "../features/dm.ts";
 
 import { DirectMessageContainer, MessageThread } from "./dm.tsx";
@@ -38,6 +38,8 @@ import { DexieDatabase } from "./dexie-db.ts";
 import { About } from "./about.tsx";
 import { SocialPanel } from "./social.tsx";
 import { ProfilesSyncer } from "../features/profile.ts";
+import { Popover } from "./components/popover.tsx";
+import { Search } from "./search.tsx";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
@@ -432,6 +434,11 @@ export function AppComponent(props: {
         }
     }
 
+    let popoverChildren: ComponentChildren;
+    if (model.dm.search.isSearching) {
+        popoverChildren = <Search eventEmitter={props.eventBus} model={model.dm.search} />;
+    }
+
     console.debug("AppComponent:2", Date.now() - t);
 
     const final = (
@@ -471,6 +478,10 @@ export function AppComponent(props: {
                     {settingNode}
                     {socialPostsPanel}
                     {appList}
+
+                    <Popover>
+                        {popoverChildren}
+                    </Popover>
                 </div>
 
                 <div class={tw`desktop:hidden`}>
