@@ -1,7 +1,7 @@
 /*
     Extension to common Nostr types
 */
-import { PrivateKey, PublicKey } from "./lib/nostr-ts/key.ts";
+import { InvalidKey, PrivateKey, PublicKey } from "./lib/nostr-ts/key.ts";
 import * as nostr from "./lib/nostr-ts/nostr.ts";
 import { groupBy, NostrKind, TagPubKey } from "./lib/nostr-ts/nostr.ts";
 import { ProfileData } from "./features/profile.ts";

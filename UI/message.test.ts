@@ -69,7 +69,7 @@ Deno.test("inline parse", async (t) => {
             output: [{
                 type: "npub",
                 pubkey: "f34d34b94c1dd0bb552803761e00cc7d3851f7bc8b9f0bf49edc3637b450aefd",
-                start: 6,
+                start: 0,
                 end: 68,
             }],
         },
