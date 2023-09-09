@@ -93,7 +93,7 @@ export class PlainTextEventDetail extends Component<Props> {
                             <div class={this.styles.field.container}>
                                 <pre class={this.styles.field.pre}>{field}</pre>
                                 <div class={this.styles.field.copyButton}>
-                                    <OnFocusTransitionButton onFocus={() => this.copy(field)}/>
+                                    <OnFocusTransitionButton onFocus={() => this.copy(field)} />
                                 </div>
                             </div>
                         ))}
