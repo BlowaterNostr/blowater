@@ -74,6 +74,15 @@ Deno.test("inline parse", async (t) => {
             }],
         },
         {
+            input: `sherryiscutenpub17dxnfw2vrhgtk4fgqdmpuqxv05u9raau3w0shay7msmr0dzs4m7s6ng4ylログボ`,
+            output: [{
+                type: "npub",
+                pubkey: "f34d34b94c1dd0bb552803761e00cc7d3851f7bc8b9f0bf49edc3637b450aefd",
+                start: 12,
+                end: 74,
+            }],
+        },
+        {
             input: `npub17dxnfw2vrhgtk4fgqdmpuqxv05u9raau3w0shay7msmr0dzs4m7s6ng4yl`,
             output: [{
                 type: "npub",
