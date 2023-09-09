@@ -3,7 +3,6 @@ import { h, render } from "https://esm.sh/preact@10.17.1";
 import { Editor } from "./editor.tsx";
 import { EventBus } from "../event-bus.ts";
 import { NostrKind } from "../nostr.ts";
-import { PublicKey } from "../nip19.ts";
 
 const bus = new EventBus();
 

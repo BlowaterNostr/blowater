@@ -8,7 +8,7 @@ export function* parseContent(content: string) {
     yield* match(/https?:\/\/[^\s]+/g, content, "url");
 
     // npubs
-    yield* match(/npub[0-9a-z]{59}/g, content, "npub");
+    yield* match(/(nostr:)?npub[0-9a-z]{59}/g, content, "npub");
 
     // notes
     yield* match(/note[0-9a-z]{59}/g, content, "note");
@@ -41,7 +41,13 @@ function* match(regex: RegExp, content: string, type: ItemType): Generator<Conte
                 };
             }
         } else if (type == "npub") {
-            const pubkey = PublicKey.FromBech32(content.slice(urlStartPosition, urlEndPosition + 1));
+            let bech32: string;
+            if (match[0].startsWith("nostr:")) {
+                bech32 = content.slice(urlStartPosition + 6, urlEndPosition + 1);
+            } else {
+                bech32 = content.slice(urlStartPosition, urlEndPosition + 1);
+            }
+            const pubkey = PublicKey.FromBech32(bech32);
             if (pubkey instanceof Error) {
                 // ignore
             } else {
