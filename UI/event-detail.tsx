@@ -7,7 +7,6 @@ import { PrimaryTextColor, SecondaryBackgroundColor, TitleIconColor } from "./st
 import { OnFocusTransitionButton } from "./components/on-focus-transition-button.tsx";
 import { NoteID } from "../lib/nostr-ts/nip19.ts";
 import { Component } from "https://esm.sh/preact@10.11.3";
-import { NostrEvent } from "../lib/nostr-ts/nostr.ts";
 import { Parsed_Event } from "../nostr.ts";
 
 type Props = {
@@ -19,7 +18,7 @@ type DetailItem = {
     fields: string[];
 };
 
-export class PlainTextEventDetail extends Component<Props> {
+export class EventDetail extends Component<Props> {
     styles = {
         container: tw`py-6 px-4 bg-[${SecondaryBackgroundColor}]`,
         header: {
