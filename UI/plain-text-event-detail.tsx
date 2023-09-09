@@ -4,13 +4,14 @@ import { tw } from "https://esm.sh/twind@0.16.16";
 import { CenterClass, InputClass } from "./components/tw.ts";
 import { AboutIcon } from "./icons/about-icon.tsx";
 import { PrimaryTextColor, SecondaryBackgroundColor, TitleIconColor } from "./style/colors.ts";
-import { PlainText_Nostr_Event } from "../nostr.ts";
 import { OnFocusTransitionButton } from "./components/on-focus-transition-button.tsx";
 import { NoteID } from "../lib/nostr-ts/nip19.ts";
 import { Component } from "https://esm.sh/preact@10.11.3";
+import { NostrEvent } from "../lib/nostr-ts/nostr.ts";
+import { Parsed_Event } from "../nostr.ts";
 
 type Props = {
-    plainTextEvent: PlainText_Nostr_Event;
+    event: Parsed_Event;
 };
 
 type DetailItem = {
@@ -33,20 +34,20 @@ export class PlainTextEventDetail extends Component<Props> {
         },
     };
 
-    eventID = this.props.plainTextEvent.id;
-    eventIDBech32 = NoteID.FromString(this.props.plainTextEvent.id).bech32();
-    authorPubkey = this.props.plainTextEvent.publicKey.hex;
-    authorPubkeyBech32 = this.props.plainTextEvent.publicKey.bech32();
-    content = this.props.plainTextEvent.content;
+    eventID = this.props.event.id;
+    eventIDBech32 = NoteID.FromString(this.props.event.id).bech32();
+    authorPubkey = this.props.event.publicKey.hex;
+    authorPubkeyBech32 = this.props.event.publicKey.bech32();
+    content = this.props.event.content;
     originalEventRaw = JSON.stringify(
         {
-            content: this.props.plainTextEvent.content,
-            created_at: this.props.plainTextEvent.created_at,
-            kind: this.props.plainTextEvent.kind,
-            tags: this.props.plainTextEvent.tags,
-            pubkey: this.props.plainTextEvent.pubkey,
-            id: this.props.plainTextEvent.id,
-            sig: this.props.plainTextEvent.sig,
+            content: this.props.event.content,
+            created_at: this.props.event.created_at,
+            kind: this.props.event.kind,
+            tags: this.props.event.tags,
+            pubkey: this.props.event.pubkey,
+            id: this.props.event.id,
+            sig: this.props.event.sig,
         },
         null,
         4,
