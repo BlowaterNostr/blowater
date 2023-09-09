@@ -6,7 +6,6 @@ import { NoteID } from "../lib/nostr-ts/nip19.ts";
 export function* parseContent(content: string) {
     // URLs
     yield* match(/https?:\/\/[^\s]+/g, content, "url");
-    
 
     // npubs
     yield* match(/(nostr:)?npub[0-9a-z]{59}/g, content, "npub");

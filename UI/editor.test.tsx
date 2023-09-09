@@ -4,7 +4,6 @@ import { Editor } from "./editor.tsx";
 import { EventBus } from "../event-bus.ts";
 import { NostrKind } from "../nostr.ts";
 
-
 const bus = new EventBus();
 
 let vdom = (
