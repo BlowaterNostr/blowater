@@ -76,6 +76,8 @@ export class PlainTextEventDetail extends Component<Props> {
         },
     ];
 
+    copy = (text: string) => navigator.clipboard.writeText(text);
+
     render() {
         return (
             <div class={this.styles.container}>
@@ -91,11 +93,7 @@ export class PlainTextEventDetail extends Component<Props> {
                             <div class={this.styles.field.container}>
                                 <pre class={this.styles.field.pre}>{field}</pre>
                                 <div class={this.styles.field.copyButton}>
-                                    <OnFocusTransitionButton
-                                        onFocus={() => {
-                                            navigator.clipboard.writeText(field);
-                                        }}
-                                    />
+                                    <OnFocusTransitionButton onFocus={() => this.copy(field)}/>
                                 </div>
                             </div>
                         ))}
