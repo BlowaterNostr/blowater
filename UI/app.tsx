@@ -23,7 +23,7 @@ import {
     Relay_Update,
     UI_Interaction_Event,
     UI_Interaction_Update,
-} from "./app_update.ts";
+} from "./app_update.tsx";
 import { getSocialPosts } from "../features/social.ts";
 import * as time from "../time.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";

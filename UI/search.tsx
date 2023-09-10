@@ -52,19 +52,8 @@ export class Search extends Component<Props, State> {
         },
     };
 
-    // async componentDidMount() {
-    //     this.inputRef.current.focus();
-
-    //     for await (const searchResults of SearchResultsChan) {
-    //         this.setState({
-    //             searchResults: searchResults || [],
-    //         });
-    //     }
-    // }
-
     search = (e: h.JSX.TargetedEvent<HTMLInputElement, Event>) => {
         const text = e.currentTarget.value;
-        // this.props.onInput(text);
         const profiles = getProfilesByName(this.props.db, text);
         console.log(profiles);
         this.setState({
@@ -76,16 +65,15 @@ export class Search extends Component<Props, State> {
         });
     };
 
-    onSelect = (id: Profile_Nostr_Event) => () => {
+    onSelect = (profile: Profile_Nostr_Event) => () => {
         this.inputRef.current.value = "";
         this.setState({
             searchResults: [],
         });
-        // this.props.onSelect(id);
-        // this.props.emit({
-        //     type: "SelectProfile",
-        //     pubkey:
-        // })
+        this.props.emit({
+            type: "SelectProfile",
+            pubkey: profile.publicKey,
+        });
     };
 
     render() {

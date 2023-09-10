@@ -8,7 +8,7 @@ import { EventBus } from "../event-bus.ts";
 import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
 import { IconButtonClass } from "./components/tw.ts";
 import { DM_EditorModel } from "./editor.tsx";
-import { getConversationMessages, UI_Interaction_Event } from "./app_update.ts";
+import { getConversationMessages, UI_Interaction_Event } from "./app_update.tsx";
 import { NostrAccountContext, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { getProfileEvent, ProfilesSyncer } from "../features/profile.ts";

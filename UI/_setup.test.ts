@@ -1,7 +1,7 @@
 import { EventsAdapter, Indices } from "../database.ts";
 import { EventBus } from "../event-bus.ts";
 import { NostrEvent } from "../lib/nostr-ts/nostr.ts";
-import { UI_Interaction_Event } from "./app_update.ts";
+import { UI_Interaction_Event } from "./app_update.tsx";
 
 export const testEventBus = new EventBus<UI_Interaction_Event>();
 export const data = new Map();
