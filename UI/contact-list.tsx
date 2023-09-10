@@ -89,49 +89,6 @@ export function ContactList(props: Props) {
                         props.emit({
                             type: "StartSearch",
                         });
-                        // await PopoverChan.put({
-                        //     children: (
-                        //         <Search
-                        //             placeholder="Search a user's public key or name"
-                        //             onInput={async (text) => {
-                        //                 const pubkey = PublicKey.FromString(text);
-                        //                 if (pubkey instanceof PublicKey) {
-                        //                     props.profileSyncer.add(pubkey.hex);
-                        //                     const profile = getProfileEvent(props.database, pubkey);
-                        //                     await SearchResultsChan.put([{
-                        //                         id: pubkey.hex,
-                        //                         picture: profile?.profile.picture,
-                        //                         text: profile?.profile?.name || pubkey.bech32(),
-                        //                     }]);
-                        //                 } else {
-                        //                     const profiles = getProfilesByName(props.database, text);
-                        //                     await SearchResultsChan.put(profiles.map((p) => {
-                        //                         const pubkey = PublicKey.FromString(p.pubkey);
-                        //                         if (pubkey instanceof Error) {
-                        //                             throw new Error("impossible");
-                        //                         }
-                        //                         return {
-                        //                             id: pubkey.hex,
-                        //                             picture: p.profile?.picture,
-                        //                             text: p.profile?.name || pubkey.bech32(),
-                        //                         };
-                        //                     }));
-                        //                 }
-                        //             }}
-                        //             onSelect={async (pubkey) => {
-                        //                 const publicKey = PublicKey.FromHex(pubkey);
-                        //                 if (publicKey instanceof InvalidKey) {
-                        //                     // impossible
-                        //                     return;
-                        //                 }
-                        //                 props.emit({
-                        //                     type: "SelectProfile",
-                        //                     pubkey: publicKey,
-                        //                 });
-                        //             }}
-                        //         />
-                        //     ),
-                        // });
                     }}
                     class={tw`w-full h-[2.5rem] text-[${PrimaryTextColor}] ${IconButtonClass} ${LinearGradientsClass} hover:bg-gradient-to-l`}
                 >

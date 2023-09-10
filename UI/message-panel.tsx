@@ -541,11 +541,6 @@ function MessageActions(
                         type: "ViewEventDetail",
                         event: event,
                     });
-                    // await PopoverChan.put(
-                    //     {
-                    //         children: <EventDetail items={items} />,
-                    //     },
-                    // );
                 }}
             >
                 <AboutIcon
