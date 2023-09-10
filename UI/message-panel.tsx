@@ -28,8 +28,6 @@ import { HoverButtonBackgroudColor, LinkColor, PrimaryTextColor } from "./style/
 import { getUserInfoFromPublicKey, UserInfo } from "./contact-list.ts";
 import { EventSyncer } from "./event_syncer.ts";
 import { ButtonGroup } from "./components/button-group.tsx";
-import { EventDetail, EventDetailItem } from "./event-detail.tsx";
-import { NoteID } from "../lib/nostr-ts/nip19.ts";
 
 export type RightPanelModel = {
     show: boolean;

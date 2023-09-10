@@ -1,20 +1,15 @@
 /** @jsx h */
 import { h, render, VNode } from "https://esm.sh/preact@10.17.1";
 import * as dm from "../features/dm.ts";
-
 import { DirectMessageContainer, MessageThread } from "./dm.tsx";
 import * as db from "../database.ts";
-
 import { tw } from "https://esm.sh/twind@0.16.16";
 import { EditProfile } from "./edit-profile.tsx";
 import * as nav from "./nav.tsx";
 import { EventBus } from "../event-bus.ts";
-
 import { Setting } from "./setting.tsx";
 import { Database_Contextual_View } from "../database.ts";
-
 import { AllUsersInformation, UserInfo } from "./contact-list.ts";
-
 import { new_DM_EditorModel } from "./editor.tsx";
 import { initialModel, Model } from "./app_model.ts";
 import {

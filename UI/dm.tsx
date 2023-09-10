@@ -12,7 +12,6 @@ import { getConversationMessages, UI_Interaction_Event } from "./app_update.tsx"
 import { NostrAccountContext, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { getProfileEvent, ProfilesSyncer } from "../features/profile.ts";
-
 import { ChatMessage } from "./message.ts";
 import { DM_Container_Model } from "./dm.ts";
 import { getFocusedContent } from "./app.tsx";

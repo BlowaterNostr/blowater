@@ -17,10 +17,8 @@ import { getUserInfoFromPublicKey, UserInfo } from "./contact-list.ts";
 import { EventSyncer } from "./event_syncer.ts";
 import { Avatar } from "./components/avatar.tsx";
 import { ProfilesSyncer } from "../features/profile.ts";
-import { NoteID } from "../lib/nostr-ts/nip19.ts";
 import { PlainText_Nostr_Event } from "../nostr.ts";
 import { ButtonGroup } from "./components/button-group.tsx";
-import { EventDetail, EventDetailItem } from "./event-detail.tsx";
 import { AboutIcon } from "./icons/about-icon.tsx";
 import { PrimaryTextColor } from "./style/colors.ts";
 
