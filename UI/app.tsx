@@ -38,7 +38,8 @@ import { DexieDatabase } from "./dexie-db.ts";
 import { About } from "./about.tsx";
 import { SocialPanel } from "./social.tsx";
 import { ProfilesSyncer } from "../features/profile.ts";
-import { Popover } from "./components/popover.tsx";
+import { Popover, PopOverInputChannel } from "./components/popover.tsx";
+import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
@@ -46,6 +47,7 @@ export async function Start(database: DexieDatabase) {
     const model = initialModel();
     const eventBus = new EventBus<UI_Interaction_Event>();
     const pool = new ConnectionPool();
+    const popOverInputChan: PopOverInputChannel = new Channel();
 
     const ctx = await getCurrentSignInCtx();
     console.log("Start::with context", ctx);
@@ -55,7 +57,7 @@ export async function Start(database: DexieDatabase) {
     } else if (ctx) {
         const dbView = await Database_Contextual_View.New(database, ctx);
         const lamport = time.fromEvents(dbView.filterEvents((_) => true));
-        const app = new App(dbView, lamport, model, ctx, eventBus, pool);
+        const app = new App(dbView, lamport, model, ctx, eventBus, pool, popOverInputChan);
         const err = await app.initApp(ctx, pool);
         if (err instanceof Error) {
             throw err;
@@ -68,11 +70,20 @@ export async function Start(database: DexieDatabase) {
             eventBus,
             model,
             pool,
+            popOverInputChan,
         }),
         document.body,
     );
 
-    for await (let _ of UI_Interaction_Update({ model, eventBus, dexieDB: database, pool })) {
+    for await (
+        let _ of UI_Interaction_Update({
+            model,
+            eventBus,
+            dexieDB: database,
+            pool,
+            popOver: popOverInputChan,
+        })
+    ) {
         const t = Date.now();
         {
             render(
@@ -80,6 +91,7 @@ export async function Start(database: DexieDatabase) {
                     eventBus,
                     model,
                     pool,
+                    popOverInputChan,
                 }),
                 document.body,
             );
@@ -156,6 +168,7 @@ export class App {
         public readonly myAccountContext: NostrAccountContext,
         public readonly eventBus: EventBus<UI_Interaction_Event>,
         relayPool: ConnectionPool,
+        public readonly popOver: PopOverInputChannel,
     ) {
         this.eventSyncer = new EventSyncer(relayPool, this.database);
         this.allUsersInfo = new AllUsersInformation(myAccountContext);
@@ -173,6 +186,7 @@ export class App {
                         eventBus,
                         model,
                         pool: relayPool,
+                        popOverInputChan: this.popOver,
                     }),
                     document.body,
                 );
@@ -289,6 +303,7 @@ export class App {
                         eventBus: this.eventBus,
                         model: this.model,
                         pool,
+                        popOverInputChan: this.popOver,
                     }),
                     document.body,
                 );
@@ -307,6 +322,7 @@ export function AppComponent(props: {
     model: Model;
     eventBus: AppEventBus;
     pool: ConnectionPool;
+    popOverInputChan: PopOverInputChannel;
 }) {
     const t = Date.now();
     const model = props.model;
@@ -472,7 +488,9 @@ export function AppComponent(props: {
                     {settingNode}
                     {socialPostsPanel}
                     {appList}
-                    <Popover />
+                    <Popover
+                        inputChan={props.popOverInputChan}
+                    />
                 </div>
 
                 <div class={tw`desktop:hidden`}>

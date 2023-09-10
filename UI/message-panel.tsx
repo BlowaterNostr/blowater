@@ -7,7 +7,7 @@ import { AboutIcon, CloseIcon, LeftArrowIcon, ReplyIcon } from "./icons/mod.tsx"
 import { Avatar } from "./components/avatar.tsx";
 import { DividerClass, IconButtonClass } from "./components/tw.ts";
 import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { EventEmitter } from "../event-bus.ts";
+import { emitFunc, EventEmitter } from "../event-bus.ts";
 
 import { ChatMessage, groupContinuousMessages, sortMessage, urlIsImage } from "./message.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
@@ -28,7 +28,6 @@ import { HoverButtonBackgroudColor, LinkColor, PrimaryTextColor } from "./style/
 import { getUserInfoFromPublicKey, UserInfo } from "./contact-list.ts";
 import { EventSyncer } from "./event_syncer.ts";
 import { ButtonGroup } from "./components/button-group.tsx";
-import { PopoverChan } from "./components/popover.tsx";
 import { EventDetail, EventDetailItem } from "./event-detail.tsx";
 import { NoteID } from "../lib/nostr-ts/nip19.ts";
 
@@ -42,7 +41,11 @@ export type DirectMessagePanelUpdate =
         show: boolean;
     }
     | ViewThread
-    | ViewUserDetail;
+    | ViewUserDetail
+    | {
+        type: "ViewEventDetail";
+        event: PlainText_Nostr_Event;
+    };
 
 export type ViewThread = {
     type: "ViewThread";
@@ -336,7 +339,7 @@ function MessageBoxGroup(props: {
         <li
             class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 group relative`}
         >
-            {MessageActions(first_group.msg.event, props.eventEmitter)}
+            {MessageActions(first_group.msg.event, props.eventEmitter.emit)}
             <Avatar
                 class={tw`h-8 w-8 mt-[0.45rem] mr-2`}
                 picture={getUserInfoFromPublicKey(first_group.msg.event.publicKey, props.allUserInfo)
@@ -401,7 +404,7 @@ function MessageBoxGroup(props: {
             <li
                 class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 group relative`}
             >
-                {MessageActions(msg.msg.event, props.eventEmitter)}
+                {MessageActions(msg.msg.event, props.eventEmitter.emit)}
                 {Time(msg.msg.created_at)}
                 <div
                     class={tw`flex-1`}
@@ -462,7 +465,7 @@ function MessageBoxGroup(props: {
 
 function MessageActions(
     event: PlainText_Nostr_Event,
-    eventEmitter: EventEmitter<ViewThread>,
+    emit: emitFunc<ViewThread | DirectMessagePanelUpdate>,
 ) {
     return (
         <ButtonGroup
@@ -474,7 +477,7 @@ function MessageActions(
             <button
                 class={tw`w-6 h-6 flex items-center justify-center`}
                 onClick={() => {
-                    eventEmitter.emit({
+                    emit({
                         type: "ViewThread",
                         root: event,
                     });
@@ -534,11 +537,15 @@ function MessageActions(
                         },
                     ];
 
-                    await PopoverChan.put(
-                        {
-                            children: <EventDetail items={items} />,
-                        },
-                    );
+                    emit({
+                        type: "ViewEventDetail",
+                        event: event,
+                    });
+                    // await PopoverChan.put(
+                    //     {
+                    //         children: <EventDetail items={items} />,
+                    //     },
+                    // );
                 }}
             >
                 <AboutIcon

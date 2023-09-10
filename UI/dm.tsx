@@ -121,6 +121,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                     currentSelected: currentConversation,
                     userInfoMap: props.allUserInfo,
                     profileSyncer: props.profilesSyncer,
+                    emit: props.eventEmitter.emit,
                     ...props,
                 })}
             </div>

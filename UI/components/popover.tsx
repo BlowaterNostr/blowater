@@ -1,19 +1,16 @@
 /** @jsx h */
-import { Component, ComponentChildren, Fragment, h } from "https://esm.sh/preact@10.17.1";
+import { Component, ComponentChildren, h } from "https://esm.sh/preact@10.17.1";
 import { tw } from "https://esm.sh/twind@0.16.16";
 import { SecondaryBackgroundColor } from "../style/colors.ts";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 
-export const PopoverChan = new Channel<{
-    children: ComponentChildren;
-    onClose?: () => void;
-}>();
-
 type State = {
     show: boolean;
 };
-
-export class Popover extends Component<{}, State> {
+export type PopOverInputChannel = Channel<{ children: ComponentChildren; onClose?: () => void }>;
+export class Popover extends Component<{
+    inputChan: PopOverInputChannel;
+}, State> {
     state = { show: false };
     styles = {
         container: tw`fixed inset-0 z-20`,
@@ -24,7 +21,7 @@ export class Popover extends Component<{}, State> {
     children: ComponentChildren = undefined;
 
     async componentDidMount() {
-        for await (const props of PopoverChan) {
+        for await (const props of this.props.inputChan) {
             if (props.children) {
                 this.show(props.children);
             } else {
@@ -37,6 +34,7 @@ export class Popover extends Component<{}, State> {
         this.children = children;
         this.setState({ show: true });
         window.addEventListener("keydown", this.onEscKeyDown);
+        console.log("called");
     };
 
     hide = (onClose?: () => void) => {
@@ -59,8 +57,10 @@ export class Popover extends Component<{}, State> {
     };
 
     render() {
+        console.log("render popover");
         return (
             this.state.show
+                // true
                 ? (
                     <div class={this.styles.container}>
                         <div class={this.styles.backdrop} onClick={this.onBackdropClick}>

@@ -1,7 +1,7 @@
 /** @jsx h */
 import { Fragment, h } from "https://esm.sh/preact@10.17.1";
 import { tw } from "https://esm.sh/twind@0.16.16";
-import { EventEmitter } from "../event-bus.ts";
+import { emitFunc, EventEmitter } from "../event-bus.ts";
 import {
     DirectMessagePanelUpdate,
     NameAndTime,
@@ -20,7 +20,6 @@ import { ProfilesSyncer } from "../features/profile.ts";
 import { NoteID } from "../lib/nostr-ts/nip19.ts";
 import { PlainText_Nostr_Event } from "../nostr.ts";
 import { ButtonGroup } from "./components/button-group.tsx";
-import { PopoverChan } from "./components/popover.tsx";
 import { EventDetail, EventDetailItem } from "./event-detail.tsx";
 import { AboutIcon } from "./icons/about-icon.tsx";
 import { PrimaryTextColor } from "./style/colors.ts";
@@ -77,7 +76,7 @@ function MessageThreadList(props: {
     db: Database_Contextual_View;
     profilesSyncer: ProfilesSyncer;
     eventSyncer: EventSyncer;
-    eventEmitter: EventEmitter<ViewUserDetail | ViewThread>;
+    eventEmitter: EventEmitter<ViewUserDetail | ViewThread | DirectMessagePanelUpdate>;
     allUserInfo: Map<string, UserInfo>;
 }) {
     let groups = groupContinuousMessages(props.messages, (pre, cur) => {
@@ -114,7 +113,7 @@ function MessageThreadBoxGroup(props: {
     db: Database_Contextual_View;
     profilesSyncer: ProfilesSyncer;
     eventSyncer: EventSyncer;
-    eventEmitter: EventEmitter<ViewUserDetail | ViewThread>;
+    eventEmitter: EventEmitter<ViewUserDetail | ViewThread | DirectMessagePanelUpdate>;
     allUserInfo: Map<string, UserInfo>;
 }) {
     const vnode = (
@@ -124,7 +123,7 @@ function MessageThreadBoxGroup(props: {
                     <li
                         class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 group relative`}
                     >
-                        {MessageThreadActions(msg.event)}
+                        {MessageThreadActions(msg.event, props.eventEmitter.emit)}
                         {
                             <Avatar
                                 class={tw`h-8 w-8 mt-[0.45rem] mr-2`}
@@ -170,6 +169,7 @@ function MessageThreadBoxGroup(props: {
 
 export function MessageThreadActions(
     event: PlainText_Nostr_Event,
+    emit: emitFunc<{ type: "ViewEventDetail"; event: PlainText_Nostr_Event }>,
 ) {
     return (
         <ButtonGroup
@@ -223,12 +223,15 @@ export function MessageThreadActions(
                             ],
                         },
                     ];
-
-                    await PopoverChan.put(
-                        {
-                            children: <EventDetail items={items} />,
-                        },
-                    );
+                    emit({
+                        type: "ViewEventDetail",
+                        event: event,
+                    });
+                    // await PopoverChan.put(
+                    //     {
+                    //         children: <EventDetail items={items} />,
+                    //     },
+                    // );
                 }}
             >
                 <AboutIcon
