@@ -181,48 +181,6 @@ export function MessageThreadActions(
             <button
                 class={tw`w-6 h-6 flex items-center justify-center`}
                 onClick={async () => {
-                    const eventID = event.id;
-                    const eventIDBech32 = NoteID.FromString(event.id).bech32();
-                    const authorPubkey = event.publicKey.hex;
-                    const authorPubkeyBech32 = event.publicKey.bech32();
-                    const content = event.content;
-                    const originalEventRaw = JSON.stringify(
-                        {
-                            content: event.content,
-                            created_at: event.created_at,
-                            kind: event.kind,
-                            tags: event.tags,
-                            pubkey: event.pubkey,
-                            id: event.id,
-                            sig: event.sig,
-                        },
-                        null,
-                        4,
-                    );
-
-                    const items: EventDetailItem[] = [
-                        {
-                            title: "Event ID",
-                            fields: [
-                                eventID,
-                                eventIDBech32,
-                            ],
-                        },
-                        {
-                            title: "Author",
-                            fields: [
-                                authorPubkey,
-                                authorPubkeyBech32,
-                            ],
-                        },
-                        {
-                            title: "Content",
-                            fields: [
-                                content,
-                                originalEventRaw,
-                            ],
-                        },
-                    ];
                     emit({
                         type: "ViewEventDetail",
                         event: event,

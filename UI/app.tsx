@@ -168,7 +168,7 @@ export class App {
         public readonly myAccountContext: NostrAccountContext,
         public readonly eventBus: EventBus<UI_Interaction_Event>,
         relayPool: ConnectionPool,
-        public readonly popOver: PopOverInputChannel,
+        public readonly popOverInputChan: PopOverInputChannel,
     ) {
         this.eventSyncer = new EventSyncer(relayPool, this.database);
         this.allUsersInfo = new AllUsersInformation(myAccountContext);
@@ -186,7 +186,7 @@ export class App {
                         eventBus,
                         model,
                         pool: relayPool,
-                        popOverInputChan: this.popOver,
+                        popOverInputChan: this.popOverInputChan,
                     }),
                     document.body,
                 );
@@ -303,7 +303,7 @@ export class App {
                         eventBus: this.eventBus,
                         model: this.model,
                         pool,
-                        popOverInputChan: this.popOver,
+                        popOverInputChan: this.popOverInputChan,
                     }),
                     document.body,
                 );

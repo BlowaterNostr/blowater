@@ -42,6 +42,8 @@ import { RelayConfigChange } from "./setting.tsx";
 import { prepareCustomAppDataEvent } from "../lib/nostr-ts/event.ts";
 import { Popover, PopOverInputChannel } from "./components/popover.tsx";
 import { Search } from "./search.tsx";
+import { NoteID } from "../lib/nostr-ts/nip19.ts";
+import { EventDetail, EventDetailItem } from "./event-detail.tsx";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -181,7 +183,7 @@ export async function* UI_Interaction_Update(args: {
             if (!model.dm.focusedContent.get(event.pubkey.hex)) {
                 model.dm.focusedContent.set(event.pubkey.hex, event.pubkey);
             }
-            app.popOver.put({ children: undefined });
+            app.popOverInputChan.put({ children: undefined });
         } else if (event.type == "BackToContactList") {
             model.dm.currentSelectedContact = undefined;
         } else if (event.type == "SelectGroup") {
@@ -390,6 +392,57 @@ export async function* UI_Interaction_Update(args: {
             }
             pool.sendEvent(e);
             app.relayConfig.saveToLocalStorage(app.myAccountContext);
+        } else if (event.type == "ViewEventDetail") {
+            const nostrEvent = event.event;
+            const eventID = nostrEvent.id;
+            const eventIDBech32 = NoteID.FromString(nostrEvent.id).bech32();
+            const authorPubkey = nostrEvent.publicKey.hex;
+            const authorPubkeyBech32 = nostrEvent.publicKey.bech32();
+            const content = nostrEvent.content;
+            const originalEventRaw = JSON.stringify(
+                {
+                    content: nostrEvent.content,
+                    created_at: nostrEvent.created_at,
+                    kind: nostrEvent.kind,
+                    tags: nostrEvent.tags,
+                    pubkey: nostrEvent.pubkey,
+                    id: nostrEvent.id,
+                    sig: nostrEvent.sig,
+                },
+                null,
+                4,
+            );
+
+            const items: EventDetailItem[] = [
+                {
+                    title: "Event ID",
+                    fields: [
+                        eventID,
+                        eventIDBech32,
+                    ],
+                },
+                {
+                    title: "Author",
+                    fields: [
+                        authorPubkey,
+                        authorPubkeyBech32,
+                    ],
+                },
+                {
+                    title: "Content",
+                    fields: [
+                        content,
+                        originalEventRaw,
+                    ],
+                },
+            ];
+            app.popOverInputChan.put({
+                children: (
+                    <EventDetail
+                        items={items}
+                    />
+                ),
+            });
         }
         yield model;
     }
