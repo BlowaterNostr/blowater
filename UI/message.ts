@@ -1,7 +1,7 @@
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { MessageThread } from "./dm.tsx";
 import { DirectedMessage_Event, Text_Note_Event } from "../nostr.ts";
-import { NoteID } from "../lib/nostr-ts/nip19.ts";
+import { NostrProfile, NoteID } from "../lib/nostr-ts/nip19.ts";
 
 export function* parseContent(content: string) {
     // URLs
@@ -9,6 +9,9 @@ export function* parseContent(content: string) {
 
     // npubs
     yield* match(/(nostr:)?npub[0-9a-z]{59}/g, content, "npub");
+
+    //nprofile
+    yield* match(/(nostr:)?nprofile[^ ]+/g, content, "nprofile");
 
     // notes
     yield* match(/note[0-9a-z]{59}/g, content, "note");
@@ -58,6 +61,29 @@ function* match(regex: RegExp, content: string, type: ItemType): Generator<Conte
                     end: urlEndPosition,
                 };
             }
+        } else if (type == "nprofile") {
+            let bech32: string;
+            if (match[0].startsWith("nostr:")) {
+                bech32 = content.slice(urlStartPosition + 6, urlEndPosition + 1);
+            } else {
+                bech32 = content.slice(urlStartPosition, urlEndPosition + 1);
+            }
+            const decoded_nProfile = NostrProfile.decode(bech32);
+            if (decoded_nProfile instanceof Error) {
+                // ignore
+            } else {
+                const pubkey = PublicKey.FromBech32(decoded_nProfile.pubkey.hex);
+                if (pubkey instanceof Error) { //ignore
+                } else {
+                    yield {
+                        type: "npub",
+                        pubkey: pubkey.hex,
+                        start: urlStartPosition,
+                        end: urlEndPosition,
+                        relays: decoded_nProfile.relays,
+                    };
+                }
+            }
         } else {
             yield {
                 type: type,
@@ -69,7 +95,7 @@ function* match(regex: RegExp, content: string, type: ItemType): Generator<Conte
 }
 
 type otherItemType = "url" | "tag";
-type ItemType = otherItemType | "note" | "npub";
+type ItemType = otherItemType | "note" | "npub" | "nprofile";
 export type ContentItem = {
     type: otherItemType;
     start: number;
@@ -79,6 +105,7 @@ export type ContentItem = {
     pubkey: string;
     start: number;
     end: number;
+    relays?: string[] | undefined;
 } | {
     type: "note";
     noteID: NoteID;
