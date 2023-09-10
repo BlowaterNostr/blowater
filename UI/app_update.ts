@@ -129,48 +129,48 @@ export async function* UI_Interaction_Update(args: {
             model.dm.search.searchResults = [];
         } else if (event.type == "StartSearch") {
             model.dm.search.isSearching = true;
-            const search = new Search({
-                placeholder: "Search a user's public key or name",
-                onInput: async (text) => {
-                    const pubkey = PublicKey.FromString(text);
-                    if (pubkey instanceof PublicKey) {
-                        app.profileSyncer.add(pubkey.hex);
-                        const profile = getProfileEvent(app.database, pubkey);
-                        // fix:
-                        // await SearchResultsChan.put([{
-                        //     id: pubkey.hex,
-                        //     picture: profile?.profile.picture,
-                        //     text: profile?.profile?.name || pubkey.bech32(),
-                        // }]);
-                    } else {
-                        const profiles = getProfilesByName(app.database, text);
-                        // fix:
-                        // await SearchResultsChan.put(profiles.map((p) => {
-                        //     const pubkey = PublicKey.FromString(p.pubkey);
-                        //     if (pubkey instanceof Error) {
-                        //         throw new Error("impossible");
-                        //     }
-                        //     return {
-                        //         id: pubkey.hex,
-                        //         picture: p.profile?.picture,
-                        //         text: p.profile?.name || pubkey.bech32(),
-                        //     };
-                        // }));
-                    }
-                },
-                onSelect: async (pubkey) => {
-                    const publicKey = PublicKey.FromHex(pubkey);
-                    if (publicKey instanceof InvalidKey) {
-                        // impossible
-                        return;
-                    }
-                    eventBus.emit({
-                        type: "SelectProfile",
-                        pubkey: publicKey,
-                    });
-                },
-            });
-            args.popOver.put({ children: search.render() });
+            // const search = new Search({
+            // placeholder: "Search a user's public key or name",
+            // onInput: async (text) => {
+            //     const pubkey = PublicKey.FromString(text);
+            //     if (pubkey instanceof PublicKey) {
+            //         app.profileSyncer.add(pubkey.hex);
+            //         const profile = getProfileEvent(app.database, pubkey);
+            //         // fix:
+            //         // await SearchResultsChan.put([{
+            //         //     id: pubkey.hex,
+            //         //     picture: profile?.profile.picture,
+            //         //     text: profile?.profile?.name || pubkey.bech32(),
+            //         // }]);
+            //     } else {
+            //         const profiles = getProfilesByName(app.database, text);
+            //         // fix:
+            //         // await SearchResultsChan.put(profiles.map((p) => {
+            //         //     const pubkey = PublicKey.FromString(p.pubkey);
+            //         //     if (pubkey instanceof Error) {
+            //         //         throw new Error("impossible");
+            //         //     }
+            //         //     return {
+            //         //         id: pubkey.hex,
+            //         //         picture: p.profile?.picture,
+            //         //         text: p.profile?.name || pubkey.bech32(),
+            //         //     };
+            //         // }));
+            //     }
+            // },
+            // onSelect: async (pubkey) => {
+            //     const publicKey = PublicKey.FromHex(pubkey);
+            //     if (publicKey instanceof InvalidKey) {
+            //         // impossible
+            //         return;
+            //     }
+            //     eventBus.emit({
+            //         type: "SelectProfile",
+            //         pubkey: publicKey,
+            //     });
+            // },
+            // });
+            // args.popOver.put({ children: search.render() });
         } else if (event.type == "Search") {
             const pubkey = PublicKey.FromString(event.text);
             if (pubkey instanceof PublicKey) {

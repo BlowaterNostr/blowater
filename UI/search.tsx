@@ -10,8 +10,13 @@ import {
 } from "./style/colors.ts";
 import { Component } from "https://esm.sh/preact@10.17.1";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { emitFunc } from "../event-bus.ts";
+import { SearchUpdate } from "./search_model.ts";
+import { Database_Contextual_View } from "../database.ts";
+import { getProfilesByName } from "../features/profile.ts";
+import { Profile_Nostr_Event } from "../nostr.ts";
 
-export const SearchResultsChan = new Channel<SearchResult[]>();
+export type SearchResultChannel = Channel<SearchResult[]>;
 
 type SearchResult = {
     picture: string | undefined;
@@ -21,16 +26,16 @@ type SearchResult = {
 
 type Props = {
     placeholder: string;
-    onInput: (text: string) => void;
-    onSelect: (id: string) => void;
+    db: Database_Contextual_View;
+    emit: emitFunc<SearchUpdate>;
 };
 
 type State = {
-    searchResults: SearchResult[];
+    searchResults: Profile_Nostr_Event[];
 };
 
 export class Search extends Component<Props, State> {
-    state = { searchResults: [] as SearchResult[] };
+    state: State = { searchResults: [] };
     inputRef = createRef();
     styles = {
         container: tw`flex flex-col h-full w-full bg-[${SecondaryBackgroundColor}]`,
@@ -47,27 +52,40 @@ export class Search extends Component<Props, State> {
         },
     };
 
-    async componentDidMount() {
-        this.inputRef.current.focus();
+    // async componentDidMount() {
+    //     this.inputRef.current.focus();
 
-        for await (const searchResults of SearchResultsChan) {
-            this.setState({
-                searchResults: searchResults || [],
-            });
-        }
-    }
+    //     for await (const searchResults of SearchResultsChan) {
+    //         this.setState({
+    //             searchResults: searchResults || [],
+    //         });
+    //     }
+    // }
 
     search = (e: h.JSX.TargetedEvent<HTMLInputElement, Event>) => {
         const text = e.currentTarget.value;
-        this.props.onInput(text);
+        // this.props.onInput(text);
+        const profiles = getProfilesByName(this.props.db, text);
+        console.log(profiles);
+        this.setState({
+            searchResults: profiles,
+        });
+        this.props.emit({
+            type: "Search",
+            text,
+        });
     };
 
-    onSelect = (id: string) => {
+    onSelect = (id: Profile_Nostr_Event) => () => {
         this.inputRef.current.value = "";
         this.setState({
             searchResults: [],
         });
-        this.props.onSelect(id);
+        // this.props.onSelect(id);
+        // this.props.emit({
+        //     type: "SelectProfile",
+        //     pubkey:
+        // })
     };
 
     render() {
@@ -86,15 +104,15 @@ export class Search extends Component<Props, State> {
                             {this.state.searchResults.map((result) => {
                                 return (
                                     <li
-                                        onClick={() => this.onSelect(result.id)}
+                                        onClick={this.onSelect(result)}
                                         class={this.styles.result.item.container}
                                     >
                                         <Avatar
                                             class={this.styles.result.item.avatar}
-                                            picture={result.picture}
+                                            picture={result.profile.picture}
                                         />
                                         <p class={this.styles.result.item.text}>
-                                            {result.text}
+                                            {result.profile.name}
                                         </p>
                                     </li>
                                 );
