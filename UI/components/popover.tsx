@@ -57,7 +57,6 @@ export class Popover extends Component<{
     };
 
     render() {
-        console.log("render popover", this.state, this.children);
         return (
             this.state.show
                 ? (
