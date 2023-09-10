@@ -11,13 +11,14 @@ import { PinIcon, UnpinIcon } from "./icons/mod.tsx";
 import { DM_EditorModel } from "./editor.tsx";
 
 import { SearchModel, SearchUpdate } from "./search_model.ts";
-import { PublicKey } from "../lib/nostr-ts/key.ts";
+import { InvalidKey, PublicKey } from "../lib/nostr-ts/key.ts";
 import { groupBy, NostrAccountContext } from "../lib/nostr-ts/nostr.ts";
 import { PinContact, UnpinContact } from "../nostr.ts";
 import { AddIcon } from "./icons2/add-icon.tsx";
 import { PrimaryBackgroundColor, PrimaryTextColor } from "./style/colors.ts";
 import { Popover, PopoverChan } from "./components/popover.tsx";
-import { Search } from "./search.tsx";
+import { Search, SearchResultsChan } from "./search.tsx";
+import { getProfileEvent, getProfilesByName, ProfilesSyncer } from "../features/profile.ts";
 
 type Props = {
     myAccountContext: NostrAccountContext;
@@ -31,6 +32,7 @@ type Props = {
     editors: Map<string, DM_EditorModel>;
     selectedContactGroup: ContactGroup;
     hasNewMessages: Set<string>;
+    profileSyncer: ProfilesSyncer;
 };
 
 export type ContactGroup = "Contacts" | "Strangers";
@@ -85,9 +87,53 @@ export function ContactList(props: Props) {
                 class={tw`flex items-center justify-between px-4 h-20 border-b border-[#36393F]`}
             >
                 <button
-                    onClick={() => {
-                        PopoverChan.put({
-                            children: <Search eventEmitter={props.eventEmitter} model={props.search} />,
+                    onClick={async () => {
+                        await PopoverChan.put({
+                            children: (
+                                <Search
+                                    placeholder="Search a user's public key or name"
+                                    onInput={async (text) => {
+                                        const pubkey = PublicKey.FromString(text);
+                                        if (pubkey instanceof PublicKey) {
+                                            props.profileSyncer.add(pubkey.hex);
+                                            const profile = getProfileEvent(props.database, pubkey);
+                                            await SearchResultsChan.put([{
+                                                id: pubkey.hex,
+                                                picture: profile?.profile.picture,
+                                                text: profile?.profile?.name || pubkey.bech32(),
+                                            }]);
+                                        } else {
+                                            const profiles = getProfilesByName(props.database, text);
+                                            await SearchResultsChan.put(profiles.map((p) => {
+                                                const pubkey = PublicKey.FromString(p.pubkey);
+                                                if (pubkey instanceof Error) {
+                                                    throw new Error("impossible");
+                                                }
+                                                return {
+                                                    id: pubkey.hex,
+                                                    picture: p.profile?.picture,
+                                                    text: p.profile?.name || pubkey.bech32(),
+                                                };
+                                            }));
+                                        }
+                                    }}
+                                    onSelect={async (pubkey) => {
+                                        const publicKey = PublicKey.FromHex(pubkey);
+                                        if (publicKey instanceof InvalidKey) {
+                                            // impossible
+                                            return;
+                                        }
+
+                                        await PopoverChan.put({
+                                            children: undefined,
+                                        });
+                                        props.eventEmitter.emit({
+                                            type: "SelectProfile",
+                                            pubkey: publicKey,
+                                        });
+                                    }}
+                                />
+                            ),
                         });
                         props.eventEmitter.emit({
                             type: "StartSearch",

@@ -39,7 +39,6 @@ import { About } from "./about.tsx";
 import { SocialPanel } from "./social.tsx";
 import { ProfilesSyncer } from "../features/profile.ts";
 import { Popover } from "./components/popover.tsx";
-import { Search } from "./search.tsx";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");

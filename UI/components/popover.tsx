@@ -5,14 +5,13 @@ import { SecondaryBackgroundColor } from "../style/colors.ts";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 
 export const PopoverChan = new Channel<{
-    children: ComponentChildren,
+    children: ComponentChildren;
     onClose?: () => void;
 }>();
 
-
 type State = {
     show: boolean;
-}
+};
 
 export class Popover extends Component<{}, State> {
     state = { show: false };
@@ -34,24 +33,20 @@ export class Popover extends Component<{}, State> {
         }
     }
 
-    componentWillUnmount() {
-        PopoverChan.close();
-    }
-
     show = (children: ComponentChildren) => {
         this.children = children;
-        this.setState({show: true});
+        this.setState({ show: true });
         window.addEventListener("keydown", this.onEscKeyDown);
-    }
+    };
 
     hide = (onClose?: () => void) => {
-        this.setState({show: false});
+        this.setState({ show: false });
         window.removeEventListener("keydown", this.onEscKeyDown);
 
         if (onClose) {
             onClose();
         }
-    }
+    };
 
     onEscKeyDown = (e: KeyboardEvent) => {
         if (e.code == "Escape") {
@@ -66,13 +61,15 @@ export class Popover extends Component<{}, State> {
     render() {
         return (
             this.state.show
-                ? <div class={this.styles.container}>
-                    <div class={this.styles.backdrop} onClick={this.onBackdropClick}>
+                ? (
+                    <div class={this.styles.container}>
+                        <div class={this.styles.backdrop} onClick={this.onBackdropClick}>
+                        </div>
+                        <div class={this.styles.childrenContainer}>
+                            {this.children}
+                        </div>
                     </div>
-                    <div class={this.styles.childrenContainer}>
-                        {this.children}
-                    </div>
-                </div>
+                )
                 : undefined
         );
     }

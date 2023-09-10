@@ -5,26 +5,27 @@ function PopoverTest() {
     return (
         <Fragment>
             <button
-                onClick={() => {
-                    PopoverChan.put({
-                        children: <div
-                        style={{
-                            color: "orange",
-                            textAlign: "center",
-                            padding: "5rem",
-                        }}
-                    >
-                        Popover
-                        <input type="text" />
-                    </div>,
-                     onClose: () => console.log("close")
-                    }
-                    );
+                onClick={async () => {
+                    await PopoverChan.put({
+                        children: (
+                            <div
+                                style={{
+                                    color: "orange",
+                                    textAlign: "center",
+                                    padding: "5rem",
+                                }}
+                            >
+                                Popover
+                                <input type="text" />
+                            </div>
+                        ),
+                        onClose: () => console.log("close"),
+                    });
                 }}
             >
                 Show
             </button>
-            <Popover/>
+            <Popover />
         </Fragment>
     );
 }
