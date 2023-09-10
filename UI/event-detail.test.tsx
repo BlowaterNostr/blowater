@@ -10,45 +10,26 @@ const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
 const event = await prepareNormalNostrEvent(ctx, NostrKind.TEXT_NOTE, [["d", "nostr"]], "Pura Vida");
 const publicKey = PublicKey.FromHex(event.pubkey) as PublicKey;
 
-const eventID = event.id;
-const eventIDBech32 = NoteID.FromString(event.id).bech32();
-const authorPubkey = publicKey.hex;
-const authorPubkeyBech32 = publicKey.bech32();
-const content = event.content;
-const originalEventRaw = JSON.stringify(
-    {
-        content: event.content,
-        created_at: event.created_at,
-        kind: event.kind,
-        tags: event.tags,
-        pubkey: event.pubkey,
-        id: event.id,
-        sig: event.sig,
-    },
-    null,
-    4,
-);
-
 const items: EventDetailItem[] = [
     {
         title: "Event ID",
         fields: [
-            eventID,
-            eventIDBech32,
+            event.id,
+            NoteID.FromString(event.id).bech32(),
         ],
     },
     {
         title: "Author",
         fields: [
-            authorPubkey,
-            authorPubkeyBech32,
+            publicKey.hex,
+            publicKey.bech32(),
         ],
     },
     {
         title: "Content",
         fields: [
-            content,
-            originalEventRaw,
+            event.content,
+            JSON.stringify(event, null, 4),
         ],
     },
 ];
