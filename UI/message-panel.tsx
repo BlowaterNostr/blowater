@@ -3,7 +3,7 @@ import { Component, ComponentChildren, createRef, h } from "https://esm.sh/preac
 import { tw } from "https://esm.sh/twind@0.16.16";
 import { Editor, EditorEvent, EditorModel } from "./editor.tsx";
 
-import { CloseIcon, LeftArrowIcon, ReplyIcon } from "./icons/mod.tsx";
+import { AboutIcon, CloseIcon, LeftArrowIcon, ReplyIcon } from "./icons/mod.tsx";
 import { Avatar } from "./components/avatar.tsx";
 import { DividerClass, IconButtonClass } from "./components/tw.ts";
 import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
@@ -28,6 +28,9 @@ import { HoverButtonBackgroudColor, LinkColor, PrimaryTextColor } from "./style/
 import { getUserInfoFromPublicKey, UserInfo } from "./contact-list.ts";
 import { EventSyncer } from "./event_syncer.ts";
 import { ButtonGroup } from "./components/button-group.tsx";
+import { PopoverChan } from "./components/popover.tsx";
+import { EventDetail, EventDetailItem } from "./event-detail.tsx";
+import { NoteID } from "../lib/nostr-ts/nip19.ts";
 
 export type RightPanelModel = {
     show: boolean;
@@ -457,7 +460,7 @@ function MessageBoxGroup(props: {
     return vnode;
 }
 
-export function MessageActions(
+function MessageActions(
     event: PlainText_Nostr_Event,
     eventEmitter: EventEmitter<ViewThread>,
 ) {
@@ -478,6 +481,67 @@ export function MessageActions(
                 }}
             >
                 <ReplyIcon
+                    class={tw`w-4 h-4 scale-150`}
+                    style={{
+                        fill: PrimaryTextColor,
+                    }}
+                />
+            </button>
+
+            <button
+                class={tw`w-6 h-6 flex items-center justify-center`}
+                onClick={async () => {
+                    const eventID = event.id;
+                    const eventIDBech32 = NoteID.FromString(event.id).bech32();
+                    const authorPubkey = event.publicKey.hex;
+                    const authorPubkeyBech32 = event.publicKey.bech32();
+                    const content = event.content;
+                    const originalEventRaw = JSON.stringify(
+                        {
+                            content: event.content,
+                            created_at: event.created_at,
+                            kind: event.kind,
+                            tags: event.tags,
+                            pubkey: event.pubkey,
+                            id: event.id,
+                            sig: event.sig,
+                        },
+                        null,
+                        4,
+                    );
+
+                    const items: EventDetailItem[] = [
+                        {
+                            title: "Event ID",
+                            fields: [
+                                eventID,
+                                eventIDBech32,
+                            ],
+                        },
+                        {
+                            title: "Author",
+                            fields: [
+                                authorPubkey,
+                                authorPubkeyBech32,
+                            ],
+                        },
+                        {
+                            title: "Content",
+                            fields: [
+                                content,
+                                originalEventRaw,
+                            ],
+                        },
+                    ];
+
+                    await PopoverChan.put(
+                        {
+                            children: <EventDetail items={items} />,
+                        },
+                    );
+                }}
+            >
+                <AboutIcon
                     class={tw`w-4 h-4 scale-150`}
                     style={{
                         fill: PrimaryTextColor,
