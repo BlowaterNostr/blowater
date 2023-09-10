@@ -1,20 +1,15 @@
 /** @jsx h */
 import { h, render, VNode } from "https://esm.sh/preact@10.17.1";
 import * as dm from "../features/dm.ts";
-
 import { DirectMessageContainer, MessageThread } from "./dm.tsx";
 import * as db from "../database.ts";
-
 import { tw } from "https://esm.sh/twind@0.16.16";
 import { EditProfile } from "./edit-profile.tsx";
 import * as nav from "./nav.tsx";
 import { EventBus } from "../event-bus.ts";
-
 import { Setting } from "./setting.tsx";
 import { Database_Contextual_View } from "../database.ts";
-
 import { AllUsersInformation, UserInfo } from "./contact-list.ts";
-
 import { new_DM_EditorModel } from "./editor.tsx";
 import { initialModel, Model } from "./app_model.ts";
 import {
@@ -23,7 +18,7 @@ import {
     Relay_Update,
     UI_Interaction_Event,
     UI_Interaction_Update,
-} from "./app_update.ts";
+} from "./app_update.tsx";
 import { getSocialPosts } from "../features/social.ts";
 import * as time from "../time.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
@@ -38,8 +33,8 @@ import { DexieDatabase } from "./dexie-db.ts";
 import { About } from "./about.tsx";
 import { SocialPanel } from "./social.tsx";
 import { ProfilesSyncer } from "../features/profile.ts";
-import { Popover } from "./components/popover.tsx";
-import { Search } from "./search.tsx";
+import { Popover, PopOverInputChannel } from "./components/popover.tsx";
+import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
@@ -47,6 +42,7 @@ export async function Start(database: DexieDatabase) {
     const model = initialModel();
     const eventBus = new EventBus<UI_Interaction_Event>();
     const pool = new ConnectionPool();
+    const popOverInputChan: PopOverInputChannel = new Channel();
 
     const ctx = await getCurrentSignInCtx();
     console.log("Start::with context", ctx);
@@ -56,7 +52,7 @@ export async function Start(database: DexieDatabase) {
     } else if (ctx) {
         const dbView = await Database_Contextual_View.New(database, ctx);
         const lamport = time.fromEvents(dbView.filterEvents((_) => true));
-        const app = new App(dbView, lamport, model, ctx, eventBus, pool);
+        const app = new App(dbView, lamport, model, ctx, eventBus, pool, popOverInputChan);
         const err = await app.initApp(ctx, pool);
         if (err instanceof Error) {
             throw err;
@@ -69,11 +65,20 @@ export async function Start(database: DexieDatabase) {
             eventBus,
             model,
             pool,
+            popOverInputChan,
         }),
         document.body,
     );
 
-    for await (let _ of UI_Interaction_Update({ model, eventBus, dexieDB: database, pool })) {
+    for await (
+        let _ of UI_Interaction_Update({
+            model,
+            eventBus,
+            dexieDB: database,
+            pool,
+            popOver: popOverInputChan,
+        })
+    ) {
         const t = Date.now();
         {
             render(
@@ -81,6 +86,7 @@ export async function Start(database: DexieDatabase) {
                     eventBus,
                     model,
                     pool,
+                    popOverInputChan,
                 }),
                 document.body,
             );
@@ -157,6 +163,7 @@ export class App {
         public readonly myAccountContext: NostrAccountContext,
         public readonly eventBus: EventBus<UI_Interaction_Event>,
         relayPool: ConnectionPool,
+        public readonly popOverInputChan: PopOverInputChannel,
     ) {
         this.eventSyncer = new EventSyncer(relayPool, this.database);
         this.allUsersInfo = new AllUsersInformation(myAccountContext);
@@ -174,6 +181,7 @@ export class App {
                         eventBus,
                         model,
                         pool: relayPool,
+                        popOverInputChan: this.popOverInputChan,
                     }),
                     document.body,
                 );
@@ -290,6 +298,7 @@ export class App {
                         eventBus: this.eventBus,
                         model: this.model,
                         pool,
+                        popOverInputChan: this.popOverInputChan,
                     }),
                     document.body,
                 );
@@ -308,6 +317,7 @@ export function AppComponent(props: {
     model: Model;
     eventBus: AppEventBus;
     pool: ConnectionPool;
+    popOverInputChan: PopOverInputChannel;
 }) {
     const t = Date.now();
     const model = props.model;
@@ -434,21 +444,6 @@ export function AppComponent(props: {
         }
     }
 
-    let popover: h.JSX.Element | undefined;
-    if (model.dm.search.isSearching) {
-        popover = (
-            <Popover
-                close={() => {
-                    props.eventBus.emit({
-                        type: "CancelPopOver",
-                    });
-                }}
-            >
-                <Search eventEmitter={props.eventBus} model={model.dm.search} />
-            </Popover>
-        );
-    }
-
     console.debug("AppComponent:2", Date.now() - t);
 
     const final = (
@@ -488,7 +483,9 @@ export function AppComponent(props: {
                     {settingNode}
                     {socialPostsPanel}
                     {appList}
-                    {popover}
+                    <Popover
+                        inputChan={props.popOverInputChan}
+                    />
                 </div>
 
                 <div class={tw`desktop:hidden`}>

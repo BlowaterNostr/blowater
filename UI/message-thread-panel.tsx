@@ -1,7 +1,7 @@
 /** @jsx h */
 import { Fragment, h } from "https://esm.sh/preact@10.17.1";
 import { tw } from "https://esm.sh/twind@0.16.16";
-import { EventEmitter } from "../event-bus.ts";
+import { emitFunc, EventEmitter } from "../event-bus.ts";
 import {
     DirectMessagePanelUpdate,
     NameAndTime,
@@ -17,6 +17,10 @@ import { getUserInfoFromPublicKey, UserInfo } from "./contact-list.ts";
 import { EventSyncer } from "./event_syncer.ts";
 import { Avatar } from "./components/avatar.tsx";
 import { ProfilesSyncer } from "../features/profile.ts";
+import { PlainText_Nostr_Event } from "../nostr.ts";
+import { ButtonGroup } from "./components/button-group.tsx";
+import { AboutIcon } from "./icons/about-icon.tsx";
+import { PrimaryTextColor } from "./style/colors.ts";
 
 interface MessageThreadProps {
     eventEmitter: EventEmitter<DirectMessagePanelUpdate | EditorEvent>;
@@ -70,7 +74,7 @@ function MessageThreadList(props: {
     db: Database_Contextual_View;
     profilesSyncer: ProfilesSyncer;
     eventSyncer: EventSyncer;
-    eventEmitter: EventEmitter<ViewUserDetail | ViewThread>;
+    eventEmitter: EventEmitter<ViewUserDetail | ViewThread | DirectMessagePanelUpdate>;
     allUserInfo: Map<string, UserInfo>;
 }) {
     let groups = groupContinuousMessages(props.messages, (pre, cur) => {
@@ -107,14 +111,17 @@ function MessageThreadBoxGroup(props: {
     db: Database_Contextual_View;
     profilesSyncer: ProfilesSyncer;
     eventSyncer: EventSyncer;
-    eventEmitter: EventEmitter<ViewUserDetail | ViewThread>;
+    eventEmitter: EventEmitter<ViewUserDetail | ViewThread | DirectMessagePanelUpdate>;
     allUserInfo: Map<string, UserInfo>;
 }) {
     const vnode = (
-        <ul class={tw`py-2`}>
+        <ul class={tw`pt-4 pb-2`}>
             {props.messages.map((msg, index) => {
                 return (
-                    <li class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 group`}>
+                    <li
+                        class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 group relative`}
+                    >
+                        {MessageThreadActions(msg.event, props.eventEmitter.emit)}
                         {
                             <Avatar
                                 class={tw`h-8 w-8 mt-[0.45rem] mr-2`}
@@ -156,4 +163,35 @@ function MessageThreadBoxGroup(props: {
 
     // console.log("MessageBoxGroup", Date.now() - t)
     return vnode;
+}
+
+export function MessageThreadActions(
+    event: PlainText_Nostr_Event,
+    emit: emitFunc<{ type: "ViewEventDetail"; event: PlainText_Nostr_Event }>,
+) {
+    return (
+        <ButtonGroup
+            class={tw`hidden group-hover:flex absolute top-[-0.75rem] right-[3rem]`}
+            style={{
+                boxShadow: "2px 2px 5px 0 black",
+            }}
+        >
+            <button
+                class={tw`w-6 h-6 flex items-center justify-center`}
+                onClick={async () => {
+                    emit({
+                        type: "ViewEventDetail",
+                        event: event,
+                    });
+                }}
+            >
+                <AboutIcon
+                    class={tw`w-4 h-4 scale-150`}
+                    style={{
+                        fill: PrimaryTextColor,
+                    }}
+                />
+            </button>
+        </ButtonGroup>
+    );
 }

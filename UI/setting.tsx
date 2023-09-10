@@ -1,9 +1,7 @@
 /** @jsx h */
 import { Fragment, h } from "https://esm.sh/preact@10.17.1";
 import { tw } from "https://esm.sh/twind@0.16.16";
-
 import { computed, signal } from "https://esm.sh/@preact/signals@1.2.1";
-
 import {
     CenterClass,
     inputBorderClass,
@@ -28,7 +26,7 @@ import { RelayIcon } from "./icons2/relay-icon.tsx";
 import { DeleteIcon } from "./icons2/delete-icon.tsx";
 import { RelayConfig } from "./setting.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
-import { emitFunc, EventEmitter } from "../event-bus.ts";
+import { emitFunc } from "../event-bus.ts";
 
 export interface SettingProps {
     logout: () => void;

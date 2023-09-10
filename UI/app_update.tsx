@@ -1,3 +1,5 @@
+/** @jsx h */
+import { h } from "https://esm.sh/preact@10.17.1";
 import { getProfileEvent, getProfilesByName, ProfilesSyncer, saveProfile } from "../features/profile.ts";
 
 import { App } from "./app.tsx";
@@ -38,6 +40,10 @@ import { RelayConfig } from "./setting.ts";
 import { SocialUpdates } from "./social.tsx";
 import { RelayConfigChange } from "./setting.tsx";
 import { prepareCustomAppDataEvent } from "../lib/nostr-ts/event.ts";
+import { PopOverInputChannel } from "./components/popover.tsx";
+import { Search } from "./search.tsx";
+import { NoteID } from "../lib/nostr-ts/nip19.ts";
+import { EventDetail, EventDetailItem } from "./event-detail.tsx";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -66,6 +72,7 @@ export async function* UI_Interaction_Update(args: {
     eventBus: AppEventBus;
     dexieDB: DexieDatabase;
     pool: ConnectionPool;
+    popOver: PopOverInputChannel;
 }) {
     const { model, eventBus, dexieDB, pool } = args;
     const events = eventBus.onChange();
@@ -96,7 +103,7 @@ export async function* UI_Interaction_Update(args: {
                     console.log("sign in as", ctx.publicKey.bech32());
                     const dbView = await Database_Contextual_View.New(dexieDB, ctx);
                     const lamport = fromEvents(dbView.filterEvents((_) => true));
-                    const app = new App(dbView, lamport, model, ctx, eventBus, pool);
+                    const app = new App(dbView, lamport, model, ctx, eventBus, pool, args.popOver);
                     const err = await app.initApp(ctx, pool);
                     if (err instanceof Error) {
                         console.error(err.message);
@@ -110,7 +117,8 @@ export async function* UI_Interaction_Update(args: {
                 break;
         }
 
-        if (model.app == undefined) { // if not signed in
+        const app = model.app;
+        if (app == undefined) { // if not signed in
             console.warn(event, "is not valid before signing");
             console.warn("This could not happen!");
             continue;
@@ -125,17 +133,25 @@ export async function* UI_Interaction_Update(args: {
             model.dm.search.searchResults = [];
         } else if (event.type == "StartSearch") {
             model.dm.search.isSearching = true;
+            const search = (
+                <Search
+                    placeholder={"Search a user's public key or name"}
+                    db={app.database}
+                    emit={eventBus.emit}
+                />
+            );
+            args.popOver.put({ children: search });
         } else if (event.type == "Search") {
             const pubkey = PublicKey.FromString(event.text);
             if (pubkey instanceof PublicKey) {
-                model.app.profileSyncer.add(pubkey.hex);
-                const profile = getProfileEvent(model.app.database, pubkey);
+                app.profileSyncer.add(pubkey.hex);
+                const profile = getProfileEvent(app.database, pubkey);
                 model.dm.search.searchResults = [{
                     pubkey: pubkey,
                     profile: profile?.profile,
                 }];
             } else {
-                const profiles = getProfilesByName(model.app.database, event.text);
+                const profiles = getProfilesByName(app.database, event.text);
                 model.dm.search.searchResults = profiles.map((p) => {
                     const pubkey = PublicKey.FromString(p.pubkey);
                     if (pubkey instanceof Error) {
@@ -159,23 +175,24 @@ export async function* UI_Interaction_Update(args: {
             };
             const group = getGroupOf(
                 event.pubkey,
-                model.app.allUsersInfo.userInfos,
+                app.allUsersInfo.userInfos,
             );
             model.dm.selectedContactGroup = group;
-            updateConversation(model.app.model, event.pubkey);
+            updateConversation(app.model, event.pubkey);
 
             if (!model.dm.focusedContent.get(event.pubkey.hex)) {
                 model.dm.focusedContent.set(event.pubkey.hex, event.pubkey);
             }
+            app.popOverInputChan.put({ children: undefined });
         } else if (event.type == "BackToContactList") {
             model.dm.currentSelectedContact = undefined;
         } else if (event.type == "SelectGroup") {
             model.dm.selectedContactGroup = event.group;
         } else if (event.type == "PinContact" || event.type == "UnpinContact") {
-            if (!model.app.myAccountContext) {
+            if (!app.myAccountContext) {
                 throw new Error(`can't handle ${event.type} if not signed`);
             }
-            const nostrEvent = await prepareCustomAppDataEvent(model.app.myAccountContext, event);
+            const nostrEvent = await prepareCustomAppDataEvent(app.myAccountContext, event);
             if (nostrEvent instanceof Error) {
                 console.error(nostrEvent);
                 continue;
@@ -190,17 +207,17 @@ export async function* UI_Interaction_Update(args: {
         // Editor
         //
         else if (event.type == "SendMessage") {
-            if (!model.app.myAccountContext) {
+            if (!app.myAccountContext) {
                 throw new Error(`can't handle ${event.type} if not signed`);
             }
             if (event.target.kind == NostrKind.DIRECT_MESSAGE) {
                 const err = await sendDMandImages({
-                    sender: model.app.myAccountContext,
+                    sender: app.myAccountContext,
                     receiverPublicKey: event.target.receiver.pubkey,
                     message: event.text,
                     files: event.files,
                     kind: event.target.kind,
-                    lamport_timestamp: model.app.lamport.now(),
+                    lamport_timestamp: app.lamport.now(),
                     pool,
                     waitAll: false,
                     tags: event.tags,
@@ -216,9 +233,9 @@ export async function* UI_Interaction_Update(args: {
                 }
             } else {
                 sendSocialPost({
-                    sender: model.app.myAccountContext,
+                    sender: app.myAccountContext,
                     message: event.text,
-                    lamport_timestamp: model.app.lamport.now(),
+                    lamport_timestamp: app.lamport.now(),
                     pool,
                     tags: event.tags,
                 });
@@ -281,13 +298,13 @@ export async function* UI_Interaction_Update(args: {
         else if (event.type == "EditMyProfile") {
             model.myProfile = Object.assign(model.myProfile || {}, event.profile);
         } else if (event.type == "SaveMyProfile") {
-            if (!model.app.myAccountContext) {
+            if (!app.myAccountContext) {
                 throw new Error(`can't handle ${event.type} if not signed`);
             }
-            InsertNewProfileField(model.app.model);
+            InsertNewProfileField(app.model);
             await saveProfile(
                 event.profile,
-                model.app.myAccountContext,
+                app.myAccountContext,
                 pool,
             );
         } else if (event.type == "EditNewProfileFieldKey") {
@@ -295,7 +312,7 @@ export async function* UI_Interaction_Update(args: {
         } else if (event.type == "EditNewProfileFieldValue") {
             model.newProfileField.value = event.value;
         } else if (event.type == "InsertNewProfileField") {
-            InsertNewProfileField(model.app.model);
+            InsertNewProfileField(app.model);
         } //
         //
         // Navigation
@@ -349,7 +366,7 @@ export async function* UI_Interaction_Update(args: {
                 model.social.filter.adding_author = "";
 
                 const pubkeys: string[] = [];
-                for (const userInfo of model.app.allUsersInfo.userInfos.values()) {
+                for (const userInfo of app.allUsersInfo.userInfos.values()) {
                     for (const name of model.social.filter.author) {
                         if (userInfo.profile?.profile.name?.toLowerCase().includes(name.toLowerCase())) {
                             pubkeys.push(userInfo.pubkey.hex);
@@ -358,7 +375,7 @@ export async function* UI_Interaction_Update(args: {
                     }
                 }
 
-                /* do not await */ model.app.eventSyncer.syncEvents({
+                /* do not await */ app.eventSyncer.syncEvents({
                     kinds: [NostrKind.TEXT_NOTE],
                     authors: pubkeys,
                 });
@@ -369,12 +386,63 @@ export async function* UI_Interaction_Update(args: {
         } else if (event.type == "SocialFilterChanged_remove_author") {
             model.social.filter.author.delete(event.value);
         } else if (event.type == "RelayConfigChange") {
-            const e = await model.app.relayConfig.toNostrEvent(model.app.myAccountContext, true);
+            const e = await app.relayConfig.toNostrEvent(app.myAccountContext, true);
             if (e instanceof Error) {
                 throw e; // impossible
             }
             pool.sendEvent(e);
-            model.app.relayConfig.saveToLocalStorage(model.app.myAccountContext);
+            app.relayConfig.saveToLocalStorage(app.myAccountContext);
+        } else if (event.type == "ViewEventDetail") {
+            const nostrEvent = event.event;
+            const eventID = nostrEvent.id;
+            const eventIDBech32 = NoteID.FromString(nostrEvent.id).bech32();
+            const authorPubkey = nostrEvent.publicKey.hex;
+            const authorPubkeyBech32 = nostrEvent.publicKey.bech32();
+            const content = nostrEvent.content;
+            const originalEventRaw = JSON.stringify(
+                {
+                    content: nostrEvent.content,
+                    created_at: nostrEvent.created_at,
+                    kind: nostrEvent.kind,
+                    tags: nostrEvent.tags,
+                    pubkey: nostrEvent.pubkey,
+                    id: nostrEvent.id,
+                    sig: nostrEvent.sig,
+                },
+                null,
+                4,
+            );
+
+            const items: EventDetailItem[] = [
+                {
+                    title: "Event ID",
+                    fields: [
+                        eventID,
+                        eventIDBech32,
+                    ],
+                },
+                {
+                    title: "Author",
+                    fields: [
+                        authorPubkey,
+                        authorPubkeyBech32,
+                    ],
+                },
+                {
+                    title: "Content",
+                    fields: [
+                        content,
+                        originalEventRaw,
+                    ],
+                },
+            ];
+            app.popOverInputChan.put({
+                children: (
+                    <EventDetail
+                        items={items}
+                    />
+                ),
+            });
         }
         yield model;
     }

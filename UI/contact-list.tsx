@@ -1,28 +1,25 @@
 /** @jsx h */
 import { Fragment, h } from "https://esm.sh/preact@10.17.1";
 import { tw } from "https://esm.sh/twind@0.16.16";
-
 import { Database_Contextual_View } from "../database.ts";
 import { Avatar } from "./components/avatar.tsx";
 import { CenterClass, IconButtonClass, LinearGradientsClass } from "./components/tw.ts";
 import { sortUserInfo, UserInfo } from "./contact-list.ts";
-import { EventEmitter } from "../event-bus.ts";
+import { emitFunc } from "../event-bus.ts";
 import { PinIcon, UnpinIcon } from "./icons/mod.tsx";
 import { DM_EditorModel } from "./editor.tsx";
-
 import { SearchModel, SearchUpdate } from "./search_model.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { groupBy, NostrAccountContext } from "../lib/nostr-ts/nostr.ts";
 import { PinContact, UnpinContact } from "../nostr.ts";
 import { AddIcon } from "./icons2/add-icon.tsx";
-import { PrimaryBackgroundColor, PrimaryTextColor } from "./style/colors.ts";
-import { Popover } from "./components/popover.tsx";
-import { Search } from "./search.tsx";
+import { PrimaryTextColor } from "./style/colors.ts";
+import { ProfilesSyncer } from "../features/profile.ts";
 
 type Props = {
     myAccountContext: NostrAccountContext;
     database: Database_Contextual_View;
-    eventEmitter: EventEmitter<ContactUpdate>;
+    emit: emitFunc<ContactUpdate | SearchUpdate>;
 
     // Model
     userInfoMap: Map<string, UserInfo>;
@@ -31,6 +28,7 @@ type Props = {
     editors: Map<string, DM_EditorModel>;
     selectedContactGroup: ContactGroup;
     hasNewMessages: Set<string>;
+    profileSyncer: ProfilesSyncer;
 };
 
 export type ContactGroup = "Contacts" | "Strangers";
@@ -85,8 +83,8 @@ export function ContactList(props: Props) {
                 class={tw`flex items-center justify-between px-4 h-20 border-b border-[#36393F]`}
             >
                 <button
-                    onClick={() => {
-                        props.eventEmitter.emit({
+                    onClick={async () => {
+                        props.emit({
                             type: "StartSearch",
                         });
                     }}
@@ -110,7 +108,7 @@ export function ContactList(props: Props) {
                             : ""
                     }`}
                     onClick={() => {
-                        props.eventEmitter.emit({
+                        props.emit({
                             type: "SelectGroup",
                             group: "Contacts",
                         });
@@ -126,7 +124,7 @@ export function ContactList(props: Props) {
                             : ""
                     }`}
                     onClick={() => {
-                        props.eventEmitter.emit({
+                        props.emit({
                             type: "SelectGroup",
                             group: "Strangers",
                         });
@@ -139,7 +137,7 @@ export function ContactList(props: Props) {
             <ContactGroup
                 contacts={Array.from(contactsToRender.values())}
                 currentSelected={props.currentSelected}
-                eventEmitter={props.eventEmitter}
+                emit={props.emit}
             />
         </div>
     );
@@ -148,7 +146,7 @@ export function ContactList(props: Props) {
 type ConversationListProps = {
     contacts: { userInfo: UserInfo; isMarked: boolean }[];
     currentSelected: PublicKey | undefined;
-    eventEmitter: EventEmitter<ContactUpdate>;
+    emit: emitFunc<ContactUpdate>;
 };
 
 function ContactGroup(props: ConversationListProps) {
@@ -178,7 +176,7 @@ function ContactGroup(props: ConversationListProps) {
                                 : "bg-[#42464D] text-[#96989D]"
                         } cursor-pointer p-2 hover:bg-[#3C3F45] my-2 rounded-lg flex items-center w-full relative group`}
                         onClick={() => {
-                            props.eventEmitter.emit({
+                            props.emit({
                                 type: "SelectProfile",
                                 pubkey: contact.userInfo.pubkey,
                             });
@@ -196,7 +194,7 @@ function ContactGroup(props: ConversationListProps) {
                             }}
                             onClick={(e) => {
                                 e.stopPropagation();
-                                props.eventEmitter.emit({
+                                props.emit({
                                     type: "UnpinContact",
                                     pubkey: contact.userInfo.pubkey.hex,
                                 });
@@ -223,7 +221,7 @@ function ContactGroup(props: ConversationListProps) {
                                 : "bg-transparent text-[#96989D]"
                         } cursor-pointer p-2 hover:bg-[#3C3F45] my-2 rounded-lg flex items-center w-full relative group`}
                         onClick={() => {
-                            props.eventEmitter.emit({
+                            props.emit({
                                 type: "SelectProfile",
                                 pubkey: contact.userInfo.pubkey,
                             });
@@ -241,7 +239,7 @@ function ContactGroup(props: ConversationListProps) {
                             }}
                             onClick={(e) => {
                                 e.stopPropagation();
-                                props.eventEmitter.emit({
+                                props.emit({
                                     type: "PinContact",
                                     pubkey: contact.userInfo.pubkey.hex,
                                 });

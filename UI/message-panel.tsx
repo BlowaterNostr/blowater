@@ -3,11 +3,11 @@ import { Component, ComponentChildren, createRef, h } from "https://esm.sh/preac
 import { tw } from "https://esm.sh/twind@0.16.16";
 import { Editor, EditorEvent, EditorModel } from "./editor.tsx";
 
-import { CloseIcon, LeftArrowIcon, ReplyIcon } from "./icons/mod.tsx";
+import { AboutIcon, CloseIcon, LeftArrowIcon, ReplyIcon } from "./icons/mod.tsx";
 import { Avatar } from "./components/avatar.tsx";
 import { DividerClass, IconButtonClass } from "./components/tw.ts";
 import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { EventEmitter } from "../event-bus.ts";
+import { emitFunc, EventEmitter } from "../event-bus.ts";
 
 import { ChatMessage, groupContinuousMessages, sortMessage, urlIsImage } from "./message.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
@@ -39,7 +39,11 @@ export type DirectMessagePanelUpdate =
         show: boolean;
     }
     | ViewThread
-    | ViewUserDetail;
+    | ViewUserDetail
+    | {
+        type: "ViewEventDetail";
+        event: PlainText_Nostr_Event;
+    };
 
 export type ViewThread = {
     type: "ViewThread";
@@ -333,7 +337,7 @@ function MessageBoxGroup(props: {
         <li
             class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 group relative`}
         >
-            {MessageActions(first_group.msg.event, props.eventEmitter)}
+            {MessageActions(first_group.msg.event, props.eventEmitter.emit)}
             <Avatar
                 class={tw`h-8 w-8 mt-[0.45rem] mr-2`}
                 picture={getUserInfoFromPublicKey(first_group.msg.event.publicKey, props.allUserInfo)
@@ -398,7 +402,7 @@ function MessageBoxGroup(props: {
             <li
                 class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 group relative`}
             >
-                {MessageActions(msg.msg.event, props.eventEmitter)}
+                {MessageActions(msg.msg.event, props.eventEmitter.emit)}
                 {Time(msg.msg.created_at)}
                 <div
                     class={tw`flex-1`}
@@ -457,9 +461,9 @@ function MessageBoxGroup(props: {
     return vnode;
 }
 
-export function MessageActions(
+function MessageActions(
     event: PlainText_Nostr_Event,
-    eventEmitter: EventEmitter<ViewThread>,
+    emit: emitFunc<ViewThread | DirectMessagePanelUpdate>,
 ) {
     return (
         <ButtonGroup
@@ -471,13 +475,30 @@ export function MessageActions(
             <button
                 class={tw`w-6 h-6 flex items-center justify-center`}
                 onClick={() => {
-                    eventEmitter.emit({
+                    emit({
                         type: "ViewThread",
                         root: event,
                     });
                 }}
             >
                 <ReplyIcon
+                    class={tw`w-4 h-4 scale-150`}
+                    style={{
+                        fill: PrimaryTextColor,
+                    }}
+                />
+            </button>
+
+            <button
+                class={tw`w-6 h-6 flex items-center justify-center`}
+                onClick={async () => {
+                    emit({
+                        type: "ViewEventDetail",
+                        event: event,
+                    });
+                }}
+            >
+                <AboutIcon
                     class={tw`w-4 h-4 scale-150`}
                     style={{
                         fill: PrimaryTextColor,
