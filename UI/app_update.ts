@@ -170,7 +170,7 @@ export async function* UI_Interaction_Update(args: {
                     });
                 },
             });
-            args.popOver.put({ children: search });
+            args.popOver.put({ children: search.render() });
         } else if (event.type == "Search") {
             const pubkey = PublicKey.FromString(event.text);
             if (pubkey instanceof PublicKey) {

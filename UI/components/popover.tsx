@@ -21,11 +21,11 @@ export class Popover extends Component<{
     children: ComponentChildren = undefined;
 
     async componentDidMount() {
-        for await (const props of this.props.inputChan) {
-            if (props.children) {
-                this.show(props.children);
+        for await (const { children, onClose } of this.props.inputChan) {
+            if (children) {
+                this.show(children);
             } else {
-                this.hide(props.onClose);
+                this.hide(onClose);
             }
         }
     }
@@ -57,10 +57,9 @@ export class Popover extends Component<{
     };
 
     render() {
-        console.log("render popover");
+        console.log("render popover", this.state, this.children);
         return (
             this.state.show
-                // true
                 ? (
                     <div class={this.styles.container}>
                         <div class={this.styles.backdrop} onClick={this.onBackdropClick}>
