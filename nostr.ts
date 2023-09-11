@@ -77,7 +77,10 @@ export async function prepareNostrImageEvents(
     // read the blob
     const binaryContent = await nostr.blobToBase64(blob);
 
-    const chunkSize = 32 * 1024;
+    const chunkSize = 64 * 1024;
+    if(binaryContent.length > chunkSize) {
+        return new Error(`content size ${binaryContent.length} > limit ${chunkSize}`)
+    }
     const chunkCount = Math.ceil(binaryContent.length / chunkSize);
     const events: nostr.NostrEvent[] = [];
     let groupLeadEventID = PrivateKey.Generate().hex;
