@@ -96,7 +96,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
             }
             return _;
         })();
-        messagePanel = MessagePanel({
+        messagePanel = new MessagePanel({
             myPublicKey: props.myAccountContext.publicKey,
             messages: convoMsgs,
             rightPanelModel: props.rightPanelModel,
@@ -107,7 +107,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
             profilesSyncer: props.profilesSyncer,
             eventSyncer: props.eventSyncer,
             allUserInfo: props.allUserInfo,
-        });
+        }).render();
     }
 
     const vDom = (

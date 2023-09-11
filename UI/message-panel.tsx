@@ -81,109 +81,112 @@ interface DirectMessagePanelProps {
     allUserInfo: Map<string, UserInfo>;
 }
 
-export function MessagePanel(props: DirectMessagePanelProps) {
-    const t = Date.now();
-    let placeholder = "Post your thoughts";
-    if (props.editorModel.target.kind == NostrKind.DIRECT_MESSAGE) {
-        placeholder = `Message @${
-            props.editorModel.target.receiver.name || props.editorModel.target.receiver.pubkey.bech32()
-        }`;
-    }
-
-    let rightPanel;
-    if (props.rightPanelModel.show) {
-        let rightPanelChildren: h.JSX.Element | undefined;
-        if (props.focusedContent) {
-            if (props.focusedContent.type == "MessageThread") {
-                rightPanelChildren = (
-                    <MessageThreadPanel
-                        eventEmitter={props.eventEmitter}
-                        messages={[props.focusedContent.data.root, ...props.focusedContent.data.replies]}
-                        myPublicKey={props.myPublicKey}
-                        db={props.db}
-                        editorModel={props.focusedContent.editor}
-                        profilesSyncer={props.profilesSyncer}
-                        eventSyncer={props.eventSyncer}
-                        allUserInfo={props.allUserInfo}
-                    />
-                );
-            } else if (props.focusedContent.type == "ProfileData") {
-                rightPanelChildren = (
-                    <UserDetail
-                        targetUserProfile={{
-                            name: props.focusedContent?.data?.name,
-                            picture: props.focusedContent?.data?.picture,
-                            about: props.focusedContent?.data?.about,
-                            website: props.focusedContent?.data?.website,
-                        }}
-                        pubkey={props.focusedContent.pubkey}
-                        eventEmitter={props.eventEmitter}
-                    />
-                );
-            }
+// export function MessagePanel(props: DirectMessagePanelProps) {
+export class MessagePanel extends Component<DirectMessagePanelProps> {
+    render() {
+        const props = this.props;
+        const t = Date.now();
+        let placeholder = "Post your thoughts";
+        if (props.editorModel.target.kind == NostrKind.DIRECT_MESSAGE) {
+            placeholder = `Message @${
+                props.editorModel.target.receiver.name || props.editorModel.target.receiver.pubkey.bech32()
+            }`;
         }
-        rightPanel = (
-            <RightPanel
-                eventEmitter={props.eventEmitter}
-                rightPanelModel={props.rightPanelModel}
-            >
-                {rightPanelChildren}
-            </RightPanel>
-        );
-    }
-    let vnode = (
-        <div class={tw`flex h-full w-full relative`}>
-            <div class={tw`flex flex-col h-full flex-1 overflow-hidden`}>
-                <div class={tw`flex-1`}></div>
-                {
-                    <MessageList
-                        myPublicKey={props.myPublicKey}
-                        threads={props.messages}
-                        eventEmitter={props.eventEmitter}
-                        db={props.db}
-                        profilesSyncer={props.profilesSyncer}
-                        eventSyncer={props.eventSyncer}
-                        allUserInfo={props.allUserInfo}
-                    />
-                }
-                {
-                    <Editor
-                        model={props.editorModel}
-                        placeholder={placeholder}
-                        maxHeight="30vh"
-                        eventEmitter={props.eventEmitter}
-                    />
-                }
-            </div>
-            {!props.rightPanelModel.show
-                ? (
-                    <button
-                        class={tw`absolute z-10 w-6 h-6 transition-transform duration-100 ease-in-out right-4 top-4${
-                            props.rightPanelModel.show ? " rotate-180" : ""
-                        } ${IconButtonClass}`}
-                        onClick={() => {
-                            props.eventEmitter.emit({
-                                type: "ToggleRightPanel",
-                                show: !props.rightPanelModel.show,
-                            });
-                        }}
-                    >
-                        <LeftArrowIcon
-                            class={tw`w-4 h-4`}
-                            style={{
-                                fill: "#F3F4EA",
-                            }}
-                        />
-                    </button>
-                )
-                : undefined}
-            {rightPanel}
-        </div>
-    );
-    console.log("DirectMessagePanel:end", Date.now() - t);
-    return vnode;
-}
 
+        let rightPanel;
+        if (props.rightPanelModel.show) {
+            let rightPanelChildren: h.JSX.Element | undefined;
+            if (props.focusedContent) {
+                if (props.focusedContent.type == "MessageThread") {
+                    rightPanelChildren = (
+                        <MessageThreadPanel
+                            eventEmitter={props.eventEmitter}
+                            messages={[props.focusedContent.data.root, ...props.focusedContent.data.replies]}
+                            myPublicKey={props.myPublicKey}
+                            db={props.db}
+                            editorModel={props.focusedContent.editor}
+                            profilesSyncer={props.profilesSyncer}
+                            eventSyncer={props.eventSyncer}
+                            allUserInfo={props.allUserInfo}
+                        />
+                    );
+                } else if (props.focusedContent.type == "ProfileData") {
+                    rightPanelChildren = (
+                        <UserDetail
+                            targetUserProfile={{
+                                name: props.focusedContent?.data?.name,
+                                picture: props.focusedContent?.data?.picture,
+                                about: props.focusedContent?.data?.about,
+                                website: props.focusedContent?.data?.website,
+                            }}
+                            pubkey={props.focusedContent.pubkey}
+                            eventEmitter={props.eventEmitter}
+                        />
+                    );
+                }
+            }
+            rightPanel = (
+                <RightPanel
+                    eventEmitter={props.eventEmitter}
+                    rightPanelModel={props.rightPanelModel}
+                >
+                    {rightPanelChildren}
+                </RightPanel>
+            );
+        }
+        let vnode = (
+            <div class={tw`flex h-full w-full relative`}>
+                <div class={tw`flex flex-col h-full flex-1 overflow-hidden`}>
+                    <div class={tw`flex-1`}></div>
+                    {
+                        <MessageList
+                            myPublicKey={props.myPublicKey}
+                            threads={props.messages}
+                            eventEmitter={props.eventEmitter}
+                            db={props.db}
+                            profilesSyncer={props.profilesSyncer}
+                            eventSyncer={props.eventSyncer}
+                            allUserInfo={props.allUserInfo}
+                        />
+                    }
+                    {
+                        <Editor
+                            model={props.editorModel}
+                            placeholder={placeholder}
+                            maxHeight="30vh"
+                            eventEmitter={props.eventEmitter}
+                        />
+                    }
+                </div>
+                {!props.rightPanelModel.show
+                    ? (
+                        <button
+                            class={tw`absolute z-10 w-6 h-6 transition-transform duration-100 ease-in-out right-4 top-4${
+                                props.rightPanelModel.show ? " rotate-180" : ""
+                            } ${IconButtonClass}`}
+                            onClick={() => {
+                                props.eventEmitter.emit({
+                                    type: "ToggleRightPanel",
+                                    show: !props.rightPanelModel.show,
+                                });
+                            }}
+                        >
+                            <LeftArrowIcon
+                                class={tw`w-4 h-4`}
+                                style={{
+                                    fill: "#F3F4EA",
+                                }}
+                            />
+                        </button>
+                    )
+                    : undefined}
+                {rightPanel}
+            </div>
+        );
+        console.log("DirectMessagePanel:end", Date.now() - t);
+        return vnode;
+    }
+}
 interface MessageListProps {
     myPublicKey: PublicKey;
     threads: MessageThread[];

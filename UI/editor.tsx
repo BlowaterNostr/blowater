@@ -1,25 +1,14 @@
 /** @jsx h */
 import { createRef, h } from "https://esm.sh/preact@10.17.1";
 import { tw } from "https://esm.sh/twind@0.16.16";
-import {
-    CenterClass,
-    IconButtonClass,
-    KeyboradClass,
-    LinearGradientsClass,
-    NoOutlineClass,
-} from "./components/tw.ts";
+import { CenterClass, LinearGradientsClass, NoOutlineClass } from "./components/tw.ts";
 import { EventEmitter } from "../event-bus.ts";
 
 import { NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { Tag } from "../nostr.ts";
 import { ImageIcon } from "./icons2/image-icon.tsx";
-import {
-    DividerBackgroundColor,
-    HoverButtonBackgroudColor,
-    PrimaryBackgroundColor,
-    PrimaryTextColor,
-} from "./style/colors.ts";
+import { DividerBackgroundColor, PrimaryBackgroundColor, PrimaryTextColor } from "./style/colors.ts";
 import { SendIcon } from "./icons2/send-icon.tsx";
 import { RemoveIcon } from "./icons2/remove-icon.tsx";
 
