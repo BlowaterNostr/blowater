@@ -685,7 +685,7 @@ export async function handle_SendMessage(
     db: Database_Contextual_View,
 ) {
     if (event.target.kind == NostrKind.DIRECT_MESSAGE) {
-        const err = await sendDMandImages({
+        const events = await sendDMandImages({
             sender: ctx,
             receiverPublicKey: event.target.receiver.pubkey,
             message: event.text,
@@ -693,11 +693,13 @@ export async function handle_SendMessage(
             kind: event.target.kind,
             lamport_timestamp: lamport.now(),
             pool,
-            waitAll: false,
             tags: event.tags,
         });
-        if (err instanceof Error) {
-            return err;
+        if (events instanceof Error) {
+            return events;
+        }
+        for (const eventSent of events) {
+            await db.addEvent(eventSent);
         }
         const editor = dmEditors.get(event.id);
         if (editor) {

@@ -190,7 +190,7 @@ export class Database_Contextual_View {
         return this.events.filter(filter);
     };
 
-    async addEvent(event: NostrEvent): Promise<boolean> {
+    async addEvent(event: NostrEvent) {
         const storedEvent = await this.getEvent({ id: event.id });
         if (storedEvent) { // event exist
             return false;
@@ -254,7 +254,7 @@ export class Database_Contextual_View {
         this.events.push(e);
         await this.eventsAdapter.put(event);
         /* not await */ this.sourceOfChange.put(e);
-        return true;
+        return e;
     }
 
     syncEvents(
