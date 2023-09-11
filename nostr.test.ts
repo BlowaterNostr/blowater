@@ -29,6 +29,7 @@ import { prepareNormalNostrEvent } from "./lib/nostr-ts/event.ts";
 Deno.test("prepareNostrImageEvents", async (t) => {
     const pri = PrivateKey.Generate();
     const pub = pri.toPublicKey();
+    const ctx = InMemoryAccountContext.New(pri);
 
     let randomData = new Uint8Array(1024 * 48); // 48KB raw data
     for (let i = 0; i < randomData.length; i++) {
@@ -38,7 +39,7 @@ Deno.test("prepareNostrImageEvents", async (t) => {
 
     const blob = new Blob([randomStr]);
     const imgEvents = await prepareNostrImageEvents(
-        InMemoryAccountContext.New(pri),
+        ctx,
         pub,
         blob,
         NostrKind.DIRECT_MESSAGE,
@@ -50,7 +51,7 @@ Deno.test("prepareNostrImageEvents", async (t) => {
     await t.step("full", async () => {
         const decryptedEvents = [];
         for (const e of events) {
-            const decryptedEvent = await decryptNostrEvent(e, InMemoryAccountContext.New(pri), pub.hex);
+            const decryptedEvent = await decryptNostrEvent(e, ctx, pub.hex);
             if (decryptedEvent instanceof Error) {
                 fail(decryptedEvent.message);
             }
@@ -66,7 +67,7 @@ Deno.test("prepareNostrImageEvents", async (t) => {
         const decryptedEvents = [];
         const partialEvents = events.slice(0, 1); // not enough events
         for (const e of partialEvents) {
-            const decryptedEvent = await decryptNostrEvent(e, InMemoryAccountContext.New(pri), pub.hex);
+            const decryptedEvent = await decryptNostrEvent(e, ctx, pub.hex);
             if (decryptedEvent instanceof Error) {
                 fail(decryptedEvent.message);
             }
@@ -80,6 +81,7 @@ Deno.test("prepareNostrImageEvents", async (t) => {
 Deno.test("groupImageEvents", async () => {
     const pri = PrivateKey.Generate();
     const pub = pri.toPublicKey();
+    const ctx = InMemoryAccountContext.New(pri)
 
     let randomData = new Uint8Array(1024 * 17);
     for (let i = 0; i < randomData.length; i++) {
@@ -89,7 +91,7 @@ Deno.test("groupImageEvents", async () => {
 
     const blob = new Blob([randomStr]);
     const imgEvents1 = await prepareNostrImageEvents(
-        InMemoryAccountContext.New(pri),
+        ctx,
         pub,
         blob,
         NostrKind.DIRECT_MESSAGE,
@@ -99,7 +101,7 @@ Deno.test("groupImageEvents", async () => {
     }
     const [events1, id1] = imgEvents1;
     const imgEvents2 = await prepareNostrImageEvents(
-        InMemoryAccountContext.New(pri),
+        ctx,
         pub,
         blob,
         NostrKind.DIRECT_MESSAGE,
