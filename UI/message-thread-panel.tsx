@@ -169,13 +169,6 @@ function MessageThreadBoxGroup(props: {
                         maxWidth: "calc(100% - 2.75rem)",
                     }}
                 >
-                    {NameAndTime(
-                        msg.event.publicKey,
-                        getUserInfoFromPublicKey(msg.event.publicKey, props.allUserInfo)
-                            ?.profile?.profile,
-                        props.myPublicKey,
-                        msg.created_at,
-                    )}
                     <pre
                         class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto`}
                     >
