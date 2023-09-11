@@ -45,13 +45,12 @@ Deno.test("prepareNostrImageEvent", async (t) => {
     const [event, _] = imgEvents;
     await t.step("full", async () => {
         const decryptedEvents = [];
-        // for (const e of events) {
         const decryptedEvent = await decryptNostrEvent(event, ctx, pub.hex);
         if (decryptedEvent instanceof Error) {
             fail(decryptedEvent.message);
         }
         decryptedEvents.push(decryptedEvent);
-        // }
+
         const content = reassembleBase64ImageFromEvents(decryptedEvents);
         if (content instanceof Error) {
             fail(content.message);
