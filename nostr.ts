@@ -66,43 +66,41 @@ export function getTags(event: Event): Tags {
     return tags;
 }
 
-export async function prepareNostrImageEvents(
+export async function prepareNostrImageEvent(
     sender: nostr.NostrAccountContext,
     receiverPublicKey: PublicKey,
     blob: Blob,
     kind: nostr.NostrKind,
     tags?: Tag[],
-): Promise<[nostr.NostrEvent[], string] | Error> {
+): Promise<[nostr.NostrEvent, string] | Error> {
     // prepare nostr event
     // read the blob
     const binaryContent = await nostr.blobToBase64(blob);
 
-    const chunkSize = 32 * 1024;
-    const chunkCount = Math.ceil(binaryContent.length / chunkSize);
-    const events: nostr.NostrEvent[] = [];
-    let groupLeadEventID = PrivateKey.Generate().hex;
-    for (let i = 0; i < chunkCount; i++) {
-        const chunk = binaryContent.slice(i * chunkSize, (i + 1) * chunkSize);
-        // encryption
-        const encrypted = await sender.encrypt(receiverPublicKey.hex, chunk);
-        if (encrypted instanceof Error) {
-            return encrypted;
-        }
-
-        const event: UnsignedEvent = {
-            created_at: Math.floor(Date.now() / 1000),
-            kind: kind,
-            pubkey: sender.publicKey.hex,
-            tags: [
-                ["p", receiverPublicKey.hex],
-                ["image", groupLeadEventID, String(chunkCount), String(i)],
-                ...(tags || []),
-            ],
-            content: encrypted,
-        };
-        events.push(await sender.signEvent(event));
+    const limit = 64 * 1024;
+    if (binaryContent.length > limit) {
+        return new Error(`content size ${binaryContent.length} > limit ${limit}`);
     }
-    return [events, groupLeadEventID];
+
+    const encrypted = await sender.encrypt(receiverPublicKey.hex, binaryContent);
+    if (encrypted instanceof Error) {
+        return encrypted;
+    }
+
+    const GroupLeadEventID = PrivateKey.Generate().hex;
+    const event: UnsignedEvent = {
+        created_at: Math.floor(Date.now() / 1000),
+        kind: kind,
+        pubkey: sender.publicKey.hex,
+        tags: [
+            ["p", receiverPublicKey.hex],
+            ["image", GroupLeadEventID, "1", "0"],
+            ...(tags || []),
+        ],
+        content: encrypted,
+    };
+    const signedEvent = await sender.signEvent(event);
+    return [signedEvent, GroupLeadEventID];
 }
 
 export function reassembleBase64ImageFromEvents(
