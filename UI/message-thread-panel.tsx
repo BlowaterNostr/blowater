@@ -6,6 +6,7 @@ import {
     DirectMessagePanelUpdate,
     NameAndTime,
     ParseMessageContent,
+    Time,
     ViewThread,
     ViewUserDetail,
 } from "./message-panel.tsx";
@@ -114,50 +115,80 @@ function MessageThreadBoxGroup(props: {
     eventEmitter: EventEmitter<ViewUserDetail | ViewThread | DirectMessagePanelUpdate>;
     allUserInfo: Map<string, UserInfo>;
 }) {
+    const first_group = props.messages[0];
+    const rows = [];
+    rows.push(
+        <li
+            class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 group relative`}
+        >
+            {MessageThreadActions(first_group.event, props.eventEmitter.emit)}
+            <Avatar
+                class={tw`h-8 w-8 mt-[0.45rem] mr-2`}
+                picture={getUserInfoFromPublicKey(first_group.event.publicKey, props.allUserInfo)
+                    ?.profile?.profile.picture}
+                onClick={() => {
+                    props.eventEmitter.emit({
+                        type: "ViewUserDetail",
+                        pubkey: first_group.event.publicKey,
+                    });
+                }}
+            />
+            <div
+                class={tw`flex-1`}
+                style={{
+                    maxWidth: "calc(100% - 2.75rem)",
+                }}
+            >
+                {NameAndTime(
+                    first_group.event.publicKey,
+                    getUserInfoFromPublicKey(first_group.event.publicKey, props.allUserInfo)
+                        ?.profile?.profile,
+                    props.myPublicKey,
+                    first_group.created_at,
+                )}
+                <pre
+                    class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto`}
+                >
+                    {ParseMessageContent(first_group, props.allUserInfo, props.profilesSyncer, props.eventSyncer, props.eventEmitter)}
+                </pre>
+            </div>
+        </li>,
+    );
+
+    for (let i = 1; i < props.messages.length; i++) {
+        const msg = props.messages[i];
+        rows.push(
+            <li
+                class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 group relative`}
+            >
+                {MessageThreadActions(msg.event, props.eventEmitter.emit)}
+                {Time(msg.created_at)}
+                <div
+                    class={tw`flex-1`}
+                    style={{
+                        maxWidth: "calc(100% - 2.75rem)",
+                    }}
+                >
+                    {NameAndTime(
+                        msg.event.publicKey,
+                        getUserInfoFromPublicKey(msg.event.publicKey, props.allUserInfo)
+                            ?.profile?.profile,
+                        props.myPublicKey,
+                        msg.created_at,
+                    )}
+                    <pre
+                        class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto`}
+                    >
+                    {ParseMessageContent(msg, props.allUserInfo, props.profilesSyncer, props.eventSyncer, props.eventEmitter)}
+                    </pre>
+                </div>
+            </li>,
+        );
+    }
+
     const vnode = (
         <ul class={tw`pt-4 pb-2`}>
-            {props.messages.map((msg, index) => {
-                return (
-                    <li
-                        class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 group relative`}
-                    >
-                        {MessageThreadActions(msg.event, props.eventEmitter.emit)}
-                        {
-                            <Avatar
-                                class={tw`h-8 w-8 mt-[0.45rem] mr-2`}
-                                picture={getUserInfoFromPublicKey(msg.event.publicKey, props.allUserInfo)
-                                    ?.profile?.profile.picture}
-                                onClick={() => {
-                                    props.eventEmitter.emit({
-                                        type: "ViewUserDetail",
-                                        pubkey: msg.event.publicKey,
-                                    });
-                                }}
-                            />
-                        }
-                        <div
-                            class={tw`flex-1`}
-                            style={{
-                                maxWidth: "calc(100% - 2.75rem)",
-                            }}
-                        >
-                            {NameAndTime(
-                                msg.event.publicKey,
-                                getUserInfoFromPublicKey(msg.event.publicKey, props.allUserInfo)
-                                    ?.profile?.profile,
-                                index,
-                                props.myPublicKey,
-                                msg.created_at,
-                            )}
-                            <pre
-                                class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto`}
-                            >
-                                {ParseMessageContent(msg, props.allUserInfo, props.profilesSyncer, props.eventSyncer, props.eventEmitter)}
-                            </pre>
-                        </div>
-                    </li>
-                );
-            })}
+            {rows}
         </ul>
     );
 
