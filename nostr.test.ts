@@ -1,9 +1,4 @@
-import {
-    assertEquals,
-    assertInstanceOf,
-    assertNotEquals,
-    fail,
-} from "https://deno.land/std@0.176.0/testing/asserts.ts";
+import { assertEquals, assertNotEquals, fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import {
     blobToBase64,
     decryptNostrEvent,
@@ -17,7 +12,7 @@ import {
     groupImageEvents,
     Parsed_Event,
     parsedTagsEvent,
-    prepareNostrImageEvents,
+    prepareNostrImageEvent,
     prepareReplyEvent,
     reassembleBase64ImageFromEvents,
 } from "./nostr.ts";
@@ -26,19 +21,19 @@ import { PrivateKey, PublicKey } from "./lib/nostr-ts/key.ts";
 import { utf8Decode } from "./lib/nostr-ts/ende.ts";
 import { prepareNormalNostrEvent } from "./lib/nostr-ts/event.ts";
 
-Deno.test("prepareNostrImageEvents", async (t) => {
+Deno.test("prepareNostrImageEvent", async (t) => {
     const pri = PrivateKey.Generate();
     const pub = pri.toPublicKey();
     const ctx = InMemoryAccountContext.New(pri);
 
-    let randomData = new Uint8Array(1024 * 48); // 48KB raw data
+    let randomData = new Uint8Array(1024 * 32); // 48KB raw data
     for (let i = 0; i < randomData.length; i++) {
         randomData.fill(Math.floor(Math.random() * 128), i); // https://en.wikipedia.org/wiki/UTF-8
     }
     let randomStr = utf8Decode(randomData);
 
     const blob = new Blob([randomStr]);
-    const imgEvents = await prepareNostrImageEvents(
+    const imgEvents = await prepareNostrImageEvent(
         ctx,
         pub,
         blob,
@@ -47,41 +42,28 @@ Deno.test("prepareNostrImageEvents", async (t) => {
     if (imgEvents instanceof Error) {
         fail(imgEvents.message);
     }
-    const [events, _] = imgEvents;
+    const [event, _] = imgEvents;
     await t.step("full", async () => {
         const decryptedEvents = [];
-        for (const e of events) {
-            const decryptedEvent = await decryptNostrEvent(e, ctx, pub.hex);
-            if (decryptedEvent instanceof Error) {
-                fail(decryptedEvent.message);
-            }
-            decryptedEvents.push(decryptedEvent);
+        // for (const e of events) {
+        const decryptedEvent = await decryptNostrEvent(event, ctx, pub.hex);
+        if (decryptedEvent instanceof Error) {
+            fail(decryptedEvent.message);
         }
+        decryptedEvents.push(decryptedEvent);
+        // }
         const content = reassembleBase64ImageFromEvents(decryptedEvents);
         if (content instanceof Error) {
             fail(content.message);
         }
         assertEquals(await blobToBase64(blob), content);
     });
-    await t.step("partial, should fail", async () => {
-        const decryptedEvents = [];
-        const partialEvents = events.slice(0, 1); // not enough events
-        for (const e of partialEvents) {
-            const decryptedEvent = await decryptNostrEvent(e, ctx, pub.hex);
-            if (decryptedEvent instanceof Error) {
-                fail(decryptedEvent.message);
-            }
-            decryptedEvents.push(decryptedEvent);
-        }
-        const content = reassembleBase64ImageFromEvents(decryptedEvents);
-        assertInstanceOf(content, Error);
-    });
 });
 
 Deno.test("groupImageEvents", async () => {
     const pri = PrivateKey.Generate();
     const pub = pri.toPublicKey();
-    const ctx = InMemoryAccountContext.New(pri)
+    const ctx = InMemoryAccountContext.New(pri);
 
     let randomData = new Uint8Array(1024 * 17);
     for (let i = 0; i < randomData.length; i++) {
@@ -90,28 +72,28 @@ Deno.test("groupImageEvents", async () => {
     let randomStr = utf8Decode(randomData);
 
     const blob = new Blob([randomStr]);
-    const imgEvents1 = await prepareNostrImageEvents(
+    const imgEvent1 = await prepareNostrImageEvent(
         ctx,
         pub,
         blob,
         NostrKind.DIRECT_MESSAGE,
     );
-    if (imgEvents1 instanceof Error) {
-        fail(imgEvents1.message);
+    if (imgEvent1 instanceof Error) {
+        fail(imgEvent1.message);
     }
-    const [events1, id1] = imgEvents1;
-    const imgEvents2 = await prepareNostrImageEvents(
+    const [event1, id1] = imgEvent1;
+    const imgEvent2 = await prepareNostrImageEvent(
         ctx,
         pub,
         blob,
         NostrKind.DIRECT_MESSAGE,
     );
-    if (imgEvents2 instanceof Error) {
-        fail(imgEvents2.message);
+    if (imgEvent2 instanceof Error) {
+        fail(imgEvent2.message);
     }
-    const [events2, id2] = imgEvents2;
+    const [event2, id2] = imgEvent2;
     const groups = groupImageEvents(
-        events1.concat(events2).map((e): Parsed_Event => ({
+        [event1, event2].map((e): Parsed_Event => ({
             ...e,
             kind: e.kind as NostrKind.DIRECT_MESSAGE,
             publicKey: PublicKey.FromHex(e.pubkey) as PublicKey,
@@ -130,7 +112,7 @@ Deno.test("groupImageEvents", async () => {
         tags: e.tags,
     }));
     assertNotEquals(group1, undefined);
-    assertEquals(group1, events1);
+    assertEquals(group1, [event1]);
 
     const group2 = groups.get(id2)?.map((e): NostrEvent => ({
         content: e.content,
@@ -142,7 +124,7 @@ Deno.test("groupImageEvents", async () => {
         tags: e.tags,
     }));
     assertNotEquals(group2, undefined);
-    assertEquals(group2, events2);
+    assertEquals(group2, [event2]);
 });
 
 Deno.test("Generate reply event", async () => {

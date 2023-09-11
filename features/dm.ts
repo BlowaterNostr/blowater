@@ -9,7 +9,7 @@ import {
     RelayResponse_Event,
 } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
-import { prepareNostrImageEvents, Tag } from "../nostr.ts";
+import { prepareNostrImageEvent, Tag } from "../nostr.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { prepareEncryptedNostrEvent, prepareNormalNostrEvent } from "../lib/nostr-ts/event.ts";
 
@@ -46,7 +46,7 @@ export async function sendDMandImages(args: {
         eventsToSend.push(nostrEvent);
     }
     for (let blob of files) {
-        const imgEvent = await prepareNostrImageEvents(
+        const imgEvent = await prepareNostrImageEvent(
             sender,
             receiverPublicKey,
             blob,
@@ -56,10 +56,10 @@ export async function sendDMandImages(args: {
         if (imgEvent instanceof Error) {
             return imgEvent;
         }
-        let [fileEvents, _] = imgEvent;
-        for (const event of fileEvents) {
-            eventsToSend.push(event);
-        }
+        let [fileEvent, _] = imgEvent;
+        // for (const event of fileEvents) {
+        eventsToSend.push(fileEvent);
+        // }
     }
     // send the event
     for (const event of eventsToSend) {
