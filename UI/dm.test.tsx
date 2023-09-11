@@ -4,7 +4,7 @@ import { PrivateKey } from "../lib/nostr-ts/key.ts";
 import { InMemoryAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { Database_Contextual_View } from "../database.ts";
 import { testEventBus, testEventsAdapter } from "./_setup.test.ts";
-import { prepareEncryptedNostrEvent, prepareNormalNostrEvent } from "../lib/nostr-ts/event.ts";
+import { prepareEncryptedNostrEvent } from "../lib/nostr-ts/event.ts";
 import { getSocialPosts } from "../features/social.ts";
 import { AllUsersInformation } from "./contact-list.ts";
 import { EventSyncer } from "./event_syncer.ts";
@@ -76,6 +76,12 @@ const view = () => {
 };
 
 render(view(), document.body);
+
+(async () => {
+    for await (const evnet of database.subscribe()) {
+        allUserInfo.addEvents([evnet]);
+    }
+})();
 
 for await (const e of testEventBus.onChange()) {
     console.log(e);
