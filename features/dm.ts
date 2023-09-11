@@ -21,10 +21,9 @@ export async function sendDMandImages(args: {
     kind: NostrKind;
     lamport_timestamp: number;
     pool: ConnectionPool;
-    waitAll: boolean;
     tags: Tag[];
 }) {
-    const { tags, sender, receiverPublicKey, message, files, kind, lamport_timestamp, pool, waitAll } = args;
+    const { tags, sender, receiverPublicKey, message, files, kind, lamport_timestamp, pool } = args;
     console.log("sendDMandImages", message, files);
     const eventsToSend: NostrEvent[] = [];
     if (message.trim().length !== 0) {
@@ -63,11 +62,13 @@ export async function sendDMandImages(args: {
         }
     }
     // send the event
-    const ps = [];
     for (const event of eventsToSend) {
-        ps.push(pool.sendEvent(event));
+        const err = await pool.sendEvent(event);
+        if (err instanceof Error) {
+            return err;
+        }
     }
-    return waitAll ? Promise.all(ps) : Promise.race(ps);
+    return eventsToSend;
 }
 
 export async function sendSocialPost(args: {
@@ -83,7 +84,11 @@ export async function sendSocialPost(args: {
         ["lamport", String(lamport_timestamp)],
         ...tags,
     ], message);
-    return pool.sendEvent(event);
+    const err = await pool.sendEvent(event);
+    if (err instanceof Error) {
+        return err;
+    }
+    return event;
 }
 
 export function getAllEncryptedMessagesOf(

@@ -14,7 +14,13 @@ import { notify } from "./notification.ts";
 import { EventBus, EventEmitter } from "../event-bus.ts";
 import { ContactUpdate } from "./contact-list.tsx";
 import { MyProfileUpdate } from "./edit-profile.tsx";
-import { EditorEvent, new_DM_EditorModel } from "./editor.tsx";
+import {
+    DM_EditorModel,
+    EditorEvent,
+    new_DM_EditorModel,
+    SendMessage,
+    Social_EditorModel,
+} from "./editor.tsx";
 import { DirectMessagePanelUpdate } from "./message-panel.tsx";
 import { NavigationUpdate } from "./nav.tsx";
 import { Model } from "./app_model.ts";
@@ -210,44 +216,19 @@ export async function* UI_Interaction_Update(args: {
             if (!app.myAccountContext) {
                 throw new Error(`can't handle ${event.type} if not signed`);
             }
-            if (event.target.kind == NostrKind.DIRECT_MESSAGE) {
-                const err = await sendDMandImages({
-                    sender: app.myAccountContext,
-                    receiverPublicKey: event.target.receiver.pubkey,
-                    message: event.text,
-                    files: event.files,
-                    kind: event.target.kind,
-                    lamport_timestamp: app.lamport.now(),
-                    pool,
-                    waitAll: false,
-                    tags: event.tags,
-                });
-                if (err instanceof Error) {
-                    console.error("update:SendMessage", err);
-                    continue; // todo: global error toast
-                }
-                const editor = model.editors.get(event.id);
-                if (editor) {
-                    editor.files = [];
-                    editor.text = "";
-                }
-            } else {
-                sendSocialPost({
-                    sender: app.myAccountContext,
-                    message: event.text,
-                    lamport_timestamp: app.lamport.now(),
-                    pool,
-                    tags: event.tags,
-                });
-                if (event.id == "social") {
-                    model.social.editor.files = [];
-                    model.social.editor.text = "";
-                }
-                const editor = model.social.replyEditors.get(event.id);
-                if (editor) {
-                    editor.files = [];
-                    editor.text = "";
-                }
+            const err = await handle_SendMessage(
+                event,
+                app.myAccountContext,
+                app.lamport,
+                pool,
+                app.model.editors,
+                app.model.social.editor,
+                app.model.social.replyEditors,
+                app.database,
+            );
+            if (err instanceof Error) {
+                console.error("update:SendMessage", err);
+                continue; // todo: global error toast
             }
         } else if (event.type == "UpdateMessageFiles") {
             if (event.target.kind == NostrKind.DIRECT_MESSAGE) {
@@ -690,5 +671,62 @@ function InsertNewProfileField(model: Model) {
             key: "",
             value: "",
         };
+    }
+}
+
+export async function handle_SendMessage(
+    event: SendMessage,
+    ctx: NostrAccountContext,
+    lamport: LamportTime,
+    pool: ConnectionPool,
+    dmEditors: Map<string, DM_EditorModel>,
+    socialEditor: Social_EditorModel,
+    replyEditors: Map<string, Social_EditorModel>,
+    db: Database_Contextual_View,
+) {
+    if (event.target.kind == NostrKind.DIRECT_MESSAGE) {
+        const events = await sendDMandImages({
+            sender: ctx,
+            receiverPublicKey: event.target.receiver.pubkey,
+            message: event.text,
+            files: event.files,
+            kind: event.target.kind,
+            lamport_timestamp: lamport.now(),
+            pool,
+            tags: event.tags,
+        });
+        if (events instanceof Error) {
+            return events;
+        }
+        // todo: DM reader should decrypt and verify the event
+        // for (const eventSent of events) {
+        //     await db.addEvent(eventSent);
+        // }
+        const editor = dmEditors.get(event.id);
+        if (editor) {
+            editor.files = [];
+            editor.text = "";
+        }
+    } else {
+        const eventSent = await sendSocialPost({
+            sender: ctx,
+            message: event.text,
+            lamport_timestamp: lamport.now(),
+            pool,
+            tags: event.tags,
+        });
+        if (eventSent instanceof Error) {
+            return eventSent;
+        }
+        await db.addEvent(eventSent);
+        if (event.id == "social") {
+            socialEditor.files = [];
+            socialEditor.text = "";
+        }
+        const editor = replyEditors.get(event.id);
+        if (editor) {
+            editor.files = [];
+            editor.text = "";
+        }
     }
 }
