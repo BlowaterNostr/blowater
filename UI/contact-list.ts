@@ -5,9 +5,11 @@ import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nost
 import {
     CustomAppData,
     CustomAppData_Event,
+    DirectedMessage_Event,
+    Encrypted_Event,
     getTags,
-    PlainText_Nostr_Event,
     Profile_Nostr_Event,
+    Text_Note_Event,
 } from "../nostr.ts";
 
 export interface UserInfo {
@@ -19,7 +21,7 @@ export interface UserInfo {
         readonly created_at: number;
         readonly content: CustomAppData;
     } | undefined;
-    events: PlainText_Nostr_Event[];
+    events: DirectedMessage_Event[];
 }
 
 export function getUserInfoFromPublicKey(k: PublicKey, users: Map<string, UserInfo>) {
@@ -32,7 +34,7 @@ export class AllUsersInformation {
 
     constructor(public readonly ctx: NostrAccountContext) {}
 
-    addEvents(events: (Profile_Nostr_Event | PlainText_Nostr_Event | CustomAppData_Event)[]) {
+    addEvents(events: (Profile_Nostr_Event | Text_Note_Event | Encrypted_Event)[]) {
         // const t = Date.now();
         for (const event of events) {
             switch (event.kind) {
@@ -63,12 +65,9 @@ export class AllUsersInformation {
                     break;
                 case NostrKind.TEXT_NOTE:
                     break;
-                case NostrKind.RECOMMED_SERVER:
-                    break;
-                case NostrKind.CONTACTS:
-                    break;
                 case NostrKind.DIRECT_MESSAGE:
                     {
+                        console.log(event)
                         let whoAm_I_TalkingTo = "";
                         if (event.pubkey == this.ctx.publicKey.hex) {
                             // I am the sender
@@ -140,8 +139,6 @@ export class AllUsersInformation {
                             this.userInfos.set(whoAm_I_TalkingTo, newUserInfo);
                         }
                     }
-                    break;
-                case NostrKind.DELETE:
                     break;
                 case NostrKind.CustomAppData: {
                     const obj = event.customAppData;

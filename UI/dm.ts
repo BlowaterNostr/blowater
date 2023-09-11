@@ -1,9 +1,10 @@
 import { NostrEvent } from "../lib/nostr-ts/nostr.ts";
 import {
+    DirectedMessage_Event,
     getTags,
     groupImageEvents,
-    PlainText_Nostr_Event,
     reassembleBase64ImageFromEvents,
+    Text_Note_Event,
 } from "../nostr.ts";
 import { ChatMessage } from "./message.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
@@ -22,7 +23,7 @@ export type DM_Container_Model = {
 };
 
 export function convertEventsToChatMessages(
-    events: Iterable<PlainText_Nostr_Event>,
+    events: Iterable<DirectedMessage_Event>,
     userProfiles: Map<string, UserInfo>,
 ): ChatMessage[] {
     const messages: ChatMessage[] = [];

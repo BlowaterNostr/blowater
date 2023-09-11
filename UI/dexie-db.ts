@@ -22,6 +22,10 @@ export class DexieDatabase extends dexie.Dexie implements EventsAdapter {
     async put(e: NostrEvent<NostrKind, Tag>): Promise<void> {
         this.events.put(e);
     }
+
+    async remove(id: string) {
+        this.events.delete(id)
+    }
 }
 
 export function NewIndexedDB(): DexieDatabase | Error {

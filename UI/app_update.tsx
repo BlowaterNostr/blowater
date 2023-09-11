@@ -33,10 +33,11 @@ import { SignInEvent, signInWithExtension, signInWithPrivateKey } from "./signIn
 import {
     computeThreads,
     CustomAppData_Event,
+    Encrypted_Event,
     getTags,
     PinContact,
-    PlainText_Nostr_Event,
     Profile_Nostr_Event,
+    Text_Note_Event,
     UnpinContact,
 } from "../nostr.ts";
 import { MessageThread } from "./dm.tsx";
@@ -108,6 +109,9 @@ export async function* UI_Interaction_Update(args: {
                 if (ctx) {
                     console.log("sign in as", ctx.publicKey.bech32());
                     const dbView = await Database_Contextual_View.New(dexieDB, ctx);
+                    if (dbView instanceof Error) {
+                        throw dbView;
+                    }
                     const lamport = fromEvents(dbView.filterEvents((_) => true));
                     const app = new App(dbView, lamport, model, ctx, eventBus, pool, args.popOver);
                     const err = await app.initApp(ctx, pool);
@@ -503,7 +507,7 @@ export async function* Database_Update(
     while (true) {
         await csp.sleep(333);
         await changes.ready();
-        const changes_events: (PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event)[] = [];
+        const changes_events: (Text_Note_Event | Encrypted_Event | Profile_Nostr_Event)[] = [];
         while (true) {
             if (!changes.isReadyToPop()) {
                 break;

@@ -28,7 +28,52 @@ type Tags = {
 } & nostr.Tags;
 
 type Event = nostr.NostrEvent<NostrKind, Tag>;
-type UnsignedEvent = nostr.UnsignedNostrEvent<NostrKind, Tag>;
+
+export type parsedTagsEvent<Kind extends NostrKind = NostrKind> = nostr.NostrEvent<Kind> & {
+    readonly parsedTags: Tags;
+};
+
+export type Parsed_Event<Kind extends NostrKind = NostrKind> = parsedTagsEvent<Kind> & {
+    readonly publicKey: PublicKey;
+};
+
+// content is either JSON, encrypted or other format that's should not be rendered directly
+export type Encrypted_Kind = NostrKind.CustomAppData | NostrKind.DIRECT_MESSAGE;
+export type Non_Plain_Text_Kind = Encrypted_Kind | NostrKind.META_DATA;
+
+export type Text_Note_Event = Parsed_Event<NostrKind.TEXT_NOTE> & {
+    parsedContentItems: ContentItem[];
+};
+
+export type Profile_Nostr_Event = Parsed_Event<NostrKind.META_DATA> & {
+    profile: ProfileData;
+};
+
+export type CustomAppData_Event = Parsed_Event<NostrKind.CustomAppData> & {
+    readonly customAppData: CustomAppData;
+};
+
+export type DirectedMessage_Event = Parsed_Event<NostrKind.DIRECT_MESSAGE> & {
+    decryptedContent: string;
+    parsedContentItems: ContentItem[];
+};
+export type Encrypted_Event = DirectedMessage_Event | CustomAppData_Event;
+
+export type CustomAppData = PinContact | UnpinContact | UserLogin;
+
+export type PinContact = {
+    type: "PinContact";
+    pubkey: string;
+};
+
+export type UnpinContact = {
+    type: "UnpinContact";
+    pubkey: string;
+};
+
+export type UserLogin = {
+    type: "UserLogin";
+};
 
 export function getTags(event: Event): Tags {
     const tags: Tags = {
@@ -88,7 +133,7 @@ export async function prepareNostrImageEvent(
     }
 
     const GroupLeadEventID = PrivateKey.Generate().hex;
-    const event: UnsignedEvent = {
+    const event: nostr.UnsignedNostrEvent = {
         created_at: Math.floor(Date.now() / 1000),
         kind: kind,
         pubkey: sender.publicKey.hex,
@@ -208,9 +253,6 @@ export async function prepareReplyEvent(
     );
 }
 
-export type parsedTagsEvent<Kind extends NostrKind = NostrKind> = nostr.NostrEvent<Kind> & {
-    readonly parsedTags: Tags;
-};
 export function compare(a: parsedTagsEvent, b: parsedTagsEvent) {
     if (a.parsedTags.lamport_timestamp && b.parsedTags.lamport_timestamp) {
         return a.parsedTags.lamport_timestamp - b.parsedTags.lamport_timestamp;
@@ -218,10 +260,6 @@ export function compare(a: parsedTagsEvent, b: parsedTagsEvent) {
     return a.created_at - b.created_at;
 }
 
-export type Parsed_Event<Kind extends NostrKind = NostrKind> = nostr.NostrEvent<Kind> & {
-    readonly parsedTags: Tags;
-    readonly publicKey: PublicKey;
-};
 export function computeThreads<T extends parsedTagsEvent>(events: T[]) {
     events.sort(compare);
     const idsMap = new Map<string, T>();
@@ -278,35 +316,3 @@ export function computeThreads<T extends parsedTagsEvent>(events: T[]) {
 
     return Array.from(resMap.values());
 }
-
-export type PlainText_Nostr_Event =
-    & Parsed_Event<
-        Exclude<NostrKind, NostrKind.CustomAppData | NostrKind.META_DATA> // todo: exclude DM as well
-    >
-    & {
-        parsedContentItems: ContentItem[];
-    };
-
-export type Profile_Nostr_Event = Parsed_Event<NostrKind.META_DATA> & {
-    profile: ProfileData;
-};
-
-export type CustomAppData_Event = Parsed_Event<NostrKind.CustomAppData> & {
-    readonly customAppData: CustomAppData;
-};
-
-export type CustomAppData = PinContact | UnpinContact | UserLogin;
-
-export type PinContact = {
-    type: "PinContact";
-    pubkey: string;
-};
-
-export type UnpinContact = {
-    type: "UnpinContact";
-    pubkey: string;
-};
-
-export type UserLogin = {
-    type: "UserLogin";
-};

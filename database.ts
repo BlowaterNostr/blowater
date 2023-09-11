@@ -1,10 +1,13 @@
 import {
     CustomAppData,
     CustomAppData_Event,
+    DirectedMessage_Event,
+    Encrypted_Event,
+    Encrypted_Kind,
     getTags,
-    PlainText_Nostr_Event,
     Profile_Nostr_Event,
     Tag,
+    Text_Note_Event,
 } from "./nostr.ts";
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { parseProfileData } from "./features/profile.ts";
@@ -16,6 +19,8 @@ import {
     NostrEvent,
     NostrKind,
     RelayResponse_REQ_Message,
+    Tags,
+    verifyEvent,
 } from "./lib/nostr-ts/nostr.ts";
 import { PublicKey } from "./lib/nostr-ts/key.ts";
 
@@ -33,8 +38,8 @@ export interface EventsFilter {
     filter(f: (e: NostrEvent) => boolean): Promise<NostrEvent[]>;
 }
 
-export interface EventDeleter {
-    delete(id: string): void;
+export interface EventRemover {
+    remove(id: string): Promise<void>;
 }
 
 export interface EventGetter {
@@ -45,128 +50,45 @@ export interface EventPutter {
     put(e: NostrEvent): Promise<void>;
 }
 
-export type EventsAdapter = EventsFilter & EventDeleter & EventGetter & EventPutter;
+export type EventsAdapter = EventsFilter & EventRemover & EventGetter & EventPutter;
 
+type Accepted_Event = Text_Note_Event | Encrypted_Event | Profile_Nostr_Event;
 export class Database_Contextual_View {
-    private readonly sourceOfChange = csp.chan<
-        PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event
-    >(buffer_size);
-    private readonly caster = csp.multi<PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event>(
-        this.sourceOfChange,
-    );
+    private readonly sourceOfChange = csp.chan<Accepted_Event>(buffer_size);
+    private readonly caster = csp.multi<Accepted_Event>(this.sourceOfChange);
 
     static async New(eventsAdapter: EventsAdapter, ctx: NostrAccountContext) {
         const t = Date.now();
-
-        const onload: (NostrEvent)[] = await eventsAdapter.filter(
-            (e: NostrEvent) => {
-                return e.kind != NostrKind.CustomAppData;
-            },
-        );
-        console.log("Database_Contextual_View:onload", Date.now() - t);
-        const cache: (PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event)[] = [];
-        for await (const event of onload) {
-            const pubkey = PublicKey.FromHex(event.pubkey);
-            if (pubkey instanceof Error) {
-                console.error(pubkey);
-                continue;
-            }
-            switch (event.kind) {
-                case NostrKind.META_DATA:
-                    {
-                        const profileData = parseProfileData(event.content);
-                        if (profileData instanceof Error) {
-                            console.error(profileData);
-                            console.log("Database:delete", event.id);
-                            eventsAdapter.delete(event.id);
-                            continue;
-                        }
-                        const e: Profile_Nostr_Event = {
-                            ...event,
-                            kind: event.kind,
-                            parsedTags: getTags(event),
-                            profile: profileData,
-                            publicKey: pubkey,
-                        };
-                        cache.push(e);
-                    }
-                    break;
-                case NostrKind.TEXT_NOTE:
-                case NostrKind.RECOMMED_SERVER:
-                case NostrKind.CONTACTS:
-                case NostrKind.DIRECT_MESSAGE:
-                case NostrKind.DELETE:
-                    {
-                        const e: PlainText_Nostr_Event = {
-                            content: event.content,
-                            created_at: event.created_at,
-                            id: event.id,
-                            kind: event.kind,
-                            pubkey: event.pubkey,
-                            sig: event.sig,
-                            tags: event.tags,
-                            parsedTags: getTags(event),
-                            publicKey: pubkey,
-                            parsedContentItems: Array.from(parseContent(event.content)),
-                        };
-                        cache.push(e);
-                    }
-                    break;
-                case NostrKind.CustomAppData:
-                    // ignore
-                    break;
-            }
+        const allEvents = await eventsAdapter.filter((_) => true);
+        const initialEvents = await loadInitialData(allEvents, ctx);
+        if (initialEvents instanceof Error) {
+            return initialEvents;
         }
+        console.log("Database_Contextual_View:onload", Date.now() - t);
         const db = new Database_Contextual_View(
             eventsAdapter,
-            cache,
+            initialEvents,
             ctx,
         );
 
+        // async loading of encrypted events
         (async () => {
             let tt = 0;
-            const events: NostrEvent[] = await eventsAdapter.filter(
-                (e: NostrEvent) => {
-                    return e.kind == NostrKind.CustomAppData;
-                },
-            );
-            for (const event of events) {
-                const pubkey = PublicKey.FromHex(event.pubkey);
-                if (pubkey instanceof Error) {
-                    console.error(pubkey);
+            for (const event of allEvents) {
+                const parsedEvent = await originalEventToParsedEvent(event, ctx, eventsAdapter);
+                if (parsedEvent instanceof Error) {
+                    console.error(parsedEvent);
+                    await eventsAdapter.remove(event.id)
                     continue;
                 }
-                if (event.kind == NostrKind.CustomAppData) {
-                    // @ts-ignore
-                    const e = await transformEvent(event, ctx);
-
-                    if (e == undefined) {
-                        continue;
-                    }
-                    if (e instanceof Error) {
-                        console.log("Database:delete", event.id);
-                        eventsAdapter.delete(event.id);
-                        continue;
-                    }
-                    cache.push(e);
-                    await db.sourceOfChange.put(e);
-                } else {
-                    const e: PlainText_Nostr_Event = {
-                        content: event.content,
-                        created_at: event.created_at,
-                        id: event.id,
-                        // @ts-ignore
-                        kind: event.kind,
-                        pubkey: event.pubkey,
-                        sig: event.sig,
-                        tags: event.tags,
-                        parsedTags: getTags(event),
-                        publicKey: pubkey,
-                        parsedContentItems: Array.from(parseContent(event.content)),
-                    };
-                    cache.push(e);
-                    await db.sourceOfChange.put(e);
+                if (parsedEvent == false) {
+                    continue;
                 }
+
+                // add event to database and notify subscribers
+                db.events.push(parsedEvent);
+                await eventsAdapter.put(event);
+                /* not await */ db.sourceOfChange.put(parsedEvent);
             }
             console.log("Database_Contextual_View:transformEvent", tt);
         })();
@@ -177,7 +99,7 @@ export class Database_Contextual_View {
 
     private constructor(
         private readonly eventsAdapter: EventsAdapter,
-        public readonly events: (PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event)[],
+        public readonly events: (Text_Note_Event | Encrypted_Event | Profile_Nostr_Event)[],
         private readonly ctx: NostrAccountContext,
     ) {}
 
@@ -191,87 +113,53 @@ export class Database_Contextual_View {
     };
 
     async addEvent(event: NostrEvent) {
+        // check if the event exists
         const storedEvent = await this.getEvent({ id: event.id });
         if (storedEvent) { // event exist
             return false;
         }
-        // todo: verify event
-        const pubkey = PublicKey.FromHex(event.pubkey);
-        if (pubkey instanceof Error) {
-            console.error(pubkey);
-            return false;
+
+        const ok = await verifyEvent(event);
+        if (!ok) {
+            return ok;
         }
 
-        console.log("Database.addEvent", event.id);
-        let e: PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event;
-        if (event.kind == NostrKind.CustomAppData) {
-            const _e = await transformEvent({
-                content: event.content,
-                created_at: event.created_at,
-                id: event.id,
-                kind: event.kind,
-                pubkey: event.pubkey,
-                sig: event.sig,
-                tags: event.tags,
-            }, this.ctx);
-            if (_e == undefined) {
-                return false;
-            }
-            if (_e instanceof Error) {
-                console.log("Database:delete", event.id);
-                this.eventsAdapter.delete(event.id); // todo: remove
-                return false;
-            }
-            e = _e;
-        } else {
-            if (event.kind == NostrKind.META_DATA) {
-                const profileData = parseProfileData(event.content);
-                if (profileData instanceof Error) {
-                    return false;
-                }
-                e = {
-                    ...event,
-                    kind: event.kind,
-                    profile: profileData,
-                    parsedTags: getTags(event),
-                    publicKey: pubkey,
-                };
-            } else {
-                e = {
-                    content: event.content,
-                    created_at: event.created_at,
-                    id: event.id,
-                    kind: event.kind,
-                    pubkey: event.pubkey,
-                    sig: event.sig,
-                    tags: event.tags,
-                    parsedTags: getTags(event),
-                    publicKey: pubkey,
-                    parsedContentItems: Array.from(parseContent(event.content)),
-                };
-            }
+        // parse the event to desired format
+        const parsedEvent = await originalEventToParsedEvent(event, this.ctx, this.eventsAdapter);
+        if (parsedEvent instanceof Error) {
+            return parsedEvent;
         }
-        this.events.push(e);
+        if (parsedEvent == false) {
+            return parsedEvent;
+        }
+
+        // add event to database and notify subscribers
+        console.log("Database.addEvent", event.id);
+        this.events.push(parsedEvent);
         await this.eventsAdapter.put(event);
-        /* not await */ this.sourceOfChange.put(e);
-        return e;
+        /* not await */ this.sourceOfChange.put(parsedEvent);
+        return parsedEvent;
     }
 
     syncEvents(
         filter: (e: NostrEvent) => boolean,
-        events: csp.Channel<[NostrEvent, string /*relay url*/]>,
+        events: csp.Channel<{event: NostrEvent, url: string /*relay url*/}>,
     ): csp.Channel<NostrEvent> {
         const resChan = csp.chan<NostrEvent>(buffer_size);
         (async () => {
-            for await (const [e, url] of events) {
+            for await (const {event, url} of events) {
                 if (resChan.closed()) {
                     await events.close(
                         "db syncEvents, resChan is closed, closing the source events",
                     );
                     return;
                 }
+                const e = event;
                 if (filter(e)) {
-                    await this.addEvent(e);
+                    const res = await this.addEvent(e);
+                    if(res instanceof Error || res == false) {
+                        console.error(res)
+                    }
                 } else {
                     console.log(
                         "event",
@@ -288,71 +176,71 @@ export class Database_Contextual_View {
         return resChan;
     }
 
-    async syncNewDirectMessageEventsOf(
-        accountContext: NostrAccountContext,
-        msgs: csp.Channel<{ res: RelayResponse_REQ_Message; url: string }>,
-    ): Promise<csp.Channel<NostrEvent | DecryptionFailure>> {
-        const resChan = csp.chan<NostrEvent | DecryptionFailure>(buffer_size);
-        const publicKey = accountContext.publicKey;
-        (async () => {
-            for await (const { res: msg, url } of msgs) {
-                if (msg.type !== "EVENT") {
-                    continue;
-                }
-                const encryptedEvent = msg.event;
-                const theirPubKey = whoIamTalkingTo(encryptedEvent, publicKey);
-                if (theirPubKey instanceof Error) {
-                    // this could happen if the user send an event without p tag
-                    // because the application is subscribing all events send by the user
-                    console.warn(theirPubKey);
-                    continue;
-                }
+    // async syncNewDirectMessageEventsOf(
+    //     accountContext: NostrAccountContext,
+    //     msgs: csp.Channel<{ res: RelayResponse_REQ_Message; url: string }>,
+    // ): Promise<csp.Channel<NostrEvent | DecryptionFailure>> {
+    //     const resChan = csp.chan<NostrEvent | DecryptionFailure>(buffer_size);
+    //     const publicKey = accountContext.publicKey;
+    //     (async () => {
+    //         for await (const { res: msg, url } of msgs) {
+    //             if (msg.type !== "EVENT") {
+    //                 continue;
+    //             }
+    //             const encryptedEvent = msg.event;
+    //             const theirPubKey = whoIamTalkingTo(encryptedEvent, publicKey);
+    //             if (theirPubKey instanceof Error) {
+    //                 // this could happen if the user send an event without p tag
+    //                 // because the application is subscribing all events send by the user
+    //                 console.warn(theirPubKey);
+    //                 continue;
+    //             }
 
-                const decryptedEvent = await decryptNostrEvent(
-                    encryptedEvent,
-                    accountContext,
-                    theirPubKey,
-                );
-                if (decryptedEvent instanceof DecryptionFailure) {
-                    resChan.put(decryptedEvent).then(async (res) => {
-                        if (res instanceof csp.PutToClosedChannelError) {
-                            await msgs.close(
-                                "resChan has been closed, closing the source chan",
-                            );
-                        }
-                    });
-                    continue;
-                }
-                const storedEvent = await this.getEvent({
-                    id: encryptedEvent.id,
-                });
-                if (storedEvent === undefined) {
-                    try {
-                        await this.addEvent(decryptedEvent);
-                    } catch (e) {
-                        console.log(e.message);
-                    }
-                    resChan.put(decryptedEvent).then(async (res) => {
-                        if (res instanceof csp.PutToClosedChannelError) {
-                            await msgs.close(
-                                "resChan has been closed, closing the source chan",
-                            );
-                        }
-                    });
-                }
-                // else do nothing
-            }
-            await resChan.close("source chan is clsoed, closing the resChan");
-        })();
-        return resChan;
-    }
+    //             const decryptedEvent = await decryptNostrEvent(
+    //                 encryptedEvent,
+    //                 accountContext,
+    //                 theirPubKey,
+    //             );
+    //             if (decryptedEvent instanceof DecryptionFailure) {
+    //                 resChan.put(decryptedEvent).then(async (res) => {
+    //                     if (res instanceof csp.PutToClosedChannelError) {
+    //                         await msgs.close(
+    //                             "resChan has been closed, closing the source chan",
+    //                         );
+    //                     }
+    //                 });
+    //                 continue;
+    //             }
+    //             const storedEvent = await this.getEvent({
+    //                 id: encryptedEvent.id,
+    //             });
+    //             if (storedEvent === undefined) {
+    //                 try {
+    //                     await this.addEvent(decryptedEvent);
+    //                 } catch (e) {
+    //                     console.log(e.message);
+    //                 }
+    //                 resChan.put(decryptedEvent).then(async (res) => {
+    //                     if (res instanceof csp.PutToClosedChannelError) {
+    //                         await msgs.close(
+    //                             "resChan has been closed, closing the source chan",
+    //                         );
+    //                     }
+    //                 });
+    //             }
+    //             // else do nothing
+    //         }
+    //         await resChan.close("source chan is clsoed, closing the resChan");
+    //     })();
+    //     return resChan;
+    // }
 
     //////////////////
     // On DB Change //
     //////////////////
-    subscribe(filter?: (e: PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event) => boolean) {
+    subscribe(filter?: (e: Accepted_Event) => boolean) {
         const c = this.caster.copy();
-        const res = csp.chan<PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event>(buffer_size);
+        const res = csp.chan<Accepted_Event>(buffer_size);
         (async () => {
             for await (const newE of c) {
                 if (filter == undefined || filter(newE)) {
@@ -415,7 +303,10 @@ export function whoIamTalkingTo(event: NostrEvent, myPublicKey: PublicKey) {
     return whoIAmTalkingTo;
 }
 
-export async function transformEvent(event: NostrEvent<NostrKind.CustomAppData>, ctx: NostrAccountContext) {
+export async function parseCustomAppDataEvent(
+    event: NostrEvent<NostrKind.CustomAppData>,
+    ctx: NostrAccountContext,
+) {
     if (event.pubkey == ctx.publicKey.hex) { // if I am the author
         const decrypted = await ctx.decrypt(ctx.publicKey.hex, event.content);
         if (decrypted instanceof Error) {
@@ -442,5 +333,142 @@ export async function transformEvent(event: NostrEvent<NostrKind.CustomAppData>,
             };
             return e;
         }
+    }
+}
+
+async function loadInitialData(events: NostrEvent[], ctx: NostrAccountContext) {
+    const initialEvents: (Text_Note_Event | Profile_Nostr_Event)[] = [];
+    for await (const event of events) {
+        if (event.kind == NostrKind.META_DATA || event.kind == NostrKind.TEXT_NOTE) {
+            const pubkey = PublicKey.FromHex(event.pubkey);
+            if (pubkey instanceof Error) {
+                return pubkey;
+            }
+            const parsedEvent = originalEventToUnencryptedEvent(
+                {
+                    ...event,
+                    kind: event.kind,
+                },
+                getTags(event),
+                pubkey,
+            );
+            if (parsedEvent instanceof Error) {
+                return parsedEvent;
+            }
+            initialEvents.push(parsedEvent);
+        }
+    }
+    return initialEvents;
+}
+
+async function originalEventToParsedEvent(
+    event: NostrEvent,
+    ctx: NostrAccountContext,
+    eventsAdapter: EventRemover,
+) {
+    const publicKey = PublicKey.FromHex(event.pubkey);
+    if (publicKey instanceof Error) {
+        return publicKey;
+    }
+
+    const parsedTags = getTags(event);
+    let e: Text_Note_Event | Encrypted_Event | Profile_Nostr_Event;
+    if (event.kind == NostrKind.CustomAppData || event.kind == NostrKind.DIRECT_MESSAGE) {
+        const _e = await originalEventToEncryptedEvent(
+            {
+                ...event,
+                kind: event.kind,
+            },
+            ctx,
+            parsedTags,
+            publicKey,
+            eventsAdapter,
+        );
+        if (_e instanceof Error || _e == false) {
+            return _e;
+        }
+        e = _e;
+    } else if (event.kind == NostrKind.META_DATA || event.kind == NostrKind.TEXT_NOTE) {
+        const _e = originalEventToUnencryptedEvent(
+            {
+                ...event,
+                kind: event.kind,
+            },
+            parsedTags,
+            publicKey,
+        );
+        if (_e instanceof Error) {
+            return _e;
+        }
+        e = _e;
+    } else {
+        return new Error(`currently not accepting kind ${event.kind}`);
+    }
+    return e;
+}
+
+function originalEventToUnencryptedEvent(
+    event: NostrEvent<NostrKind.META_DATA | NostrKind.TEXT_NOTE>,
+    parsedTags: Tags,
+    publicKey: PublicKey,
+) {
+    if (event.kind == NostrKind.META_DATA) {
+        const profileData = parseProfileData(event.content);
+        if (profileData instanceof Error) {
+            return profileData;
+        }
+        return {
+            ...event,
+            kind: event.kind,
+            profile: profileData,
+            parsedTags,
+            publicKey,
+        };
+    }
+    {
+        return {
+            ...event,
+            kind: event.kind,
+            parsedTags,
+            publicKey,
+            parsedContentItems: Array.from(parseContent(event.content)),
+        };
+    }
+}
+
+async function originalEventToEncryptedEvent(
+    event: NostrEvent<Encrypted_Kind>,
+    ctx: NostrAccountContext,
+    parsedTags: Tags,
+    publicKey: PublicKey,
+    eventsAdapter: EventRemover,
+): Promise<Encrypted_Event | Error | false> {
+    if (event.kind == NostrKind.CustomAppData) {
+        const _e = await parseCustomAppDataEvent({
+            ...event,
+            kind: event.kind,
+        }, ctx);
+        if (_e == undefined) {
+            return false;
+        }
+        if (_e instanceof Error) {
+            console.log("Database:delete", event.id);
+            eventsAdapter.remove(event.id); // todo: remove
+            return _e;
+        }
+        return _e;
+    } else {
+        const decrypted = await ctx.decrypt(ctx.publicKey.hex, event.content);
+        if (decrypted instanceof Error) {
+            return decrypted;
+        }
+        return {
+            ...event,
+            kind: event.kind,
+            parsedTags,
+            publicKey,
+            decryptedContent: decrypted,
+            parsedContentItems: Array.from(parseContent(event.content)),
+        };
     }
 }
