@@ -105,7 +105,7 @@ export type ContentItem = {
     pubkey: string;
     start: number;
     end: number;
-    relays?: string[] | undefined;
+    relays?: string[] ;
 } | {
     type: "note";
     noteID: NoteID;
