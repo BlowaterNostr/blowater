@@ -83,7 +83,11 @@ export async function sendSocialPost(args: {
         ["lamport", String(lamport_timestamp)],
         ...tags,
     ], message);
-    return pool.sendEvent(event);
+    const err = await pool.sendEvent(event);
+    if (err instanceof Error) {
+        return err;
+    }
+    return event;
 }
 
 export function getAllEncryptedMessagesOf(

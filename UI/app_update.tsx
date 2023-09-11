@@ -224,6 +224,7 @@ export async function* UI_Interaction_Update(args: {
                 app.model.editors,
                 app.model.social.editor,
                 app.model.social.replyEditors,
+                app.database,
             );
             if (err instanceof Error) {
                 console.error("update:SendMessage", err);
@@ -681,6 +682,7 @@ export async function handle_SendMessage(
     dmEditors: Map<string, DM_EditorModel>,
     socialEditor: Social_EditorModel,
     replyEditors: Map<string, Social_EditorModel>,
+    db: Database_Contextual_View,
 ) {
     if (event.target.kind == NostrKind.DIRECT_MESSAGE) {
         const err = await sendDMandImages({
@@ -703,13 +705,17 @@ export async function handle_SendMessage(
             editor.text = "";
         }
     } else {
-        sendSocialPost({
+        const eventSent = await sendSocialPost({
             sender: ctx,
             message: event.text,
             lamport_timestamp: lamport.now(),
             pool,
             tags: event.tags,
         });
+        if (eventSent instanceof Error) {
+            return eventSent;
+        }
+        await db.addEvent(eventSent);
         if (event.id == "social") {
             socialEditor.files = [];
             socialEditor.text = "";

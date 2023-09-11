@@ -14,58 +14,43 @@ import { ProfilesSyncer } from "../features/profile.ts";
 import { handle_SendMessage } from "./app_update.tsx";
 import { LamportTime } from "../time.ts";
 import { initialModel } from "./app_model.ts";
+import { relays } from "../lib/nostr-ts/relay-list.test.ts";
 
 const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
 const database = await Database_Contextual_View.New(testEventsAdapter, ctx);
-const lamport = new LamportTime(0)
+const lamport = new LamportTime(0);
 
 await database.addEvent(await prepareNormalNostrEvent(ctx, NostrKind.TEXT_NOTE, [], `hi`));
 await database.addEvent(await prepareNormalNostrEvent(ctx, NostrKind.TEXT_NOTE, [], `hi 2`));
 await database.addEvent(await prepareNormalNostrEvent(ctx, NostrKind.TEXT_NOTE, [], `hi 3`));
 const allUserInfo = new AllUsersInformation(ctx);
-const threads = getSocialPosts(database, allUserInfo.userInfos);
-console.log(database.events, threads);
 const pool = new ConnectionPool();
+const model = initialModel();
+pool.addRelayURL(relays[0]);
 
-let vdom = (
-    <MessagePanel
-        allUserInfo={allUserInfo.userInfos}
-        db={database}
-        editorModel={{
-            files: [],
-            id: "",
-            tags: [],
-            target: {
-                kind: NostrKind.TEXT_NOTE,
-            },
-            text: "",
-        }}
-        eventSyncer={new EventSyncer(pool, database)}
-        focusedContent={{
-            editor: {
-                files: [],
-                id: "",
-                tags: [],
-                target: {
-                    kind: NostrKind.TEXT_NOTE,
-                },
-                text: "",
-            },
-            type: "MessageThread",
-            data: threads[0],
-        }}
-        myPublicKey={ctx.publicKey}
-        profilesSyncer={new ProfilesSyncer(database, pool)}
-        eventEmitter={testEventBus}
-        messages={threads}
-        rightPanelModel={{
-            show: true,
-        }}
-    />
-);
+const view = () => {
+    const threads = getSocialPosts(database, allUserInfo.userInfos);
+    console.log(database.events, threads);
+    return (
+        <MessagePanel
+            allUserInfo={allUserInfo.userInfos}
+            db={database}
+            editorModel={model.social.editor}
+            eventSyncer={new EventSyncer(pool, database)}
+            focusedContent={undefined}
+            myPublicKey={ctx.publicKey}
+            profilesSyncer={new ProfilesSyncer(database, pool)}
+            eventEmitter={testEventBus}
+            messages={threads}
+            rightPanelModel={{
+                show: true,
+            }}
+        />
+    );
+};
 
-render(vdom, document.body);
-const model = initialModel()
+render(view(), document.body);
+
 for await (const e of testEventBus.onChange()) {
     console.log(e);
     if (e.type == "SendMessage") {
@@ -77,10 +62,14 @@ for await (const e of testEventBus.onChange()) {
             model.editors,
             model.social.editor,
             model.social.replyEditors,
+            database,
         );
         if (err instanceof Error) {
             console.error("update:SendMessage", err);
             continue; // todo: global error toast
         }
+    } else if (e.type == "UpdateMessageText") {
+        model.social.editor.text = e.text;
     }
+    render(view(), document.body);
 }
