@@ -449,6 +449,7 @@ export function getConversationMessages(args: {
     const msgs: MessageThread[] = [];
     for (const thread of threads) {
         const messages = convertEventsToChatMessages(thread, allUserInfo);
+        console.log(messages);
         if (messages.length > 0) {
             messages.sort((m1, m2) => {
                 if (m1.lamport && m2.lamport && m1.lamport != m2.lamport) {
