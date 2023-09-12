@@ -4,7 +4,6 @@ import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nost
 
 import {
     CustomAppData,
-    CustomAppData_Event,
     DirectedMessage_Event,
     Encrypted_Event,
     getTags,

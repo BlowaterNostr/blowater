@@ -4,7 +4,6 @@ import {
     getTags,
     groupImageEvents,
     reassembleBase64ImageFromEvents,
-    Text_Note_Event,
 } from "../nostr.ts";
 import { ChatMessage } from "./message.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";

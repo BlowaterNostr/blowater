@@ -1,8 +1,8 @@
 import { testEventsAdapter } from "./UI/_setup.test.ts";
-import { Database_Contextual_View, EventsAdapter, Indices } from "./database.ts";
+import { Database_Contextual_View } from "./database.ts";
 import { prepareNormalNostrEvent } from "./lib/nostr-ts/event.ts";
 import { PrivateKey } from "./lib/nostr-ts/key.ts";
-import { InMemoryAccountContext, NostrEvent, NostrKind } from "./lib/nostr-ts/nostr.ts";
+import { InMemoryAccountContext, NostrEvent } from "./lib/nostr-ts/nostr.ts";
 import { assertEquals, fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 
 const ctx = InMemoryAccountContext.New(PrivateKey.Generate());

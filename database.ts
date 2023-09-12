@@ -1,9 +1,7 @@
 import {
     CustomAppData,
     CustomAppData_Event,
-    DirectedMessage_Event,
     Encrypted_Event,
-    Encrypted_Kind,
     getTags,
     Profile_Nostr_Event,
     Tag,
@@ -12,16 +10,7 @@ import {
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { parseProfileData } from "./features/profile.ts";
 import { parseContent } from "./UI/message.ts";
-import {
-    DecryptionFailure,
-    decryptNostrEvent,
-    NostrAccountContext,
-    NostrEvent,
-    NostrKind,
-    RelayResponse_REQ_Message,
-    Tags,
-    verifyEvent,
-} from "./lib/nostr-ts/nostr.ts";
+import { NostrAccountContext, NostrEvent, NostrKind, Tags, verifyEvent } from "./lib/nostr-ts/nostr.ts";
 import { PublicKey } from "./lib/nostr-ts/key.ts";
 
 export const NotFound = Symbol("Not Found");

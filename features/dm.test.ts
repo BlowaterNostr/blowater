@@ -1,7 +1,7 @@
 import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { testEventsAdapter } from "../UI/_setup.test.ts";
 import { Database_Contextual_View } from "../database.ts";
-import { PrivateKey, PublicKey } from "../lib/nostr-ts/key.ts";
+import { PrivateKey } from "../lib/nostr-ts/key.ts";
 import { InMemoryAccountContext } from "../lib/nostr-ts/nostr.ts";
 import { relays } from "../lib/nostr-ts/relay-list.test.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
@@ -21,11 +21,7 @@ const messageStream = getAllEncryptedMessagesOf(
     ctx.publicKey,
     pool,
 );
-// database.syncNewDirectMessageEventsOf(
-//     accountContext,
-//     messageStream,
-// );
-// database.syncEvents(_=>true, messageStream)
+
 (async () => {
     for await (const msg of messageStream) {
         if (msg.res.type == "EVENT") {

@@ -122,11 +122,7 @@ async function initProfileSyncer(
         myPublicKey,
         pool,
     );
-    // database.syncNewDirectMessageEventsOf(
-    //     accountContext,
-    //     messageStream,
-    // );
-    // database.syncEvents(_=>true, messageStream)
+
     (async () => {
         for await (const msg of messageStream) {
             if (msg.res.type == "EVENT") {
