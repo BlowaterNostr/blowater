@@ -3,7 +3,7 @@ import { MessageThread } from "./dm.tsx";
 import { DirectedMessage_Event, Text_Note_Event } from "../nostr.ts";
 import { NostrProfile, NoteID } from "../lib/nostr-ts/nip19.ts";
 
-export function* parseContenttent(content: string) {
+export function* parseContent(content: string) {
     // URLs
     yield* match(/https?:\/\/[^\s]+/g, content, "url");
 
