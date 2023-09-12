@@ -19,6 +19,9 @@ import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 
 const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
 const database = await Database_Contextual_View.New(testEventsAdapter, ctx);
+if (database instanceof Error) {
+    fail(database.message);
+}
 const lamport = new LamportTime(0);
 
 const e = await database.addEvent(
@@ -26,7 +29,7 @@ const e = await database.addEvent(
         ["p", ctx.publicKey.hex],
     ], "hi") as NostrEvent,
 );
-if (!e) {
+if (!e || e instanceof Error) {
     fail();
 }
 

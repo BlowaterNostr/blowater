@@ -205,7 +205,6 @@ export class App {
 
     initApp = async (accountContext: NostrAccountContext, pool: ConnectionPool) => {
         console.log("App.initApp");
-        this.allUsersInfo.addEvents(this.database.events);
         {
             ///////////////////////////////////
             // Add relays to Connection Pool //

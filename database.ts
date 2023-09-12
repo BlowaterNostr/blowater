@@ -59,13 +59,13 @@ export class Database_Contextual_View {
 
     static async New(eventsAdapter: EventsAdapter, ctx: NostrAccountContext) {
         const t = Date.now();
-        let kind4 = 0
+        let kind4 = 0;
         const allEvents = await eventsAdapter.filter((_) => {
-            if(_.kind == NostrKind.DIRECT_MESSAGE) {
-                kind4++
+            if (_.kind == NostrKind.DIRECT_MESSAGE) {
+                kind4++;
             }
-            return true
-        })
+            return true;
+        });
         console.log("Database_Contextual_View:onload", Date.now() - t, allEvents.length, kind4);
         const initialEvents = await loadInitialData(
             allEvents,
@@ -91,10 +91,9 @@ export class Database_Contextual_View {
         public readonly events: (Text_Note_Event | Encrypted_Event | Profile_Nostr_Event)[],
         private readonly ctx: NostrAccountContext,
     ) {
-        for  (const event of events) {
-            this.sourceOfChange.put(event)
+        for (const event of events) {
+            this.sourceOfChange.put(event);
         }
-
     }
 
     public readonly getEvent = async (keys: Indices): Promise<NostrEvent | undefined> => {
@@ -134,7 +133,6 @@ export class Database_Contextual_View {
         /* not await */ this.sourceOfChange.put(parsedEvent);
         return parsedEvent;
     }
-
 
     //////////////////
     // On DB Change //
@@ -240,30 +238,26 @@ export async function parseCustomAppDataEvent(
 async function loadInitialData(events: NostrEvent[], ctx: NostrAccountContext, eventsRemover: EventRemover) {
     const initialEvents: Accepted_Event[] = [];
     for await (const event of events) {
-
-            const pubkey = PublicKey.FromHex(event.pubkey);
-            if (pubkey instanceof Error) {
-                return pubkey;
-            }
-            const parsedEvent = await originalEventToParsedEvent(
-                {
-                    ...event,
-                    kind: event.kind,
-                },
-                ctx,
-                eventsRemover,
-            );
-            if (parsedEvent instanceof Error) {
-                console.error(parsedEvent)
-                continue
-            }
-            if (parsedEvent == false) {
-                continue;
-            }
-            // if(parsedEvent.kind == NostrKind.DIRECT_MESSAGE) {
-            //     console.log(parsedEvent)
-            // }
-            initialEvents.push(parsedEvent);
+        const pubkey = PublicKey.FromHex(event.pubkey);
+        if (pubkey instanceof Error) {
+            return pubkey;
+        }
+        const parsedEvent = await originalEventToParsedEvent(
+            {
+                ...event,
+                kind: event.kind,
+            },
+            ctx,
+            eventsRemover,
+        );
+        if (parsedEvent instanceof Error) {
+            console.error(parsedEvent);
+            continue;
+        }
+        if (parsedEvent == false) {
+            continue;
+        }
+        initialEvents.push(parsedEvent);
     }
     return initialEvents;
 }

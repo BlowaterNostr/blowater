@@ -449,6 +449,7 @@ export function getConversationMessages(args: {
     const msgs: MessageThread[] = [];
     for (const thread of threads) {
         const messages = convertEventsToChatMessages(thread, allUserInfo);
+        console.log(messages);
         if (messages.length > 0) {
             messages.sort((m1, m2) => {
                 if (m1.lamport && m2.lamport && m1.lamport != m2.lamport) {
@@ -459,6 +460,7 @@ export function getConversationMessages(args: {
             msgs.push({
                 root: messages[0],
                 replies: messages.slice(1),
+                // replies: [],
             });
         }
     }
@@ -520,15 +522,6 @@ export async function* Database_Update(
         }
 
         let hasKind_1 = false;
-        {
-            const events = [];
-            for (const e of changes_events) {
-                if (e.kind == NostrKind.CustomAppData) {
-                    events.push(e);
-                }
-            }
-            // await relayConfig.addEvents(events);
-        }
         for (let e of changes_events) {
             allUserInfo.addEvents([e]);
             const t = getTags(e).lamport_timestamp;
