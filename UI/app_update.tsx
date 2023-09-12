@@ -693,10 +693,12 @@ export async function handle_SendMessage(
         if (events instanceof Error) {
             return events;
         }
-        // todo: DM reader should decrypt and verify the event
-        // for (const eventSent of events) {
-        //     await db.addEvent(eventSent);
-        // }
+        for (const eventSent of events) {
+            const err = await db.addEvent(eventSent);
+            if (err instanceof Error) {
+                console.error(err);
+            }
+        }
         const editor = dmEditors.get(event.id);
         if (editor) {
             editor.files = [];
