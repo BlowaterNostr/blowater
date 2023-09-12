@@ -32,7 +32,6 @@ import { ConnectionPool, RelayAlreadyRegistered } from "../lib/nostr-ts/relay.ts
 import { SignInEvent, signInWithExtension, signInWithPrivateKey } from "./signIn.tsx";
 import {
     computeThreads,
-    CustomAppData_Event,
     Encrypted_Event,
     getTags,
     PinContact,
