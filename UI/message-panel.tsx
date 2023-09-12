@@ -14,9 +14,11 @@ import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import {
     CustomAppData_Event,
+    DirectedMessage_Event,
+    Encrypted_Event,
     PinContact,
-    PlainText_Nostr_Event,
     Profile_Nostr_Event,
+    Text_Note_Event,
     UnpinContact,
 } from "../nostr.ts";
 import { ProfileData, ProfilesSyncer } from "../features/profile.ts";
@@ -42,7 +44,7 @@ export type DirectMessagePanelUpdate =
     | ViewUserDetail
     | {
         type: "ViewEventDetail";
-        event: PlainText_Nostr_Event;
+        event: Text_Note_Event | DirectedMessage_Event;
     };
 
 export type ViewThread = {
@@ -465,7 +467,7 @@ function MessageBoxGroup(props: {
 }
 
 function MessageActions(
-    event: PlainText_Nostr_Event,
+    event: Text_Note_Event | DirectedMessage_Event,
     emit: emitFunc<ViewThread | DirectMessagePanelUpdate>,
 ) {
     return (
@@ -660,7 +662,7 @@ function ProfileCard(
 }
 
 function NoteCard(
-    event: Profile_Nostr_Event | PlainText_Nostr_Event | CustomAppData_Event,
+    event: Profile_Nostr_Event | Text_Note_Event | Encrypted_Event,
     eventEmitter: EventEmitter<ViewThread | ViewUserDetail>,
     allUserInfo: Map<string, UserInfo>,
 ) {

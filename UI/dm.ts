@@ -1,8 +1,8 @@
 import { NostrEvent } from "../lib/nostr-ts/nostr.ts";
 import {
+    DirectedMessage_Event,
     getTags,
     groupImageEvents,
-    PlainText_Nostr_Event,
     reassembleBase64ImageFromEvents,
 } from "../nostr.ts";
 import { ChatMessage } from "./message.ts";
@@ -22,7 +22,7 @@ export type DM_Container_Model = {
 };
 
 export function convertEventsToChatMessages(
-    events: Iterable<PlainText_Nostr_Event>,
+    events: Iterable<DirectedMessage_Event>,
     userProfiles: Map<string, UserInfo>,
 ): ChatMessage[] {
     const messages: ChatMessage[] = [];
@@ -44,7 +44,7 @@ export function convertEventsToChatMessages(
         }
         messages.push({
             event: textEvents[i],
-            content: textEvents[i].content,
+            content: textEvents[i].decryptedContent,
             type: "text",
             created_at: new Date(textEvents[i].created_at * 1000),
             lamport: getTags(textEvents[i]).lamport_timestamp,

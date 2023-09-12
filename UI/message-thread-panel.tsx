@@ -17,7 +17,7 @@ import { getUserInfoFromPublicKey, UserInfo } from "./contact-list.ts";
 import { EventSyncer } from "./event_syncer.ts";
 import { Avatar } from "./components/avatar.tsx";
 import { ProfilesSyncer } from "../features/profile.ts";
-import { PlainText_Nostr_Event } from "../nostr.ts";
+import { DirectedMessage_Event, Text_Note_Event } from "../nostr.ts";
 import { ButtonGroup } from "./components/button-group.tsx";
 import { AboutIcon } from "./icons/about-icon.tsx";
 import { PrimaryTextColor } from "./style/colors.ts";
@@ -166,8 +166,8 @@ function MessageThreadBoxGroup(props: {
 }
 
 export function MessageThreadActions(
-    event: PlainText_Nostr_Event,
-    emit: emitFunc<{ type: "ViewEventDetail"; event: PlainText_Nostr_Event }>,
+    event: Text_Note_Event | DirectedMessage_Event,
+    emit: emitFunc<{ type: "ViewEventDetail"; event: Text_Note_Event | DirectedMessage_Event }>,
 ) {
     return (
         <ButtonGroup

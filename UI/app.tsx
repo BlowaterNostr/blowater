@@ -51,6 +51,9 @@ export async function Start(database: DexieDatabase) {
         model.signIn.warningString = "Please add your private key to your NIP-7 extension";
     } else if (ctx) {
         const dbView = await Database_Contextual_View.New(database, ctx);
+        if (dbView instanceof Error) {
+            throw dbView;
+        }
         const lamport = time.fromEvents(dbView.filterEvents((_) => true));
         const app = new App(dbView, lamport, model, ctx, eventBus, pool, popOverInputChan);
         const err = await app.initApp(ctx, pool);
@@ -119,10 +122,17 @@ async function initProfileSyncer(
         myPublicKey,
         pool,
     );
-    database.syncNewDirectMessageEventsOf(
-        accountContext,
-        messageStream,
-    );
+
+    (async () => {
+        for await (const msg of messageStream) {
+            if (msg.res.type == "EVENT") {
+                const err = await database.addEvent(msg.res.event);
+                if (err instanceof Error) {
+                    console.log(err);
+                }
+            }
+        }
+    })();
 
     // Sync my profile events
     const profilesSyncer = new ProfilesSyncer(database, pool);
@@ -191,18 +201,10 @@ export class App {
 
     initApp = async (accountContext: NostrAccountContext, pool: ConnectionPool) => {
         console.log("App.initApp");
-        this.allUsersInfo.addEvents(this.database.events);
         {
             ///////////////////////////////////
             // Add relays to Connection Pool //
             ///////////////////////////////////
-            const events_CustomAppData = [];
-            for (const e of this.database.events) {
-                if (e.kind == NostrKind.CustomAppData) {
-                    events_CustomAppData.push(e);
-                } else if (e.kind == NostrKind.Custom_App_Data) {
-                }
-            }
             {
                 // relay config synchronization, need to refactor later
                 (async () => {

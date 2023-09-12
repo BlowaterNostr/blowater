@@ -3,7 +3,7 @@ import { h } from "https://esm.sh/preact@10.17.1";
 import { getProfileEvent, getProfilesByName, ProfilesSyncer, saveProfile } from "../features/profile.ts";
 
 import { App } from "./app.tsx";
-import { AllUsersInformation, getGroupOf, getUserInfoFromPublicKey, UserInfo } from "./contact-list.ts";
+import { AllUsersInformation, getGroupOf, UserInfo } from "./contact-list.ts";
 
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { Database_Contextual_View } from "../database.ts";
@@ -32,11 +32,11 @@ import { ConnectionPool, RelayAlreadyRegistered } from "../lib/nostr-ts/relay.ts
 import { SignInEvent, signInWithExtension, signInWithPrivateKey } from "./signIn.tsx";
 import {
     computeThreads,
-    CustomAppData_Event,
+    Encrypted_Event,
     getTags,
     PinContact,
-    PlainText_Nostr_Event,
     Profile_Nostr_Event,
+    Text_Note_Event,
     UnpinContact,
 } from "../nostr.ts";
 import { MessageThread } from "./dm.tsx";
@@ -108,6 +108,9 @@ export async function* UI_Interaction_Update(args: {
                 if (ctx) {
                     console.log("sign in as", ctx.publicKey.bech32());
                     const dbView = await Database_Contextual_View.New(dexieDB, ctx);
+                    if (dbView instanceof Error) {
+                        throw dbView;
+                    }
                     const lamport = fromEvents(dbView.filterEvents((_) => true));
                     const app = new App(dbView, lamport, model, ctx, eventBus, pool, args.popOver);
                     const err = await app.initApp(ctx, pool);
@@ -456,6 +459,7 @@ export function getConversationMessages(args: {
             msgs.push({
                 root: messages[0],
                 replies: messages.slice(1),
+                // replies: [],
             });
         }
     }
@@ -503,7 +507,7 @@ export async function* Database_Update(
     while (true) {
         await csp.sleep(333);
         await changes.ready();
-        const changes_events: (PlainText_Nostr_Event | CustomAppData_Event | Profile_Nostr_Event)[] = [];
+        const changes_events: (Text_Note_Event | Encrypted_Event | Profile_Nostr_Event)[] = [];
         while (true) {
             if (!changes.isReadyToPop()) {
                 break;
@@ -517,15 +521,6 @@ export async function* Database_Update(
         }
 
         let hasKind_1 = false;
-        {
-            const events = [];
-            for (const e of changes_events) {
-                if (e.kind == NostrKind.CustomAppData) {
-                    events.push(e);
-                }
-            }
-            // await relayConfig.addEvents(events);
-        }
         for (let e of changes_events) {
             allUserInfo.addEvents([e]);
             const t = getTags(e).lamport_timestamp;
@@ -596,27 +591,27 @@ export async function* Database_Update(
             }
 
             // notification
-            {
-                const author = getUserInfoFromPublicKey(e.publicKey, allUserInfo.userInfos)?.profile;
-                if (e.pubkey != ctx.publicKey.hex && e.parsedTags.p.includes(ctx.publicKey.hex)) {
-                    notify(
-                        author?.profile.name ? author.profile.name : "",
-                        "new message",
-                        author?.profile.picture ? author.profile.picture : "",
-                        () => {
-                            const k = PublicKey.FromHex(e.pubkey);
-                            if (k instanceof Error) {
-                                console.error(k);
-                                return;
-                            }
-                            eventEmitter.emit({
-                                type: "SelectProfile",
-                                pubkey: k,
-                            });
-                        },
-                    );
-                }
-            }
+            // {
+            //     const author = getUserInfoFromPublicKey(e.publicKey, allUserInfo.userInfos)?.profile;
+            //     if (e.pubkey != ctx.publicKey.hex && e.parsedTags.p.includes(ctx.publicKey.hex)) {
+            //         notify(
+            //             author?.profile.name ? author.profile.name : "",
+            //             "new message",
+            //             author?.profile.picture ? author.profile.picture : "",
+            //             () => {
+            //                 const k = PublicKey.FromHex(e.pubkey);
+            //                 if (k instanceof Error) {
+            //                     console.error(k);
+            //                     return;
+            //                 }
+            //                 eventEmitter.emit({
+            //                     type: "SelectProfile",
+            //                     pubkey: k,
+            //                 });
+            //             },
+            //         );
+            //     }
+            // }
         }
         if (hasKind_1) {
             model.social.threads = getSocialPosts(database, allUserInfo.userInfos);

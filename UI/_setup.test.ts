@@ -6,7 +6,7 @@ import { UI_Interaction_Event } from "./app_update.tsx";
 export const testEventBus = new EventBus<UI_Interaction_Event>();
 export const data = new Map();
 export const testEventsAdapter: EventsAdapter = {
-    delete() {},
+    async remove() {},
     filter: async (f) => {
         const events = [];
         for (const [k, v] of data) {
