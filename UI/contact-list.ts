@@ -67,7 +67,7 @@ export class AllUsersInformation {
                     break;
                 case NostrKind.DIRECT_MESSAGE:
                     {
-                        console.log(event)
+                        console.log("all", event)
                         let whoAm_I_TalkingTo = "";
                         if (event.pubkey == this.ctx.publicKey.hex) {
                             // I am the sender

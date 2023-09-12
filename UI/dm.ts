@@ -45,7 +45,7 @@ export function convertEventsToChatMessages(
         }
         messages.push({
             event: textEvents[i],
-            content: textEvents[i].content,
+            content: textEvents[i].decryptedContent,
             type: "text",
             created_at: new Date(textEvents[i].created_at * 1000),
             lamport: getTags(textEvents[i]).lamport_timestamp,

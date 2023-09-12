@@ -126,7 +126,15 @@ async function initProfileSyncer(
     //     accountContext,
     //     messageStream,
     // );
-    database.syncEvents(_=>true, messageStream)
+    // database.syncEvents(_=>true, messageStream)
+    (async () => {
+        for await (const {event, url} of messageStream) {
+            const err = await database.addEvent(event)
+            if(err instanceof Error) {
+                console.log(err)
+            }
+        }
+    })();
 
     // Sync my profile events
     const profilesSyncer = new ProfilesSyncer(database, pool);

@@ -73,24 +73,34 @@ export class Database_Contextual_View {
 
         // async loading of encrypted events
         (async () => {
-            let tt = 0;
-            for (const event of allEvents) {
-                const parsedEvent = await originalEventToParsedEvent(event, ctx, eventsAdapter);
-                if (parsedEvent instanceof Error) {
-                    console.error(parsedEvent);
-                    await eventsAdapter.remove(event.id)
-                    continue;
-                }
-                if (parsedEvent == false) {
-                    continue;
-                }
+            try {
+                let tt = 0;
+                for (const event of allEvents) {
+                    const pubkey = PublicKey.FromHex(event.pubkey)
+                    if(pubkey instanceof Error) {
+                        console.error(pubkey)
+                        continue
+                    }
+                    const parsedEvent = await originalEventToEncryptedEvent(event, ctx, getTags(event), pubkey, eventsAdapter);
+                    if (parsedEvent instanceof Error) {
+                        console.error(parsedEvent);
+                        await eventsAdapter.remove(event.id)
+                        continue;
+                    }
+                    if (parsedEvent == false) {
+                        continue;
+                    }
 
-                // add event to database and notify subscribers
-                db.events.push(parsedEvent);
-                await eventsAdapter.put(event);
-                /* not await */ db.sourceOfChange.put(parsedEvent);
+                    // add event to database and notify subscribers
+                    console.log("async load", parsedEvent)
+                    db.events.push(parsedEvent);
+                    await eventsAdapter.put(event);
+                    /* not await */ db.sourceOfChange.put(parsedEvent);
+                }
+                console.log("Database_Contextual_View:transformEvent", tt);
+            } catch (e) {
+                console.error(e)
             }
-            console.log("Database_Contextual_View:transformEvent", tt);
         })();
 
         console.log("Database_Contextual_View:New time spent", Date.now() - t);
@@ -437,7 +447,7 @@ function originalEventToUnencryptedEvent(
 }
 
 async function originalEventToEncryptedEvent(
-    event: NostrEvent<Encrypted_Kind>,
+    event: NostrEvent,
     ctx: NostrAccountContext,
     parsedTags: Tags,
     publicKey: PublicKey,
@@ -457,7 +467,7 @@ async function originalEventToEncryptedEvent(
             return _e;
         }
         return _e;
-    } else {
+    } else if(event.kind == NostrKind.DIRECT_MESSAGE) {
         const decrypted = await ctx.decrypt(ctx.publicKey.hex, event.content);
         if (decrypted instanceof Error) {
             return decrypted;
@@ -471,4 +481,5 @@ async function originalEventToEncryptedEvent(
             parsedContentItems: Array.from(parseContent(event.content)),
         };
     }
+    return false
 }
