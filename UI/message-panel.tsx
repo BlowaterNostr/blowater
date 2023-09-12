@@ -365,7 +365,6 @@ function MessageBoxGroup(props: {
                     first_group.msg.event.publicKey,
                     getUserInfoFromPublicKey(first_group.msg.event.publicKey, props.allUserInfo)
                         ?.profile?.profile,
-                    0,
                     props.myPublicKey,
                     first_group.msg.created_at,
                 )}
@@ -415,14 +414,6 @@ function MessageBoxGroup(props: {
                         maxWidth: "calc(100% - 2.75rem)",
                     }}
                 >
-                    {NameAndTime(
-                        msg.msg.event.publicKey,
-                        getUserInfoFromPublicKey(msg.msg.event.publicKey, props.allUserInfo)
-                            ?.profile?.profile,
-                        i,
-                        props.myPublicKey,
-                        msg.msg.created_at,
-                    )}
                     <pre
                         class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto`}
                     >
@@ -529,29 +520,26 @@ export function Time(created_at: Date) {
 export function NameAndTime(
     author: PublicKey,
     author_profile: ProfileData | undefined,
-    index: number,
     myPublicKey: PublicKey,
     created_at: Date,
 ) {
-    if (index === 0) {
-        let show = author.bech32();
-        if (author.hex == myPublicKey.hex) {
-            show = "Me";
-        } else if (author_profile?.name) {
-            show = author_profile.name;
-        }
-
-        return (
-            <p class={tw`overflow-hidden flex`}>
-                <p class={tw`text-[#FFFFFF] text-[0.9rem] truncate`}>
-                    {show}
-                </p>
-                <p class={tw`text-[#A3A6AA] ml-4 text-[0.8rem] whitespace-nowrap`}>
-                    {created_at.toLocaleString()}
-                </p>
-            </p>
-        );
+    let show = author.bech32();
+    if (author.hex == myPublicKey.hex) {
+        show = "Me";
+    } else if (author_profile?.name) {
+        show = author_profile.name;
     }
+
+    return (
+        <p class={tw`overflow-hidden flex`}>
+            <p class={tw`text-[#FFFFFF] text-[0.9rem] truncate`}>
+                {show}
+            </p>
+            <p class={tw`text-[#A3A6AA] ml-4 text-[0.8rem] whitespace-nowrap`}>
+                {created_at.toLocaleString()}
+            </p>
+        </p>
+    );
 }
 
 export function ParseMessageContent(
