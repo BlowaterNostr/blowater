@@ -122,11 +122,7 @@ async function* getAllEncryptedMessagesSendBy(
     }
     for await (const nostrMessage of resp.chan) {
         if(nostrMessage.res.type == "EVENT") {
-            console.log("getAllEncryptedMessagesSendBy", nostrMessage)
-            yield {
-                event: nostrMessage.res.event,
-                url: nostrMessage.url
-            }
+            yield nostrMessage
         }
     }
 }
@@ -146,12 +142,7 @@ async function* getAllEncryptedMessagesReceivedBy(
         throw resp;
     }
     for await (const nostrMessage of resp.chan) {
-        if(nostrMessage.res.type == "EVENT") {
-            yield {
-                event: nostrMessage.res.event,
-                url: nostrMessage.url
-            }
-        }
+        yield nostrMessage
     }
 }
 
