@@ -8,7 +8,7 @@ bundle:
 	deno bundle --config=./deno.json $(page).test.tsx deploy/main.mjs
 
 app: bundle-app
-	file_server --port=$(port) ./deploy
+	file_server --port=$(port) ./deploy --lock=deno.lock --lock-write
 
 bundle-app:
 	deno bundle --config=./deno.json _main.tsx deploy/main.mjs

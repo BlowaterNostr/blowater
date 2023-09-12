@@ -3,7 +3,7 @@ import { MessageThread } from "./dm.tsx";
 import { DirectedMessage_Event, Text_Note_Event } from "../nostr.ts";
 import { NostrProfile, NoteID } from "../lib/nostr-ts/nip19.ts";
 
-export function* parseContent(content: string) {
+export function* parseContenttent(content: string) {
     // URLs
     yield* match(/https?:\/\/[^\s]+/g, content, "url");
 
@@ -11,7 +11,7 @@ export function* parseContent(content: string) {
     yield* match(/(nostr:)?npub[0-9a-z]{59}/g, content, "npub");
 
     //nprofile
-    yield* match(/(nostr:)?nprofile[^ ]+/g, content, "nprofile");
+    yield* match(/(nostr:)?nprofile[0-9a-z]+/g, content, "nprofile");
 
     // notes
     yield* match(/note[0-9a-z]{59}/g, content, "note");
@@ -69,6 +69,7 @@ function* match(regex: RegExp, content: string, type: ItemType): Generator<Conte
                 bech32 = content.slice(urlStartPosition, urlEndPosition + 1);
             }
             const decoded_nProfile = NostrProfile.decode(bech32);
+
             if (decoded_nProfile instanceof Error) {
                 // ignore
             } else {
