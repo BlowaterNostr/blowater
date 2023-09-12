@@ -76,15 +76,21 @@ export class Database_Contextual_View {
             try {
                 let tt = 0;
                 for (const event of allEvents) {
-                    const pubkey = PublicKey.FromHex(event.pubkey)
-                    if(pubkey instanceof Error) {
-                        console.error(pubkey)
-                        continue
+                    const pubkey = PublicKey.FromHex(event.pubkey);
+                    if (pubkey instanceof Error) {
+                        console.error(pubkey);
+                        continue;
                     }
-                    const parsedEvent = await originalEventToEncryptedEvent(event, ctx, getTags(event), pubkey, eventsAdapter);
+                    const parsedEvent = await originalEventToEncryptedEvent(
+                        event,
+                        ctx,
+                        getTags(event),
+                        pubkey,
+                        eventsAdapter,
+                    );
                     if (parsedEvent instanceof Error) {
                         console.error(parsedEvent);
-                        await eventsAdapter.remove(event.id)
+                        await eventsAdapter.remove(event.id);
                         continue;
                     }
                     if (parsedEvent == false) {
@@ -92,14 +98,14 @@ export class Database_Contextual_View {
                     }
 
                     // add event to database and notify subscribers
-                    console.log("async load", parsedEvent)
+                    console.log("async load", parsedEvent);
                     db.events.push(parsedEvent);
                     await eventsAdapter.put(event);
                     /* not await */ db.sourceOfChange.put(parsedEvent);
                 }
                 console.log("Database_Contextual_View:transformEvent", tt);
             } catch (e) {
-                console.error(e)
+                console.error(e);
             }
         })();
 
@@ -153,11 +159,11 @@ export class Database_Contextual_View {
 
     syncEvents(
         filter: (e: NostrEvent) => boolean,
-        events: csp.Channel<{event: NostrEvent, url: string /*relay url*/}>,
+        events: csp.Channel<{ event: NostrEvent; url: string /*relay url*/ }>,
     ): csp.Channel<NostrEvent> {
         const resChan = csp.chan<NostrEvent>(buffer_size);
         (async () => {
-            for await (const {event, url} of events) {
+            for await (const { event, url } of events) {
                 if (resChan.closed()) {
                     await events.close(
                         "db syncEvents, resChan is closed, closing the source events",
@@ -167,8 +173,8 @@ export class Database_Contextual_View {
                 const e = event;
                 if (filter(e)) {
                     const res = await this.addEvent(e);
-                    if(res instanceof Error || res == false) {
-                        console.error(res)
+                    if (res instanceof Error || res == false) {
+                        console.error(res);
                     }
                 } else {
                     console.log(
@@ -467,7 +473,7 @@ async function originalEventToEncryptedEvent(
             return _e;
         }
         return _e;
-    } else if(event.kind == NostrKind.DIRECT_MESSAGE) {
+    } else if (event.kind == NostrKind.DIRECT_MESSAGE) {
         const decrypted = await ctx.decrypt(ctx.publicKey.hex, event.content);
         if (decrypted instanceof Error) {
             return decrypted;
@@ -481,5 +487,5 @@ async function originalEventToEncryptedEvent(
             parsedContentItems: Array.from(parseContent(event.content)),
         };
     }
-    return false
+    return false;
 }

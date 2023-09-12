@@ -121,9 +121,7 @@ async function* getAllEncryptedMessagesSendBy(
         throw resp;
     }
     for await (const nostrMessage of resp.chan) {
-        if(nostrMessage.res.type == "EVENT") {
-            yield nostrMessage
-        }
+        yield nostrMessage;
     }
 }
 
@@ -142,7 +140,7 @@ async function* getAllEncryptedMessagesReceivedBy(
         throw resp;
     }
     for await (const nostrMessage of resp.chan) {
-        yield nostrMessage
+        yield nostrMessage;
     }
 }
 

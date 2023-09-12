@@ -24,7 +24,7 @@ export class DexieDatabase extends dexie.Dexie implements EventsAdapter {
     }
 
     async remove(id: string) {
-        this.events.delete(id)
+        this.events.delete(id);
     }
 }
 
