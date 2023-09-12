@@ -69,21 +69,18 @@ function* match(regex: RegExp, content: string, type: ItemType): Generator<Conte
                 bech32 = content.slice(urlStartPosition, urlEndPosition + 1);
             }
             const decoded_nProfile = NostrProfile.decode(bech32);
-
             if (decoded_nProfile instanceof Error) {
                 // ignore
             } else {
-                const pubkey = PublicKey.FromBech32(decoded_nProfile.pubkey.hex);
-                if (pubkey instanceof Error) { //ignore
-                } else {
-                    yield {
-                        type: "npub",
-                        pubkey: pubkey.hex,
-                        start: urlStartPosition,
-                        end: urlEndPosition,
-                        relays: decoded_nProfile.relays,
-                    };
-                }
+                const pubkey = decoded_nProfile.pubkey;
+
+                yield {
+                    type: "npub",
+                    pubkey: pubkey.hex,
+                    start: urlStartPosition,
+                    end: urlEndPosition,
+                    relays: decoded_nProfile.relays,
+                };
             }
         } else {
             yield {
