@@ -98,7 +98,6 @@ export class Database_Contextual_View {
                     }
 
                     // add event to database and notify subscribers
-                    console.log("async load", parsedEvent);
                     db.events.push(parsedEvent);
                     await eventsAdapter.put(event);
                     /* not await */ db.sourceOfChange.put(parsedEvent);
@@ -474,7 +473,11 @@ async function originalEventToEncryptedEvent(
         }
         return _e;
     } else if (event.kind == NostrKind.DIRECT_MESSAGE) {
-        const decrypted = await ctx.decrypt(ctx.publicKey.hex, event.content);
+        const theOther = whoIamTalkingTo(event, ctx.publicKey);
+        if (theOther instanceof Error) {
+            return theOther;
+        }
+        const decrypted = await ctx.decrypt(theOther, event.content);
         if (decrypted instanceof Error) {
             return decrypted;
         }

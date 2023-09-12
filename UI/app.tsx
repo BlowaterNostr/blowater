@@ -128,10 +128,12 @@ async function initProfileSyncer(
     // );
     // database.syncEvents(_=>true, messageStream)
     (async () => {
-        for await (const { event, url } of messageStream) {
-            const err = await database.addEvent(event);
-            if (err instanceof Error) {
-                console.log(err);
+        for await (const msg of messageStream) {
+            if (msg.res.type == "EVENT") {
+                const err = await database.addEvent(msg.res.event);
+                if (err instanceof Error) {
+                    console.log(err);
+                }
             }
         }
     })();

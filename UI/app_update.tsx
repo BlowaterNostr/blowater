@@ -638,7 +638,7 @@ export async function* Relay_Update(
     ctx: NostrAccountContext,
 ) {
     for (;;) {
-        await csp.sleep(1000 * 1000000); // every 2.5 sec
+        await csp.sleep(1000 * 2.5); // every 2.5 sec
         console.log(`Relay: checking connections`);
         let changed = false;
         // first, remove closed relays
