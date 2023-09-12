@@ -59,55 +59,29 @@ export class Database_Contextual_View {
 
     static async New(eventsAdapter: EventsAdapter, ctx: NostrAccountContext) {
         const t = Date.now();
-        const allEvents = await eventsAdapter.filter((_) => true);
-        const initialEvents = await loadInitialData(allEvents, ctx);
+        let kind4 = 0
+        const allEvents = await eventsAdapter.filter((_) => {
+            if(_.kind == NostrKind.DIRECT_MESSAGE) {
+                kind4++
+            }
+            return true
+        })
+        console.log("Database_Contextual_View:onload", Date.now() - t, allEvents.length, kind4);
+        const initialEvents = await loadInitialData(
+            allEvents,
+            ctx,
+            eventsAdapter,
+        );
         if (initialEvents instanceof Error) {
             return initialEvents;
         }
-        console.log("Database_Contextual_View:onload", Date.now() - t);
+        console.log("Database_Contextual_View:parsed", Date.now() - t);
+
         const db = new Database_Contextual_View(
             eventsAdapter,
             initialEvents,
             ctx,
         );
-
-        // async loading of encrypted events
-        (async () => {
-            try {
-                let tt = 0;
-                for (const event of allEvents) {
-                    const pubkey = PublicKey.FromHex(event.pubkey);
-                    if (pubkey instanceof Error) {
-                        console.error(pubkey);
-                        continue;
-                    }
-                    const parsedEvent = await originalEventToEncryptedEvent(
-                        event,
-                        ctx,
-                        getTags(event),
-                        pubkey,
-                        eventsAdapter,
-                    );
-                    if (parsedEvent instanceof Error) {
-                        console.error(parsedEvent);
-                        await eventsAdapter.remove(event.id);
-                        continue;
-                    }
-                    if (parsedEvent == false) {
-                        continue;
-                    }
-
-                    // add event to database and notify subscribers
-                    db.events.push(parsedEvent);
-                    await eventsAdapter.put(event);
-                    /* not await */ db.sourceOfChange.put(parsedEvent);
-                }
-                console.log("Database_Contextual_View:transformEvent", tt);
-            } catch (e) {
-                console.error(e);
-            }
-        })();
-
         console.log("Database_Contextual_View:New time spent", Date.now() - t);
         return db;
     }
@@ -116,7 +90,12 @@ export class Database_Contextual_View {
         private readonly eventsAdapter: EventsAdapter,
         public readonly events: (Text_Note_Event | Encrypted_Event | Profile_Nostr_Event)[],
         private readonly ctx: NostrAccountContext,
-    ) {}
+    ) {
+        for  (const event of events) {
+            this.sourceOfChange.put(event)
+        }
+
+    }
 
     public readonly getEvent = async (keys: Indices): Promise<NostrEvent | undefined> => {
         const e = await this.eventsAdapter.get(keys);
@@ -156,99 +135,6 @@ export class Database_Contextual_View {
         return parsedEvent;
     }
 
-    syncEvents(
-        filter: (e: NostrEvent) => boolean,
-        events: csp.Channel<{ event: NostrEvent; url: string /*relay url*/ }>,
-    ): csp.Channel<NostrEvent> {
-        const resChan = csp.chan<NostrEvent>(buffer_size);
-        (async () => {
-            for await (const { event, url } of events) {
-                if (resChan.closed()) {
-                    await events.close(
-                        "db syncEvents, resChan is closed, closing the source events",
-                    );
-                    return;
-                }
-                const e = event;
-                if (filter(e)) {
-                    const res = await this.addEvent(e);
-                    if (res instanceof Error || res == false) {
-                        console.error(res);
-                    }
-                } else {
-                    console.log(
-                        "event",
-                        e,
-                        "does not satisfy filterer",
-                        filter,
-                    );
-                }
-            }
-            await resChan.close(
-                "db syncEvents, source events is closed, closing the resChan",
-            );
-        })();
-        return resChan;
-    }
-
-    // async syncNewDirectMessageEventsOf(
-    //     accountContext: NostrAccountContext,
-    //     msgs: csp.Channel<{ res: RelayResponse_REQ_Message; url: string }>,
-    // ): Promise<csp.Channel<NostrEvent | DecryptionFailure>> {
-    //     const resChan = csp.chan<NostrEvent | DecryptionFailure>(buffer_size);
-    //     const publicKey = accountContext.publicKey;
-    //     (async () => {
-    //         for await (const { res: msg, url } of msgs) {
-    //             if (msg.type !== "EVENT") {
-    //                 continue;
-    //             }
-    //             const encryptedEvent = msg.event;
-    //             const theirPubKey = whoIamTalkingTo(encryptedEvent, publicKey);
-    //             if (theirPubKey instanceof Error) {
-    //                 // this could happen if the user send an event without p tag
-    //                 // because the application is subscribing all events send by the user
-    //                 console.warn(theirPubKey);
-    //                 continue;
-    //             }
-
-    //             const decryptedEvent = await decryptNostrEvent(
-    //                 encryptedEvent,
-    //                 accountContext,
-    //                 theirPubKey,
-    //             );
-    //             if (decryptedEvent instanceof DecryptionFailure) {
-    //                 resChan.put(decryptedEvent).then(async (res) => {
-    //                     if (res instanceof csp.PutToClosedChannelError) {
-    //                         await msgs.close(
-    //                             "resChan has been closed, closing the source chan",
-    //                         );
-    //                     }
-    //                 });
-    //                 continue;
-    //             }
-    //             const storedEvent = await this.getEvent({
-    //                 id: encryptedEvent.id,
-    //             });
-    //             if (storedEvent === undefined) {
-    //                 try {
-    //                     await this.addEvent(decryptedEvent);
-    //                 } catch (e) {
-    //                     console.log(e.message);
-    //                 }
-    //                 resChan.put(decryptedEvent).then(async (res) => {
-    //                     if (res instanceof csp.PutToClosedChannelError) {
-    //                         await msgs.close(
-    //                             "resChan has been closed, closing the source chan",
-    //                         );
-    //                     }
-    //                 });
-    //             }
-    //             // else do nothing
-    //         }
-    //         await resChan.close("source chan is clsoed, closing the resChan");
-    //     })();
-    //     return resChan;
-    // }
 
     //////////////////
     // On DB Change //
@@ -351,27 +237,33 @@ export async function parseCustomAppDataEvent(
     }
 }
 
-async function loadInitialData(events: NostrEvent[], ctx: NostrAccountContext) {
-    const initialEvents: (Text_Note_Event | Profile_Nostr_Event)[] = [];
+async function loadInitialData(events: NostrEvent[], ctx: NostrAccountContext, eventsRemover: EventRemover) {
+    const initialEvents: Accepted_Event[] = [];
     for await (const event of events) {
-        if (event.kind == NostrKind.META_DATA || event.kind == NostrKind.TEXT_NOTE) {
+
             const pubkey = PublicKey.FromHex(event.pubkey);
             if (pubkey instanceof Error) {
                 return pubkey;
             }
-            const parsedEvent = originalEventToUnencryptedEvent(
+            const parsedEvent = await originalEventToParsedEvent(
                 {
                     ...event,
                     kind: event.kind,
                 },
-                getTags(event),
-                pubkey,
+                ctx,
+                eventsRemover,
             );
             if (parsedEvent instanceof Error) {
-                return parsedEvent;
+                console.error(parsedEvent)
+                continue
             }
+            if (parsedEvent == false) {
+                continue;
+            }
+            // if(parsedEvent.kind == NostrKind.DIRECT_MESSAGE) {
+            //     console.log(parsedEvent)
+            // }
             initialEvents.push(parsedEvent);
-        }
     }
     return initialEvents;
 }
@@ -379,7 +271,7 @@ async function loadInitialData(events: NostrEvent[], ctx: NostrAccountContext) {
 async function originalEventToParsedEvent(
     event: NostrEvent,
     ctx: NostrAccountContext,
-    eventsAdapter: EventRemover,
+    eventsRemover: EventRemover,
 ) {
     const publicKey = PublicKey.FromHex(event.pubkey);
     if (publicKey instanceof Error) {
@@ -397,7 +289,7 @@ async function originalEventToParsedEvent(
             ctx,
             parsedTags,
             publicKey,
-            eventsAdapter,
+            eventsRemover,
         );
         if (_e instanceof Error || _e == false) {
             return _e;

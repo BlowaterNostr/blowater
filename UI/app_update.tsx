@@ -599,27 +599,27 @@ export async function* Database_Update(
             }
 
             // notification
-            {
-                const author = getUserInfoFromPublicKey(e.publicKey, allUserInfo.userInfos)?.profile;
-                if (e.pubkey != ctx.publicKey.hex && e.parsedTags.p.includes(ctx.publicKey.hex)) {
-                    notify(
-                        author?.profile.name ? author.profile.name : "",
-                        "new message",
-                        author?.profile.picture ? author.profile.picture : "",
-                        () => {
-                            const k = PublicKey.FromHex(e.pubkey);
-                            if (k instanceof Error) {
-                                console.error(k);
-                                return;
-                            }
-                            eventEmitter.emit({
-                                type: "SelectProfile",
-                                pubkey: k,
-                            });
-                        },
-                    );
-                }
-            }
+            // {
+            //     const author = getUserInfoFromPublicKey(e.publicKey, allUserInfo.userInfos)?.profile;
+            //     if (e.pubkey != ctx.publicKey.hex && e.parsedTags.p.includes(ctx.publicKey.hex)) {
+            //         notify(
+            //             author?.profile.name ? author.profile.name : "",
+            //             "new message",
+            //             author?.profile.picture ? author.profile.picture : "",
+            //             () => {
+            //                 const k = PublicKey.FromHex(e.pubkey);
+            //                 if (k instanceof Error) {
+            //                     console.error(k);
+            //                     return;
+            //                 }
+            //                 eventEmitter.emit({
+            //                     type: "SelectProfile",
+            //                     pubkey: k,
+            //                 });
+            //             },
+            //         );
+            //     }
+            // }
         }
         if (hasKind_1) {
             model.social.threads = getSocialPosts(database, allUserInfo.userInfos);
