@@ -4,7 +4,7 @@ import { tw } from "https://esm.sh/twind@0.16.16";
 import { Database_Contextual_View } from "../database.ts";
 import { Avatar } from "./components/avatar.tsx";
 import { CenterClass, IconButtonClass, LinearGradientsClass } from "./components/tw.ts";
-import { sortUserInfo, UserInfo } from "./contact-list.ts";
+import { AllUsersInformation, sortUserInfo, UserInfo } from "./contact-list.ts";
 import { emitFunc } from "../event-bus.ts";
 import { PinIcon, UnpinIcon } from "./icons/mod.tsx";
 import { DM_EditorModel } from "./editor.tsx";
@@ -22,13 +22,10 @@ type Props = {
     emit: emitFunc<ContactUpdate | SearchUpdate>;
 
     // Model
-    userInfoMap: Map<string, UserInfo>;
+    userInfo: AllUsersInformation;
     currentSelected: PublicKey | undefined;
-    search: SearchModel;
-    editors: Map<string, DM_EditorModel>;
     selectedContactGroup: ContactGroup;
     hasNewMessages: Set<string>;
-    profileSyncer: ProfilesSyncer;
 };
 
 export type ContactGroup = "Contacts" | "Strangers";
@@ -42,39 +39,20 @@ export type SelectGroup = {
 
 export function ContactList(props: Props) {
     const t = Date.now();
-    const groups = groupBy(props.userInfoMap, ([_, userInfo]) => {
-        if (
-            userInfo.newestEventReceivedByMe == undefined ||
-            userInfo.newestEventSendByMe == undefined
-        ) {
-            return "Strangers";
-        } else {
-            return "Contacts";
-        }
-    });
 
     console.log("ContactList groupBy", Date.now() - t);
-    let contacts = groups.get("Contacts");
-    if (contacts == undefined) {
-        contacts = [];
-    }
-    let strangers = groups.get("Strangers");
-    if (strangers == undefined) {
-        strangers = [];
-    }
+    let contacts = Array.from(props.userInfo.getContacts());
+    let strangers = Array.from(props.userInfo.getStrangers());
     const listToRender = props.selectedContactGroup == "Contacts" ? contacts : strangers;
 
-    const contactsToRender = listToRender
-        .map(([pubkey, contact]) => {
-            let userInfo = props.userInfoMap.get(pubkey);
-            if (userInfo == undefined) {
-                throw new Error("impossible");
-            }
-            return {
-                userInfo: userInfo,
-                isMarked: props.hasNewMessages.has(pubkey),
-            };
+    const contactsToRender = [];
+    for (const contact of listToRender) {
+        contactsToRender.push({
+            userInfo: contact,
+            isMarked: props.hasNewMessages.has(contact.pubkey.hex),
         });
+    }
+
     console.log("ContactList:contactsToRender", Date.now() - t);
 
     return (

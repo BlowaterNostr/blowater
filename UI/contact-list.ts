@@ -33,6 +33,28 @@ export class AllUsersInformation {
 
     constructor(public readonly ctx: NostrAccountContext) {}
 
+    *getStrangers() {
+        for (const userInfo of this.userInfos.values()) {
+            if (
+                userInfo.newestEventReceivedByMe == undefined ||
+                userInfo.newestEventSendByMe == undefined
+            ) {
+                yield userInfo;
+            }
+        }
+    }
+
+    *getContacts() {
+        for (const userInfo of this.userInfos.values()) {
+            if (
+                userInfo.newestEventReceivedByMe != undefined &&
+                userInfo.newestEventSendByMe != undefined
+            ) {
+                yield userInfo;
+            }
+        }
+    }
+
     addEvents(events: (Profile_Nostr_Event | Text_Note_Event | Encrypted_Event)[]) {
         // const t = Date.now();
         for (const event of events) {
@@ -61,8 +83,6 @@ export class AllUsersInformation {
                             this.userInfos.set(event.pubkey, newUserInfo);
                         }
                     }
-                    break;
-                case NostrKind.TEXT_NOTE:
                     break;
                 case NostrKind.DIRECT_MESSAGE:
                     {
