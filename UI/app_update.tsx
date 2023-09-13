@@ -521,7 +521,7 @@ export async function* Database_Update(
         }
 
         let hasKind_1 = false;
-        profileSyncer.add(...changes_events.map(e=>e.pubkey));
+        profileSyncer.add(...changes_events.map((e) => e.pubkey));
         for (let e of changes_events) {
             allUserInfo.addEvents([e]);
             const t = getTags(e).lamport_timestamp;
