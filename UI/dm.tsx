@@ -16,7 +16,7 @@ import { ChatMessage } from "./message.ts";
 import { DM_Container_Model } from "./dm.ts";
 import { getFocusedContent } from "./app.tsx";
 import { EventSyncer } from "./event_syncer.ts";
-import { UserInfo } from "./contact-list.ts";
+import { AllUsersInformation, UserInfo } from "./contact-list.ts";
 
 type DirectMessageContainerProps = {
     editors: Map<string, DM_EditorModel>;
@@ -25,7 +25,7 @@ type DirectMessageContainerProps = {
     pool: ConnectionPool;
     eventEmitter: EventBus<UI_Interaction_Event>;
     db: Database_Contextual_View;
-    allUserInfo: Map<string, UserInfo>;
+    allUserInfo: AllUsersInformation;
     profilesSyncer: ProfilesSyncer;
     eventSyncer: EventSyncer;
 } & DM_Container_Model;
@@ -62,14 +62,14 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
     if (currentEditorModel) {
         const convoMsgs = getConversationMessages({
             targetPubkey: currentEditorModel.target.receiver.pubkey.hex,
-            allUserInfo: props.allUserInfo,
+            allUserInfo: props.allUserInfo.userInfos,
         });
         console.log("DirectMessageContainer:convoMsgs", Date.now() - t);
 
         const focusedContent = (() => {
             let _ = getFocusedContent(
                 props.focusedContent.get(currentEditorModel.target.receiver.pubkey.hex),
-                props.allUserInfo,
+                props.allUserInfo.userInfos,
                 convoMsgs,
             );
             if (_?.type == "MessageThread") {
@@ -106,7 +106,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
             db: props.db,
             profilesSyncer: props.profilesSyncer,
             eventSyncer: props.eventSyncer,
-            allUserInfo: props.allUserInfo,
+            allUserInfo: props.allUserInfo.userInfos,
         }).render();
     }
 
@@ -118,7 +118,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                 {cl.ContactList({
                     database: props.db,
                     currentSelected: currentConversation,
-                    userInfoMap: props.allUserInfo,
+                    userInfo: props.allUserInfo,
                     emit: props.eventEmitter.emit,
                     ...props,
                 })}

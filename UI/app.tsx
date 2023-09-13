@@ -433,7 +433,7 @@ export function AppComponent(props: {
                         myAccountContext: myAccountCtx,
                         db: app.database,
                         pool: props.pool,
-                        allUserInfo: app.allUsersInfo.userInfos,
+                        allUserInfo: app.allUsersInfo,
                         profilesSyncer: app.profileSyncer,
                         eventSyncer: app.eventSyncer,
                     })}
