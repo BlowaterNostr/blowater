@@ -4,17 +4,20 @@ import { tw } from "https://esm.sh/twind@0.16.16";
 import { Database_Contextual_View } from "../database.ts";
 import { Avatar } from "./components/avatar.tsx";
 import { CenterClass, IconButtonClass, LinearGradientsClass } from "./components/tw.ts";
-import { AllUsersInformation, sortUserInfo, UserInfo } from "./contact-list.ts";
+import { sortUserInfo, UserInfo } from "./contact-list.ts";
 import { emitFunc } from "../event-bus.ts";
 import { PinIcon, UnpinIcon } from "./icons/mod.tsx";
-import { DM_EditorModel } from "./editor.tsx";
-import { SearchModel, SearchUpdate } from "./search_model.ts";
+import { SearchUpdate } from "./search_model.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
-import { groupBy, NostrAccountContext } from "../lib/nostr-ts/nostr.ts";
+import { NostrAccountContext } from "../lib/nostr-ts/nostr.ts";
 import { PinContact, UnpinContact } from "../nostr.ts";
 import { AddIcon } from "./icons2/add-icon.tsx";
 import { PrimaryTextColor } from "./style/colors.ts";
-import { ProfilesSyncer } from "../features/profile.ts";
+
+export interface ContactRetriever {
+    getContacts: () => Iterable<UserInfo>;
+    getStrangers: () => Iterable<UserInfo>;
+}
 
 type Props = {
     myAccountContext: NostrAccountContext;
@@ -22,7 +25,7 @@ type Props = {
     emit: emitFunc<ContactUpdate | SearchUpdate>;
 
     // Model
-    userInfo: AllUsersInformation;
+    userInfo: ContactRetriever;
     currentSelected: PublicKey | undefined;
     selectedContactGroup: ContactGroup;
     hasNewMessages: Set<string>;

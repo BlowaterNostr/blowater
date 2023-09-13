@@ -1,4 +1,4 @@
-import { ContactGroup } from "./contact-list.tsx";
+import { ContactGroup, ContactRetriever } from "./contact-list.tsx";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 
@@ -13,7 +13,7 @@ import {
 
 export interface UserInfo {
     pubkey: PublicKey;
-    profile: Profile_Nostr_Event | undefined; // todo: maybe change it to ProfileEvent
+    profile: Profile_Nostr_Event | undefined;
     newestEventSendByMe: NostrEvent | undefined;
     newestEventReceivedByMe: NostrEvent | undefined;
     pinEvent: {
@@ -28,7 +28,7 @@ export function getUserInfoFromPublicKey(k: PublicKey, users: Map<string, UserIn
     return userInfo;
 }
 
-export class AllUsersInformation {
+export class AllUsersInformation implements ContactRetriever {
     readonly userInfos = new Map<string, UserInfo>();
 
     constructor(public readonly ctx: NostrAccountContext) {}
