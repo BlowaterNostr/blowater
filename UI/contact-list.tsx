@@ -22,7 +22,7 @@ type Props = {
     emit: emitFunc<ContactUpdate | SearchUpdate>;
 
     // Model
-    userInfo: AllUsersInformation
+    userInfo: AllUsersInformation;
     currentSelected: PublicKey | undefined;
     selectedContactGroup: ContactGroup;
     hasNewMessages: Set<string>;
@@ -40,18 +40,17 @@ export type SelectGroup = {
 export function ContactList(props: Props) {
     const t = Date.now();
 
-
     console.log("ContactList groupBy", Date.now() - t);
-    let contacts = Array.from(props.userInfo.getContacts())
-    let strangers = Array.from(props.userInfo.getStrangers())
+    let contacts = Array.from(props.userInfo.getContacts());
+    let strangers = Array.from(props.userInfo.getStrangers());
     const listToRender = props.selectedContactGroup == "Contacts" ? contacts : strangers;
 
-    const contactsToRender = []
-    for(const contact of listToRender) {
+    const contactsToRender = [];
+    for (const contact of listToRender) {
         contactsToRender.push({
             userInfo: contact,
             isMarked: props.hasNewMessages.has(contact.pubkey.hex),
-        })
+        });
     }
 
     console.log("ContactList:contactsToRender", Date.now() - t);

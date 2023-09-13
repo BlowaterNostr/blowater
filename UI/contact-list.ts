@@ -34,23 +34,23 @@ export class AllUsersInformation {
     constructor(public readonly ctx: NostrAccountContext) {}
 
     *getStrangers() {
-        for(const userInfo of this.userInfos.values()) {
+        for (const userInfo of this.userInfos.values()) {
             if (
                 userInfo.newestEventReceivedByMe == undefined ||
                 userInfo.newestEventSendByMe == undefined
             ) {
-                yield userInfo
+                yield userInfo;
             }
         }
     }
 
     *getContacts() {
-        for(const userInfo of this.userInfos.values()) {
+        for (const userInfo of this.userInfos.values()) {
             if (
                 userInfo.newestEventReceivedByMe != undefined &&
                 userInfo.newestEventSendByMe != undefined
             ) {
-                yield userInfo
+                yield userInfo;
             }
         }
     }

@@ -18,19 +18,23 @@ if (database instanceof Error) {
     fail(database.message);
 }
 const allUserInfo = new AllUsersInformation(ctx);
-(async ()=>{
+(async () => {
     for await (const event of database.subscribe()) {
-        allUserInfo.addEvents([event])
+        allUserInfo.addEvents([event]);
     }
 })();
-database.addEvent(await prepareEncryptedNostrEvent(ctx, ctx.publicKey, NostrKind.DIRECT_MESSAGE, [
-    ["p", ctx.publicKey.hex]
-], "123") as NostrEvent)
+database.addEvent(
+    await prepareEncryptedNostrEvent(ctx, ctx.publicKey, NostrKind.DIRECT_MESSAGE, [
+        ["p", ctx.publicKey.hex],
+    ], "123") as NostrEvent,
+);
 
-const key = PrivateKey.Generate().toPublicKey()
-database.addEvent(await prepareEncryptedNostrEvent(ctx, key, NostrKind.DIRECT_MESSAGE, [
-    ["p", key.hex]
-], "123") as NostrEvent)
+const key = PrivateKey.Generate().toPublicKey();
+database.addEvent(
+    await prepareEncryptedNostrEvent(ctx, key, NostrKind.DIRECT_MESSAGE, [
+        ["p", key.hex],
+    ], "123") as NostrEvent,
+);
 
 // allUserInfo.addEvents([e]);
 const pool = new ConnectionPool();
