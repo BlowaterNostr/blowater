@@ -58,11 +58,11 @@ const view = () => {
     console.log(database.events, threads);
     return (
         <DirectMessageContainer
-            allUserInfo={allUserInfo.userInfos}
+            allUserInfo={allUserInfo}
             db={database}
             eventSyncer={new EventSyncer(pool, database)}
             profilesSyncer={new ProfilesSyncer(database, pool)}
-            eventEmitter={testEventBus}
+            emit={testEventBus.emit}
             rightPanelModel={{
                 show: true,
             }}

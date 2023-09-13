@@ -6,7 +6,7 @@ import * as db from "../database.ts";
 
 import { Avatar } from "./components/avatar.tsx";
 import { CenterClass, NoOutlineClass } from "./components/tw.ts";
-import { EventEmitter } from "../event-bus.ts";
+import { emitFunc, EventEmitter } from "../event-bus.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import {
@@ -25,7 +25,7 @@ export type Props = {
     publicKey: PublicKey;
     database: db.Database_Contextual_View;
     pool: ConnectionPool;
-    eventEmitter: EventEmitter<NavigationUpdate>;
+    emit: emitFunc<NavigationUpdate>;
 } & NavigationModel;
 
 export type ActiveNav = ActiveTab | "Setting";
@@ -112,7 +112,7 @@ export function NavBar(props: Props) {
                                 }
                                 `}
                                 onClick={() => {
-                                    props.eventEmitter.emit({
+                                    props.emit({
                                         type: "ChangeNavigation",
                                         index: tab,
                                     });
@@ -126,7 +126,7 @@ export function NavBar(props: Props) {
             </div>
             <button
                 onClick={() => {
-                    props.eventEmitter.emit({
+                    props.emit({
                         type: "ChangeNavigation",
                         index: "Setting",
                     });
@@ -173,7 +173,7 @@ export function MobileNavBar(props: Props) {
                                 }
                             `}
                                 onClick={() => {
-                                    props.eventEmitter.emit({
+                                    props.emit({
                                         type: "ChangeNavigation",
                                         index: tab,
                                     });
@@ -193,7 +193,7 @@ export function MobileNavBar(props: Props) {
             >
                 <button
                     onClick={() => {
-                        props.eventEmitter.emit({
+                        props.emit({
                             type: "ChangeNavigation",
                             index: "Setting",
                         });

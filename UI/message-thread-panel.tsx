@@ -24,7 +24,7 @@ import { AboutIcon } from "./icons/about-icon.tsx";
 import { PrimaryTextColor } from "./style/colors.ts";
 
 interface MessageThreadProps {
-    eventEmitter: EventEmitter<DirectMessagePanelUpdate | EditorEvent>;
+    emit: emitFunc<DirectMessagePanelUpdate | EditorEvent>;
     messages: ChatMessage[];
     myPublicKey: PublicKey;
     db: Database_Contextual_View;
@@ -54,7 +54,7 @@ export function MessageThreadPanel(props: MessageThreadProps) {
                     db={props.db}
                     profilesSyncer={props.profilesSyncer}
                     eventSyncer={props.eventSyncer}
-                    eventEmitter={props.eventEmitter}
+                    emit={props.emit}
                     allUserInfo={props.allUserInfo}
                 />
             </div>
@@ -63,7 +63,7 @@ export function MessageThreadPanel(props: MessageThreadProps) {
                 model={props.editorModel}
                 placeholder={"Reply to thread"}
                 maxHeight="30vh"
-                eventEmitter={props.eventEmitter}
+                emit={props.emit}
             />
         </Fragment>
     );
@@ -75,7 +75,7 @@ function MessageThreadList(props: {
     db: Database_Contextual_View;
     profilesSyncer: ProfilesSyncer;
     eventSyncer: EventSyncer;
-    eventEmitter: EventEmitter<ViewUserDetail | ViewThread | DirectMessagePanelUpdate>;
+    emit: emitFunc<ViewUserDetail | ViewThread | DirectMessagePanelUpdate>;
     allUserInfo: Map<string, UserInfo>;
 }) {
     let groups = groupContinuousMessages(props.messages, (pre, cur) => {
@@ -92,7 +92,7 @@ function MessageThreadList(props: {
                 db={props.db}
                 profilesSyncer={props.profilesSyncer}
                 eventSyncer={props.eventSyncer}
-                eventEmitter={props.eventEmitter}
+                emit={props.emit}
                 allUserInfo={props.allUserInfo}
             />,
         );
@@ -112,7 +112,7 @@ function MessageThreadBoxGroup(props: {
     db: Database_Contextual_View;
     profilesSyncer: ProfilesSyncer;
     eventSyncer: EventSyncer;
-    eventEmitter: EventEmitter<ViewUserDetail | ViewThread | DirectMessagePanelUpdate>;
+    emit: emitFunc<ViewUserDetail | ViewThread | DirectMessagePanelUpdate>;
     allUserInfo: Map<string, UserInfo>;
 }) {
     const first_group = props.messages[0];
@@ -121,13 +121,13 @@ function MessageThreadBoxGroup(props: {
         <li
             class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 group relative`}
         >
-            {MessageThreadActions(first_group.event, props.eventEmitter.emit)}
+            {MessageThreadActions(first_group.event, props.emit)}
             <Avatar
                 class={tw`h-8 w-8 mt-[0.45rem] mr-2`}
                 picture={getUserInfoFromPublicKey(first_group.event.publicKey, props.allUserInfo)
                     ?.profile?.profile.picture}
                 onClick={() => {
-                    props.eventEmitter.emit({
+                    props.emit({
                         type: "ViewUserDetail",
                         pubkey: first_group.event.publicKey,
                     });
@@ -149,7 +149,7 @@ function MessageThreadBoxGroup(props: {
                 <pre
                     class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto`}
                 >
-                    {ParseMessageContent(first_group, props.allUserInfo, props.profilesSyncer, props.eventSyncer, props.eventEmitter)}
+                    {ParseMessageContent(first_group, props.allUserInfo, props.profilesSyncer, props.eventSyncer, props.emit)}
                 </pre>
             </div>
         </li>,
@@ -161,7 +161,7 @@ function MessageThreadBoxGroup(props: {
             <li
                 class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 group relative`}
             >
-                {MessageThreadActions(msg.event, props.eventEmitter.emit)}
+                {MessageThreadActions(msg.event, props.emit)}
                 {Time(msg.created_at)}
                 <div
                     class={tw`flex-1`}
@@ -172,7 +172,7 @@ function MessageThreadBoxGroup(props: {
                     <pre
                         class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto`}
                     >
-                    {ParseMessageContent(msg, props.allUserInfo, props.profilesSyncer, props.eventSyncer, props.eventEmitter)}
+                    {ParseMessageContent(msg, props.allUserInfo, props.profilesSyncer, props.eventSyncer, props.emit)}
                     </pre>
                 </div>
             </li>,

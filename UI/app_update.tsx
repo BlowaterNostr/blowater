@@ -11,7 +11,7 @@ import { convertEventsToChatMessages } from "./dm.ts";
 
 import { sendDMandImages, sendSocialPost } from "../features/dm.ts";
 import { notify } from "./notification.ts";
-import { EventBus, EventEmitter } from "../event-bus.ts";
+import { emitFunc, EventBus, EventEmitter } from "../event-bus.ts";
 import { ContactUpdate } from "./contact-list.tsx";
 import { MyProfileUpdate } from "./edit-profile.tsx";
 import {
@@ -499,7 +499,7 @@ export async function* Database_Update(
     model: Model,
     profileSyncer: ProfilesSyncer,
     lamport: LamportTime,
-    eventEmitter: EventEmitter<SelectProfile>,
+    emit: emitFunc<SelectProfile>,
     allUserInfo: AllUsersInformation,
     relayConfig: RelayConfig,
 ) {

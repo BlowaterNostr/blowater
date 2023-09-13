@@ -290,7 +290,7 @@ export class App {
                     this.model,
                     this.profileSyncer,
                     this.lamport,
-                    this.eventBus,
+                    this.eventBus.emit,
                     this.allUsersInfo,
                     this.relayConfig,
                 )
@@ -377,7 +377,7 @@ export function AppComponent(props: {
             allUsersInfo: app.allUsersInfo,
             ctx: app.myAccountContext,
             db: app.database,
-            eventEmitter: app.eventBus,
+            emit: app.eventBus.emit,
             eventSyncer: app.eventSyncer,
             focusedContent: focusedContent,
             model: app.model,
@@ -429,7 +429,7 @@ export function AppComponent(props: {
                         editors: model.editors,
                         ...model.dm,
                         rightPanelModel: model.rightPanelModel,
-                        eventEmitter: app.eventBus,
+                        emit: app.eventBus.emit,
                         myAccountContext: myAccountCtx,
                         db: app.database,
                         pool: props.pool,
@@ -460,7 +460,7 @@ export function AppComponent(props: {
                             publicKey: myAccountCtx.publicKey,
                             database: app.database,
                             pool: props.pool,
-                            eventEmitter: app.eventBus,
+                            emit: app.eventBus.emit,
                             ...model.navigationModel,
                         })}
                     </div>
@@ -474,7 +474,7 @@ export function AppComponent(props: {
                             class={tw`max-w-[35rem] h-full m-auto`}
                         >
                             {EditProfile({
-                                eventEmitter: app.eventBus,
+                                emit: app.eventBus.emit,
                                 myProfile: model.myProfile,
                                 newProfileField: model.newProfileField,
                             })}
@@ -497,7 +497,7 @@ export function AppComponent(props: {
                             publicKey={myAccountCtx.publicKey}
                             database={app.database}
                             pool={props.pool}
-                            eventEmitter={app.eventBus}
+                            emit={app.eventBus.emit}
                             {...model.navigationModel}
                         />
                     }

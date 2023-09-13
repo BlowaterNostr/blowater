@@ -2,7 +2,7 @@
 import { createRef, h } from "https://esm.sh/preact@10.17.1";
 import { tw } from "https://esm.sh/twind@0.16.16";
 import { CenterClass, LinearGradientsClass, NoOutlineClass } from "./components/tw.ts";
-import { EventEmitter } from "../event-bus.ts";
+import { emitFunc, EventEmitter } from "../event-bus.ts";
 
 import { NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
@@ -104,13 +104,13 @@ export function Editor(props: {
     // Logic
     readonly model: EditorModel;
     //
-    readonly eventEmitter: EventEmitter<EditorEvent>;
+    readonly emit: emitFunc<EditorEvent>;
 }) {
     const textareaElement = createRef();
     const uploadFileInput = createRef();
 
     const removeFile = (index: number) => {
-        props.eventEmitter.emit({
+        props.emit({
             type: "UpdateMessageFiles",
             id: props.model.id,
             target: props.model.target,
@@ -121,7 +121,7 @@ export function Editor(props: {
     };
 
     const sendMessage = async () => {
-        props.eventEmitter.emit({
+        props.emit({
             type: "SendMessage",
             id: props.model.id,
             tags: props.model.tags,
@@ -170,7 +170,7 @@ export function Editor(props: {
                         }
                         propsfiles = propsfiles.concat([file]);
                     }
-                    props.eventEmitter.emit({
+                    props.emit({
                         type: "UpdateMessageFiles",
                         id: props.model.id,
                         target: props.model.target,
@@ -227,7 +227,7 @@ export function Editor(props: {
                     class={tw`flex-1 bg-transparent focus-visible:outline-none placeholder-[${PrimaryTextColor}4D] text-[0.8rem] text-[#D2D3D5] whitespace-nowrap resize-none overflow-x-hidden overflow-y-auto`}
                     placeholder={props.placeholder}
                     onInput={(e) => {
-                        props.eventEmitter.emit({
+                        props.emit({
                             type: "UpdateMessageText",
                             id: props.model.id,
                             target: props.model.target,
@@ -258,7 +258,7 @@ export function Editor(props: {
                                 const image = await item.getType(
                                     "image/png",
                                 );
-                                props.eventEmitter.emit({
+                                props.emit({
                                     type: "UpdateMessageFiles",
                                     id: props.model.id,
                                     target: props.model.target,

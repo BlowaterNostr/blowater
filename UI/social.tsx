@@ -5,7 +5,7 @@ import { DirectMessagePanelUpdate, MessagePanel } from "./message-panel.tsx";
 import { Model } from "./app_model.ts";
 import { NostrAccountContext } from "../lib/nostr-ts/nostr.ts";
 import { Database_Contextual_View } from "../database.ts";
-import { EventEmitter } from "../event-bus.ts";
+import { emitFunc, EventEmitter } from "../event-bus.ts";
 import { AllUsersInformation, getUserInfoFromPublicKey } from "./contact-list.ts";
 import { EventSyncer } from "./event_syncer.ts";
 import { PrimaryTextColor } from "./style/colors.ts";
@@ -44,7 +44,7 @@ export function SocialPanel(props: {
     model: Model;
     ctx: NostrAccountContext;
     db: Database_Contextual_View;
-    eventEmitter: EventEmitter<
+    emit: emitFunc<
         SocialUpdates | EditorEvent | DirectMessagePanelUpdate | PinContact | UnpinContact
     >;
     profileSyncer: ProfilesSyncer;
@@ -90,7 +90,7 @@ export function SocialPanel(props: {
             messages={messages}
             rightPanelModel={model.rightPanelModel}
             db={props.db}
-            eventEmitter={props.eventEmitter}
+            emit={props.emit}
             profilesSyncer={props.profileSyncer}
             eventSyncer={props.eventSyncer}
             allUserInfo={props.allUsersInfo.userInfos}
@@ -112,7 +112,7 @@ export function SocialPanel(props: {
 
 function Filter(
     props: {
-        eventEmitter: EventEmitter<SocialUpdates>;
+        emit: emitFunc<SocialUpdates>;
         model: Model;
     },
 ) {
@@ -126,7 +126,7 @@ function Filter(
                 <button
                     class={tw`text-[${PrimaryTextColor}] rounded-lg ${CenterClass} bg-[#36393F] hover:bg-transparent font-bold`}
                     onClick={(e) => {
-                        props.eventEmitter.emit({
+                        props.emit({
                             type: "SocialFilterChanged_remove_author",
                             value: author,
                         });
@@ -147,7 +147,7 @@ function Filter(
                     <input
                         class={tw`text-black`}
                         onInput={(e) => {
-                            props.eventEmitter.emit({
+                            props.emit({
                                 type: "SocialFilterChanged_content",
                                 content: e.currentTarget.value,
                             });
@@ -162,7 +162,7 @@ function Filter(
                     <input
                         class={tw`text-black`}
                         onInput={(e) => {
-                            props.eventEmitter.emit({
+                            props.emit({
                                 type: "SocialFilterChanged_adding_author",
                                 value: e.currentTarget.value,
                             });
@@ -176,7 +176,7 @@ function Filter(
                         <button
                             class={tw`w-[4.8rem] text-[${PrimaryTextColor}] rounded-lg ${CenterClass} bg-[#36393F] hover:bg-transparent font-bold`}
                             onClick={(e) => {
-                                props.eventEmitter.emit({
+                                props.emit({
                                     type: "SocialFilterChanged_authors",
                                 });
                             }}

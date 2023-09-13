@@ -6,13 +6,13 @@ import { CloseIcon, HomeIcon, KeyIcon, UserIcon } from "./icons/mod.tsx";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { ProfileData } from "../features/profile.ts";
 import { IconButtonClass } from "./components/tw.ts";
-import { EventEmitter } from "../event-bus.ts";
+import { emitFunc, EventEmitter } from "../event-bus.ts";
 import { DirectMessagePanelUpdate } from "./message-panel.tsx";
 
 type UserDetailProps = {
     targetUserProfile: ProfileData;
     pubkey: PublicKey;
-    eventEmitter: EventEmitter<DirectMessagePanelUpdate>;
+    emit: emitFunc<DirectMessagePanelUpdate>;
 };
 
 export function UserDetail(props: UserDetailProps) {
