@@ -4,7 +4,7 @@ import { tw } from "https://esm.sh/twind@0.16.16";
 import * as cl from "./contact-list.tsx";
 import { Database_Contextual_View } from "../database.ts";
 import { MessagePanel, RightPanelModel } from "./message-panel.tsx";
-import { EventBus } from "../event-bus.ts";
+import { emitFunc, EventBus } from "../event-bus.ts";
 import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
 import { IconButtonClass } from "./components/tw.ts";
 import { DM_EditorModel } from "./editor.tsx";
@@ -16,14 +16,14 @@ import { ChatMessage } from "./message.ts";
 import { DM_Container_Model } from "./dm.ts";
 import { getFocusedContent } from "./app.tsx";
 import { EventSyncer } from "./event_syncer.ts";
-import { AllUsersInformation, UserInfo } from "./contact-list.ts";
+import { AllUsersInformation } from "./contact-list.ts";
 
 type DirectMessageContainerProps = {
     editors: Map<string, DM_EditorModel>;
     rightPanelModel: RightPanelModel;
     myAccountContext: NostrAccountContext;
     pool: ConnectionPool;
-    eventEmitter: EventBus<UI_Interaction_Event>;
+    emit: emitFunc<UI_Interaction_Event>;
     db: Database_Contextual_View;
     allUserInfo: AllUsersInformation;
     profilesSyncer: ProfilesSyncer;
@@ -100,7 +100,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
             myPublicKey: props.myAccountContext.publicKey,
             messages: convoMsgs,
             rightPanelModel: props.rightPanelModel,
-            eventEmitter: props.eventEmitter,
+            emit: props.emit,
             editorModel: currentEditorModel,
             focusedContent: focusedContent,
             db: props.db,
@@ -119,7 +119,6 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                     database: props.db,
                     currentSelected: currentConversation,
                     userInfo: props.allUserInfo,
-                    emit: props.eventEmitter.emit,
                     ...props,
                 })}
             </div>
@@ -131,7 +130,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                         >
                             <button
                                 onClick={() => {
-                                    props.eventEmitter.emit({
+                                    props.emit({
                                         type: "BackToContactList",
                                     });
                                 }}

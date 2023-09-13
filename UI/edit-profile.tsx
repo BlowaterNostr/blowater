@@ -2,7 +2,7 @@
 import { Fragment, h } from "https://esm.sh/preact@10.17.1";
 import { tw } from "https://esm.sh/twind@0.16.16";
 import { Avatar } from "./components/avatar.tsx";
-import { EventEmitter } from "../event-bus.ts";
+import { emitFunc, EventEmitter } from "../event-bus.ts";
 import {
     ButtonClass,
     CenterClass,
@@ -54,7 +54,7 @@ export type InsertNewProfileField = {
 };
 
 export function EditProfile(props: {
-    eventEmitter: EventEmitter<MyProfileUpdate>;
+    emit: emitFunc<MyProfileUpdate>;
     myProfile: ProfileData | undefined;
     newProfileField: {
         key: string;
@@ -96,7 +96,7 @@ export function EditProfile(props: {
                 rows={props.myProfile?.name?.split("\n")?.length || 1}
                 value={props.myProfile?.name}
                 onInput={(e) => {
-                    props.eventEmitter.emit({
+                    props.emit({
                         type: "EditMyProfile",
                         profile: {
                             name: e.currentTarget.value,
@@ -120,7 +120,7 @@ export function EditProfile(props: {
                 rows={props.myProfile?.picture?.split("\n")?.length || 1}
                 value={props.myProfile?.picture}
                 onInput={(e) => {
-                    props.eventEmitter.emit({
+                    props.emit({
                         type: "EditMyProfile",
                         profile: {
                             picture: e.currentTarget.value,
@@ -150,7 +150,7 @@ export function EditProfile(props: {
                 rows={props.myProfile?.about?.split("\n")?.length || 1}
                 value={props.myProfile?.about}
                 onInput={(e) => {
-                    props.eventEmitter.emit({
+                    props.emit({
                         type: "EditMyProfile",
                         profile: {
                             about: e.currentTarget.value,
@@ -174,7 +174,7 @@ export function EditProfile(props: {
                 rows={props.myProfile?.website?.split("\n")?.length || 1}
                 value={props.myProfile?.website}
                 onInput={(e) => {
-                    props.eventEmitter.emit({
+                    props.emit({
                         type: "EditMyProfile",
                         profile: {
                             website: e.currentTarget.value,
@@ -198,7 +198,7 @@ export function EditProfile(props: {
                 rows={props.myProfile?.banner?.split("\n")?.length || 1}
                 value={props.myProfile?.banner}
                 onInput={(e) => {
-                    props.eventEmitter.emit({
+                    props.emit({
                         type: "EditMyProfile",
                         profile: {
                             banner: e.currentTarget.value,
@@ -230,7 +230,7 @@ export function EditProfile(props: {
                                 rows={value.toString().split("\n").length}
                                 value={value}
                                 onInput={(e) => {
-                                    props.eventEmitter.emit({
+                                    props.emit({
                                         type: "EditMyProfile",
                                         profile: {
                                             [key]: e.currentTarget.value,
@@ -262,7 +262,7 @@ export function EditProfile(props: {
                 placeholder="e.g. hobbies"
                 value={props.newProfileField.key}
                 onInput={(e) => {
-                    props.eventEmitter.emit({
+                    props.emit({
                         type: "EditNewProfileFieldKey",
                         key: e.currentTarget.value,
                     });
@@ -278,7 +278,7 @@ export function EditProfile(props: {
                 rows={1}
                 value={props.newProfileField.value}
                 onInput={(e) => {
-                    props.eventEmitter.emit({
+                    props.emit({
                         type: "EditNewProfileFieldValue",
                         value: e.currentTarget.value,
                     });
@@ -295,7 +295,7 @@ export function EditProfile(props: {
             <button
                 class={tw`w-full mt-[1.5rem] p-[0.75rem] rounded-lg ${NoOutlineClass} text-[${PrimaryTextColor}] bg-[${DividerBackgroundColor}] hover:bg-[${HoverButtonBackgroudColor}] ${CenterClass}`}
                 onClick={() => {
-                    props.eventEmitter.emit({
+                    props.emit({
                         type: "InsertNewProfileField",
                     });
                 }}
@@ -308,7 +308,7 @@ export function EditProfile(props: {
                     class={tw`w-full p-[0.75rem] rounded-lg ${NoOutlineClass} text-[${PrimaryTextColor}] ${CenterClass} ${LinearGradientsClass}  hover:bg-gradient-to-l`}
                     onClick={async () => {
                         if (props.myProfile) {
-                            props.eventEmitter.emit({
+                            props.emit({
                                 type: "SaveMyProfile",
                                 profile: props.myProfile,
                             });

@@ -75,7 +75,7 @@ interface DirectMessagePanelProps {
     rightPanelModel: RightPanelModel;
 
     db: Database_Contextual_View;
-    eventEmitter: EventEmitter<
+    emit: emitFunc<
         EditorEvent | DirectMessagePanelUpdate | PinContact | UnpinContact
     >;
     profilesSyncer: ProfilesSyncer;
@@ -102,7 +102,7 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
                 if (props.focusedContent.type == "MessageThread") {
                     rightPanelChildren = (
                         <MessageThreadPanel
-                            eventEmitter={props.eventEmitter}
+                            emit={props.emit}
                             messages={[props.focusedContent.data.root, ...props.focusedContent.data.replies]}
                             myPublicKey={props.myPublicKey}
                             db={props.db}
@@ -122,14 +122,14 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
                                 website: props.focusedContent?.data?.website,
                             }}
                             pubkey={props.focusedContent.pubkey}
-                            eventEmitter={props.eventEmitter}
+                            emit={props.emit}
                         />
                     );
                 }
             }
             rightPanel = (
                 <RightPanel
-                    eventEmitter={props.eventEmitter}
+                    emit={props.emit}
                     rightPanelModel={props.rightPanelModel}
                 >
                     {rightPanelChildren}
@@ -144,7 +144,7 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
                         <MessageList
                             myPublicKey={props.myPublicKey}
                             threads={props.messages}
-                            eventEmitter={props.eventEmitter}
+                            emit={props.emit}
                             db={props.db}
                             profilesSyncer={props.profilesSyncer}
                             eventSyncer={props.eventSyncer}
@@ -156,7 +156,7 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
                             model={props.editorModel}
                             placeholder={placeholder}
                             maxHeight="30vh"
-                            eventEmitter={props.eventEmitter}
+                            emit={props.emit}
                         />
                     }
                 </div>
@@ -167,7 +167,7 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
                                 props.rightPanelModel.show ? " rotate-180" : ""
                             } ${IconButtonClass}`}
                             onClick={() => {
-                                props.eventEmitter.emit({
+                                props.emit({
                                     type: "ToggleRightPanel",
                                     show: !props.rightPanelModel.show,
                                 });
@@ -193,7 +193,7 @@ interface MessageListProps {
     myPublicKey: PublicKey;
     threads: MessageThread[];
     db: Database_Contextual_View;
-    eventEmitter: EventEmitter<DirectMessagePanelUpdate>;
+    emit: emitFunc<DirectMessagePanelUpdate>;
     profilesSyncer: ProfilesSyncer;
     eventSyncer: EventSyncer;
     allUserInfo: Map<string, UserInfo>;
@@ -268,7 +268,7 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
                         };
                     }),
                     myPublicKey: this.props.myPublicKey,
-                    eventEmitter: this.props.eventEmitter,
+                    emit: this.props.emit,
                     db: this.props.db,
                     profilesSyncer: this.props.profilesSyncer,
                     eventSyncer: this.props.eventSyncer,
@@ -326,7 +326,7 @@ function MessageBoxGroup(props: {
     myPublicKey: PublicKey;
     db: Database_Contextual_View;
     allUserInfo: Map<string, UserInfo>;
-    eventEmitter: EventEmitter<DirectMessagePanelUpdate | ViewUserDetail>;
+    emit: emitFunc<DirectMessagePanelUpdate | ViewUserDetail>;
     profilesSyncer: ProfilesSyncer;
     eventSyncer: EventSyncer;
 }) {
@@ -342,13 +342,13 @@ function MessageBoxGroup(props: {
         <li
             class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 group relative`}
         >
-            {MessageActions(first_group.msg.event, props.eventEmitter.emit)}
+            {MessageActions(first_group.msg.event, props.emit)}
             <Avatar
                 class={tw`h-8 w-8 mt-[0.45rem] mr-2`}
                 picture={getUserInfoFromPublicKey(first_group.msg.event.publicKey, props.allUserInfo)
                     ?.profile?.profile.picture}
                 onClick={() => {
-                    props.eventEmitter.emit({
+                    props.emit({
                         type: "ViewUserDetail",
                         pubkey: first_group.msg.event.publicKey,
                     });
@@ -376,7 +376,7 @@ function MessageBoxGroup(props: {
                                     props.allUserInfo,
                                     props.profilesSyncer,
                                     props.eventSyncer,
-                                    props.eventEmitter,
+                                    props.emit,
                                     )}
                 </pre>
                 {first_group.replyCount > 0
@@ -385,7 +385,7 @@ function MessageBoxGroup(props: {
                             <span
                                 class={tw`text-[#A6A8AA] font-bold hover:underline cursor-pointer text-[0.8rem]`}
                                 onClick={() => {
-                                    props.eventEmitter.emit({
+                                    props.emit({
                                         type: "ViewThread",
                                         root: first_group.msg.event,
                                     });
@@ -406,7 +406,7 @@ function MessageBoxGroup(props: {
             <li
                 class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 group relative`}
             >
-                {MessageActions(msg.msg.event, props.eventEmitter.emit)}
+                {MessageActions(msg.msg.event, props.emit)}
                 {Time(msg.msg.created_at)}
                 <div
                     class={tw`flex-1`}
@@ -422,7 +422,7 @@ function MessageBoxGroup(props: {
                         props.allUserInfo,
                         props.profilesSyncer,
                         props.eventSyncer,
-                        props.eventEmitter,
+                        props.emit,
                         )}
                     </pre>
                     {msg.replyCount > 0
@@ -431,7 +431,7 @@ function MessageBoxGroup(props: {
                                 <span
                                     class={tw`text-[#A6A8AA] font-bold hover:underline cursor-pointer text-[0.8rem]`}
                                     onClick={() => {
-                                        props.eventEmitter.emit({
+                                        props.emit({
                                             type: "ViewThread",
                                             root: msg.msg.event,
                                         });
@@ -547,7 +547,7 @@ export function ParseMessageContent(
     allUserInfo: Map<string, UserInfo>,
     profilesSyncer: ProfilesSyncer,
     eventSyncer: EventSyncer,
-    eventEmitter: EventEmitter<ViewUserDetail | ViewThread>,
+    emit: emitFunc<ViewUserDetail | ViewThread>,
 ) {
     if (message.type == "image") {
         return <img src={message.content} />;
@@ -582,7 +582,7 @@ export function ParseMessageContent(
                                 ProfileCard(
                                     profile.profile,
                                     PublicKey.FromHex(item.pubkey) as PublicKey,
-                                    eventEmitter,
+                                    emit,
                                 ),
                             );
                             break;
@@ -596,7 +596,7 @@ export function ParseMessageContent(
                         ProfileCard(
                             undefined,
                             PublicKey.FromHex(item.pubkey) as PublicKey,
-                            eventEmitter,
+                            emit,
                         ),
                     );
                 }
@@ -607,7 +607,7 @@ export function ParseMessageContent(
                     if (event instanceof Promise) {
                         break;
                     }
-                    vnode.push(NoteCard(event, eventEmitter, allUserInfo));
+                    vnode.push(NoteCard(event, emit, allUserInfo));
                 }
                 break;
             case "tag":
@@ -625,13 +625,13 @@ export function ParseMessageContent(
 function ProfileCard(
     profile: ProfileData | undefined,
     pubkey: PublicKey,
-    eventEmitter: EventEmitter<ViewUserDetail>,
+    emit: emitFunc<ViewUserDetail>,
 ) {
     return (
         <div
             class={tw`px-4 py-2 my-1 border-2 border-[${PrimaryTextColor}4D] rounded-lg hover:bg-[${HoverButtonBackgroudColor}] cursor-pointer py-1`}
             onClick={() => {
-                eventEmitter.emit({
+                emit({
                     type: "ViewUserDetail",
                     pubkey: pubkey,
                 });
@@ -651,12 +651,12 @@ function ProfileCard(
 
 function NoteCard(
     event: Profile_Nostr_Event | Text_Note_Event | Encrypted_Event,
-    eventEmitter: EventEmitter<ViewThread | ViewUserDetail>,
+    emit: emitFunc<ViewThread | ViewUserDetail>,
     allUserInfo: Map<string, UserInfo>,
 ) {
     switch (event.kind) {
         case NostrKind.META_DATA:
-            return ProfileCard(event.profile, event.publicKey, eventEmitter);
+            return ProfileCard(event.profile, event.publicKey, emit);
         case NostrKind.TEXT_NOTE:
         case NostrKind.DIRECT_MESSAGE:
             const profile = allUserInfo.get(event.pubkey)?.profile;
@@ -679,7 +679,7 @@ function NoteCard(
 }
 
 type RightPanelProps = {
-    eventEmitter: EventEmitter<DirectMessagePanelUpdate>;
+    emit: emitFunc<DirectMessagePanelUpdate>;
     rightPanelModel: RightPanelModel;
     children: ComponentChildren;
 };
@@ -694,7 +694,7 @@ function RightPanel(props: RightPanelProps) {
             <button
                 class={tw`w-6 min-w-[1.5rem] h-6 ml-4 ${IconButtonClass} hover:bg-[#36393F] absolute right-2 top-3 z-10`}
                 onClick={() => {
-                    props.eventEmitter.emit({
+                    props.emit({
                         type: "ToggleRightPanel",
                         show: false,
                     });

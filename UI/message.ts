@@ -117,7 +117,7 @@ export interface ChatMessage {
     readonly type: "image" | "text";
     readonly created_at: Date;
     readonly lamport: number | undefined;
-    content: string;
+    readonly content: string;
 }
 
 export function urlIsImage(url: string) {
