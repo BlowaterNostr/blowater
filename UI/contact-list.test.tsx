@@ -24,16 +24,14 @@ const profileSyncer = new ProfilesSyncer(database, pool);
 
 render(
     <ContactList
-        database={database}
-        emit={testEventBus.emit}
         userInfoMap={allUserInfo.userInfos}
         currentSelected={ctx.publicKey}
-        editors={model.editors}
         hasNewMessages={new Set()}
-        myAccountContext={ctx}
-        search={model.dm.search}
         selectedContactGroup={model.dm.selectedContactGroup}
-        profileSyncer={profileSyncer}
+        // common dependencies
+        myAccountContext={ctx}
+        database={database}
+        emit={testEventBus.emit}
     />,
     document.body,
 );

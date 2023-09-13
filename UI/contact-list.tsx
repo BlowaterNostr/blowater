@@ -24,11 +24,8 @@ type Props = {
     // Model
     userInfoMap: Map<string, UserInfo>;
     currentSelected: PublicKey | undefined;
-    search: SearchModel;
-    editors: Map<string, DM_EditorModel>;
     selectedContactGroup: ContactGroup;
     hasNewMessages: Set<string>;
-    profileSyncer: ProfilesSyncer;
 };
 
 export type ContactGroup = "Contacts" | "Strangers";

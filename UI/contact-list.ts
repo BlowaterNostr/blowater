@@ -62,8 +62,6 @@ export class AllUsersInformation {
                         }
                     }
                     break;
-                case NostrKind.TEXT_NOTE:
-                    break;
                 case NostrKind.DIRECT_MESSAGE:
                     {
                         let whoAm_I_TalkingTo = "";
