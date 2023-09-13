@@ -521,15 +521,12 @@ export async function* Database_Update(
         }
 
         let hasKind_1 = false;
+        profileSyncer.add(...changes_events.map(e=>e.pubkey));
         for (let e of changes_events) {
             allUserInfo.addEvents([e]);
             const t = getTags(e).lamport_timestamp;
             if (t) {
                 lamport.set(t);
-            }
-            const key = PublicKey.FromHex(e.pubkey);
-            if (key instanceof PublicKey) {
-                profileSyncer.add(key.hex);
             }
             if (e.kind == NostrKind.META_DATA || e.kind == NostrKind.DIRECT_MESSAGE) {
                 for (const contact of allUserInfo.userInfos.values()) {
