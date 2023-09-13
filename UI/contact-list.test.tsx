@@ -17,24 +17,29 @@ const database = await Database_Contextual_View.New(testEventsAdapter, ctx);
 if (database instanceof Error) {
     fail(database.message);
 }
-const allUserInfo = new AllUsersInformation(ctx);
-(async () => {
-    for await (const event of database.subscribe()) {
-        allUserInfo.addEvents([event]);
-    }
-})();
-database.addEvent(
-    await prepareEncryptedNostrEvent(ctx, ctx.publicKey, NostrKind.DIRECT_MESSAGE, [
-        ["p", ctx.publicKey.hex],
-    ], "123") as NostrEvent,
-);
 
-const key = PrivateKey.Generate().toPublicKey();
-database.addEvent(
-    await prepareEncryptedNostrEvent(ctx, key, NostrKind.DIRECT_MESSAGE, [
+const eve = await prepareEncryptedNostrEvent(ctx, ctx.publicKey, NostrKind.DIRECT_MESSAGE, [
+    ["p", ctx.publicKey.hex],
+], "123");
+if (eve instanceof Error) {
+    fail(eve.message);
+}
+await database.addEvent(eve);
+for (let i = 0; i < 2; i++) {
+    const key = PrivateKey.Generate().toPublicKey();
+    const eve = await prepareEncryptedNostrEvent(ctx, key, NostrKind.DIRECT_MESSAGE, [
         ["p", key.hex],
-    ], "123") as NostrEvent,
-);
+    ], "123");
+    if (eve instanceof Error) {
+        fail(eve.message);
+    }
+    await database.addEvent(eve);
+}
+
+const allUserInfo = new AllUsersInformation(ctx);
+allUserInfo.addEvents(database.events);
+
+console.log(Array.from(allUserInfo.getStrangers()).length);
 
 // allUserInfo.addEvents([e]);
 const pool = new ConnectionPool();
