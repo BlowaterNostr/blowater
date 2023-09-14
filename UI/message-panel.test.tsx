@@ -21,7 +21,7 @@ import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
 const database = await Database_Contextual_View.New(testEventsAdapter, ctx);
 if (database instanceof InvalidKey) {
-    fail();
+    fail(database.message);
 }
 const lamport = new LamportTime(0);
 
