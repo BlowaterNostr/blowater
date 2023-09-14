@@ -19,7 +19,7 @@ import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 
 const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
 const database = await Database_Contextual_View.New(testEventsAdapter, ctx);
-if (database instanceof InvalidKey) { fail(database.message); }
+if (database instanceof InvalidKey) fail(database.message);
 const lamport = new LamportTime(0);
 
 await database.addEvent(await prepareNormalNostrEvent(ctx, NostrKind.TEXT_NOTE, [], `hi`));
