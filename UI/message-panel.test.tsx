@@ -1,7 +1,7 @@
 /** @jsx h */
 import { h, render } from "https://esm.sh/preact@10.17.1";
 import { MessagePanel } from "./message-panel.tsx";
-import { PrivateKey } from "../lib/nostr-ts/key.ts";
+import { InvalidKey, PrivateKey } from "../lib/nostr-ts/key.ts";
 import { InMemoryAccountContext, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { Database_Contextual_View } from "../database.ts";
 import { testEventBus, testEventsAdapter } from "./_setup.test.ts";
@@ -15,9 +15,11 @@ import { handle_SendMessage } from "./app_update.tsx";
 import { LamportTime } from "../time.ts";
 import { initialModel } from "./app_model.ts";
 import { relays } from "../lib/nostr-ts/relay-list.test.ts";
+import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 
 const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
 const database = await Database_Contextual_View.New(testEventsAdapter, ctx);
+if (database instanceof InvalidKey) fail(database.message);
 const lamport = new LamportTime(0);
 
 await database.addEvent(await prepareNormalNostrEvent(ctx, NostrKind.TEXT_NOTE, [], `hi`));
@@ -40,7 +42,7 @@ const view = () => {
             focusedContent={undefined}
             myPublicKey={ctx.publicKey}
             profilesSyncer={new ProfilesSyncer(database, pool)}
-            eventEmitter={testEventBus}
+            emit={testEventBus.emit}
             messages={threads}
             rightPanelModel={{
                 show: true,

@@ -1,22 +1,23 @@
 /** @jsx h */
 import { Fragment, h, render } from "https://esm.sh/preact@10.17.1";
-import { Popover, PopoverChan } from "./popover.tsx";
+import { Popover, PopOverInputChannel } from "./popover.tsx";
+import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { tw } from "https://esm.sh/twind@0.16.16";
+import { CenterClass } from "./tw.ts";
+
+const popoverChan: PopOverInputChannel = new Channel();
 function PopoverTest() {
     return (
-        <Fragment>
+        <div class={tw`${CenterClass} w-screen h-screen text-white`}>
             <button
+                class={tw`rounded bg-black px-4 py2`}
                 onClick={async () => {
-                    await PopoverChan.put({
+                    await popoverChan.put({
                         children: (
                             <div
-                                style={{
-                                    color: "orange",
-                                    textAlign: "center",
-                                    padding: "5rem",
-                                }}
+                                class={tw`${CenterClass} p-10`}
                             >
-                                Popover
-                                <input type="text" />
+                                Popover Simple
                             </div>
                         ),
                         onClose: () => console.log("close"),
@@ -25,8 +26,8 @@ function PopoverTest() {
             >
                 Show
             </button>
-            <Popover />
-        </Fragment>
+            <Popover inputChan={popoverChan} />
+        </div>
     );
 }
 
