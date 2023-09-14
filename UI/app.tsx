@@ -94,68 +94,18 @@ export async function Start(database: DexieDatabase) {
                 document.body,
             );
         }
-        console.log("render", Date.now() - t);
+        console.log("first render:", Date.now() - t);
     }
 }
 
 async function initProfileSyncer(
     pool: ConnectionPool,
-    accountContext: NostrAccountContext,
+    ctx: NostrAccountContext,
     database: db.Database_Contextual_View,
 ) {
-    const myPublicKey = accountContext.publicKey;
-
-    ////////////////////
-    // Init Core Data //
-    ////////////////////
-    // const newestEvent = dm.getNewestEventOf(database, myPublicKey);
-    // console.info("newestEvent", newestEvent);
-    // const _24h = 60 * 60 * 24;
-    // let since: number = _24h;
-    // if (newestEvent !== db.NotFound) {
-    // since = newestEvent.created_at - _24h;
-    // }
-    // console.info("since", new Date(since * 1000));
-
-    // Sync DM events
-    const messageStream = dm.getAllEncryptedMessagesOf(
-        myPublicKey,
-        pool,
-    );
-
-    (async () => {
-        for await (const msg of messageStream) {
-            if (msg.res.type == "EVENT") {
-                const err = await database.addEvent(msg.res.event);
-                if (err instanceof Error) {
-                    console.log(err);
-                }
-            }
-        }
-    })();
-
     // Sync my profile events
     const profilesSyncer = new ProfilesSyncer(database, pool);
-    profilesSyncer.add(myPublicKey.hex);
-
-    // Sync Custom App Data
-    (async () => {
-        let resp = await pool.newSub(
-            "CustomAppData",
-            {
-                authors: [myPublicKey.hex],
-                kinds: [NostrKind.CustomAppData],
-            },
-        );
-        if (resp instanceof Error) {
-            throw resp;
-        }
-        for await (const { res, url } of resp.chan) {
-            if (res.type == "EVENT") {
-                database.addEvent(res.event);
-            }
-        }
-    })();
+    profilesSyncer.add(ctx.publicKey.hex);
 
     return profilesSyncer;
 }
@@ -199,7 +149,7 @@ export class App {
         })(this.relayConfig);
     }
 
-    initApp = async (accountContext: NostrAccountContext, pool: ConnectionPool) => {
+    initApp = async (ctx: NostrAccountContext, pool: ConnectionPool) => {
         console.log("App.initApp");
         {
             ///////////////////////////////////
@@ -210,7 +160,7 @@ export class App {
                 (async () => {
                     const stream = await pool.newSub("relay config", {
                         "#d": ["RelayConfig"],
-                        authors: [accountContext.publicKey.hex],
+                        authors: [ctx.publicKey.hex],
                         kinds: [NostrKind.Custom_App_Data],
                     });
                     if (stream instanceof Error) {
@@ -221,7 +171,7 @@ export class App {
                             continue;
                         }
                         console.log(msg.res);
-                        RelayConfig.FromNostrEvent(msg.res.event, accountContext);
+                        RelayConfig.FromNostrEvent(msg.res.event, ctx);
                         const _relayConfig = await RelayConfig.FromNostrEvent(
                             msg.res.event,
                             this.myAccountContext,
@@ -231,13 +181,48 @@ export class App {
                             continue;
                         }
                         this.relayConfig.merge(_relayConfig.save());
-                        this.relayConfig.saveToLocalStorage(accountContext);
+                        this.relayConfig.saveToLocalStorage(ctx);
                     }
                 })();
             }
         }
 
-        const profilesSyncer = await initProfileSyncer(pool, accountContext, this.database);
+        // Sync DM events
+        (async function sync_dm_events(database: Database_Contextual_View) {
+            const messageStream = dm.getAllEncryptedMessagesOf(
+                ctx.publicKey,
+                pool,
+            );
+            for await (const msg of messageStream) {
+                if (msg.res.type == "EVENT") {
+                    const err = await database.addEvent(msg.res.event);
+                    if (err instanceof Error) {
+                        console.log(err);
+                    }
+                }
+            }
+        })(this.database);
+
+        // Sync Custom App Data
+        (async function sync_custom_app_data(database: Database_Contextual_View) {
+            let resp = await pool.newSub(
+                "CustomAppData",
+                {
+                    authors: [ctx.publicKey.hex],
+                    kinds: [NostrKind.CustomAppData],
+                },
+            );
+            if (resp instanceof Error) {
+                throw resp;
+            }
+            for await (const { res, url } of resp.chan) {
+                if (res.type == "EVENT") {
+                    database.addEvent(res.event);
+                }
+            }
+        })(this.database);
+
+        const profilesSyncer = await initProfileSyncer(pool, ctx, this.database);
         if (profilesSyncer instanceof Error) {
             return profilesSyncer;
         }
@@ -247,7 +232,7 @@ export class App {
         this.model.social.threads = getSocialPosts(this.database, this.allUsersInfo.userInfos);
 
         /* my profile */
-        this.model.myProfile = this.allUsersInfo.userInfos.get(accountContext.publicKey.hex)?.profile
+        this.model.myProfile = this.allUsersInfo.userInfos.get(ctx.publicKey.hex)?.profile
             ?.profile;
 
         /* contacts */
@@ -285,14 +270,12 @@ export class App {
             let i = 0;
             for await (
                 let _ of Database_Update(
-                    accountContext,
+                    ctx,
                     this.database,
                     this.model,
                     this.profileSyncer,
                     this.lamport,
-                    this.eventBus.emit,
                     this.allUsersInfo,
-                    this.relayConfig,
                 )
             ) {
                 render(

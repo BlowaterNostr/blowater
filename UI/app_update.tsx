@@ -499,9 +499,7 @@ export async function* Database_Update(
     model: Model,
     profileSyncer: ProfilesSyncer,
     lamport: LamportTime,
-    emit: emitFunc<SelectProfile>,
     allUserInfo: AllUsersInformation,
-    relayConfig: RelayConfig,
 ) {
     const changes = database.subscribe((_) => true);
     while (true) {
