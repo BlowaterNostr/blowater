@@ -56,10 +56,7 @@ export async function Start(database: DexieDatabase) {
         }
         const lamport = time.fromEvents(dbView.filterEvents((_) => true));
         const app = new App(dbView, lamport, model, ctx, eventBus, pool, popOverInputChan);
-        const err = await app.initApp(ctx, pool);
-        if (err instanceof Error) {
-            throw err;
-        }
+        await app.initApp(ctx, pool);
         model.app = app;
     }
 
@@ -98,17 +95,17 @@ export async function Start(database: DexieDatabase) {
     }
 }
 
-async function initProfileSyncer(
-    pool: ConnectionPool,
-    ctx: NostrAccountContext,
-    database: db.Database_Contextual_View,
-) {
-    // Sync my profile events
-    const profilesSyncer = new ProfilesSyncer(database, pool);
-    profilesSyncer.add(ctx.publicKey.hex);
+// async function initProfileSyncer(
+//     pool: ConnectionPool,
+//     ctx: NostrAccountContext,
+//     database: db.Database_Contextual_View,
+// ) {
+//     // Sync my profile events
+//     const profilesSyncer = new ProfilesSyncer(database, pool);
+//     profilesSyncer.add(ctx.publicKey.hex);
 
-    return profilesSyncer;
-}
+//     return profilesSyncer;
+// }
 
 export class App {
     profileSyncer!: ProfilesSyncer;
@@ -222,11 +219,8 @@ export class App {
             }
         })(this.database);
 
-        const profilesSyncer = await initProfileSyncer(pool, ctx, this.database);
-        if (profilesSyncer instanceof Error) {
-            return profilesSyncer;
-        }
-        this.profileSyncer = profilesSyncer;
+        this.profileSyncer = new ProfilesSyncer(this.database, pool);
+        this.profileSyncer.add(ctx.publicKey.hex);
 
         console.log("App allUsersInfo");
         this.model.social.threads = getSocialPosts(this.database, this.allUsersInfo.userInfos);
@@ -254,10 +248,10 @@ export class App {
             }
         }
 
-        profilesSyncer.add(
+        this.profileSyncer.add(
             ...Array.from(this.allUsersInfo.userInfos.keys()),
         );
-        console.log("user set", profilesSyncer.userSet);
+        console.log("user set", this.profileSyncer.userSet);
 
         const ps = Array.from(this.allUsersInfo.userInfos.values()).map((u) => u.pubkey.hex);
         this.eventSyncer.syncEvents({
