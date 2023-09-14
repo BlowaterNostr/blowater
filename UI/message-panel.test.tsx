@@ -15,14 +15,11 @@ import { handle_SendMessage } from "./app_update.tsx";
 import { LamportTime } from "../time.ts";
 import { initialModel } from "./app_model.ts";
 import { relays } from "../lib/nostr-ts/relay-list.test.ts";
-import { tw } from "https://esm.sh/twind@0.16.16";
 import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 
 const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
 const database = await Database_Contextual_View.New(testEventsAdapter, ctx);
-if (database instanceof InvalidKey) {
-    fail(database.message);
-}
+if (database instanceof InvalidKey) { fail(database.message); }
 const lamport = new LamportTime(0);
 
 await database.addEvent(await prepareNormalNostrEvent(ctx, NostrKind.TEXT_NOTE, [], `hi`));
