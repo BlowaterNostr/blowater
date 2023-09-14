@@ -15,9 +15,10 @@ import { handle_SendMessage } from "./app_update.tsx";
 import { LamportTime } from "../time.ts";
 import { initialModel } from "./app_model.ts";
 import { relays } from "../lib/nostr-ts/relay-list.test.ts";
+import { tw } from "https://esm.sh/twind@0.16.16";
 
 const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
-const database = await Database_Contextual_View.New(testEventsAdapter, ctx);
+const database = await Database_Contextual_View.New(testEventsAdapter, ctx) as Database_Contextual_View;
 const lamport = new LamportTime(0);
 
 await database.addEvent(await prepareNormalNostrEvent(ctx, NostrKind.TEXT_NOTE, [], `hi`));
@@ -32,20 +33,22 @@ const view = () => {
     const threads = getSocialPosts(database, allUserInfo.userInfos);
     console.log(database.events, threads);
     return (
-        <MessagePanel
-            allUserInfo={allUserInfo.userInfos}
-            db={database}
-            editorModel={model.social.editor}
-            eventSyncer={new EventSyncer(pool, database)}
-            focusedContent={undefined}
-            myPublicKey={ctx.publicKey}
-            profilesSyncer={new ProfilesSyncer(database, pool)}
-            eventEmitter={testEventBus}
-            messages={threads}
-            rightPanelModel={{
-                show: true,
-            }}
-        />
+        <div class={tw`h-screen w-screen`}>
+            <MessagePanel
+                allUserInfo={allUserInfo.userInfos}
+                db={database}
+                editorModel={model.social.editor}
+                eventSyncer={new EventSyncer(pool, database)}
+                focusedContent={undefined}
+                myPublicKey={ctx.publicKey}
+                profilesSyncer={new ProfilesSyncer(database, pool)}
+                emit={testEventBus.emit}
+                messages={threads}
+                rightPanelModel={{
+                    show: true,
+                }}
+            />
+        </div>
     );
 };
 

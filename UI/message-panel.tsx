@@ -26,7 +26,12 @@ import { MessageThread } from "./dm.tsx";
 import { UserDetail } from "./user-detail.tsx";
 import { MessageThreadPanel } from "./message-thread-panel.tsx";
 import { Database_Contextual_View } from "../database.ts";
-import { HoverButtonBackgroudColor, LinkColor, PrimaryTextColor } from "./style/colors.ts";
+import {
+    HoverButtonBackgroudColor,
+    LinkColor,
+    PrimaryTextColor,
+    SecondaryBackgroundColor,
+} from "./style/colors.ts";
 import { getUserInfoFromPublicKey, UserInfo } from "./contact-list.ts";
 import { EventSyncer } from "./event_syncer.ts";
 import { ButtonGroup } from "./components/button-group.tsx";
@@ -137,7 +142,7 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
             );
         }
         let vnode = (
-            <div class={tw`flex h-full w-full relative`}>
+            <div class={tw`flex h-full w-full relative bg-[${SecondaryBackgroundColor}]`}>
                 <div class={tw`flex flex-col h-full flex-1 overflow-hidden`}>
                     <div class={tw`flex-1`}></div>
                     {

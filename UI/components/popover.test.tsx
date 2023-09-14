@@ -1,10 +1,9 @@
 /** @jsx h */
 import { Fragment, h, render } from "https://esm.sh/preact@10.17.1";
-import { PopOverInputChannel, Popover } from "./popover.tsx";
+import { Popover, PopOverInputChannel } from "./popover.tsx";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { tw } from "https://esm.sh/twind@0.16.16";
 import { CenterClass } from "./tw.ts";
-
 
 const popoverChan: PopOverInputChannel = new Channel();
 function PopoverTest() {
@@ -16,7 +15,8 @@ function PopoverTest() {
                     await popoverChan.put({
                         children: (
                             <div
-                                class={tw`${CenterClass} p-10`}>
+                                class={tw`${CenterClass} p-10`}
+                            >
                                 Popover Simple
                             </div>
                         ),
