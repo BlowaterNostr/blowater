@@ -2,7 +2,6 @@
 import { h, render, VNode } from "https://esm.sh/preact@10.17.1";
 import * as dm from "../features/dm.ts";
 import { DirectMessageContainer, MessageThread } from "./dm.tsx";
-import * as db from "../database.ts";
 import { tw } from "https://esm.sh/twind@0.16.16";
 import { EditProfile } from "./edit-profile.tsx";
 import * as nav from "./nav.tsx";
@@ -56,7 +55,7 @@ export async function Start(database: DexieDatabase) {
         }
         const lamport = time.fromEvents(dbView.filterEvents((_) => true));
         const app = new App(dbView, lamport, model, ctx, eventBus, pool, popOverInputChan);
-        await app.initApp(ctx, pool);
+        await app.initApp();
         model.app = app;
     }
 
@@ -95,21 +94,9 @@ export async function Start(database: DexieDatabase) {
     }
 }
 
-// async function initProfileSyncer(
-//     pool: ConnectionPool,
-//     ctx: NostrAccountContext,
-//     database: db.Database_Contextual_View,
-// ) {
-//     // Sync my profile events
-//     const profilesSyncer = new ProfilesSyncer(database, pool);
-//     profilesSyncer.add(ctx.publicKey.hex);
-
-//     return profilesSyncer;
-// }
-
 export class App {
-    profileSyncer!: ProfilesSyncer;
-    eventSyncer: EventSyncer;
+    readonly profileSyncer: ProfilesSyncer;
+    readonly eventSyncer: EventSyncer;
     public readonly allUsersInfo: AllUsersInformation;
     public readonly relayConfig: RelayConfig;
 
@@ -117,27 +104,29 @@ export class App {
         public readonly database: Database_Contextual_View,
         public readonly lamport: time.LamportTime,
         public readonly model: Model,
-        public readonly myAccountContext: NostrAccountContext,
+        public readonly ctx: NostrAccountContext,
         public readonly eventBus: EventBus<UI_Interaction_Event>,
-        relayPool: ConnectionPool,
+        public readonly pool: ConnectionPool,
         public readonly popOverInputChan: PopOverInputChannel,
     ) {
-        this.eventSyncer = new EventSyncer(relayPool, this.database);
-        this.allUsersInfo = new AllUsersInformation(myAccountContext);
-        this.relayConfig = RelayConfig.FromLocalStorage(myAccountContext);
+        this.eventSyncer = new EventSyncer(pool, this.database);
+        this.allUsersInfo = new AllUsersInformation(ctx);
+        this.relayConfig = RelayConfig.FromLocalStorage(ctx);
         if (this.relayConfig.getRelayURLs().size == 0) {
             for (const url of defaultRelays) {
                 this.relayConfig.add(url);
             }
         }
+        this.profileSyncer = new ProfilesSyncer(this.database, pool);
+        this.profileSyncer.add(ctx.publicKey.hex);
 
         (async (config: RelayConfig) => {
-            for await (let _ of Relay_Update(relayPool, config, myAccountContext)) {
+            for await (let _ of Relay_Update(pool, config, ctx)) {
                 render(
                     AppComponent({
                         eventBus,
                         model,
-                        pool: relayPool,
+                        pool: pool,
                         popOverInputChan: this.popOverInputChan,
                     }),
                     document.body,
@@ -146,46 +135,47 @@ export class App {
         })(this.relayConfig);
     }
 
-    initApp = async (ctx: NostrAccountContext, pool: ConnectionPool) => {
+    initApp = async () => {
         console.log("App.initApp");
-        {
-            ///////////////////////////////////
-            // Add relays to Connection Pool //
-            ///////////////////////////////////
-            {
-                // relay config synchronization, need to refactor later
-                (async () => {
-                    const stream = await pool.newSub("relay config", {
-                        "#d": ["RelayConfig"],
-                        authors: [ctx.publicKey.hex],
-                        kinds: [NostrKind.Custom_App_Data],
-                    });
-                    if (stream instanceof Error) {
-                        throw stream; // impossible
-                    }
-                    for await (const msg of stream.chan) {
-                        if (msg.res.type == "EOSE") {
-                            continue;
-                        }
-                        console.log(msg.res);
-                        RelayConfig.FromNostrEvent(msg.res.event, ctx);
-                        const _relayConfig = await RelayConfig.FromNostrEvent(
-                            msg.res.event,
-                            this.myAccountContext,
-                        );
-                        if (_relayConfig instanceof Error) {
-                            console.log(_relayConfig.message);
-                            continue;
-                        }
-                        this.relayConfig.merge(_relayConfig.save());
-                        this.relayConfig.saveToLocalStorage(ctx);
-                    }
-                })();
+
+        ///////////////////////////////////
+        // Add relays to Connection Pool //
+        ///////////////////////////////////
+        // relay config synchronization, need to refactor later
+        (async () => {
+            const stream = await this.pool.newSub("relay config", {
+                "#d": ["RelayConfig"],
+                authors: [this.ctx.publicKey.hex],
+                kinds: [NostrKind.Custom_App_Data],
+            });
+            if (stream instanceof Error) {
+                throw stream; // impossible
             }
-        }
+            for await (const msg of stream.chan) {
+                if (msg.res.type == "EOSE") {
+                    continue;
+                }
+                console.log(msg.res);
+                RelayConfig.FromNostrEvent(msg.res.event, this.ctx);
+                const _relayConfig = await RelayConfig.FromNostrEvent(
+                    msg.res.event,
+                    this.ctx,
+                );
+                if (_relayConfig instanceof Error) {
+                    console.log(_relayConfig.message);
+                    continue;
+                }
+                this.relayConfig.merge(_relayConfig.save());
+                this.relayConfig.saveToLocalStorage(this.ctx);
+            }
+        })();
 
         // Sync DM events
-        (async function sync_dm_events(database: Database_Contextual_View) {
+        (async function sync_dm_events(
+            database: Database_Contextual_View,
+            ctx: NostrAccountContext,
+            pool: ConnectionPool,
+        ) {
             const messageStream = dm.getAllEncryptedMessagesOf(
                 ctx.publicKey,
                 pool,
@@ -198,10 +188,14 @@ export class App {
                     }
                 }
             }
-        })(this.database);
+        })(this.database, this.ctx, this.pool);
 
         // Sync Custom App Data
-        (async function sync_custom_app_data(database: Database_Contextual_View) {
+        (async function sync_custom_app_data(
+            database: Database_Contextual_View,
+            ctx: NostrAccountContext,
+            pool: ConnectionPool,
+        ) {
             let resp = await pool.newSub(
                 "CustomAppData",
                 {
@@ -217,16 +211,13 @@ export class App {
                     database.addEvent(res.event);
                 }
             }
-        })(this.database);
-
-        this.profileSyncer = new ProfilesSyncer(this.database, pool);
-        this.profileSyncer.add(ctx.publicKey.hex);
+        })(this.database, this.ctx, this.pool);
 
         console.log("App allUsersInfo");
         this.model.social.threads = getSocialPosts(this.database, this.allUsersInfo.userInfos);
 
         /* my profile */
-        this.model.myProfile = this.allUsersInfo.userInfos.get(ctx.publicKey.hex)?.profile
+        this.model.myProfile = this.allUsersInfo.userInfos.get(this.ctx.publicKey.hex)?.profile
             ?.profile;
 
         /* contacts */
@@ -264,7 +255,7 @@ export class App {
             let i = 0;
             for await (
                 let _ of Database_Update(
-                    ctx,
+                    this.ctx,
                     this.database,
                     this.model,
                     this.profileSyncer,
@@ -276,7 +267,7 @@ export class App {
                     AppComponent({
                         eventBus: this.eventBus,
                         model: this.model,
-                        pool,
+                        pool: this.pool,
                         popOverInputChan: this.popOverInputChan,
                     }),
                     document.body,
@@ -313,7 +304,7 @@ export function AppComponent(props: {
     }
 
     const app = model.app;
-    const myAccountCtx = model.app.myAccountContext;
+    const myAccountCtx = model.app.ctx;
 
     let socialPostsPanel: VNode | undefined;
     if (model.navigationModel.activeNav == "Social") {
@@ -352,7 +343,7 @@ export function AppComponent(props: {
         console.log("AppComponent:getFocusedContent", Date.now() - t);
         socialPostsPanel = SocialPanel({
             allUsersInfo: app.allUsersInfo,
-            ctx: app.myAccountContext,
+            ctx: app.ctx,
             db: app.database,
             emit: app.eventBus.emit,
             eventSyncer: app.eventSyncer,

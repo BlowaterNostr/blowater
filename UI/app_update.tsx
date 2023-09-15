@@ -11,7 +11,7 @@ import { convertEventsToChatMessages } from "./dm.ts";
 
 import { sendDMandImages, sendSocialPost } from "../features/dm.ts";
 import { notify } from "./notification.ts";
-import { emitFunc, EventBus, EventEmitter } from "../event-bus.ts";
+import { EventBus } from "../event-bus.ts";
 import { ContactUpdate } from "./contact-list.tsx";
 import { MyProfileUpdate } from "./edit-profile.tsx";
 import {
@@ -113,7 +113,7 @@ export async function* UI_Interaction_Update(args: {
                     }
                     const lamport = fromEvents(dbView.filterEvents((_) => true));
                     const app = new App(dbView, lamport, model, ctx, eventBus, pool, args.popOver);
-                    await app.initApp(ctx, pool);
+                    await app.initApp();
                     model.app = app;
                 } else {
                     console.error("failed to sign in");
@@ -195,10 +195,7 @@ export async function* UI_Interaction_Update(args: {
         } else if (event.type == "SelectGroup") {
             model.dm.selectedContactGroup = event.group;
         } else if (event.type == "PinContact" || event.type == "UnpinContact") {
-            if (!app.myAccountContext) {
-                throw new Error(`can't handle ${event.type} if not signed`);
-            }
-            const nostrEvent = await prepareCustomAppDataEvent(app.myAccountContext, event);
+            const nostrEvent = await prepareCustomAppDataEvent(app.ctx, event);
             if (nostrEvent instanceof Error) {
                 console.error(nostrEvent);
                 continue;
@@ -213,12 +210,9 @@ export async function* UI_Interaction_Update(args: {
         // Editor
         //
         else if (event.type == "SendMessage") {
-            if (!app.myAccountContext) {
-                throw new Error(`can't handle ${event.type} if not signed`);
-            }
             const err = await handle_SendMessage(
                 event,
-                app.myAccountContext,
+                app.ctx,
                 app.lamport,
                 pool,
                 app.model.editors,
@@ -279,13 +273,10 @@ export async function* UI_Interaction_Update(args: {
         else if (event.type == "EditMyProfile") {
             model.myProfile = Object.assign(model.myProfile || {}, event.profile);
         } else if (event.type == "SaveMyProfile") {
-            if (!app.myAccountContext) {
-                throw new Error(`can't handle ${event.type} if not signed`);
-            }
             InsertNewProfileField(app.model);
             await saveProfile(
                 event.profile,
-                app.myAccountContext,
+                app.ctx,
                 pool,
             );
         } else if (event.type == "EditNewProfileFieldKey") {
@@ -367,12 +358,12 @@ export async function* UI_Interaction_Update(args: {
         } else if (event.type == "SocialFilterChanged_remove_author") {
             model.social.filter.author.delete(event.value);
         } else if (event.type == "RelayConfigChange") {
-            const e = await app.relayConfig.toNostrEvent(app.myAccountContext, true);
+            const e = await app.relayConfig.toNostrEvent(app.ctx, true);
             if (e instanceof Error) {
                 throw e; // impossible
             }
             pool.sendEvent(e);
-            app.relayConfig.saveToLocalStorage(app.myAccountContext);
+            app.relayConfig.saveToLocalStorage(app.ctx);
         } else if (event.type == "ViewEventDetail") {
             const nostrEvent = event.event;
             const eventID = nostrEvent.id;
