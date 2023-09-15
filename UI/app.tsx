@@ -262,6 +262,7 @@ export class App {
                     this.profileSyncer,
                     this.lamport,
                     this.allUsersInfo,
+                    this.eventBus.emit,
                 )
             ) {
                 const t = Date.now();

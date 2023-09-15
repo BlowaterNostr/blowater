@@ -3,7 +3,7 @@ import { h } from "https://esm.sh/preact@10.17.1";
 import { getProfileEvent, getProfilesByName, ProfilesSyncer, saveProfile } from "../features/profile.ts";
 
 import { App } from "./app.tsx";
-import { AllUsersInformation, getGroupOf, UserInfo } from "./contact-list.ts";
+import { AllUsersInformation, getGroupOf, getUserInfoFromPublicKey, UserInfo } from "./contact-list.ts";
 
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { Database_Contextual_View } from "../database.ts";
@@ -11,7 +11,7 @@ import { convertEventsToChatMessages } from "./dm.ts";
 
 import { sendDMandImages, sendSocialPost } from "../features/dm.ts";
 import { notify } from "./notification.ts";
-import { EventBus } from "../event-bus.ts";
+import { emitFunc, EventBus } from "../event-bus.ts";
 import { ContactUpdate } from "./contact-list.tsx";
 import { MyProfileUpdate } from "./edit-profile.tsx";
 import {
@@ -488,6 +488,7 @@ export async function* Database_Update(
     profileSyncer: ProfilesSyncer,
     lamport: LamportTime,
     allUserInfo: AllUsersInformation,
+    emit: emitFunc<SelectProfile>,
 ) {
     const changes = database.subscribe((_) => true);
     while (true) {
@@ -575,27 +576,27 @@ export async function* Database_Update(
             }
 
             // notification
-            // {
-            //     const author = getUserInfoFromPublicKey(e.publicKey, allUserInfo.userInfos)?.profile;
-            //     if (e.pubkey != ctx.publicKey.hex && e.parsedTags.p.includes(ctx.publicKey.hex)) {
-            //         notify(
-            //             author?.profile.name ? author.profile.name : "",
-            //             "new message",
-            //             author?.profile.picture ? author.profile.picture : "",
-            //             () => {
-            //                 const k = PublicKey.FromHex(e.pubkey);
-            //                 if (k instanceof Error) {
-            //                     console.error(k);
-            //                     return;
-            //                 }
-            //                 eventEmitter.emit({
-            //                     type: "SelectProfile",
-            //                     pubkey: k,
-            //                 });
-            //             },
-            //         );
-            //     }
-            // }
+            {
+                const author = getUserInfoFromPublicKey(e.publicKey, allUserInfo.userInfos)?.profile;
+                if (e.pubkey != ctx.publicKey.hex && e.parsedTags.p.includes(ctx.publicKey.hex)) {
+                    notify(
+                        author?.profile.name ? author.profile.name : "",
+                        "new message",
+                        author?.profile.picture ? author.profile.picture : "",
+                        () => {
+                            const k = PublicKey.FromHex(e.pubkey);
+                            if (k instanceof Error) {
+                                console.error(k);
+                                return;
+                            }
+                            emit({
+                                type: "SelectProfile",
+                                pubkey: k,
+                            });
+                        },
+                    );
+                }
+            }
         }
         if (hasKind_1) {
             console.log("Database_Update: getSocialPosts");
