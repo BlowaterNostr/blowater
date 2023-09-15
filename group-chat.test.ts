@@ -53,20 +53,26 @@ Deno.test("group chat", async () => {
         }
 
         // receive from Group
+        const stream_group = await pool.newSub("a receives from group", {
+            "#p": [group_member_key.toPublicKey().hex],
+        });
+        if (stream_group instanceof Error) fail(stream_group.message);
         {
-            const stream_group = await pool.newSub("a receives from group", {
-                "#p": [group_member_key.toPublicKey().hex],
-            });
-            if (stream_group instanceof Error) fail(stream_group.message);
+            {
+                const groupMsg_1 = await next(stream_group.chan);
+                assertEquals(groupMsg_1.pubkey, ctx_A.publicKey.hex); // from self
+            }
 
-            const groupMsg_1 = await next(stream_group.chan);
-            assertEquals(groupMsg_1.pubkey, ctx_A.publicKey.hex); // from self
-
-            const groupMsg_2 = await next(stream_group.chan);
-            assertEquals(groupMsg_2.pubkey, key_B.toPublicKey().hex); // from self
-            const content_2 = await ctx_member_created_by_A.decrypt(groupMsg_2.pubkey, groupMsg_2.content);
-            if (content_2 instanceof Error) fail(content_2.message);
-            assertEquals(content_2, "hi all, this is B");
+            {
+                const groupMsg_2 = await next(stream_group.chan);
+                assertEquals(groupMsg_2.pubkey, key_B.toPublicKey().hex); // from B
+                const content_2 = await ctx_member_created_by_A.decrypt(
+                    groupMsg_2.pubkey,
+                    groupMsg_2.content,
+                );
+                if (content_2 instanceof Error) fail(content_2.message);
+                assertEquals(content_2, "hi all, this is B");
+            }
 
             // invite C
             {
@@ -103,17 +109,19 @@ Deno.test("group chat", async () => {
         );
         assertEquals(ctx_member_received_by_B.privateKey.hex, group_member_key.hex);
 
-        // receives from group
-        {
-            const stream_group = await pool.newSub("b receives from group", {
-                "#p": [group_member_key.toPublicKey().hex],
-            });
-            if (stream_group instanceof Error) fail(stream_group.message);
+        const stream_group = await pool.newSub("b receives from group", {
+            "#p": [group_member_key.toPublicKey().hex],
+        });
+        if (stream_group instanceof Error) fail(stream_group.message);
 
+        // receives from A
+        {
             const groupMsg = await next(stream_group.chan);
             assertEquals(groupMsg.pubkey, key_A.toPublicKey().hex); // make sure the event is from A
-
-            const content = await ctx_member_received_by_B.decrypt(groupMsg.pubkey, groupMsg.content);
+            const content = await ctx_member_received_by_B.decrypt(
+                groupMsg.pubkey,
+                groupMsg.content,
+            );
             if (content instanceof Error) fail(content.message);
             assertEquals(content, "hi all, this is A");
         }
@@ -126,6 +134,18 @@ Deno.test("group chat", async () => {
             if (groupMsg instanceof Error) fail(groupMsg.message);
             const err = await pool.sendEvent(groupMsg);
             if (err instanceof Error) fail(err.message);
+        }
+
+        // receive from self
+        {
+            const groupMsg_2 = await next(stream_group.chan);
+            assertEquals(groupMsg_2.pubkey, key_B.toPublicKey().hex); // make sure the event is from B
+            const content_2 = await ctx_member_received_by_B.decrypt(
+                groupMsg_2.pubkey,
+                groupMsg_2.content,
+            );
+            if (content_2 instanceof Error) fail(content_2.message);
+            assertEquals(content_2, "hi all, this is B");
         }
     })();
 
@@ -141,11 +161,63 @@ Deno.test("group chat", async () => {
             const invitation = await ctx_C.decrypt(invitationEvent.pubkey, invitationEvent.content);
             if (invitation instanceof Error) fail(invitation.message);
 
-            console.log("group member private key:", invitation);
-            const ctx_member_received_by_B = InMemoryAccountContext.New(
+            const ctx_member_received_by_C = InMemoryAccountContext.New(
                 PrivateKey.FromString(invitation) as PrivateKey,
             );
-            assertEquals(ctx_member_received_by_B.privateKey.hex, group_member_key.hex);
+            assertEquals(ctx_member_received_by_C.privateKey.hex, group_member_key.hex);
+
+            // receives from group
+            const stream_group = await pool.newSub("c receives from group", {
+                "#p": [group_member_key.toPublicKey().hex],
+            });
+            if (stream_group instanceof Error) fail(stream_group.message);
+            {
+                // from A
+                {
+                    const groupMsg = await next(stream_group.chan);
+                    assertEquals(groupMsg.pubkey, key_A.toPublicKey().hex); // make sure the event is from A
+                    const content = await ctx_member_received_by_C.decrypt(groupMsg.pubkey, groupMsg.content);
+                    if (content instanceof Error) fail(content.message);
+                    assertEquals(content, "hi all, this is A");
+                }
+
+                // from B
+                {
+                    const groupMsg_2 = await next(stream_group.chan);
+                    assertEquals(groupMsg_2.pubkey, key_B.toPublicKey().hex); // make sure the event is from B
+                    const content_2 = await ctx_member_received_by_C.decrypt(
+                        groupMsg_2.pubkey,
+                        groupMsg_2.content,
+                    );
+                    if (content_2 instanceof Error) fail(content_2.message);
+                    assertEquals(content_2, "hi all, this is B");
+                }
+            }
+
+            // send to group
+            {
+                const groupMsg = await prepareEncryptedNostrEvent(
+                    ctx_C,
+                    ctx_member_received_by_C.publicKey,
+                    4,
+                    [
+                        ["p", ctx_member_received_by_C.publicKey.hex],
+                    ],
+                    "hi all, this is C",
+                );
+                if (groupMsg instanceof Error) fail(groupMsg.message);
+                const err = await pool.sendEvent(groupMsg);
+                if (err instanceof Error) fail(err.message);
+            }
+
+            // from C
+            {
+                const groupMsg = await next(stream_group.chan);
+                assertEquals(groupMsg.pubkey, key_C.toPublicKey().hex); // make sure the event is from A
+                const content = await ctx_member_received_by_C.decrypt(groupMsg.pubkey, groupMsg.content);
+                if (content instanceof Error) fail(content.message);
+                assertEquals(content, "hi all, this is C");
+            }
         }
     })();
 
@@ -159,7 +231,12 @@ async function next(
         url: string;
     }>,
 ) {
-    for await (const msg of chan) {
+    while (true) {
+        const msg = await chan.pop();
+        if (msg == closed) {
+            fail();
+        }
+        console.log(msg);
         if (msg.res.type == "EOSE") {
             continue;
         }
