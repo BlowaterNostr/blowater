@@ -16,7 +16,7 @@ Deno.test("group chat", async () => {
     // user B sends to group X
     const key_A = PrivateKey.Generate();
     const key_B = PrivateKey.Generate();
-    const ctx_C = InMemoryAccountContext.New(PrivateKey.Generate());
+    const key_C = PrivateKey.Generate();
     const group_member_key = PrivateKey.Generate();
 
     // User A
@@ -67,6 +67,22 @@ Deno.test("group chat", async () => {
             const content_2 = await ctx_member_created_by_A.decrypt(groupMsg_2.pubkey, groupMsg_2.content);
             if (content_2 instanceof Error) fail(content_2.message);
             assertEquals(content_2, "hi all, this is B");
+
+            // invite C
+            {
+                const groupInviationEvent = await prepareEncryptedNostrEvent(
+                    ctx_group,
+                    key_C.toPublicKey(),
+                    4,
+                    [
+                        ["p", key_C.toPublicKey().hex],
+                    ],
+                    `${ctx_member_created_by_A.privateKey.bech32}`,
+                );
+                if (groupInviationEvent instanceof Error) fail(groupInviationEvent.message);
+                const err = await pool.sendEvent(groupInviationEvent);
+                if (err instanceof Error) fail(err.message);
+            }
         }
     })();
 
@@ -115,6 +131,22 @@ Deno.test("group chat", async () => {
 
     // User C
     const c = (async () => {
+        const ctx_C = InMemoryAccountContext.New(key_C);
+        // receive the invitation
+        {
+            const stream = await pool.newSub("c", { "#p": [ctx_C.publicKey.hex] });
+            if (stream instanceof Error) fail(stream.message);
+
+            const invitationEvent = await next(stream.chan);
+            const invitation = await ctx_C.decrypt(invitationEvent.pubkey, invitationEvent.content);
+            if (invitation instanceof Error) fail(invitation.message);
+
+            console.log("group member private key:", invitation);
+            const ctx_member_received_by_B = InMemoryAccountContext.New(
+                PrivateKey.FromString(invitation) as PrivateKey,
+            );
+            assertEquals(ctx_member_received_by_B.privateKey.hex, group_member_key.hex);
+        }
     })();
 
     await Promise.all([a, b, c]);
