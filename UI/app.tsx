@@ -263,6 +263,7 @@ export class App {
                     this.allUsersInfo,
                 )
             ) {
+                const t = Date.now()
                 render(
                     AppComponent({
                         eventBus: this.eventBus,
@@ -272,7 +273,7 @@ export class App {
                     }),
                     document.body,
                 );
-                console.log(`render ${++i} times`);
+                console.log(`Database_Update: render ${++i} times, ${Date.now() - t}`);
             }
         })();
     };

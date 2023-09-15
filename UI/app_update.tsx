@@ -493,6 +493,7 @@ export async function* Database_Update(
     while (true) {
         await csp.sleep(333);
         await changes.ready();
+        const t = Date.now()
         const changes_events: (Text_Note_Event | Encrypted_Event | Profile_Nostr_Event)[] = [];
         while (true) {
             if (!changes.isReadyToPop()) {
@@ -597,8 +598,10 @@ export async function* Database_Update(
             // }
         }
         if (hasKind_1) {
+            console.log("Database_Update: getSocialPosts")
             model.social.threads = getSocialPosts(database, allUserInfo.userInfos);
         }
+        console.log("Database_Update:", `loop ${Date.now() - t}`, changes_events)
         yield model;
     }
 }
