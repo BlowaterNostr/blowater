@@ -1,7 +1,9 @@
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { MessageThread } from "./dm.tsx";
 import { DirectedMessage_Event, Text_Note_Event } from "../nostr.ts";
-import { NostrProfile, NoteID } from "../lib/nostr-ts/nip19.ts";
+import { NostrAddress, NostrProfile, NoteID } from "../lib/nostr-ts/nip19.ts";
+import { Int } from "https://deno.land/x/automerge@2.1.0-alpha.12/types.ts";
+import { NostrKind } from "../lib/nostr-ts/nostr.ts";
 
 export function* parseContent(content: string) {
     // URLs
@@ -12,6 +14,9 @@ export function* parseContent(content: string) {
 
     //nprofile
     yield* match(/(nostr:)?nprofile[0-9a-z]+/g, content, "nprofile");
+
+    //naddr
+    yield* match(/(nostr:)?naddr[0-9a-z]+/g, content, "naddr");
 
     // notes
     yield* match(/note[0-9a-z]{59}/g, content, "note");
@@ -82,7 +87,29 @@ function* match(regex: RegExp, content: string, type: ItemType): Generator<Conte
                     relays: decoded_nProfile.relays,
                 };
             }
-        } else {
+        } else if (type == "naddr") {
+            let bech32: string;
+            if (match[0].startsWith("nostr:")) {
+                bech32 = content.slice(urlStartPosition + 6, urlEndPosition + 1);
+            } else {
+                bech32 = content.slice(urlStartPosition, urlEndPosition + 1);
+            }
+            const decoded_nAddr = NostrAddress.decode(bech32);
+            if (decoded_nAddr instanceof Error) {
+                // ignore
+            } else {
+
+                yield {
+                    type: "naddr",
+                    identifier: decoded_nAddr.addr.identifier,
+                    start: urlStartPosition,
+                    end: urlEndPosition,
+                    relays: decoded_nAddr.addr.relays,
+                    kind: decoded_nAddr.addr.kind
+
+                };
+            }
+        }else {
             yield {
                 type: type,
                 start: urlStartPosition,
@@ -93,7 +120,7 @@ function* match(regex: RegExp, content: string, type: ItemType): Generator<Conte
 }
 
 type otherItemType = "url" | "tag";
-type ItemType = otherItemType | "note" | "npub" | "nprofile";
+type ItemType = otherItemType | "note" | "npub" | "nprofile" | "naddr";
 export type ContentItem = {
     type: otherItemType;
     start: number;
@@ -109,6 +136,14 @@ export type ContentItem = {
     noteID: NoteID;
     start: number;
     end: number;
+}
+| {
+    type: "naddr";
+    identifier: string;
+    start: number;
+    end: number;
+    kind:NostrKind
+    relays?: string[];
 };
 
 // Think of ChatMessage as an materialized view of NostrEvent

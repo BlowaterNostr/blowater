@@ -169,6 +169,19 @@ Deno.test("inline parse", async (t) => {
                 ],
             }],
         },
+        {
+            input:
+                `naddr1qqxnzd3exsmnjvphxqunqv33qgsp7hwmlh5zccs55shzpfued50pznvypj0wwzn00dtyjzlqkr04w4grqsqqqa28vct2px`,
+            output: [{
+                type: "naddr",
+                pubkey: "91f5ddbfde82c6214a42e20a7996d1e114d840c9ee70a6f7b56490be0b0df5755",
+                start: 0,
+                end: 592,
+                kind:30023,
+                identifier:"1694790709021"
+
+            }],
+        },
         // {
         //     input: `nostr:nevent1qqsz25j8nrppstgmyry8hgsg4fggtfa6xnym2n4c2xth7usxtydtgpcpp4mhxue69uhhjctzw5hx6egzyze7g05vclndlu36x0vjzw37jykcjkcu8ep9qfqwpjvahmlrq6947qcyqqqqqqgj5mjek`,
         //     output: [{
