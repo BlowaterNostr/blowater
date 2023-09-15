@@ -13,7 +13,7 @@ import { NostrAccountContext, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { getProfileEvent, ProfilesSyncer } from "../features/profile.ts";
 import { ChatMessage } from "./message.ts";
-import { DM_Container_Model } from "./dm.ts";
+import { DM_Model } from "./dm.ts";
 import { getFocusedContent } from "./app.tsx";
 import { EventSyncer } from "./event_syncer.ts";
 import { AllUsersInformation } from "./contact-list.ts";
@@ -28,7 +28,7 @@ type DirectMessageContainerProps = {
     allUserInfo: AllUsersInformation;
     profilesSyncer: ProfilesSyncer;
     eventSyncer: EventSyncer;
-} & DM_Container_Model;
+} & DM_Model;
 
 export type MessageThread = {
     root: ChatMessage;

@@ -3,17 +3,18 @@ import { NostrEvent, NostrFilters } from "../lib/nostr-ts/nostr.ts";
 
 import { DM_EditorModel, new_Social_EditorModel, Social_EditorModel } from "./editor.tsx";
 import { NavigationModel } from "./nav.tsx";
-import { SearchInitModel } from "./search_model.ts";
+import { SearchInitModel, SearchModel } from "./search_model.ts";
 import { ProfileData } from "../features/profile.ts";
 import { RightPanelModel } from "./message-panel.tsx";
-import { DM_Container_Model } from "./dm.ts";
+import { DM_Model } from "./dm.ts";
 import { App } from "./app.tsx";
 import { MessageThread } from "./dm.tsx";
 import { SignInModel } from "./signIn.tsx";
 
 export type Model = {
     app: App | undefined; // app is only available after sign-in
-    dm: DM_Container_Model;
+    dm: DM_Model;
+    search: SearchModel;
     editors: Map<string, DM_EditorModel>;
 
     // profile
@@ -22,7 +23,6 @@ export type Model = {
         key: string;
         value: string;
     };
-    // allUsersInfo: Map<string, UserInfo>;
 
     // social
     social: {
@@ -51,8 +51,8 @@ export function initialModel(): Model {
     const editors: Map<string, DM_EditorModel> = new Map();
     return {
         app: undefined,
+        search: SearchInitModel(),
         dm: {
-            search: SearchInitModel(),
             selectedContactGroup: "Contacts",
             focusedContent: new Map(),
             hasNewMessages: new Set(),

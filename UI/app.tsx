@@ -53,7 +53,7 @@ export async function Start(database: DexieDatabase) {
         if (dbView instanceof Error) {
             throw dbView;
         }
-        const lamport = time.fromEvents(dbView.filterEvents((_) => true));
+        const lamport = time.fromEvents(dbView.events);
         const app = new App(dbView, lamport, model, ctx, eventBus, pool, popOverInputChan);
         await app.initApp();
         model.app = app;
@@ -111,6 +111,7 @@ export class App {
     ) {
         this.eventSyncer = new EventSyncer(pool, this.database);
         this.allUsersInfo = new AllUsersInformation(ctx);
+        this.allUsersInfo.addEvents(database.events);
         this.relayConfig = RelayConfig.FromLocalStorage(ctx);
         if (this.relayConfig.getRelayURLs().size == 0) {
             for (const url of defaultRelays) {
@@ -263,7 +264,7 @@ export class App {
                     this.allUsersInfo,
                 )
             ) {
-                const t = Date.now()
+                const t = Date.now();
                 render(
                     AppComponent({
                         eventBus: this.eventBus,

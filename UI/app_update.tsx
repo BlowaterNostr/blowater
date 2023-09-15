@@ -111,7 +111,7 @@ export async function* UI_Interaction_Update(args: {
                     if (dbView instanceof Error) {
                         throw dbView;
                     }
-                    const lamport = fromEvents(dbView.filterEvents((_) => true));
+                    const lamport = fromEvents(dbView.events);
                     const app = new App(dbView, lamport, model, ctx, eventBus, pool, args.popOver);
                     await app.initApp();
                     model.app = app;
@@ -135,10 +135,10 @@ export async function* UI_Interaction_Update(args: {
         // Search
         //
         else if (event.type == "CancelPopOver") {
-            model.dm.search.isSearching = false;
-            model.dm.search.searchResults = [];
+            model.search.isSearching = false;
+            model.search.searchResults = [];
         } else if (event.type == "StartSearch") {
-            model.dm.search.isSearching = true;
+            model.search.isSearching = true;
             const search = (
                 <Search
                     placeholder={"Search a user's public key or name"}
@@ -152,13 +152,13 @@ export async function* UI_Interaction_Update(args: {
             if (pubkey instanceof PublicKey) {
                 app.profileSyncer.add(pubkey.hex);
                 const profile = getProfileEvent(app.database, pubkey);
-                model.dm.search.searchResults = [{
+                model.search.searchResults = [{
                     pubkey: pubkey,
                     profile: profile?.profile,
                 }];
             } else {
                 const profiles = getProfilesByName(app.database, event.text);
-                model.dm.search.searchResults = profiles.map((p) => {
+                model.search.searchResults = profiles.map((p) => {
                     const pubkey = PublicKey.FromString(p.pubkey);
                     if (pubkey instanceof Error) {
                         throw new Error("impossible");
@@ -174,8 +174,8 @@ export async function* UI_Interaction_Update(args: {
         // Contacts
         //
         else if (event.type == "SelectProfile") {
-            model.dm.search.isSearching = false;
-            model.dm.search.searchResults = [];
+            model.search.isSearching = false;
+            model.search.searchResults = [];
             model.rightPanelModel = {
                 show: false,
             };
@@ -493,7 +493,7 @@ export async function* Database_Update(
     while (true) {
         await csp.sleep(333);
         await changes.ready();
-        const t = Date.now()
+        const t = Date.now();
         const changes_events: (Text_Note_Event | Encrypted_Event | Profile_Nostr_Event)[] = [];
         while (true) {
             if (!changes.isReadyToPop()) {
@@ -540,9 +540,9 @@ export async function* Database_Update(
                 }
 
                 if (e.kind == NostrKind.META_DATA) {
-                    if (model.dm.search.searchResults.length > 0) {
-                        const previous = model.dm.search.searchResults;
-                        model.dm.search.searchResults = previous.map((profile) => {
+                    if (model.search.searchResults.length > 0) {
+                        const previous = model.search.searchResults;
+                        model.search.searchResults = previous.map((profile) => {
                             const profileEvent = getProfileEvent(database, profile.pubkey);
                             return {
                                 pubkey: profile.pubkey,
@@ -598,10 +598,10 @@ export async function* Database_Update(
             // }
         }
         if (hasKind_1) {
-            console.log("Database_Update: getSocialPosts")
+            console.log("Database_Update: getSocialPosts");
             model.social.threads = getSocialPosts(database, allUserInfo.userInfos);
         }
-        console.log("Database_Update:", `loop ${Date.now() - t}`, changes_events)
+        console.log("Database_Update:", `loop ${Date.now() - t}`, changes_events);
         yield model;
     }
 }
