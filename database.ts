@@ -12,6 +12,7 @@ import { parseProfileData } from "./features/profile.ts";
 import { parseContent } from "./UI/message.ts";
 import { NostrAccountContext, NostrEvent, NostrKind, Tags, verifyEvent } from "./lib/nostr-ts/nostr.ts";
 import { PublicKey } from "./lib/nostr-ts/key.ts";
+import { NoteID } from "./lib/nostr-ts/nip19.ts";
 
 export const NotFound = Symbol("Not Found");
 const buffer_size = 2000;
@@ -112,7 +113,7 @@ export class Database_Contextual_View {
         }
 
         // add event to database and notify subscribers
-        console.log("Database.addEvent", event.id);
+        console.log("Database.addEvent", NoteID.FromHex(event.id).bech32());
         this.events.push(parsedEvent);
         await this.eventsAdapter.put(event);
         /* not await */ this.sourceOfChange.put(parsedEvent);
