@@ -360,7 +360,7 @@ async function originalEventToEncryptedEvent(
             parsedTags,
             publicKey,
             decryptedContent: decrypted,
-            parsedContentItems: Array.from(parseContent(event.content)),
+            parsedContentItems: Array.from(parseContent(decrypted)),
         };
     }
     return false;

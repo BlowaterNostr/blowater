@@ -16,6 +16,7 @@ import {
     CustomAppData_Event,
     DirectedMessage_Event,
     Encrypted_Event,
+    Parsed_Event,
     PinContact,
     Profile_Nostr_Event,
     Text_Note_Event,
@@ -35,6 +36,8 @@ import {
 import { getUserInfoFromPublicKey, UserInfo } from "./contact-list.ts";
 import { EventSyncer } from "./event_syncer.ts";
 import { ButtonGroup } from "./components/button-group.tsx";
+import { ProfileCard } from "./profile-card.tsx";
+import { NoteCard } from "./note-card.tsx";
 
 export type RightPanelModel = {
     show: boolean;
@@ -47,10 +50,16 @@ export type DirectMessagePanelUpdate =
     }
     | ViewThread
     | ViewUserDetail
+    | ViewNoteThread
     | {
         type: "ViewEventDetail";
         event: Text_Note_Event | DirectedMessage_Event;
     };
+
+export type ViewNoteThread = {
+    type: "ViewNoteThread";
+    event: Parsed_Event;
+};
 
 export type ViewThread = {
     type: "ViewThread";
@@ -552,7 +561,7 @@ export function ParseMessageContent(
     allUserInfo: Map<string, UserInfo>,
     profilesSyncer: ProfilesSyncer,
     eventSyncer: EventSyncer,
-    emit: emitFunc<ViewUserDetail | ViewThread>,
+    emit: emitFunc<ViewUserDetail | ViewThread | ViewNoteThread>,
 ) {
     if (message.type == "image") {
         return <img src={message.content} />;
@@ -584,11 +593,11 @@ export function ParseMessageContent(
                         const profile = userInfo.profile;
                         if (profile) {
                             vnode.push(
-                                ProfileCard(
-                                    profile.profile,
-                                    PublicKey.FromHex(item.pubkey) as PublicKey,
-                                    emit,
-                                ),
+                                <ProfileCard
+                                    profileData={profile.profile}
+                                    publicKey={PublicKey.FromHex(item.pubkey) as PublicKey}
+                                    emit={emit}
+                                />,
                             );
                             break;
                         } else {
@@ -598,11 +607,7 @@ export function ParseMessageContent(
                         profilesSyncer.add(item.pubkey);
                     }
                     vnode.push(
-                        ProfileCard(
-                            undefined,
-                            PublicKey.FromHex(item.pubkey) as PublicKey,
-                            emit,
-                        ),
+                        <ProfileCard publicKey={PublicKey.FromHex(item.pubkey) as PublicKey} emit={emit} />,
                     );
                 }
                 break;
@@ -610,9 +615,10 @@ export function ParseMessageContent(
                 {
                     const event = eventSyncer.syncEvent(item.noteID);
                     if (event instanceof Promise) {
+                        vnode.push(itemStr);
                         break;
                     }
-                    vnode.push(NoteCard(event, emit, allUserInfo));
+                    vnode.push(Card(event, emit, allUserInfo));
                 }
                 break;
             case "tag":
@@ -627,53 +633,18 @@ export function ParseMessageContent(
     return vnode;
 }
 
-function ProfileCard(
-    profile: ProfileData | undefined,
-    pubkey: PublicKey,
-    emit: emitFunc<ViewUserDetail>,
-) {
-    return (
-        <div
-            class={tw`px-4 py-2 my-1 border-2 border-[${PrimaryTextColor}4D] rounded-lg hover:bg-[${HoverButtonBackgroudColor}] cursor-pointer py-1`}
-            onClick={() => {
-                emit({
-                    type: "ViewUserDetail",
-                    pubkey: pubkey,
-                });
-            }}
-        >
-            <div class={tw`flex`}>
-                <Avatar class={tw`w-10 h-10`} picture={profile?.picture}></Avatar>
-                <p class={tw`text-[1.2rem] font-blod leading-10 truncate ml-2`}>
-                    {profile?.name || pubkey.bech32()}
-                </p>
-            </div>
-            <div class={tw`${DividerClass} my-[0.5rem]`}></div>
-            <p class={tw`text-[0.8rem]`}>{profile?.about}</p>
-        </div>
-    );
-}
-
-function NoteCard(
+function Card(
     event: Profile_Nostr_Event | Text_Note_Event | Encrypted_Event,
-    emit: emitFunc<ViewThread | ViewUserDetail>,
+    emit: emitFunc<ViewThread | ViewUserDetail | ViewNoteThread>,
     allUserInfo: Map<string, UserInfo>,
 ) {
     switch (event.kind) {
         case NostrKind.META_DATA:
-            return ProfileCard(event.profile, event.publicKey, emit);
+            return <ProfileCard emit={emit} publicKey={event.publicKey} profileData={event.profile} />;
         case NostrKind.TEXT_NOTE:
         case NostrKind.DIRECT_MESSAGE:
-            const profile = allUserInfo.get(event.pubkey)?.profile;
-            return (
-                <div class={tw`px-4 my-1 py-2 border-2 border-[${PrimaryTextColor}4D] rounded-lg py-1 flex`}>
-                    <Avatar class={tw`w-10 h-10`} picture={profile?.profile.picture} />
-                    <div class={tw`ml-2 flex-1 overflow-hidden`}>
-                        <p class={tw`truncate`}>{profile?.profile.name || event.publicKey.bech32()}</p>
-                        <p class={tw`text-[0.8rem]`}>{event.content}</p>
-                    </div>
-                </div>
-            );
+            const profile = allUserInfo.get(event.pubkey)?.profile?.profile;
+            return <NoteCard emit={emit} event={event} profileData={profile} />;
         default:
             return (
                 <div class={tw`px-4 my-1 py-2 border-2 border-[${PrimaryTextColor}4D] rounded-lg py-1 flex`}>
