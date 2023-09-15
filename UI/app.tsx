@@ -90,7 +90,7 @@ export async function Start(database: DexieDatabase) {
                 document.body,
             );
         }
-        console.log("first render:", Date.now() - t);
+        console.log("UI_Interaction_Update render:", Date.now() - t);
     }
 }
 
