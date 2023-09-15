@@ -3,7 +3,7 @@ import { h } from "https://esm.sh/preact@10.17.1";
 import { getProfileEvent, getProfilesByName, ProfilesSyncer, saveProfile } from "../features/profile.ts";
 
 import { App } from "./app.tsx";
-import { AllUsersInformation, getGroupOf, UserInfo } from "./contact-list.ts";
+import { AllUsersInformation, getGroupOf, getUserInfoFromPublicKey, UserInfo } from "./contact-list.ts";
 
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { Database_Contextual_View } from "../database.ts";
@@ -11,7 +11,7 @@ import { convertEventsToChatMessages } from "./dm.ts";
 
 import { sendDMandImages, sendSocialPost } from "../features/dm.ts";
 import { notify } from "./notification.ts";
-import { emitFunc, EventBus, EventEmitter } from "../event-bus.ts";
+import { emitFunc, EventBus } from "../event-bus.ts";
 import { ContactUpdate } from "./contact-list.tsx";
 import { MyProfileUpdate } from "./edit-profile.tsx";
 import {
@@ -111,9 +111,9 @@ export async function* UI_Interaction_Update(args: {
                     if (dbView instanceof Error) {
                         throw dbView;
                     }
-                    const lamport = fromEvents(dbView.filterEvents((_) => true));
+                    const lamport = fromEvents(dbView.events);
                     const app = new App(dbView, lamport, model, ctx, eventBus, pool, args.popOver);
-                    await app.initApp(ctx, pool);
+                    await app.initApp();
                     model.app = app;
                 } else {
                     console.error("failed to sign in");
@@ -135,10 +135,10 @@ export async function* UI_Interaction_Update(args: {
         // Search
         //
         else if (event.type == "CancelPopOver") {
-            model.dm.search.isSearching = false;
-            model.dm.search.searchResults = [];
+            model.search.isSearching = false;
+            model.search.searchResults = [];
         } else if (event.type == "StartSearch") {
-            model.dm.search.isSearching = true;
+            model.search.isSearching = true;
             const search = (
                 <Search
                     placeholder={"Search a user's public key or name"}
@@ -152,13 +152,13 @@ export async function* UI_Interaction_Update(args: {
             if (pubkey instanceof PublicKey) {
                 app.profileSyncer.add(pubkey.hex);
                 const profile = getProfileEvent(app.database, pubkey);
-                model.dm.search.searchResults = [{
+                model.search.searchResults = [{
                     pubkey: pubkey,
                     profile: profile?.profile,
                 }];
             } else {
                 const profiles = getProfilesByName(app.database, event.text);
-                model.dm.search.searchResults = profiles.map((p) => {
+                model.search.searchResults = profiles.map((p) => {
                     const pubkey = PublicKey.FromString(p.pubkey);
                     if (pubkey instanceof Error) {
                         throw new Error("impossible");
@@ -174,8 +174,8 @@ export async function* UI_Interaction_Update(args: {
         // Contacts
         //
         else if (event.type == "SelectProfile") {
-            model.dm.search.isSearching = false;
-            model.dm.search.searchResults = [];
+            model.search.isSearching = false;
+            model.search.searchResults = [];
             model.rightPanelModel = {
                 show: false,
             };
@@ -195,10 +195,7 @@ export async function* UI_Interaction_Update(args: {
         } else if (event.type == "SelectGroup") {
             model.dm.selectedContactGroup = event.group;
         } else if (event.type == "PinContact" || event.type == "UnpinContact") {
-            if (!app.myAccountContext) {
-                throw new Error(`can't handle ${event.type} if not signed`);
-            }
-            const nostrEvent = await prepareCustomAppDataEvent(app.myAccountContext, event);
+            const nostrEvent = await prepareCustomAppDataEvent(app.ctx, event);
             if (nostrEvent instanceof Error) {
                 console.error(nostrEvent);
                 continue;
@@ -213,12 +210,9 @@ export async function* UI_Interaction_Update(args: {
         // Editor
         //
         else if (event.type == "SendMessage") {
-            if (!app.myAccountContext) {
-                throw new Error(`can't handle ${event.type} if not signed`);
-            }
             const err = await handle_SendMessage(
                 event,
-                app.myAccountContext,
+                app.ctx,
                 app.lamport,
                 pool,
                 app.model.editors,
@@ -279,13 +273,10 @@ export async function* UI_Interaction_Update(args: {
         else if (event.type == "EditMyProfile") {
             model.myProfile = Object.assign(model.myProfile || {}, event.profile);
         } else if (event.type == "SaveMyProfile") {
-            if (!app.myAccountContext) {
-                throw new Error(`can't handle ${event.type} if not signed`);
-            }
             InsertNewProfileField(app.model);
             await saveProfile(
                 event.profile,
-                app.myAccountContext,
+                app.ctx,
                 pool,
             );
         } else if (event.type == "EditNewProfileFieldKey") {
@@ -367,12 +358,12 @@ export async function* UI_Interaction_Update(args: {
         } else if (event.type == "SocialFilterChanged_remove_author") {
             model.social.filter.author.delete(event.value);
         } else if (event.type == "RelayConfigChange") {
-            const e = await app.relayConfig.toNostrEvent(app.myAccountContext, true);
+            const e = await app.relayConfig.toNostrEvent(app.ctx, true);
             if (e instanceof Error) {
                 throw e; // impossible
             }
             pool.sendEvent(e);
-            app.relayConfig.saveToLocalStorage(app.myAccountContext);
+            app.relayConfig.saveToLocalStorage(app.ctx);
         } else if (event.type == "ViewEventDetail") {
             const nostrEvent = event.event;
             const eventID = nostrEvent.id;
@@ -497,11 +488,13 @@ export async function* Database_Update(
     profileSyncer: ProfilesSyncer,
     lamport: LamportTime,
     allUserInfo: AllUsersInformation,
+    emit: emitFunc<SelectProfile>,
 ) {
     const changes = database.subscribe((_) => true);
     while (true) {
         await csp.sleep(333);
         await changes.ready();
+        const t = Date.now();
         const changes_events: (Text_Note_Event | Encrypted_Event | Profile_Nostr_Event)[] = [];
         while (true) {
             if (!changes.isReadyToPop()) {
@@ -548,9 +541,9 @@ export async function* Database_Update(
                 }
 
                 if (e.kind == NostrKind.META_DATA) {
-                    if (model.dm.search.searchResults.length > 0) {
-                        const previous = model.dm.search.searchResults;
-                        model.dm.search.searchResults = previous.map((profile) => {
+                    if (model.search.searchResults.length > 0) {
+                        const previous = model.search.searchResults;
+                        model.search.searchResults = previous.map((profile) => {
                             const profileEvent = getProfileEvent(database, profile.pubkey);
                             return {
                                 pubkey: profile.pubkey,
@@ -583,31 +576,33 @@ export async function* Database_Update(
             }
 
             // notification
-            // {
-            //     const author = getUserInfoFromPublicKey(e.publicKey, allUserInfo.userInfos)?.profile;
-            //     if (e.pubkey != ctx.publicKey.hex && e.parsedTags.p.includes(ctx.publicKey.hex)) {
-            //         notify(
-            //             author?.profile.name ? author.profile.name : "",
-            //             "new message",
-            //             author?.profile.picture ? author.profile.picture : "",
-            //             () => {
-            //                 const k = PublicKey.FromHex(e.pubkey);
-            //                 if (k instanceof Error) {
-            //                     console.error(k);
-            //                     return;
-            //                 }
-            //                 eventEmitter.emit({
-            //                     type: "SelectProfile",
-            //                     pubkey: k,
-            //                 });
-            //             },
-            //         );
-            //     }
-            // }
+            {
+                const author = getUserInfoFromPublicKey(e.publicKey, allUserInfo.userInfos)?.profile;
+                if (e.pubkey != ctx.publicKey.hex && e.parsedTags.p.includes(ctx.publicKey.hex)) {
+                    notify(
+                        author?.profile.name ? author.profile.name : "",
+                        "new message",
+                        author?.profile.picture ? author.profile.picture : "",
+                        () => {
+                            const k = PublicKey.FromHex(e.pubkey);
+                            if (k instanceof Error) {
+                                console.error(k);
+                                return;
+                            }
+                            emit({
+                                type: "SelectProfile",
+                                pubkey: k,
+                            });
+                        },
+                    );
+                }
+            }
         }
         if (hasKind_1) {
+            console.log("Database_Update: getSocialPosts");
             model.social.threads = getSocialPosts(database, allUserInfo.userInfos);
         }
+        console.log("Database_Update:", `loop ${Date.now() - t}`, changes_events);
         yield model;
     }
 }

@@ -12,9 +12,7 @@ import { ContactGroup } from "./contact-list.tsx";
 import { SearchModel } from "./search_model.ts";
 import { UserInfo } from "./contact-list.ts";
 
-export type DM_Container_Model = {
-    search: SearchModel;
-
+export type DM_Model = {
     selectedContactGroup: ContactGroup;
     currentSelectedContact: PublicKey | undefined;
     focusedContent: Map<string, NostrEvent /* thread root event */ | PublicKey /* selected user profile */>;

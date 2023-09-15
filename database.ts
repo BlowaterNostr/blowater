@@ -79,11 +79,7 @@ export class Database_Contextual_View {
         private readonly eventsAdapter: EventsAdapter,
         public readonly events: (Text_Note_Event | Encrypted_Event | Profile_Nostr_Event)[],
         private readonly ctx: NostrAccountContext,
-    ) {
-        for (const event of events) {
-            this.sourceOfChange.put(event);
-        }
-    }
+    ) {}
 
     public readonly getEvent = async (keys: Indices): Promise<NostrEvent | undefined> => {
         const e = await this.eventsAdapter.get(keys);
