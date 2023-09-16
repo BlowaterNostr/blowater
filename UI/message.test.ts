@@ -177,9 +177,8 @@ Deno.test("inline parse", async (t) => {
                 pubkey: "91f5ddbfde82c6214a42e20a7996d1e114d840c9ee70a6f7b56490be0b0df5755",
                 start: 0,
                 end: 592,
-                kind:30023,
-                identifier:"1694790709021"
-
+                kind: 30023,
+                identifier: "1694790709021",
             }],
         },
         // {

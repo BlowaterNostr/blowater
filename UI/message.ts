@@ -98,18 +98,16 @@ function* match(regex: RegExp, content: string, type: ItemType): Generator<Conte
             if (decoded_nAddr instanceof Error) {
                 // ignore
             } else {
-
                 yield {
                     type: "naddr",
                     identifier: decoded_nAddr.addr.identifier,
                     start: urlStartPosition,
                     end: urlEndPosition,
                     relays: decoded_nAddr.addr.relays,
-                    kind: decoded_nAddr.addr.kind
-
+                    kind: decoded_nAddr.addr.kind,
                 };
             }
-        }else {
+        } else {
             yield {
                 type: type,
                 start: urlStartPosition,
@@ -136,13 +134,12 @@ export type ContentItem = {
     noteID: NoteID;
     start: number;
     end: number;
-}
-| {
+} | {
     type: "naddr";
     identifier: string;
     start: number;
     end: number;
-    kind:NostrKind
+    kind: NostrKind;
     relays?: string[];
 };
 
