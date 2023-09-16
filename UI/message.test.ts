@@ -1,6 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { ChatMessage, groupContinuousMessages, parseContent } from "./message.ts";
-import { PrivateKey } from "../lib/nostr-ts/key.ts";
+import { PrivateKey, PublicKey } from "../lib/nostr-ts/key.ts";
 
 Deno.test("inline parse", async (t) => {
     const data = [
@@ -68,7 +68,7 @@ Deno.test("inline parse", async (t) => {
             input: `nostr:npub17dxnfw2vrhgtk4fgqdmpuqxv05u9raau3w0shay7msmr0dzs4m7s6ng4ylログボ`,
             output: [{
                 type: "npub",
-                pubkey: "f34d34b94c1dd0bb552803761e00cc7d3851f7bc8b9f0bf49edc3637b450aefd",
+                pubkey: PublicKey.FromHex("f34d34b94c1dd0bb552803761e00cc7d3851f7bc8b9f0bf49edc3637b450aefd"),
                 start: 0,
                 end: 68,
             }],
@@ -77,7 +77,7 @@ Deno.test("inline parse", async (t) => {
             input: `sherryiscutenpub17dxnfw2vrhgtk4fgqdmpuqxv05u9raau3w0shay7msmr0dzs4m7s6ng4ylログボ`,
             output: [{
                 type: "npub",
-                pubkey: "f34d34b94c1dd0bb552803761e00cc7d3851f7bc8b9f0bf49edc3637b450aefd",
+                pubkey: PublicKey.FromHex("f34d34b94c1dd0bb552803761e00cc7d3851f7bc8b9f0bf49edc3637b450aefd"),
                 start: 12,
                 end: 74,
             }],
@@ -86,7 +86,7 @@ Deno.test("inline parse", async (t) => {
             input: `npub17dxnfw2vrhgtk4fgqdmpuqxv05u9raau3w0shay7msmr0dzs4m7s6ng4yl`,
             output: [{
                 type: "npub",
-                pubkey: "f34d34b94c1dd0bb552803761e00cc7d3851f7bc8b9f0bf49edc3637b450aefd",
+                pubkey: PublicKey.FromHex("f34d34b94c1dd0bb552803761e00cc7d3851f7bc8b9f0bf49edc3637b450aefd"),
                 start: 0,
                 end: 62,
             }],
@@ -96,7 +96,7 @@ Deno.test("inline parse", async (t) => {
                 `nostr:nprofile1qqsf37u9q4up37etd4w4fgdfkxvurxk74gcmsf9ea0g7vgyasfdjeycpp4mhxue69uhkummn9ekx7mqpz3mhxue69uhhyetvv9ujuerpd46hxtnfduqscamnwvaz7tmzwf3zu6t0qyd8wumn8ghj7mn0wd68ytn0wfskuem9wp5kcmpwv3jhvqghwaehxw309aex2mrp0yhxxatjwfjkuapwveukjqgswaehxw309ahx7um5wgh8w6twv5q3samnwvaz7tmjv4kxz7fwwdhx7un59eek7cmfv9kqz9thwden5te0v4jx2m3wdehhxarj9ekxzmnyqyd8wumn8ghj7un9d3shjtnwdaehgun8wfshq6pwdejhgqgewaehxw309ac82unpwe5kgcfwdehhxarj9ekxzmnyqyvhwumn8ghj7mn0wd68ytn6v43x2er9v5hxxmr0w4jqzynhwden5te0wp6hyurvv4cxzeewv4esz9nhwden5te0v96xcctn9ehx7um5wghxcctwvsq3camnwvaz7tmwdaehgu3wd46hg6tw09mkzmrvv46zucm0d5lxp0l4`,
             output: [{
                 type: "npub",
-                pubkey: "98fb85057818fb2b6d5d54a1a9b199c19adeaa31b824b9ebd1e6209d825b2c93",
+                pubkey: PublicKey.FromHex("98fb85057818fb2b6d5d54a1a9b199c19adeaa31b824b9ebd1e6209d825b2c93"),
                 start: 0,
                 end: 598,
                 relays: [
@@ -122,7 +122,7 @@ Deno.test("inline parse", async (t) => {
                 `sherryiscutenprofile1qqsf37u9q4up37etd4w4fgdfkxvurxk74gcmsf9ea0g7vgyasfdjeycpp4mhxue69uhkummn9ekx7mqpz3mhxue69uhhyetvv9ujuerpd46hxtnfduqscamnwvaz7tmzwf3zu6t0qyd8wumn8ghj7mn0wd68ytn0wfskuem9wp5kcmpwv3jhvqghwaehxw309aex2mrp0yhxxatjwfjkuapwveukjqgswaehxw309ahx7um5wgh8w6twv5q3samnwvaz7tmjv4kxz7fwwdhx7un59eek7cmfv9kqz9thwden5te0v4jx2m3wdehhxarj9ekxzmnyqyd8wumn8ghj7un9d3shjtnwdaehgun8wfshq6pwdejhgqgewaehxw309ac82unpwe5kgcfwdehhxarj9ekxzmnyqyvhwumn8ghj7mn0wd68ytn6v43x2er9v5hxxmr0w4jqzynhwden5te0wp6hyurvv4cxzeewv4esz9nhwden5te0v96xcctn9ehx7um5wghxcctwvsq3camnwvaz7tmwdaehgu3wd46hg6tw09mkzmrvv46zucm0d5lxp0l4 123`,
             output: [{
                 type: "npub",
-                pubkey: "98fb85057818fb2b6d5d54a1a9b199c19adeaa31b824b9ebd1e6209d825b2c93",
+                pubkey: PublicKey.FromHex("98fb85057818fb2b6d5d54a1a9b199c19adeaa31b824b9ebd1e6209d825b2c93"),
                 start: 12,
                 end: 604,
                 relays: [
@@ -148,7 +148,7 @@ Deno.test("inline parse", async (t) => {
                 `nprofile1qqsf37u9q4up37etd4w4fgdfkxvurxk74gcmsf9ea0g7vgyasfdjeycpp4mhxue69uhkummn9ekx7mqpz3mhxue69uhhyetvv9ujuerpd46hxtnfduqscamnwvaz7tmzwf3zu6t0qyd8wumn8ghj7mn0wd68ytn0wfskuem9wp5kcmpwv3jhvqghwaehxw309aex2mrp0yhxxatjwfjkuapwveukjqgswaehxw309ahx7um5wgh8w6twv5q3samnwvaz7tmjv4kxz7fwwdhx7un59eek7cmfv9kqz9thwden5te0v4jx2m3wdehhxarj9ekxzmnyqyd8wumn8ghj7un9d3shjtnwdaehgun8wfshq6pwdejhgqgewaehxw309ac82unpwe5kgcfwdehhxarj9ekxzmnyqyvhwumn8ghj7mn0wd68ytn6v43x2er9v5hxxmr0w4jqzynhwden5te0wp6hyurvv4cxzeewv4esz9nhwden5te0v96xcctn9ehx7um5wghxcctwvsq3camnwvaz7tmwdaehgu3wd46hg6tw09mkzmrvv46zucm0d5lxp0l4`,
             output: [{
                 type: "npub",
-                pubkey: "98fb85057818fb2b6d5d54a1a9b199c19adeaa31b824b9ebd1e6209d825b2c93",
+                pubkey: PublicKey.FromHex("98fb85057818fb2b6d5d54a1a9b199c19adeaa31b824b9ebd1e6209d825b2c93"),
                 start: 0,
                 end: 592,
                 relays: [

@@ -249,7 +249,7 @@ async function loadInitialData(events: NostrEvent[], ctx: NostrAccountContext, e
     return initialEvents;
 }
 
-async function originalEventToParsedEvent(
+export async function originalEventToParsedEvent(
     event: NostrEvent,
     ctx: NostrAccountContext,
     eventsRemover: EventRemover,
@@ -295,11 +295,11 @@ async function originalEventToParsedEvent(
     return e;
 }
 
-function originalEventToUnencryptedEvent(
-    event: NostrEvent<NostrKind.META_DATA | NostrKind.TEXT_NOTE>,
+export function originalEventToUnencryptedEvent<Kind extends NostrKind.META_DATA | NostrKind.TEXT_NOTE>(
+    event: NostrEvent<Kind>,
     parsedTags: Tags,
     publicKey: PublicKey,
-) {
+): Text_Note_Event | Profile_Nostr_Event | Error {
     if (event.kind == NostrKind.META_DATA) {
         const profileData = parseProfileData(event.content);
         if (profileData instanceof Error) {
@@ -324,12 +324,12 @@ function originalEventToUnencryptedEvent(
     }
 }
 
-async function originalEventToEncryptedEvent(
+export async function originalEventToEncryptedEvent(
     event: NostrEvent,
     ctx: NostrAccountContext,
     parsedTags: Tags,
     publicKey: PublicKey,
-    eventsAdapter: EventRemover,
+    eventRemover: EventRemover,
 ): Promise<Encrypted_Event | Error | false> {
     if (event.kind == NostrKind.CustomAppData) {
         const _e = await parseCustomAppDataEvent({
@@ -341,7 +341,7 @@ async function originalEventToEncryptedEvent(
         }
         if (_e instanceof Error) {
             console.log("Database:delete", event.id);
-            eventsAdapter.remove(event.id); // todo: remove
+            eventRemover.remove(event.id);
             return _e;
         }
         return _e;
@@ -360,7 +360,7 @@ async function originalEventToEncryptedEvent(
             parsedTags,
             publicKey,
             decryptedContent: decrypted,
-            parsedContentItems: Array.from(parseContent(event.content)),
+            parsedContentItems: Array.from(parseContent(decrypted)),
         };
     }
     return false;

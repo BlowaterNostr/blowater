@@ -34,6 +34,7 @@ import {
     computeThreads,
     Encrypted_Event,
     getTags,
+    Parsed_Event,
     PinContact,
     Profile_Nostr_Event,
     Text_Note_Event,
@@ -322,6 +323,39 @@ export async function* UI_Interaction_Update(args: {
                     model.dm.focusedContent.set(
                         model.dm.currentSelectedContact.hex,
                         event.pubkey,
+                    );
+                }
+            }
+            model.rightPanelModel.show = true;
+        } else if (event.type == "ViewNoteThread") {
+            let root: Parsed_Event = event.event;
+            if (event.event.parsedTags.root && event.event.parsedTags.root) {
+                const res = app.eventSyncer.syncEvent(NoteID.FromHex(event.event.parsedTags.root[0]));
+                if (res instanceof Promise) {
+                    continue;
+                }
+                root = res;
+            } else if (event.event.parsedTags.e && event.event.parsedTags.e.length) {
+                const res = app.eventSyncer.syncEvent(NoteID.FromHex(event.event.parsedTags.e[0]));
+                if (res instanceof Promise) {
+                    continue;
+                }
+                root = res;
+            }
+
+            if (root.kind == NostrKind.TEXT_NOTE) {
+                model.navigationModel.activeNav = "Social";
+                model.social.focusedContent = root;
+            } else if (root.kind == NostrKind.DIRECT_MESSAGE) {
+                const myPubkey = app.ctx.publicKey.hex;
+                if (root.publicKey.hex != myPubkey && !root.parsedTags.p.includes(myPubkey)) {
+                    continue; // if no conversation
+                }
+                updateConversation(model, root.publicKey);
+                if (model.dm.currentSelectedContact) {
+                    model.dm.focusedContent.set(
+                        model.dm.currentSelectedContact.hex,
+                        root,
                     );
                 }
             }

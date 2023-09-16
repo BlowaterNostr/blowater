@@ -56,7 +56,7 @@ function* match(regex: RegExp, content: string, type: ItemType): Generator<Conte
             } else {
                 yield {
                     type: type,
-                    pubkey: pubkey.hex,
+                    pubkey: pubkey,
                     start: urlStartPosition,
                     end: urlEndPosition,
                 };
@@ -76,7 +76,7 @@ function* match(regex: RegExp, content: string, type: ItemType): Generator<Conte
 
                 yield {
                     type: "npub",
-                    pubkey: pubkey.hex,
+                    pubkey: pubkey,
                     start: urlStartPosition,
                     end: urlEndPosition,
                     relays: decoded_nProfile.relays,
@@ -100,7 +100,7 @@ export type ContentItem = {
     end: number;
 } | {
     type: "npub";
-    pubkey: string;
+    pubkey: PublicKey;
     start: number;
     end: number;
     relays?: string[];
