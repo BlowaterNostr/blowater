@@ -1,6 +1,8 @@
 import { assertEquals } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { ChatMessage, groupContinuousMessages, parseContent } from "./message.ts";
 import { PrivateKey, PublicKey } from "../lib/nostr-ts/key.ts";
+import { NostrAddress } from "../lib/nostr-ts/nip19.ts";
+import { NostrKind } from "../lib/nostr-ts/nostr.ts";
 
 Deno.test("inline parse", async (t) => {
     const data = [
@@ -167,6 +169,23 @@ Deno.test("inline parse", async (t) => {
                     "wss://atlas.nostr.land",
                     "wss://nostr.mutinywallet.com",
                 ],
+            }],
+        },
+        {
+            input:
+                `naddr1qqxnzd3exsmnjvphxqunqv33qgsp7hwmlh5zccs55shzpfued50pznvypj0wwzn00dtyjzlqkr04w4grqsqqqa28vct2px`,
+            output: [{
+                type: "naddr",
+                start: 0,
+                end: 99,
+                addr: new NostrAddress({
+                    pubkey: PublicKey.FromHex(
+                        "1f5ddbfde82c6214a42e20a7996d1e114d840c9ee70a6f7b56490be0b0df5755",
+                    ) as PublicKey,
+                    identifier: "1694790709021",
+                    kind: NostrKind.Long_Form,
+                    relays: [],
+                }),
             }],
         },
         // {
