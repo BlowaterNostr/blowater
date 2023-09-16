@@ -2,7 +2,7 @@ import { testEventsAdapter } from "./UI/_setup.test.ts";
 import { Database_Contextual_View } from "./database.ts";
 import { prepareNormalNostrEvent } from "./lib/nostr-ts/event.ts";
 import { PrivateKey } from "./lib/nostr-ts/key.ts";
-import { InMemoryAccountContext, NostrEvent } from "./lib/nostr-ts/nostr.ts";
+import { InMemoryAccountContext, NostrEvent, NostrKind } from "./lib/nostr-ts/nostr.ts";
 import { assertEquals, fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 
 const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
@@ -12,7 +12,7 @@ Deno.test("Database", async () => {
     if (db instanceof Error) fail(db.message);
 
     const stream = db.subscribe();
-    const event_to_add = await prepareNormalNostrEvent(ctx, 1, [], "1");
+    const event_to_add = await prepareNormalNostrEvent(ctx, NostrKind.TEXT_NOTE, [], "1");
     await db.addEvent(event_to_add);
     assertEquals(
         db.events.map((e): NostrEvent => {
@@ -48,7 +48,7 @@ Deno.test("Database", async () => {
     await db.addEvent(event_to_add); //   add a duplicated event
     assertEquals(db.events.length, 1); // no changes
 
-    const event_to_add2 = await prepareNormalNostrEvent(ctx, 1, [], "2");
+    const event_to_add2 = await prepareNormalNostrEvent(ctx, NostrKind.TEXT_NOTE, [], "2");
     // console.log(event_to_add2.id, event_to_add.id)
     await db.addEvent(event_to_add2);
     const e2 = await stream.pop() as NostrEvent;
