@@ -3,25 +3,9 @@ import { h, render } from "https://esm.sh/preact@10.17.1";
 import { setup } from "https://esm.sh/twind@0.16.16";
 import { NewIndexedDB } from "./dexie-db.ts";
 import { Start } from "./app.tsx";
+import { TWConfig } from "./tw.config.ts";
 
-setup({
-    theme: {
-        fontFamily: {
-            roboto: ["Roboto", "sans-serif"],
-        },
-        screens: {
-            "mobile": { "max": "1023px" },
-            "desktop": { "min": "1024px" },
-        },
-    },
-    // https://twind.dev/handbook/extended-functionality.html
-    // https://sass-lang.com/documentation/style-rules/parent-selector/
-    variants: {
-        "children": "& > *",
-        "firstChild": "& > *:first-child",
-        "lastChild": "& > *:last-child",
-    },
-});
+setup(TWConfig);
 
 const database = NewIndexedDB();
 if (database instanceof Error) {
