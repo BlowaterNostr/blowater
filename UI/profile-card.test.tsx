@@ -8,13 +8,11 @@ import { ProfileCard } from "./profile-card.tsx";
 import { prepareNormalNostrEvent } from "../lib/nostr-ts/event.ts";
 import { testEventBus } from "./_setup.test.ts";
 
-const privateKey = PrivateKey.Generate();
-const publicKey = privateKey.toPublicKey();
-const ctx = InMemoryAccountContext.New(privateKey);
+const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
 const profileEvent = await prepareNormalNostrEvent(
     ctx,
     NostrKind.META_DATA,
-    [["d", "nostr"]],
+    [],
     `{"name":"mike", "about": "a test man"}`,
 );
 
@@ -24,8 +22,20 @@ if (profileData instanceof Error) {
 }
 
 render(
-    <Fragment>
-        <ProfileCard publicKey={publicKey} profileData={profileData} emit={testEventBus.emit} />
-    </Fragment>,
+    <div>
+        <ProfileCard publicKey={ctx.publicKey} profileData={profileData} emit={testEventBus.emit} />
+        <ProfileCard publicKey={ctx.publicKey} profileData={undefined} emit={testEventBus.emit} />
+        <ProfileCard
+            publicKey={ctx.publicKey}
+            profileData={{
+                about: "I don't have a name",
+            }}
+            emit={testEventBus.emit}
+        />
+    </div>,
     document.body,
 );
+
+for await (const e of testEventBus.onChange()) {
+    console.log(e);
+}

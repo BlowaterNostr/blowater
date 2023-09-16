@@ -28,12 +28,11 @@ export function ProfileCard(props: {
         about: tw`text-[0.8rem]`,
     };
 
-    const onClick = () => {
+    const onClick = () =>
         emit({
             type: "ViewUserDetail",
             pubkey: publicKey,
         });
-    };
 
     return (
         <div class={styles.container} onClick={onClick}>
