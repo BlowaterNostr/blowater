@@ -100,11 +100,9 @@ function* match(regex: RegExp, content: string, type: ItemType): Generator<Conte
             } else {
                 yield {
                     type: "naddr",
-                    identifier: decoded_nAddr.addr.identifier,
                     start: urlStartPosition,
                     end: urlEndPosition,
-                    relays: decoded_nAddr.addr.relays,
-                    kind: decoded_nAddr.addr.kind,
+                    addr: decoded_nAddr,
                 };
             }
         } else {
@@ -136,11 +134,9 @@ export type ContentItem = {
     end: number;
 } | {
     type: "naddr";
-    identifier: string;
     start: number;
     end: number;
-    kind: NostrKind;
-    relays?: string[];
+    addr: NostrAddress;
 };
 
 // Think of ChatMessage as an materialized view of NostrEvent
