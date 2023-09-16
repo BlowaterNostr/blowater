@@ -588,26 +588,26 @@ export function ParseMessageContent(
                 break;
             case "npub":
                 {
-                    const userInfo = allUserInfo.get(item.pubkey);
+                    const userInfo = allUserInfo.get(item.pubkey.hex);
                     if (userInfo) {
                         const profile = userInfo.profile;
                         if (profile) {
                             vnode.push(
                                 <ProfileCard
                                     profileData={profile.profile}
-                                    publicKey={PublicKey.FromHex(item.pubkey) as PublicKey}
+                                    publicKey={item.pubkey}
                                     emit={emit}
                                 />,
                             );
                             break;
                         } else {
-                            profilesSyncer.add(item.pubkey);
+                            profilesSyncer.add(item.pubkey.hex);
                         }
                     } else {
-                        profilesSyncer.add(item.pubkey);
+                        profilesSyncer.add(item.pubkey.hex);
                     }
                     vnode.push(
-                        <ProfileCard publicKey={PublicKey.FromHex(item.pubkey) as PublicKey} emit={emit} />,
+                        <ProfileCard publicKey={item.pubkey} emit={emit} />,
                     );
                 }
                 break;
