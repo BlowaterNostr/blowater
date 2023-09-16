@@ -341,7 +341,7 @@ export async function originalEventToEncryptedEvent(
         }
         if (_e instanceof Error) {
             console.log("Database:delete", event.id);
-            eventRemover.remove(event.id); // todo: remove
+            eventRemover.remove(event.id);
             return _e;
         }
         return _e;
