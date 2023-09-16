@@ -7,7 +7,11 @@ import { InMemoryAccountContext, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { parseProfileData } from "../features/profile.ts";
 import { testEventBus, testEventsAdapter } from "./_setup.test.ts";
 import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
-import { originalEventToParsedEvent, originalEventToUnencryptedEvent } from "../database.ts";
+import {
+    originalEventToEncryptedEvent,
+    originalEventToParsedEvent,
+    originalEventToUnencryptedEvent,
+} from "../database.ts";
 import { DirectedMessage_Event, getTags } from "../nostr.ts";
 
 const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
@@ -37,12 +41,18 @@ const DMEvent = await prepareEncryptedNostrEvent(
 );
 if (DMEvent instanceof Error) fail(DMEvent.message);
 
-const decryptDMEvent = await originalEventToParsedEvent(DMEvent, ctx, testEventsAdapter);
+const decryptDMEvent = await originalEventToEncryptedEvent(
+    DMEvent,
+    ctx,
+    getTags(DMEvent),
+    ctx.publicKey,
+    testEventsAdapter,
+);
 if (decryptDMEvent instanceof Error) fail(decryptDMEvent.message);
 if (decryptDMEvent == false) fail();
 
-const decryptSocialEvent = originalEventToUnencryptedEvent(socialEvent, getTags(socialEvent), ctx.publicKey);
-if (decryptSocialEvent instanceof Error) fail(decryptSocialEvent.message);
+const parsedSocialEvent = originalEventToUnencryptedEvent(socialEvent, getTags(socialEvent), ctx.publicKey);
+if (parsedSocialEvent instanceof Error) fail(parsedSocialEvent.message);
 
 const profileData = parseProfileData(profileEvent.content);
 if (profileData instanceof Error) fail(profileData.message);
@@ -52,17 +62,13 @@ render(
         <NoteCard
             profileData={profileData}
             // @ts-ignore
-            event={decryptSocialEvent}
+            event={parsedSocialEvent}
             emit={testEventBus.emit}
         />
         <NoteCard
             profileData={profileData}
-            event={{
-                ...decryptDMEvent,
-                parsedContentItems: (decryptDMEvent as DirectedMessage_Event).parsedContentItems,
-                kind: NostrKind.DIRECT_MESSAGE,
-                decryptedContent: (decryptDMEvent as DirectedMessage_Event).decryptedContent,
-            }}
+            // @ts-ignore
+            event={decryptDMEvent}
             emit={testEventBus.emit}
         />
     </Fragment>,

@@ -324,12 +324,12 @@ export function originalEventToUnencryptedEvent<Kind extends NostrKind.META_DATA
     }
 }
 
-async function originalEventToEncryptedEvent(
+export async function originalEventToEncryptedEvent(
     event: NostrEvent,
     ctx: NostrAccountContext,
     parsedTags: Tags,
     publicKey: PublicKey,
-    eventsAdapter: EventRemover,
+    eventRemover: EventRemover,
 ): Promise<Encrypted_Event | Error | false> {
     if (event.kind == NostrKind.CustomAppData) {
         const _e = await parseCustomAppDataEvent({
@@ -341,7 +341,7 @@ async function originalEventToEncryptedEvent(
         }
         if (_e instanceof Error) {
             console.log("Database:delete", event.id);
-            eventsAdapter.remove(event.id); // todo: remove
+            eventRemover.remove(event.id); // todo: remove
             return _e;
         }
         return _e;
