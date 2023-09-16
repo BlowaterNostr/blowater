@@ -18,7 +18,7 @@ export function ProfileCard(props: {
     const { profileData, publicKey, emit } = props;
     const styles = {
         container:
-            tw`px-4 py-2 my-1 border-2 border-[${PrimaryTextColor}4D] rounded-lg hover:bg-[${HoverButtonBackgroudColor}] cursor-pointer py-1`,
+            tw`px-4 py-2 my-1 text-[${PrimaryTextColor}] border-2 border-[${PrimaryTextColor}4D] rounded-lg hover:bg-[${HoverButtonBackgroudColor}] cursor-pointer py-1 bg-[#36393F]`,
         profile: {
             container: tw`flex`,
             avatar: tw`w-10 h-10`,
