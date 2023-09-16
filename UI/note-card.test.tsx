@@ -7,12 +7,8 @@ import { InMemoryAccountContext, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { parseProfileData } from "../features/profile.ts";
 import { testEventBus, testEventsAdapter } from "./_setup.test.ts";
 import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
-import {
-    originalEventToEncryptedEvent,
-    originalEventToParsedEvent,
-    originalEventToUnencryptedEvent,
-} from "../database.ts";
-import { DirectedMessage_Event, getTags } from "../nostr.ts";
+import { originalEventToEncryptedEvent, originalEventToUnencryptedEvent } from "../database.ts";
+import { getTags } from "../nostr.ts";
 
 const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
 const socialEvent = await prepareNormalNostrEvent<NostrKind.TEXT_NOTE>(
