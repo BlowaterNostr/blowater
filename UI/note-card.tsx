@@ -7,6 +7,7 @@ import { HoverButtonBackgroudColor, PrimaryTextColor } from "./style/colors.ts";
 import { emitFunc } from "../event-bus.ts";
 import { ViewNoteThread } from "./message-panel.tsx";
 import { DirectedMessage_Event, Text_Note_Event } from "../nostr.ts";
+import { NostrKind } from "../lib/nostr-ts/nostr.ts";
 
 export function NoteCard(props: {
     profileData?: ProfileData;
@@ -25,16 +26,13 @@ export function NoteCard(props: {
         },
     };
 
-    const onClick = () => {
+    const onClick = () =>
         emit({
             type: "ViewNoteThread",
             event: event,
         });
-    };
 
-    const content = "decryptedContent" in event
-        ? (event as DirectedMessage_Event).decryptedContent
-        : event.content;
+    const content = event.kind == NostrKind.DIRECT_MESSAGE ? event.decryptedContent : event.content;
 
     return (
         <div class={styles.container} onClick={onClick}>
