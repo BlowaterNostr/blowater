@@ -10,14 +10,13 @@ import { DividerClass } from "./components/tw.ts";
 import { ViewUserDetail } from "./message-panel.tsx";
 import { HoverButtonBackgroudColor, PrimaryTextColor } from "./style/colors.ts";
 
-type Props = {
+export function ProfileCard(props: {
     profileData?: ProfileData;
     publicKey: PublicKey;
     emit: emitFunc<ViewUserDetail>;
-};
-
-export class ProfileCard extends Component<Props, {}> {
-    styles = {
+}) {
+    const { profileData, publicKey, emit } = props;
+    const styles = {
         container:
             tw`px-4 py-2 my-1 border-2 border-[${PrimaryTextColor}4D] rounded-lg hover:bg-[${HoverButtonBackgroudColor}] cursor-pointer py-1`,
         profile: {
@@ -29,27 +28,23 @@ export class ProfileCard extends Component<Props, {}> {
         about: tw`text-[0.8rem]`,
     };
 
-    onClick = () => {
-        this.props.emit({
+    const onClick = () => {
+        emit({
             type: "ViewUserDetail",
-            pubkey: this.props.publicKey,
+            pubkey: publicKey,
         });
     };
 
-    render() {
-        const { publicKey, profileData } = this.props;
-
-        return (
-            <div class={this.styles.container} onClick={this.onClick}>
-                <div class={this.styles.profile.container}>
-                    <Avatar class={this.styles.profile.avatar} picture={profileData?.picture}></Avatar>
-                    <p class={this.styles.profile.name}>
-                        {profileData?.name || publicKey.bech32()}
-                    </p>
-                </div>
-                <div class={this.styles.divider}></div>
-                <p class={this.styles.about}>{profileData?.about}</p>
+    return (
+        <div class={styles.container} onClick={onClick}>
+            <div class={styles.profile.container}>
+                <Avatar class={styles.profile.avatar} picture={profileData?.picture}></Avatar>
+                <p class={styles.profile.name}>
+                    {profileData?.name || publicKey.bech32()}
+                </p>
             </div>
-        );
-    }
+            <div class={styles.divider}></div>
+            <p class={styles.about}>{profileData?.about}</p>
+        </div>
+    );
 }

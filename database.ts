@@ -249,7 +249,7 @@ async function loadInitialData(events: NostrEvent[], ctx: NostrAccountContext, e
     return initialEvents;
 }
 
-async function originalEventToParsedEvent(
+export async function originalEventToParsedEvent(
     event: NostrEvent,
     ctx: NostrAccountContext,
     eventsRemover: EventRemover,

@@ -151,7 +151,7 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
             );
         }
         let vnode = (
-            <div class={tw`flex h-full w-full relative bg-[${SecondaryBackgroundColor}]`}>
+            <div class={tw`flex h-full w-full relative bg-[#36393F]`}>
                 <div class={tw`flex flex-col h-full flex-1 overflow-hidden`}>
                     <div class={tw`flex-1`}></div>
                     {
@@ -618,7 +618,12 @@ export function ParseMessageContent(
                         vnode.push(itemStr);
                         break;
                     }
-                    vnode.push(Card(event, emit, allUserInfo));
+                    if (event.kind == NostrKind.DIRECT_MESSAGE) {
+                        allUserInfo.get(event.pubkey)?.events.find((e) => event.id == e.id);
+                        vnode.push(Card(event, emit, allUserInfo));
+                    } else if (event.kind == NostrKind.TEXT_NOTE || event.kind == NostrKind.META_DATA) {
+                        vnode.push(Card(event, emit, allUserInfo));
+                    }
                 }
                 break;
             case "tag":
@@ -634,7 +639,7 @@ export function ParseMessageContent(
 }
 
 function Card(
-    event: Profile_Nostr_Event | Text_Note_Event | Encrypted_Event,
+    event: Profile_Nostr_Event | Text_Note_Event | DirectedMessage_Event,
     emit: emitFunc<ViewThread | ViewUserDetail | ViewNoteThread>,
     allUserInfo: Map<string, UserInfo>,
 ) {
@@ -645,12 +650,12 @@ function Card(
         case NostrKind.DIRECT_MESSAGE:
             const profile = allUserInfo.get(event.pubkey)?.profile?.profile;
             return <NoteCard emit={emit} event={event} profileData={profile} />;
-        default:
-            return (
-                <div class={tw`px-4 my-1 py-2 border-2 border-[${PrimaryTextColor}4D] rounded-lg py-1 flex`}>
-                    {event.content}
-                </div>
-            );
+            // default:
+            //     return (
+            //         <div class={tw`px-4 my-1 py-2 border-2 border-[${PrimaryTextColor}4D] rounded-lg py-1 flex`}>
+            //             {event.content}
+            //         </div>
+            //     );
     }
 }
 
