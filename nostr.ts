@@ -41,7 +41,7 @@ export type Parsed_Event<Kind extends NostrKind = NostrKind> = parsedTagsEvent<K
 export type Encrypted_Kind = NostrKind.CustomAppData | NostrKind.DIRECT_MESSAGE;
 export type Non_Plain_Text_Kind = Encrypted_Kind | NostrKind.META_DATA;
 
-export type Text_Note_Event = Parsed_Event<NostrKind.TEXT_NOTE> & {
+export type Text_Note_Event<Kind extends NostrKind.TEXT_NOTE = NostrKind.TEXT_NOTE> = Parsed_Event<Kind> & {
     parsedContentItems: ContentItem[];
 };
 

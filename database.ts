@@ -295,11 +295,11 @@ export async function originalEventToParsedEvent(
     return e;
 }
 
-function originalEventToUnencryptedEvent(
-    event: NostrEvent<NostrKind.META_DATA | NostrKind.TEXT_NOTE>,
+export function originalEventToUnencryptedEvent<Kind extends NostrKind.META_DATA | NostrKind.TEXT_NOTE>(
+    event: NostrEvent<Kind>,
     parsedTags: Tags,
     publicKey: PublicKey,
-) {
+): Text_Note_Event | Profile_Nostr_Event | Error {
     if (event.kind == NostrKind.META_DATA) {
         const profileData = parseProfileData(event.content);
         if (profileData instanceof Error) {
