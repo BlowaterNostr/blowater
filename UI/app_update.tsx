@@ -392,7 +392,7 @@ export async function* UI_Interaction_Update(args: {
         } else if (event.type == "SocialFilterChanged_remove_author") {
             model.social.filter.author.delete(event.value);
         } else if (event.type == "RelayConfigChange") {
-            const e = await app.relayConfig.toNostrEvent(app.ctx, true);
+            const e = await app.relayConfig.toNostrEvent(app.ctx);
             if (e instanceof Error) {
                 throw e; // impossible
             }
@@ -669,7 +669,7 @@ export async function* Relay_Update(
             }
         }
         if (changed) {
-            const event = await relayConfig.toNostrEvent(ctx, true);
+            const event = await relayConfig.toNostrEvent(ctx);
             if (!(event instanceof Error)) {
                 relayPool.sendEvent(event);
             }

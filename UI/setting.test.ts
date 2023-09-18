@@ -56,7 +56,7 @@ Deno.test("Relay Config", async () => {
 
     const pri = PrivateKey.Generate();
     const ctx = InMemoryAccountContext.New(pri);
-    const event = await relayConfig.toNostrEvent(ctx, true);
+    const event = await relayConfig.toNostrEvent(ctx);
     if (event instanceof Error) fail(event.message);
 
     const relayConfig3 = await RelayConfig.FromNostrEvent(event, ctx);
@@ -99,7 +99,7 @@ Deno.test("RelayConfig: Nostr Encoding Decoding", async () => {
     config.add("something");
 
     const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
-    const event = await config.toNostrEvent(ctx, true);
+    const event = await config.toNostrEvent(ctx);
     if (event instanceof Error) fail(event.message);
 
     const config2 = await RelayConfig.FromNostrEvent(event, ctx);

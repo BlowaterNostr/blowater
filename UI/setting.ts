@@ -54,25 +54,21 @@ export class RelayConfig {
         return relayConfig;
     }
 
-    async toNostrEvent(ctx: NostrAccountContext, needEncryption: boolean) {
-        if (needEncryption) {
-            const configJSON = JSON.stringify({
-                type: RelayConfig.name,
-                data: this.saveAsHex(),
-            });
-            const encrypted = await ctx.encrypt(ctx.publicKey.hex, configJSON);
-            if (encrypted instanceof Error) {
-                return encrypted;
-            }
-            const event = await prepareParameterizedEvent(ctx, {
-                content: encrypted,
-                d: RelayConfig.name,
-                kind: NostrKind.Custom_App_Data,
-            });
-            return event;
+    async toNostrEvent(ctx: NostrAccountContext) {
+        const configJSON = JSON.stringify({
+            type: RelayConfig.name,
+            data: this.saveAsHex(),
+        });
+        const encrypted = await ctx.encrypt(ctx.publicKey.hex, configJSON);
+        if (encrypted instanceof Error) {
+            return encrypted;
         }
-        throw "not implemented";
-        // prepareNormalNostrEvent(ctx, NostrKind.)
+        const event = await prepareParameterizedEvent(ctx, {
+            content: encrypted,
+            d: RelayConfig.name,
+            kind: NostrKind.Custom_App_Data,
+        });
+        return event;
     }
 
     getRelayURLs() {
