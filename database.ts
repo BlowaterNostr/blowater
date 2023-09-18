@@ -218,10 +218,6 @@ export async function parseCustomAppDataEvent(
 async function loadInitialData(events: NostrEvent[], ctx: NostrAccountContext, eventsRemover: EventRemover) {
     const initialEvents: Accepted_Event[] = [];
     for await (const event of events) {
-        const pubkey = PublicKey.FromHex(event.pubkey);
-        if (pubkey instanceof Error) {
-            return pubkey;
-        }
         const parsedEvent = await originalEventToParsedEvent(
             {
                 ...event,
