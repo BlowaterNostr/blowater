@@ -12,11 +12,14 @@ Deno.test("Other Configs", async () => {
 
     const ctx = InMemoryAccountContext.Generate();
 
-    {   // Encode/Decode To/From Nostr Event
+    { // Encode/Decode To/From Nostr Event
         const pub = PrivateKey.Generate().toPublicKey();
         const pub2 = PrivateKey.Generate().toPublicKey();
         const event = await prepareParameterizedEvent(ctx, {
-            content: await ctx.encrypt(ctx.publicKey.hex, JSON.stringify([pub.bech32(), "123", pub2.bech32(), pub2.hex])),
+            content: await ctx.encrypt(
+                ctx.publicKey.hex,
+                JSON.stringify([pub.bech32(), "123", pub2.bech32(), pub2.hex]),
+            ),
             kind: NostrKind.Custom_App_Data,
             d: OtherConfig.name,
         });
