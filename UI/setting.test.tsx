@@ -2,7 +2,7 @@
 import { h, render } from "https://esm.sh/preact@10.17.1";
 import { Setting } from "./setting.tsx";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
-import { defaultRelays, RelayConfig } from "./setting.ts";
+import { defaultRelays, RelayConfig } from "./relay-config.ts";
 import { InMemoryAccountContext } from "../lib/nostr-ts/nostr.ts";
 import { PrivateKey } from "../lib/nostr-ts/key.ts";
 import { EventBus } from "../event-bus.ts";

@@ -27,7 +27,7 @@ import { getCurrentSignInCtx, setSignInState, SignIn } from "./signIn.tsx";
 import { AppList } from "./app-list.tsx";
 import { SecondaryBackgroundColor } from "./style/colors.ts";
 import { EventSyncer } from "./event_syncer.ts";
-import { defaultRelays, RelayConfig } from "./setting.ts";
+import { defaultRelays, RelayConfig } from "./relay-config.ts";
 import { DexieDatabase } from "./dexie-db.ts";
 import { About } from "./about.tsx";
 import { SocialPanel } from "./social.tsx";
