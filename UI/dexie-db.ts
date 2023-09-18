@@ -14,7 +14,7 @@ export class DexieDatabase extends dexie.Dexie implements EventsAdapter {
         });
     }
     filter(f: (e: NostrEvent) => boolean): Promise<NostrEvent[]> {
-        return this.events.filter(f).toArray();
+        return this.events.toArray();
     }
     get(keys: Indices) {
         return this.events.get(keys);
