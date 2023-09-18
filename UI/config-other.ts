@@ -18,10 +18,9 @@ export class OtherConfig {
         for (const pin of pinList) {
             const pubkey = PublicKey.FromBech32(pin);
             if (pubkey instanceof Error) {
-                console.error(pubkey);
                 continue;
             }
-            c.pinList.add(pin);
+            c.pinList.add(pubkey.bech32());
         }
         return c;
     }
