@@ -11,7 +11,7 @@ export function InviteCard(props: {
     description: string;
     onJoin: () => void;
 }) {
-    const {picture, name, description, onJoin} = props;
+    const { picture, name, description, onJoin } = props;
 
     const styles = {
         container: tw`bg-[${SecondaryBackgroundColor}] rounded-sm p-2 max-w-sm my-1`,
@@ -22,12 +22,13 @@ export function InviteCard(props: {
             text: {
                 container: tw`flex-1 overflow-hidden`,
                 name: tw`text-[${PrimaryTextColor}] truncate`,
-                description: tw`text-[${SecondaryTextColor}] text-xs truncate`
+                description: tw`text-[${SecondaryTextColor}] text-xs truncate`,
             },
         },
-        button: tw`px-4 py-2 rounded-sm ${LinearGradientsClass} hover:bg-gradient-to-l text-[${PrimaryTextColor}] text-sm ${NoOutlineClass} font-bold`
-    }
-    
+        button:
+            tw`px-4 py-2 rounded-sm ${LinearGradientsClass} hover:bg-gradient-to-l text-[${PrimaryTextColor}] text-sm ${NoOutlineClass} font-bold`,
+    };
+
     return (
         <div class={styles.container}>
             <p class={styles.title}>Please join me on group chat</p>
