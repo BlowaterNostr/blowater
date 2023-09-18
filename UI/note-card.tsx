@@ -17,7 +17,7 @@ export function NoteCard(props: {
     const { profileData, event, emit } = props;
     const styles = {
         container:
-            tw`px-4 my-1 py-2 border-2 text-[${PrimaryTextColor}] border-[${PrimaryTextColor}4D] rounded-lg py-1 flex cursor-pointer bg-[#36393F] hover:bg-[${HoverButtonBackgroudColor}]`,
+            tw`px-4 my-1 py-2 border-2 text-[${PrimaryTextColor}] border-[${PrimaryTextColor}4D] rounded-lg py-1 flex cursor-pointer bg-[#36393F] hover:bg-[${HoverButtonBackgroudColor}] max-w-sm`,
         avatar: tw`w-10 h-10`,
         information: {
             container: tw`ml-2 flex-1 overflow-hidden`,
