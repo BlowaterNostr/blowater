@@ -219,10 +219,7 @@ async function loadInitialData(events: NostrEvent[], ctx: NostrAccountContext, e
     const initialEvents: Accepted_Event[] = [];
     for await (const event of events) {
         const parsedEvent = await originalEventToParsedEvent(
-            {
-                ...event,
-                kind: event.kind,
-            },
+            event,
             ctx,
             eventsRemover,
         );
@@ -248,41 +245,26 @@ export async function originalEventToParsedEvent(
     if (publicKey instanceof Error) {
         return publicKey;
     }
-
     const parsedTags = getTags(event);
-    let e: Text_Note_Event | Encrypted_Event | Profile_Nostr_Event;
     if (event.kind == NostrKind.CustomAppData || event.kind == NostrKind.DIRECT_MESSAGE) {
-        const _e = await originalEventToEncryptedEvent(
-            {
-                ...event,
-                kind: event.kind,
-            },
+        return originalEventToEncryptedEvent(
+            event,
             ctx,
             parsedTags,
             publicKey,
             eventsRemover,
         );
-        if (_e instanceof Error || _e == false) {
-            return _e;
-        }
-        e = _e;
+        // return false
     } else if (event.kind == NostrKind.META_DATA || event.kind == NostrKind.TEXT_NOTE) {
-        const _e = originalEventToUnencryptedEvent(
-            {
-                ...event,
-                kind: event.kind,
-            },
+        return originalEventToUnencryptedEvent(
+            // @ts-ignore
+            event,
             parsedTags,
             publicKey,
         );
-        if (_e instanceof Error) {
-            return _e;
-        }
-        e = _e;
     } else {
         return new Error(`currently not accepting kind ${event.kind}`);
     }
-    return e;
 }
 
 export function originalEventToUnencryptedEvent<Kind extends NostrKind.META_DATA | NostrKind.TEXT_NOTE>(
@@ -322,10 +304,8 @@ export async function originalEventToEncryptedEvent(
     eventRemover: EventRemover,
 ): Promise<Encrypted_Event | Error | false> {
     if (event.kind == NostrKind.CustomAppData) {
-        const _e = await parseCustomAppDataEvent({
-            ...event,
-            kind: event.kind,
-        }, ctx);
+        // @ts-ignore
+        const _e = await parseCustomAppDataEvent(event, ctx);
         if (_e == undefined) {
             return false;
         }

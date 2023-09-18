@@ -2,7 +2,7 @@ import * as Automerge from "https://deno.land/x/automerge@2.1.0-alpha.12/index.t
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import * as secp256k1 from "../lib/nostr-ts/vendor/secp256k1.js";
 import { ConnectionPool, RelayAlreadyRegistered } from "../lib/nostr-ts/relay.ts";
-import { prepareCustomAppDataEvent, prepareParameterizedEvent } from "../lib/nostr-ts/event.ts";
+import { prepareParameterizedEvent } from "../lib/nostr-ts/event.ts";
 
 export const defaultRelays = [
     "wss://nos.lol",
@@ -58,7 +58,7 @@ export class RelayConfig {
         if (needEncryption) {
             const configJSON = JSON.stringify({
                 type: RelayConfig.name,
-                data: secp256k1.utils.bytesToHex(this.save()),
+                data: this.saveAsHex(),
             });
             const encrypted = await ctx.encrypt(ctx.publicKey.hex, configJSON);
             if (encrypted instanceof Error) {

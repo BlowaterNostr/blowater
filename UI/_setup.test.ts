@@ -10,9 +10,7 @@ export const testEventsAdapter: EventsAdapter = {
     filter: async (f) => {
         const events = [];
         for (const [k, v] of data) {
-            if (f(v)) {
-                events.push(v);
-            }
+            events.push(v);
         }
         return events;
     },
