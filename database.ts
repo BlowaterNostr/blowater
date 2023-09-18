@@ -25,7 +25,7 @@ export interface Indices {
 }
 
 export interface EventsFilter {
-    filter(f: (e: NostrEvent) => boolean): Promise<NostrEvent[]>;
+    filter(f?: (e: NostrEvent) => boolean): Promise<NostrEvent[]>;
 }
 
 export interface EventRemover {
@@ -49,14 +49,8 @@ export class Database_Contextual_View {
 
     static async New(eventsAdapter: EventsAdapter, ctx: NostrAccountContext) {
         const t = Date.now();
-        let kind4 = 0;
-        const allEvents = await eventsAdapter.filter((_) => {
-            if (_.kind == NostrKind.DIRECT_MESSAGE) {
-                kind4++;
-            }
-            return true;
-        });
-        console.log("Database_Contextual_View:onload", Date.now() - t, allEvents.length, kind4);
+        const allEvents = await eventsAdapter.filter();
+        console.log("Database_Contextual_View:onload", Date.now() - t, allEvents.length);
         const initialEvents = await loadInitialData(
             allEvents,
             ctx,
