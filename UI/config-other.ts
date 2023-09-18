@@ -1,3 +1,4 @@
+import { prepareParameterizedEvent } from "../lib/nostr-ts/event.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 
@@ -25,6 +26,20 @@ export class OtherConfig {
         return c;
     }
 
-    toNostrEvent() {
+    async toNostrEvent(ctx: NostrAccountContext) {
+        const encryptedContent = await ctx.encrypt(
+            ctx.publicKey.hex,
+            JSON.stringify(Array.from(this.pinList)),
+        );
+        if (encryptedContent instanceof Error) {
+            return encryptedContent;
+        }
+        const event = await prepareParameterizedEvent(ctx, {
+            content: encryptedContent,
+            d: OtherConfig.name,
+            kind: NostrKind.Custom_App_Data,
+            created_at: Date.now() / 1000,
+        });
+        return event;
     }
 }
