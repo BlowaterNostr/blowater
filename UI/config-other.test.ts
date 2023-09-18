@@ -23,5 +23,7 @@ Deno.test("Other Configs", async () => {
         const config = await OtherConfig.FromNostrEvent(event, ctx);
         if (config instanceof Error) fail(config.message);
         assertEquals(config.pinList, new Set([pub.bech32(), pub2.bech32()]));
+
+        // encode back to events
     }
 });
