@@ -1,12 +1,4 @@
-import {
-    CustomAppData,
-    CustomAppData_Event,
-    Encrypted_Event,
-    getTags,
-    Profile_Nostr_Event,
-    Tag,
-    Text_Note_Event,
-} from "./nostr.ts";
+import { Encrypted_Event, getTags, Profile_Nostr_Event, Tag, Text_Note_Event } from "./nostr.ts";
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { parseProfileData } from "./features/profile.ts";
 import { parseContent } from "./UI/message.ts";
@@ -98,7 +90,7 @@ export class Database_Contextual_View {
         }
 
         // parse the event to desired format
-        const parsedEvent = await originalEventToParsedEvent(event, this.ctx, this.eventsAdapter);
+        const parsedEvent = await originalEventToParsedEvent(event, this.ctx);
         if (parsedEvent instanceof Error) {
             return parsedEvent;
         }
@@ -182,46 +174,12 @@ export function whoIamTalkingTo(event: NostrEvent, myPublicKey: PublicKey) {
     return whoIAmTalkingTo;
 }
 
-export async function parseCustomAppDataEvent(
-    event: NostrEvent<NostrKind.CustomAppData>,
-    ctx: NostrAccountContext,
-) {
-    if (event.pubkey == ctx.publicKey.hex) { // if I am the author
-        const decrypted = await ctx.decrypt(ctx.publicKey.hex, event.content);
-        if (decrypted instanceof Error) {
-            return decrypted;
-        }
-        let customAppData: CustomAppData;
-        try {
-            customAppData = JSON.parse(decrypted);
-        } catch (e) {
-            return e as Error;
-        }
-        if (customAppData) {
-            const e: CustomAppData_Event = {
-                content: event.content,
-                created_at: event.created_at,
-                id: event.id,
-                kind: event.kind,
-                pubkey: event.pubkey,
-                sig: event.sig,
-                tags: event.tags,
-                parsedTags: getTags(event),
-                customAppData: customAppData,
-                publicKey: ctx.publicKey,
-            };
-            return e;
-        }
-    }
-}
-
 async function loadInitialData(events: NostrEvent[], ctx: NostrAccountContext, eventsRemover: EventRemover) {
     const initialEvents: Accepted_Event[] = [];
     for await (const event of events) {
         const parsedEvent = await originalEventToParsedEvent(
             event,
             ctx,
-            eventsRemover,
         );
         if (parsedEvent instanceof Error) {
             console.error(parsedEvent.message);
@@ -239,20 +197,18 @@ async function loadInitialData(events: NostrEvent[], ctx: NostrAccountContext, e
 export async function originalEventToParsedEvent(
     event: NostrEvent,
     ctx: NostrAccountContext,
-    eventsRemover: EventRemover,
 ) {
     const publicKey = PublicKey.FromHex(event.pubkey);
     if (publicKey instanceof Error) {
         return publicKey;
     }
     const parsedTags = getTags(event);
-    if (event.kind == NostrKind.CustomAppData || event.kind == NostrKind.DIRECT_MESSAGE) {
+    if (event.kind == NostrKind.DIRECT_MESSAGE) {
         return originalEventToEncryptedEvent(
             event,
             ctx,
             parsedTags,
             publicKey,
-            eventsRemover,
         );
         // return false
     } else if (event.kind == NostrKind.META_DATA || event.kind == NostrKind.TEXT_NOTE) {
@@ -301,21 +257,8 @@ export async function originalEventToEncryptedEvent(
     ctx: NostrAccountContext,
     parsedTags: Tags,
     publicKey: PublicKey,
-    eventRemover: EventRemover,
 ): Promise<Encrypted_Event | Error | false> {
-    if (event.kind == NostrKind.CustomAppData) {
-        // @ts-ignore
-        const _e = await parseCustomAppDataEvent(event, ctx);
-        if (_e == undefined) {
-            return false;
-        }
-        if (_e instanceof Error) {
-            console.log("Database:delete", event.id);
-            eventRemover.remove(event.id);
-            return _e;
-        }
-        return _e;
-    } else if (event.kind == NostrKind.DIRECT_MESSAGE) {
+    if (event.kind == NostrKind.DIRECT_MESSAGE) {
         const theOther = whoIamTalkingTo(event, ctx.publicKey);
         if (theOther instanceof Error) {
             return theOther;

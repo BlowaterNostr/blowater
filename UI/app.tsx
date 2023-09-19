@@ -191,29 +191,6 @@ export class App {
             }
         })(this.database, this.ctx, this.pool);
 
-        // Sync Custom App Data
-        (async function sync_custom_app_data(
-            database: Database_Contextual_View,
-            ctx: NostrAccountContext,
-            pool: ConnectionPool,
-        ) {
-            let resp = await pool.newSub(
-                "CustomAppData",
-                {
-                    authors: [ctx.publicKey.hex],
-                    kinds: [NostrKind.CustomAppData],
-                },
-            );
-            if (resp instanceof Error) {
-                throw resp;
-            }
-            for await (const { res, url } of resp.chan) {
-                if (res.type == "EVENT") {
-                    database.addEvent(res.event);
-                }
-            }
-        })(this.database, this.ctx, this.pool);
-
         console.log("App allUsersInfo");
         this.model.social.threads = getSocialPosts(this.database, this.allUsersInfo.userInfos);
 

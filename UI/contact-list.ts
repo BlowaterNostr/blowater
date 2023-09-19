@@ -158,39 +158,6 @@ export class AllUsersInformation implements ContactRetriever {
                         }
                     }
                     break;
-                case NostrKind.CustomAppData: {
-                    const obj = event.customAppData;
-                    if (obj.type == "PinContact" || obj.type == "UnpinContact") {
-                        const userInfo = this.userInfos.get(obj.pubkey);
-                        if (userInfo) {
-                            if (userInfo.pinEvent) {
-                                if (event.created_at > userInfo.pinEvent.created_at) {
-                                    userInfo.pinEvent = {
-                                        content: obj,
-                                        created_at: event.created_at,
-                                    };
-                                }
-                            } else {
-                                userInfo.pinEvent = {
-                                    content: obj,
-                                    created_at: event.created_at,
-                                };
-                            }
-                        } else {
-                            this.userInfos.set(obj.pubkey, {
-                                pubkey: PublicKey.FromHex(obj.pubkey) as PublicKey, // todo: could throw
-                                pinEvent: {
-                                    content: obj,
-                                    created_at: event.created_at,
-                                },
-                                newestEventReceivedByMe: undefined,
-                                newestEventSendByMe: undefined,
-                                profile: undefined,
-                                events: [],
-                            });
-                        }
-                    }
-                }
             }
         }
         // console.log("AllUsersInformation:addEvents", Date.now() - t);

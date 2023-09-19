@@ -30,14 +30,16 @@ export async function sendDMandImages(args: {
         // build the nostr event
         const nostrEvent = await prepareEncryptedNostrEvent(
             sender,
-            receiverPublicKey,
-            kind,
-            [
-                ["p", receiverPublicKey.hex],
-                ["lamport", String(lamport_timestamp)],
-                ...tags,
-            ],
-            message,
+            {
+                encryptKey: receiverPublicKey,
+                kind,
+                tags: [
+                    ["p", receiverPublicKey.hex],
+                    ["lamport", String(lamport_timestamp)],
+                    ...tags,
+                ],
+                content: message,
+            },
         );
         if (nostrEvent instanceof Error) {
             return nostrEvent;
