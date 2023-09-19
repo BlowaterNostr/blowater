@@ -198,7 +198,7 @@ Deno.test("inline parse", async (t) => {
                         id: "25524798c2182d1b20c87ba208aa5085a7ba34c9b54eb851977f7206591ab407",
                         kind: 1,
                         pubkey: PublicKey.FromHex(
-                            "25524798c2182d1b20c87ba208aa5085a7ba34c9b54eb851977f7206591ab407",
+                            "b3e43e8cc7e6dff23a33d9213a3e912d895b1c3e4250240e0c99dbefe3068b5f",
                         ) as PublicKey,
                         relays: [
                             "wss://yabu.me",
