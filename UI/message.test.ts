@@ -189,22 +189,25 @@ Deno.test("inline parse", async (t) => {
             }],
         },
         {
-            input: `nostr:nevent1qqsz25j8nrppstgmyry8hgsg4fggtfa6xnym2n4c2xth7usxtydtgpcpp4mhxue69uhhjctzw5hx6egzyze7g05vclndlu36x0vjzw37jykcjkcu8ep9qfqwpjvahmlrq6947qcyqqqqqqgj5mjek`,
+            input:
+                `nostr:nevent1qqsz25j8nrppstgmyry8hgsg4fggtfa6xnym2n4c2xth7usxtydtgpcpp4mhxue69uhhjctzw5hx6egzyze7g05vclndlu36x0vjzw37jykcjkcu8ep9qfqwpjvahmlrq6947qcyqqqqqqgj5mjek`,
             output: [{
                 end: 161,
-              event:new NostrEvent( 
-                 {
-                   id: "25524798c2182d1b20c87ba208aa5085a7ba34c9b54eb851977f7206591ab407",
-                   kind: 1,
-               pubkey: PublicKey.FromHex( "25524798c2182d1b20c87ba208aa5085a7ba34c9b54eb851977f7206591ab407") as PublicKey ,
-                   relays: [
-                 "wss://yabu.me",
-              ],
-                 },
-               ),
+                event: new NostrEvent(
+                    {
+                        id: "25524798c2182d1b20c87ba208aa5085a7ba34c9b54eb851977f7206591ab407",
+                        kind: 1,
+                        pubkey: PublicKey.FromHex(
+                            "25524798c2182d1b20c87ba208aa5085a7ba34c9b54eb851977f7206591ab407",
+                        ) as PublicKey,
+                        relays: [
+                            "wss://yabu.me",
+                        ],
+                    },
+                ),
                 start: 0,
                 type: "nevent",
-              }],
+            }],
         },
         {
             input: `Thank you #[0]​ #[2]#[3]`,

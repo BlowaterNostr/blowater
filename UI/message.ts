@@ -21,8 +21,8 @@ export function* parseContent(content: string) {
     // notes
     yield* match(/note[0-9a-z]{59}/g, content, "note");
 
-        // nevent
-        yield* match(/(nostr:)?nevent[0-9a-z]+/g, content, "nevent");
+    // nevent
+    yield* match(/(nostr:)?nevent[0-9a-z]+/g, content, "nevent");
 
     // tags
     yield* match(/#\[[0-9]+\]/g, content, "tag");
@@ -108,8 +108,7 @@ function* match(regex: RegExp, content: string, type: ItemType): Generator<Conte
                     addr: decoded_nAddr,
                 };
             }
-        } 
-        else if (type == "nevent") {
+        } else if (type == "nevent") {
             let bech32: string;
             if (match[0].startsWith("nostr:")) {
                 bech32 = content.slice(urlStartPosition + 6, urlEndPosition + 1);
@@ -127,7 +126,7 @@ function* match(regex: RegExp, content: string, type: ItemType): Generator<Conte
                     event: decoded_nEvent,
                 };
             }
-        }else {
+        } else {
             yield {
                 type: type,
                 start: urlStartPosition,
@@ -138,7 +137,7 @@ function* match(regex: RegExp, content: string, type: ItemType): Generator<Conte
 }
 
 type otherItemType = "url" | "tag";
-type ItemType = otherItemType | "note" | "npub" | "nprofile" | "naddr" |"nevent";
+type ItemType = otherItemType | "note" | "npub" | "nprofile" | "naddr" | "nevent";
 export type ContentItem = {
     type: otherItemType;
     start: number;
@@ -163,7 +162,7 @@ export type ContentItem = {
     type: "nevent";
     start: number;
     end: number;
-    event: NostrEvent
+    event: NostrEvent;
 };
 
 // Think of ChatMessage as an materialized view of NostrEvent
