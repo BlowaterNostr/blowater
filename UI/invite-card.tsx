@@ -5,6 +5,9 @@ import { PrimaryTextColor, SecondaryBackgroundColor, SecondaryTextColor } from "
 import { Avatar } from "./components/avatar.tsx";
 import { LinearGradientsClass, NoOutlineClass } from "./components/tw.ts";
 
+// invite event
+// profile syncer
+// emit
 export function InviteCard(props: {
     picture?: string;
     name: string;
