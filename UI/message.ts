@@ -1,7 +1,7 @@
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { MessageThread } from "./dm.tsx";
 import { DirectedMessage_Event, Text_Note_Event } from "../nostr.ts";
-import { NostrAddress, NostrProfile, NoteID } from "../lib/nostr-ts/nip19.ts";
+import { NostrAddress, NostrEvent, NostrProfile, NoteID } from "../lib/nostr-ts/nip19.ts";
 import { Int } from "https://deno.land/x/automerge@2.1.0-alpha.12/types.ts";
 import { NostrKind } from "../lib/nostr-ts/nostr.ts";
 
@@ -20,6 +20,9 @@ export function* parseContent(content: string) {
 
     // notes
     yield* match(/note[0-9a-z]{59}/g, content, "note");
+
+        // nevent
+        yield* match(/(nostr:)?nevent[0-9a-z]+/g, content, "nevent");
 
     // tags
     yield* match(/#\[[0-9]+\]/g, content, "tag");
@@ -105,7 +108,26 @@ function* match(regex: RegExp, content: string, type: ItemType): Generator<Conte
                     addr: decoded_nAddr,
                 };
             }
-        } else {
+        } 
+        else if (type == "nevent") {
+            let bech32: string;
+            if (match[0].startsWith("nostr:")) {
+                bech32 = content.slice(urlStartPosition + 6, urlEndPosition + 1);
+            } else {
+                bech32 = content.slice(urlStartPosition, urlEndPosition + 1);
+            }
+            const decoded_nEvent = NostrEvent.decode(bech32);
+            if (decoded_nEvent instanceof Error) {
+                // ignore
+            } else {
+                yield {
+                    type: "nevent",
+                    start: urlStartPosition,
+                    end: urlEndPosition,
+                    event: decoded_nEvent,
+                };
+            }
+        }else {
             yield {
                 type: type,
                 start: urlStartPosition,
@@ -116,7 +138,7 @@ function* match(regex: RegExp, content: string, type: ItemType): Generator<Conte
 }
 
 type otherItemType = "url" | "tag";
-type ItemType = otherItemType | "note" | "npub" | "nprofile" | "naddr";
+type ItemType = otherItemType | "note" | "npub" | "nprofile" | "naddr" |"nevent";
 export type ContentItem = {
     type: otherItemType;
     start: number;
@@ -137,6 +159,11 @@ export type ContentItem = {
     start: number;
     end: number;
     addr: NostrAddress;
+} | {
+    type: "nevent";
+    start: number;
+    end: number;
+    event: NostrEvent
 };
 
 // Think of ChatMessage as an materialized view of NostrEvent
