@@ -1,9 +1,7 @@
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { MessageThread } from "./dm.tsx";
 import { DirectedMessage_Event, Text_Note_Event } from "../nostr.ts";
-import { NostrAddress, NostrEvent, NostrProfile, NoteID } from "../lib/nostr-ts/nip19.ts";
-import { Int } from "https://deno.land/x/automerge@2.1.0-alpha.12/types.ts";
-import { NostrKind } from "../lib/nostr-ts/nostr.ts";
+import { Nevent, NostrAddress, NostrProfile, NoteID } from "../lib/nostr-ts/nip19.ts";
 
 export function* parseContent(content: string) {
     // URLs
@@ -115,7 +113,7 @@ function* match(regex: RegExp, content: string, type: ItemType): Generator<Conte
             } else {
                 bech32 = content.slice(urlStartPosition, urlEndPosition + 1);
             }
-            const decoded_nEvent = NostrEvent.decode(bech32);
+            const decoded_nEvent = Nevent.decode(bech32);
             if (decoded_nEvent instanceof Error) {
                 // ignore
             } else {
@@ -162,7 +160,7 @@ export type ContentItem = {
     type: "nevent";
     start: number;
     end: number;
-    event: NostrEvent;
+    event: Nevent;
 };
 
 // Think of ChatMessage as an materialized view of NostrEvent
