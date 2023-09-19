@@ -38,7 +38,7 @@ export type Parsed_Event<Kind extends NostrKind = NostrKind> = parsedTagsEvent<K
 };
 
 // content is either JSON, encrypted or other format that's should not be rendered directly
-export type Encrypted_Kind = NostrKind.CustomAppData | NostrKind.DIRECT_MESSAGE;
+export type Encrypted_Kind = NostrKind.DIRECT_MESSAGE;
 export type Non_Plain_Text_Kind = Encrypted_Kind | NostrKind.META_DATA;
 
 export type Text_Note_Event<Kind extends NostrKind.TEXT_NOTE = NostrKind.TEXT_NOTE> = Parsed_Event<Kind> & {
@@ -49,15 +49,11 @@ export type Profile_Nostr_Event = Parsed_Event<NostrKind.META_DATA> & {
     profile: ProfileData;
 };
 
-export type CustomAppData_Event = Parsed_Event<NostrKind.CustomAppData> & {
-    readonly customAppData: CustomAppData;
-};
-
 export type DirectedMessage_Event = Parsed_Event<NostrKind.DIRECT_MESSAGE> & {
     decryptedContent: string;
     parsedContentItems: ContentItem[];
 };
-export type Encrypted_Event = DirectedMessage_Event | CustomAppData_Event;
+export type Encrypted_Event = DirectedMessage_Event;
 
 export type CustomAppData = PinContact | UnpinContact | UserLogin;
 
@@ -210,24 +206,26 @@ export async function prepareReplyEvent(
         }
         return prepareEncryptedNostrEvent(
             sender,
-            replyTo,
-            targetEvent.kind,
-            [
-                [
-                    "e",
-                    targetEvent.id,
-                    "",
-                    "reply",
-                ],
-                ...ps.map((p) =>
+            {
+                encryptKey: replyTo,
+                kind: targetEvent.kind,
+                tags: [
                     [
-                        "p",
-                        p,
-                    ] as TagPubKey
-                ),
-                ...tags,
-            ],
-            content,
+                        "e",
+                        targetEvent.id,
+                        "",
+                        "reply",
+                    ],
+                    ...ps.map((p) =>
+                        [
+                            "p",
+                            p,
+                        ] as TagPubKey
+                    ),
+                    ...tags,
+                ],
+                content,
+            },
         );
     }
 

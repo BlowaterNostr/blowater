@@ -1,7 +1,7 @@
 import { assertEquals, fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
-import { prepareCustomAppDataEvent, prepareEncryptedNostrEvent } from "./lib/nostr-ts/event.ts";
+import { prepareEncryptedNostrEvent } from "./lib/nostr-ts/event.ts";
 import { PrivateKey } from "./lib/nostr-ts/key.ts";
-import { InMemoryAccountContext, NostrEvent, RelayResponse_REQ_Message } from "./lib/nostr-ts/nostr.ts";
+import { InMemoryAccountContext, RelayResponse_REQ_Message } from "./lib/nostr-ts/nostr.ts";
 import { Channel, closed } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { ConnectionPool } from "./lib/nostr-ts/relay.ts";
 import { relays } from "./lib/nostr-ts/relay-list.test.ts";
@@ -37,15 +37,17 @@ Deno.test("group chat", async () => {
         {
             const groupInviationEvent = await prepareEncryptedNostrEvent(
                 ctx_A,
-                key_B.toPublicKey(),
-                4,
-                [
-                    ["p", key_B.toPublicKey().hex],
-                ],
-                JSON.stringify({
-                    decrypt_key: group_decrypt_ctx_created_by_A.privateKey.bech32,
-                    public_key: group_key.bech32(),
-                }),
+                {
+                    encryptKey: key_B.toPublicKey(),
+                    kind: 4,
+                    tags: [
+                        ["p", key_B.toPublicKey().hex],
+                    ],
+                    content: JSON.stringify({
+                        decrypt_key: group_decrypt_ctx_created_by_A.privateKey.bech32,
+                        public_key: group_key.bech32(),
+                    }),
+                },
             );
             if (groupInviationEvent instanceof Error) fail(groupInviationEvent.message);
             const err = await pool.sendEvent(groupInviationEvent);
@@ -56,12 +58,14 @@ Deno.test("group chat", async () => {
         {
             const groupMsg = await prepareEncryptedNostrEvent(
                 ctx_A,
-                group_decrypt_ctx_created_by_A.publicKey,
-                4,
-                [
-                    ["p", group_key.hex],
-                ],
-                "hi all, this is A",
+                {
+                    encryptKey: group_decrypt_ctx_created_by_A.publicKey,
+                    kind: 4,
+                    tags: [
+                        ["p", group_key.hex],
+                    ],
+                    content: "hi all, this is A",
+                },
             );
             if (groupMsg instanceof Error) fail(groupMsg.message);
             const err = await pool.sendEvent(groupMsg);
@@ -94,15 +98,18 @@ Deno.test("group chat", async () => {
             {
                 const groupInviationEvent = await prepareEncryptedNostrEvent(
                     ctx_A,
-                    key_C.toPublicKey(),
-                    4,
-                    [
-                        ["p", key_C.toPublicKey().hex],
-                    ],
-                    JSON.stringify({
-                        decrypt_key: group_decrypt_ctx_created_by_A.privateKey.bech32,
-                        public_key: group_key.bech32(),
-                    }),
+                    {
+                        encryptKey: key_C.toPublicKey(),
+
+                        kind: 4,
+                        tags: [
+                            ["p", key_C.toPublicKey().hex],
+                        ],
+                        content: JSON.stringify({
+                            decrypt_key: group_decrypt_ctx_created_by_A.privateKey.bech32,
+                            public_key: group_key.bech32(),
+                        }),
+                    },
                 );
                 if (groupInviationEvent instanceof Error) fail(groupInviationEvent.message);
                 const err = await pool.sendEvent(groupInviationEvent);
@@ -148,9 +155,14 @@ Deno.test("group chat", async () => {
 
         // send to group
         {
-            const groupMsg = await prepareEncryptedNostrEvent(ctx_B, ctx_decrypt_received_by_B.publicKey, 4, [
-                ["p", group_key.hex],
-            ], "hi all, this is B");
+            const groupMsg = await prepareEncryptedNostrEvent(ctx_B, {
+                encryptKey: ctx_decrypt_received_by_B.publicKey,
+                kind: 4,
+                tags: [
+                    ["p", group_key.hex],
+                ],
+                content: "hi all, this is B",
+            });
             if (groupMsg instanceof Error) fail(groupMsg.message);
             const err = await pool.sendEvent(groupMsg);
             if (err instanceof Error) fail(err.message);
@@ -222,12 +234,14 @@ Deno.test("group chat", async () => {
             {
                 const groupMsg = await prepareEncryptedNostrEvent(
                     ctx_C,
-                    group_decrypt_ctx_received_by_C.publicKey,
-                    4,
-                    [
-                        ["p", group_key.hex],
-                    ],
-                    "hi all, this is C",
+                    {
+                        encryptKey: group_decrypt_ctx_received_by_C.publicKey,
+                        kind: 4,
+                        tags: [
+                            ["p", group_key.hex],
+                        ],
+                        content: "hi all, this is C",
+                    },
                 );
                 if (groupMsg instanceof Error) fail(groupMsg.message);
                 const err = await pool.sendEvent(groupMsg);

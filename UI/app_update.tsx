@@ -46,7 +46,6 @@ import { getSocialPosts } from "../features/social.ts";
 import { RelayConfig } from "./relay-config.ts";
 import { SocialUpdates } from "./social.tsx";
 import { RelayConfigChange } from "./setting.tsx";
-import { prepareCustomAppDataEvent } from "../lib/nostr-ts/event.ts";
 import { PopOverInputChannel } from "./components/popover.tsx";
 import { Search } from "./search.tsx";
 import { NoteID } from "../lib/nostr-ts/nip19.ts";
@@ -196,16 +195,7 @@ export async function* UI_Interaction_Update(args: {
         } else if (event.type == "SelectGroup") {
             model.dm.selectedContactGroup = event.group;
         } else if (event.type == "PinContact" || event.type == "UnpinContact") {
-            const nostrEvent = await prepareCustomAppDataEvent(app.ctx, event);
-            if (nostrEvent instanceof Error) {
-                console.error(nostrEvent);
-                continue;
-            }
-            const err = await pool.sendEvent(nostrEvent);
-            if (err instanceof Error) {
-                console.error(err);
-            }
-            console.log("send", nostrEvent);
+            console.log("todo: handle", event.type);
         } //
         //
         // Editor

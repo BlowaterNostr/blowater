@@ -5,17 +5,15 @@ import { Editor, EditorEvent, EditorModel } from "./editor.tsx";
 
 import { AboutIcon, CloseIcon, LeftArrowIcon, ReplyIcon } from "./icons/mod.tsx";
 import { Avatar } from "./components/avatar.tsx";
-import { DividerClass, IconButtonClass } from "./components/tw.ts";
+import { IconButtonClass } from "./components/tw.ts";
 import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { emitFunc, EventEmitter } from "../event-bus.ts";
+import { emitFunc } from "../event-bus.ts";
 
 import { ChatMessage, groupContinuousMessages, sortMessage, urlIsImage } from "./message.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import {
-    CustomAppData_Event,
     DirectedMessage_Event,
-    Encrypted_Event,
     Parsed_Event,
     PinContact,
     Profile_Nostr_Event,
@@ -27,12 +25,7 @@ import { MessageThread } from "./dm.tsx";
 import { UserDetail } from "./user-detail.tsx";
 import { MessageThreadPanel } from "./message-thread-panel.tsx";
 import { Database_Contextual_View } from "../database.ts";
-import {
-    HoverButtonBackgroudColor,
-    LinkColor,
-    PrimaryTextColor,
-    SecondaryBackgroundColor,
-} from "./style/colors.ts";
+import { LinkColor, PrimaryTextColor } from "./style/colors.ts";
 import { getUserInfoFromPublicKey, UserInfo } from "./contact-list.ts";
 import { EventSyncer } from "./event_syncer.ts";
 import { ButtonGroup } from "./components/button-group.tsx";
