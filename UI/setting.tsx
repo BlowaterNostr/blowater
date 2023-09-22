@@ -81,7 +81,6 @@ export const Setting = (props: SettingProps) => {
     );
 };
 
-const addRelayInput = signal("");
 const relayStatus = signal<{ url: string; status: keyof typeof colors }[]>([]);
 export type RelayConfigChange = {
     type: "RelayConfigChange";
@@ -95,14 +94,17 @@ type RelaySettingProp = {
 
 type RelaySettingState = {
     error: string;
+    addRelayInput: string;
 };
 
 export class RelaySetting extends Component<RelaySettingProp, RelaySettingState> {
     state: Readonly<RelaySettingState> = {
         error: "",
+        addRelayInput: "",
     };
 
     render(props: RelaySettingProp) {
+        const addRelayInput = this.state.addRelayInput;
         function computeRelayStatus() {
             const _relayStatus: { url: string; status: keyof typeof colors }[] = [];
             for (const url of props.relayConfig.getRelayURLs()) {
@@ -134,10 +136,12 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
 
         const addRelay = async () => {
             // props.eventBus.emit({ type: "AddRelay" });
-            console.log("add", addRelayInput.value);
-            if (addRelayInput.value.length > 0) {
-                props.relayConfig.add(addRelayInput.value);
-                addRelayInput.value = "";
+            console.log("add", addRelayInput);
+            if (addRelayInput.length > 0) {
+                props.relayConfig.add(addRelayInput);
+                this.setState({
+                    addRelayInput: "",
+                });
                 relayStatus.value = computeRelayStatus();
                 const err = await props.relayConfig.syncWithPool(props.relayPool);
                 if (err != undefined) {
@@ -166,10 +170,7 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
                 <div class={tw`mt-[0.5rem] flex text-[${PrimaryTextColor}]`}>
                     <input
                         autofocus={true}
-                        onInput={(e) => {
-                            addRelayInput.value = e.currentTarget.value;
-                            console.log("|", addRelayInput.value);
-                        }}
+                        onInput={(e) => this.setState({ addRelayInput: e.currentTarget.value })}
                         value={addRelayInput}
                         placeholder="wss://"
                         type="text"
