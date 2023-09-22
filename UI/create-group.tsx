@@ -6,12 +6,16 @@ import { ErrorColor, PrimaryTextColor, SecondaryBackgroundColor, TitleIconColor 
 import { GroupIcon } from "./icons2/group-icon.tsx";
 import { ButtonClass, InputClass, LinearGradientsClass } from "./components/tw.ts";
 import { Avatar } from "./components/avatar.tsx";
+import { ProfileData } from "../features/profile.ts";
+import { emitFunc } from "../event-bus.ts";
+
+type CreateChatGroup = {
+    type: "CreateChatGroup";
+    profileData: ProfileData;
+}
 
 type Props = {
-    onCreate: (output: {
-        name: string;
-        picture: string;
-    }) => void;
+    emit: emitFunc<CreateChatGroup>;
 };
 
 type State = {
@@ -67,9 +71,12 @@ export class CreateGroup extends Component<Props, State> {
             return;
         }
 
-        this.props.onCreate({
-            name: name,
-            picture: this.state.picture,
+        this.props.emit({
+            type: "CreateChatGroup",
+            profileData: {
+                name: name,
+                picture: this.state.picture
+            }
         });
     };
 
