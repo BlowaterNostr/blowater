@@ -9,7 +9,7 @@ import { Avatar } from "./components/avatar.tsx";
 import { ProfileData } from "../features/profile.ts";
 import { emitFunc } from "../event-bus.ts";
 
-type CreateChatGroup = {
+export type CreateChatGroup = {
     type: "CreateChatGroup";
     profileData: ProfileData;
 };

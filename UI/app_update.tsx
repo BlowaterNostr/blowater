@@ -50,6 +50,7 @@ import { PopOverInputChannel } from "./components/popover.tsx";
 import { Search } from "./search.tsx";
 import { NoteID } from "../lib/nostr-ts/nip19.ts";
 import { EventDetail, EventDetailItem } from "./event-detail.tsx";
+import { CreateChatGroup } from "./create-group.tsx";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -63,7 +64,8 @@ export type UI_Interaction_Event =
     | UnpinContact
     | SignInEvent
     | SocialUpdates
-    | RelayConfigChange;
+    | RelayConfigChange
+    | CreateChatGroup;
 
 type BackToContactList = {
     type: "BackToContactList";
