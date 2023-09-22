@@ -9,10 +9,19 @@ import { Avatar } from "./components/avatar.tsx";
 import { ProfileData } from "../features/profile.ts";
 import { emitFunc } from "../event-bus.ts";
 
+export type StartCreateChatGroup = {
+    type: "StartCreateChatGroup";
+}
+
 export type CreateChatGroup = {
     type: "CreateChatGroup";
     profileData: ProfileData;
 };
+
+export type CreateChatGroupEventContent = {
+    decryptKey: string;
+    groupKey: string;
+}
 
 type Props = {
     emit: emitFunc<CreateChatGroup>;

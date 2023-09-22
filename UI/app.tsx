@@ -14,7 +14,7 @@ import { initialModel, Model } from "./app_model.ts";
 import { AppEventBus, Database_Update, UI_Interaction_Event, UI_Interaction_Update } from "./app_update.tsx";
 import { getSocialPosts } from "../features/social.ts";
 import * as time from "../time.ts";
-import { PublicKey } from "../lib/nostr-ts/key.ts";
+import { PrivateKey, PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { getCurrentSignInCtx, setSignInState, SignIn } from "./signIn.tsx";
@@ -25,9 +25,10 @@ import { defaultRelays, RelayConfig } from "./relay-config.ts";
 import { DexieDatabase } from "./dexie-db.ts";
 import { About } from "./about.tsx";
 import { SocialPanel } from "./social.tsx";
-import { ProfilesSyncer } from "../features/profile.ts";
+import { getProfileEvent, ProfilesSyncer } from "../features/profile.ts";
 import { Popover, PopOverInputChannel } from "./components/popover.tsx";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { CreateChatGroupEventContent } from "./create-group.tsx";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
@@ -154,6 +155,29 @@ export class App {
             }
         })();
 
+         // create group synchronization
+         (async () => {
+            const stream = await this.pool.newSub("create group", {
+                "#d": ["create-group"],
+                authors: [this.ctx.publicKey.hex],
+                kinds: [NostrKind.Custom_App_Data],
+            });
+            if (stream instanceof Error) {
+                throw stream; // impossible
+            }
+            for await (const msg of stream.chan) {
+                if (msg.res.type == "EOSE") {
+                    continue;
+                }
+                const content = JSON.parse(msg.res.event.content) as CreateChatGroupEventContent;
+                const decryptKey = PrivateKey.FromHex(content.decryptKey);
+                const groupKey = PrivateKey.FromHex(content.groupKey);
+                if (decryptKey instanceof Error || groupKey instanceof Error) {
+                    continue;
+                }
+                const profile_event = getProfileEvent(this.database, groupKey.toPublicKey());
+            }
+        })();
         // Sync DM events
         (async function sync_dm_events(
             database: Database_Contextual_View,

@@ -6,11 +6,14 @@ import { CenterClass, IconButtonClass, LinearGradientsClass } from "./components
 import { ConversationSummary, sortUserInfo } from "./conversation-list.ts";
 import { emitFunc } from "../event-bus.ts";
 import { PinIcon, UnpinIcon } from "./icons/mod.tsx";
+import { GroupIcon } from "./icons2/group-icon.tsx";
 import { SearchUpdate } from "./search_model.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { PinContact, UnpinContact } from "../nostr.ts";
-import { AddIcon } from "./icons2/add-icon.tsx";
-import { PrimaryTextColor } from "./style/colors.ts";
+import { PrimaryTextColor, SecondaryBackgroundColor } from "./style/colors.ts";
+import { ButtonGroup } from "./components/button-group.tsx";
+import { ChatIcon } from "./icons2/chat-icon.tsx";
+import { StartCreateChatGroup } from "./create-group.tsx";
 
 export interface ConversationListRetriever {
     getContacts: () => Iterable<ConversationSummary>;
@@ -19,7 +22,7 @@ export interface ConversationListRetriever {
 
 export type ConversationGroup = "Contacts" | "Strangers";
 
-export type ContactUpdate = SelectConversationGroup | SearchUpdate | PinContact | UnpinContact;
+export type ContactUpdate = SelectConversationGroup | SearchUpdate | PinContact | UnpinContact | StartCreateChatGroup;
 
 export type SelectConversationGroup = {
     type: "SelectConversationGroup";
@@ -51,24 +54,40 @@ export function ConversationList(props: Props) {
     return (
         <div class={tw`h-full flex flex-col mobile:w-full desktop:w-64 bg-[#2F3136]`}>
             <div
-                class={tw`flex items-center justify-between px-4 h-20 border-b border-[#36393F]`}
+                class={tw`flex items-center gap-2 px-4 h-20 border-b border-[#36393F]`}
             >
-                <button
-                    onClick={async () => {
-                        props.emit({
-                            type: "StartSearch",
-                        });
-                    }}
-                    class={tw`w-full h-[2.5rem] text-[${PrimaryTextColor}] ${IconButtonClass} ${LinearGradientsClass} hover:bg-gradient-to-l`}
-                >
-                    New Chat
-                    <AddIcon
-                        class={tw`w-[1.5rem] h-[1.5rem]`}
-                        style={{
-                            fill: PrimaryTextColor,
+                <ButtonGroup class={tw`flex-1 ${LinearGradientsClass}} items-center`}>
+                    <button
+                        onClick={async () => {
+                            props.emit({
+                                type: "StartSearch",
+                            });
                         }}
-                    />
-                </button>
+                        class={tw`w-full h-10 ${CenterClass} text-sm text-[${PrimaryTextColor}] !hover:bg-transparent hover:font-bold group`}
+                    >
+                        <ChatIcon
+                            class={tw`w-4 h-4m mr-1 text-[${PrimaryTextColor}] stroke-current`}
+                            style={{
+                                fill: "none",
+                            }}
+                        />
+                        New Chat
+                    </button>
+                    <div class={tw`h-4 w-1 bg-[${SecondaryBackgroundColor}] !p-0`}></div>
+                    <button
+                        onClick={async () => {
+                            props.emit({
+                                type: "StartCreateChatGroup",
+                            });
+                        }}
+                        class={tw`w-full h-10 ${CenterClass} text-sm text-[${PrimaryTextColor}] !hover:bg-transparent hover:font-bold group`}
+                    >
+                        <GroupIcon
+                            class={tw`w-4 h-4 mr-1 text-[${PrimaryTextColor}] fill-current`}
+                        />
+                        New Group
+                    </button>
+                </ButtonGroup>
             </div>
 
             <ul class={tw`bg-[#36393F] w-full flex h-[3rem] border-b border-[#36393F]`}>

@@ -31,9 +31,6 @@ import { NavigationUpdate } from "./nav.tsx";
 import { Model } from "./app_model.ts";
 import { SearchUpdate, SelectConversation } from "./search_model.ts";
 import { fromEvents, LamportTime } from "../time.ts";
-import { PublicKey } from "../lib/nostr-ts/key.ts";
-import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
-import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { SignInEvent, signInWithExtension, signInWithPrivateKey } from "./signIn.tsx";
 import {
     computeThreads,
@@ -54,7 +51,11 @@ import { PopOverInputChannel } from "./components/popover.tsx";
 import { Search } from "./search.tsx";
 import { NoteID } from "../lib/nostr-ts/nip19.ts";
 import { EventDetail, EventDetailItem } from "./event-detail.tsx";
-import { CreateChatGroup } from "./create-group.tsx";
+import { CreateChatGroup, CreateChatGroupEventContent, CreateGroup, StartCreateChatGroup } from "./create-group.tsx";
+import { prepareNormalNostrEvent, prepareParameterizedEvent } from "../lib/nostr-ts/event.ts";
+import { PublicKey,PrivateKey } from "../lib/nostr-ts/key.ts";
+import { NostrKind,NostrEvent,InMemoryAccountContext,NostrAccountContext } from "../lib/nostr-ts/nostr.ts";
+import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -69,7 +70,8 @@ export type UI_Interaction_Event =
     | SignInEvent
     | SocialUpdates
     | RelayConfigChange
-    | CreateChatGroup;
+    | CreateChatGroup
+    | StartCreateChatGroup;
 
 type BackToContactList = {
     type: "BackToContactList";
@@ -356,6 +358,34 @@ export async function* UI_Interaction_Update(args: {
                 }
             }
             model.rightPanelModel.show = true;
+        } else if (event.type == "StartCreateChatGroup") {
+            app.popOverInputChan.put({
+                children: (
+                    <CreateGroup emit={eventBus.emit} />
+                ),
+            });
+        } else if (event.type == "CreateChatGroup") {
+            const profileData = event.profileData;
+            const group_decrypt_key = PrivateKey.Generate();
+            const group_key = PrivateKey.Generate();
+            const eventContent: CreateChatGroupEventContent = {
+                decryptKey: group_decrypt_key.hex,
+                groupKey: group_key.hex
+            }
+            const createGroupEvent = await prepareParameterizedEvent(app.ctx, {
+                content: JSON.stringify(eventContent),
+                kind: NostrKind.Custom_App_Data,
+                d: "create-group"
+            });
+            const profileEvent = await prepareNormalNostrEvent(
+                InMemoryAccountContext.New(group_key),
+                NostrKind.META_DATA,
+                [],
+                JSON.stringify(profileData)
+            );
+            pool.sendEvent(createGroupEvent);
+            pool.sendEvent(profileEvent);
+            app.popOverInputChan.put({children: undefined});
         } //
         //
         // Social
