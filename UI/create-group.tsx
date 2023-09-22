@@ -12,7 +12,7 @@ import { emitFunc } from "../event-bus.ts";
 type CreateChatGroup = {
     type: "CreateChatGroup";
     profileData: ProfileData;
-}
+};
 
 type Props = {
     emit: emitFunc<CreateChatGroup>;
@@ -75,8 +75,8 @@ export class CreateGroup extends Component<Props, State> {
             type: "CreateChatGroup",
             profileData: {
                 name: name,
-                picture: this.state.picture
-            }
+                picture: this.state.picture,
+            },
         });
     };
 
