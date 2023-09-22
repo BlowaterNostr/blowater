@@ -81,7 +81,6 @@ export const Setting = (props: SettingProps) => {
     );
 };
 
-const error = signal("");
 const addRelayInput = signal("");
 const relayStatus = signal<{ url: string; status: keyof typeof colors }[]>([]);
 export type RelayConfigChange = {
@@ -94,7 +93,15 @@ type RelaySettingProp = {
     emit: emitFunc<RelayConfigChange>;
 };
 
-export class RelaySetting extends Component<RelaySettingProp> {
+type RelaySettingState = {
+    error: string;
+};
+
+export class RelaySetting extends Component<RelaySettingProp, RelaySettingState> {
+    state: Readonly<RelaySettingState> = {
+        error: "",
+    };
+
     render(props: RelaySettingProp) {
         function computeRelayStatus() {
             const _relayStatus: { url: string; status: keyof typeof colors }[] = [];
@@ -116,7 +123,9 @@ export class RelaySetting extends Component<RelaySettingProp> {
             console.log("relayConfig.syncWithPool", props.relayConfig, props.relayPool);
             const err = await props.relayConfig.syncWithPool(props.relayPool);
             if (err != undefined) {
-                error.value = err.map((e) => e.message).join("\n");
+                this.setState({
+                    error: err.map((e) => e.message).join("\n"),
+                });
             }
             relayStatus.value = computeRelayStatus();
         })();
@@ -132,7 +141,9 @@ export class RelaySetting extends Component<RelaySettingProp> {
                 relayStatus.value = computeRelayStatus();
                 const err = await props.relayConfig.syncWithPool(props.relayPool);
                 if (err != undefined) {
-                    error.value = err.map((e) => e.message).join("\n");
+                    this.setState({
+                        error: err.map((e) => e.message).join("\n"),
+                    });
                 }
                 relayStatus.value = computeRelayStatus();
                 props.emit({ type: "RelayConfigChange" });
@@ -171,8 +182,8 @@ export class RelaySetting extends Component<RelaySettingProp> {
                         Add
                     </button>
                 </div>
-                {error.value
-                    ? <p class={tw`mt-2 text-[${ErrorColor}] text-[0.875rem]`}>{error.value}</p>
+                {this.state.error
+                    ? <p class={tw`mt-2 text-[${ErrorColor}] text-[0.875rem]`}>{this.state.error}</p>
                     : undefined}
 
                 <ul class={tw`mt-[1.5rem] text-[${PrimaryTextColor}]`}>
@@ -195,12 +206,14 @@ export class RelaySetting extends Component<RelaySettingProp> {
 
                                     <button
                                         class={tw`w-[2rem] h-[2rem] rounded-lg bg-transparent hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
-                                        onClick={async function remove() {
+                                        onClick={async () => {
                                             props.relayConfig.remove(r.url);
                                             relayStatus.value = computeRelayStatus();
                                             const err = await props.relayConfig.syncWithPool(props.relayPool);
                                             if (err != undefined) {
-                                                error.value = err.map((e) => e.message).join("\n");
+                                                this.setState({
+                                                    error: err.map((e) => e.message).join("\n"),
+                                                });
                                             }
                                             relayStatus.value = computeRelayStatus();
                                             props.emit({ type: "RelayConfigChange" });
