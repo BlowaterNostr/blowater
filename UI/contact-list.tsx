@@ -40,7 +40,7 @@ export type SelectGroup = {
     group: ContactGroup;
 };
 
-export function ContactList(props: Props) {
+export function ConversationList(props: Props) {
     const t = Date.now();
 
     console.log("ContactList groupBy", Date.now() - t);

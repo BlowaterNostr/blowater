@@ -116,7 +116,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
             class={tw`h-full w-full flex bg-[#36393F] overflow-hidden`}
         >
             <div class={tw`${currentConversation ? "mobile:hidden" : "mobile:w-full"}`}>
-                {cl.ContactList({
+                {cl.ConversationList({
                     database: props.db,
                     currentSelected: currentConversation,
                     userInfo: props.allUserInfo,

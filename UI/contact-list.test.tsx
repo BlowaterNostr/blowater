@@ -1,6 +1,6 @@
 /** @jsx h */
 import { h, render } from "https://esm.sh/preact@10.17.1";
-import { ContactList } from "./contact-list.tsx";
+import { ConversationList } from "./contact-list.tsx";
 import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { Database_Contextual_View } from "../database.ts";
 import { PrivateKey } from "../lib/nostr-ts/key.ts";
@@ -47,7 +47,7 @@ const model = initialModel();
 const profileSyncer = new ProfilesSyncer(database, pool);
 
 render(
-    <ContactList
+    <ConversationList
         userInfo={allUserInfo}
         currentSelected={ctx.publicKey}
         hasNewMessages={new Set()}
