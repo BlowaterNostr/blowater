@@ -228,13 +228,9 @@ async function loadInitialData(events: NostrEvent[], eventsRemover: EventRemover
         if (event.kind != NostrKind.META_DATA && event.kind != NostrKind.TEXT_NOTE) {
             continue;
         }
-        const parsedTags = getTags(event);
-        const publicKey = PublicKey.FromHex(event.pubkey) as PublicKey;
         const parsedEvent = originalEventToUnencryptedEvent(
             // @ts-ignore
             event,
-            parsedTags,
-            publicKey,
         );
 
         if (parsedEvent instanceof Error) {
@@ -270,8 +266,6 @@ export async function originalEventToParsedEvent(
         return originalEventToUnencryptedEvent(
             // @ts-ignore
             event,
-            parsedTags,
-            publicKey,
         );
     } else {
         return new Error(`currently not accepting kind ${event.kind}`);
@@ -280,9 +274,11 @@ export async function originalEventToParsedEvent(
 
 export function originalEventToUnencryptedEvent<Kind extends NostrKind.META_DATA | NostrKind.TEXT_NOTE>(
     event: NostrEvent<Kind>,
-    parsedTags: Tags,
-    publicKey: PublicKey,
 ): Text_Note_Event | Profile_Nostr_Event | Error {
+    const parsedTags = getTags(event);
+    const publicKey = PublicKey.FromHex(event.pubkey);
+    if (publicKey instanceof Error) return publicKey;
+
     if (event.kind == NostrKind.META_DATA) {
         const profileData = parseProfileData(event.content);
         if (profileData instanceof Error) {

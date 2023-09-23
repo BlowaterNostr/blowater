@@ -1,15 +1,7 @@
 import { ContactGroup, ContactRetriever } from "./contact-list.tsx";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
-
-import {
-    CustomAppData,
-    DirectedMessage_Event,
-    Encrypted_Event,
-    getTags,
-    Profile_Nostr_Event,
-    Text_Note_Event,
-} from "../nostr.ts";
+import { CustomAppData, getTags, Profile_Nostr_Event, Text_Note_Event } from "../nostr.ts";
 
 export interface UserInfo {
     pubkey: PublicKey;
@@ -20,7 +12,6 @@ export interface UserInfo {
         readonly created_at: number;
         readonly content: CustomAppData;
     } | undefined;
-    // events: DirectedMessage_Event[];
 }
 
 export function getUserInfoFromPublicKey(k: PublicKey, users: Map<string, UserInfo>) {
