@@ -1,7 +1,7 @@
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { ProfileData } from "../features/profile.ts";
 
-export type SearchUpdate = Cancel | SearchPublicKey | SelectProfile | Start;
+export type SearchUpdate = Cancel | SearchPublicKey | SelectConversation | Start;
 export type Start = {
     type: "StartSearch";
 };
@@ -13,8 +13,8 @@ export type SearchPublicKey = {
     text: string;
 };
 
-export type SelectProfile = {
-    type: "SelectProfile";
+export type SelectConversation = {
+    type: "SelectConversation";
     pubkey: PublicKey;
 };
 

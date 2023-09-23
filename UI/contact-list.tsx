@@ -17,20 +17,20 @@ export interface ConversationListRetriever {
     getStrangers: () => Iterable<UserInfo>;
 }
 
-export type ContactGroup = "Contacts" | "Strangers";
+export type ConversationGroup = "Contacts" | "Strangers";
 
-export type ContactUpdate = SelectGroup | SearchUpdate | PinContact | UnpinContact;
+export type ContactUpdate = SelectConversationGroup | SearchUpdate | PinContact | UnpinContact;
 
-export type SelectGroup = {
-    type: "SelectGroup";
-    group: ContactGroup;
+export type SelectConversationGroup = {
+    type: "SelectConversationGroup";
+    group: ConversationGroup;
 };
 
 type Props = {
     emit: emitFunc<ContactUpdate | SearchUpdate>;
     convoListRetriever: ConversationListRetriever;
     currentSelected: PublicKey | undefined;
-    selectedContactGroup: ContactGroup;
+    selectedContactGroup: ConversationGroup;
     hasNewMessages: Set<string>;
 };
 export function ConversationList(props: Props) {
@@ -82,7 +82,7 @@ export function ConversationList(props: Props) {
                     }`}
                     onClick={() => {
                         props.emit({
-                            type: "SelectGroup",
+                            type: "SelectConversationGroup",
                             group: "Contacts",
                         });
                     }}
@@ -98,7 +98,7 @@ export function ConversationList(props: Props) {
                     }`}
                     onClick={() => {
                         props.emit({
-                            type: "SelectGroup",
+                            type: "SelectConversationGroup",
                             group: "Strangers",
                         });
                     }}
@@ -150,7 +150,7 @@ function ContactGroup(props: ConversationListProps) {
                         } cursor-pointer p-2 hover:bg-[#3C3F45] my-2 rounded-lg flex items-center w-full relative group`}
                         onClick={() => {
                             props.emit({
-                                type: "SelectProfile",
+                                type: "SelectConversation",
                                 pubkey: contact.userInfo.pubkey,
                             });
                         }}
@@ -195,7 +195,7 @@ function ContactGroup(props: ConversationListProps) {
                         } cursor-pointer p-2 hover:bg-[#3C3F45] my-2 rounded-lg flex items-center w-full relative group`}
                         onClick={() => {
                             props.emit({
-                                type: "SelectProfile",
+                                type: "SelectConversation",
                                 pubkey: contact.userInfo.pubkey,
                             });
                         }}

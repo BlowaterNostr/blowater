@@ -80,7 +80,7 @@ export class Search extends Component<Props, State> {
             searchResults: [],
         });
         this.props.emit({
-            type: "SelectProfile",
+            type: "SelectConversation",
             pubkey: profile instanceof PublicKey ? profile : profile.publicKey,
         });
     };

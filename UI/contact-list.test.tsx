@@ -43,9 +43,9 @@ const view = () =>
 view();
 for await (const e of testEventBus.onChange()) {
     console.log(e);
-    if (e.type == "SelectProfile") {
+    if (e.type == "SelectConversation") {
         model.dm.currentSelectedContact = e.pubkey;
-    } else if (e.type == "SelectGroup") {
+    } else if (e.type == "SelectConversationGroup") {
         model.dm.selectedContactGroup = e.group;
     }
     view();
