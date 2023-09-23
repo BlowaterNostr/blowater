@@ -3,7 +3,12 @@ import { h } from "https://esm.sh/preact@10.17.1";
 import { getProfileEvent, getProfilesByName, ProfilesSyncer, saveProfile } from "../features/profile.ts";
 
 import { App } from "./app.tsx";
-import { ConversationLists, getGroupOf, getUserInfoFromPublicKey, UserInfo } from "./contact-list.ts";
+import {
+    ConversationLists,
+    ConversationSummary,
+    getConversationSummaryFromPublicKey,
+    getGroupOf,
+} from "./conversation-list.ts";
 
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { Database_Contextual_View } from "../database.ts";
@@ -12,7 +17,7 @@ import { convertEventsToChatMessages } from "./dm.ts";
 import { sendDMandImages, sendSocialPost } from "../features/dm.ts";
 import { notify } from "./notification.ts";
 import { emitFunc, EventBus } from "../event-bus.ts";
-import { ContactUpdate } from "./contact-list.tsx";
+import { ContactUpdate } from "./conversation-list.tsx";
 import { MyProfileUpdate } from "./edit-profile.tsx";
 import {
     DM_EditorModel,
@@ -28,14 +33,13 @@ import { SearchUpdate, SelectConversation } from "./search_model.ts";
 import { fromEvents, LamportTime } from "../time.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
-import { ConnectionPool, RelayAlreadyRegistered } from "../lib/nostr-ts/relay.ts";
+import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { SignInEvent, signInWithExtension, signInWithPrivateKey } from "./signIn.tsx";
 import {
     computeThreads,
     DirectedMessage_Event,
     Encrypted_Event,
     getTags,
-    Parsed_Event,
     PinContact,
     Profile_Nostr_Event,
     Text_Note_Event,
@@ -44,7 +48,6 @@ import {
 import { MessageThread } from "./dm.tsx";
 import { DexieDatabase } from "./dexie-db.ts";
 import { getSocialPosts } from "../features/social.ts";
-import { RelayConfig } from "./relay-config.ts";
 import { SocialUpdates } from "./social.tsx";
 import { RelayConfigChange } from "./setting.tsx";
 import { PopOverInputChannel } from "./components/popover.tsx";
@@ -453,7 +456,7 @@ export type DirectMessageGetter = {
 
 export function getConversationMessages(args: {
     targetPubkey: string;
-    allUserInfo: Map<string, UserInfo>;
+    allUserInfo: Map<string, ConversationSummary>;
     dmGetter: DirectMessageGetter;
 }): MessageThread[] {
     const { targetPubkey, allUserInfo } = args;
@@ -519,7 +522,7 @@ export async function* Database_Update(
     model: Model,
     profileSyncer: ProfilesSyncer,
     lamport: LamportTime,
-    allUserInfo: ConversationLists,
+    convoLists: ConversationLists,
     emit: emitFunc<SelectConversation>,
 ) {
     const changes = database.subscribe();
@@ -545,14 +548,14 @@ export async function* Database_Update(
 
         let hasKind_1 = false;
         profileSyncer.add(...changes_events.map((e) => e.pubkey));
+        convoLists.addEvents(changes_events);
         for (let e of changes_events) {
-            allUserInfo.addEvents([e]);
             const t = getTags(e).lamport_timestamp;
             if (t) {
                 lamport.set(t);
             }
             if (e.kind == NostrKind.META_DATA || e.kind == NostrKind.DIRECT_MESSAGE) {
-                for (const contact of allUserInfo.userInfos.values()) {
+                for (const contact of convoLists.userInfos.values()) {
                     const editor = model.editors.get(contact.pubkey.hex);
                     if (editor == null) { // a stranger sends a message
                         const pubkey = PublicKey.FromHex(contact.pubkey.hex);
@@ -612,7 +615,8 @@ export async function* Database_Update(
 
             // notification
             {
-                const author = getUserInfoFromPublicKey(e.publicKey, allUserInfo.userInfos)?.profile;
+                const author = getConversationSummaryFromPublicKey(e.publicKey, convoLists.userInfos)
+                    ?.profile;
                 if (e.pubkey != ctx.publicKey.hex && e.parsedTags.p.includes(ctx.publicKey.hex)) {
                     notify(
                         author?.profile.name ? author.profile.name : "",
@@ -635,7 +639,7 @@ export async function* Database_Update(
         }
         if (hasKind_1) {
             console.log("Database_Update: getSocialPosts");
-            model.social.threads = getSocialPosts(database, allUserInfo.userInfos);
+            model.social.threads = getSocialPosts(database, convoLists.userInfos);
         }
         yield model;
     }

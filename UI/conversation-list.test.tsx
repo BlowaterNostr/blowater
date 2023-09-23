@@ -1,13 +1,13 @@
 /** @jsx h */
 import { h, render } from "https://esm.sh/preact@10.17.1";
-import { ConversationList } from "./contact-list.tsx";
+import { ConversationList } from "./conversation-list.tsx";
 import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { Database_Contextual_View } from "../database.ts";
 import { PrivateKey } from "../lib/nostr-ts/key.ts";
 import { InMemoryAccountContext } from "../lib/nostr-ts/nostr.ts";
 import { testEventBus } from "./_setup.test.ts";
 import { initialModel } from "./app_model.ts";
-import { ConversationLists } from "./contact-list.ts";
+import { ConversationLists } from "./conversation-list.ts";
 import { NewIndexedDB } from "./dexie-db.ts";
 
 const ctx = InMemoryAccountContext.New(PrivateKey.Generate());

@@ -14,7 +14,7 @@ import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { ChatMessage, groupContinuousMessages } from "./message.ts";
 import { Editor, EditorEvent, EditorModel } from "./editor.tsx";
 import { Database_Contextual_View } from "../database.ts";
-import { getUserInfoFromPublicKey, UserInfo } from "./contact-list.ts";
+import { ConversationSummary, getConversationSummaryFromPublicKey } from "./conversation-list.ts";
 import { EventSyncer } from "./event_syncer.ts";
 import { Avatar } from "./components/avatar.tsx";
 import { ProfilesSyncer } from "../features/profile.ts";
@@ -31,7 +31,7 @@ interface MessageThreadProps {
     editorModel: EditorModel;
     profilesSyncer: ProfilesSyncer;
     eventSyncer: EventSyncer;
-    allUserInfo: Map<string, UserInfo>;
+    allUserInfo: Map<string, ConversationSummary>;
 }
 
 export function MessageThreadPanel(props: MessageThreadProps) {
@@ -76,7 +76,7 @@ function MessageThreadList(props: {
     profilesSyncer: ProfilesSyncer;
     eventSyncer: EventSyncer;
     emit: emitFunc<ViewUserDetail | ViewThread | DirectMessagePanelUpdate>;
-    allUserInfo: Map<string, UserInfo>;
+    allUserInfo: Map<string, ConversationSummary>;
 }) {
     let groups = groupContinuousMessages(props.messages, (pre, cur) => {
         const sameAuthor = pre.event.pubkey == cur.event.pubkey;
@@ -113,7 +113,7 @@ function MessageThreadBoxGroup(props: {
     profilesSyncer: ProfilesSyncer;
     eventSyncer: EventSyncer;
     emit: emitFunc<ViewUserDetail | ViewThread | DirectMessagePanelUpdate>;
-    allUserInfo: Map<string, UserInfo>;
+    allUserInfo: Map<string, ConversationSummary>;
 }) {
     const first_group = props.messages[0];
     const rows = [];
@@ -124,7 +124,7 @@ function MessageThreadBoxGroup(props: {
             {MessageThreadActions(first_group.event, props.emit)}
             <Avatar
                 class={tw`h-8 w-8 mt-[0.45rem] mr-2`}
-                picture={getUserInfoFromPublicKey(first_group.event.publicKey, props.allUserInfo)
+                picture={getConversationSummaryFromPublicKey(first_group.event.publicKey, props.allUserInfo)
                     ?.profile?.profile.picture}
                 onClick={() => {
                     props.emit({
@@ -141,7 +141,7 @@ function MessageThreadBoxGroup(props: {
             >
                 {NameAndTime(
                     first_group.event.publicKey,
-                    getUserInfoFromPublicKey(first_group.event.publicKey, props.allUserInfo)
+                    getConversationSummaryFromPublicKey(first_group.event.publicKey, props.allUserInfo)
                         ?.profile?.profile,
                     props.myPublicKey,
                     first_group.created_at,

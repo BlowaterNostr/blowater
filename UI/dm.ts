@@ -7,10 +7,10 @@ import {
 } from "../nostr.ts";
 import { ChatMessage } from "./message.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
-import { ConversationGroup } from "./contact-list.tsx";
+import { ConversationGroup } from "./conversation-list.tsx";
 
 import { SearchModel } from "./search_model.ts";
-import { UserInfo } from "./contact-list.ts";
+import { ConversationSummary } from "./conversation-list.ts";
 
 export type DM_Model = {
     selectedContactGroup: ConversationGroup;
@@ -21,7 +21,7 @@ export type DM_Model = {
 
 export function convertEventsToChatMessages(
     events: Iterable<DirectedMessage_Event>,
-    userProfiles: Map<string, UserInfo>,
+    userProfiles: Map<string, ConversationSummary>,
 ): ChatMessage[] {
     const messages: ChatMessage[] = [];
     const groups = groupImageEvents(events);

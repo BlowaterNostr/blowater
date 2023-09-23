@@ -1,7 +1,7 @@
 /** @jsx h */
 import { h, VNode } from "https://esm.sh/preact@10.17.1";
 import { tw } from "https://esm.sh/twind@0.16.16";
-import * as cl from "./contact-list.tsx";
+import * as cl from "./conversation-list.tsx";
 import { Database_Contextual_View } from "../database.ts";
 import { MessagePanel, RightPanelModel } from "./message-panel.tsx";
 import { emitFunc, EventBus } from "../event-bus.ts";
@@ -16,7 +16,7 @@ import { ChatMessage } from "./message.ts";
 import { DM_Model } from "./dm.ts";
 import { getFocusedContent } from "./app.tsx";
 import { EventSyncer } from "./event_syncer.ts";
-import { ConversationLists } from "./contact-list.ts";
+import { ConversationLists } from "./conversation-list.ts";
 
 type DirectMessageContainerProps = {
     editors: Map<string, DM_EditorModel>;

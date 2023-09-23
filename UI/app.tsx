@@ -8,7 +8,7 @@ import * as nav from "./nav.tsx";
 import { EventBus } from "../event-bus.ts";
 import { Setting } from "./setting.tsx";
 import { Database_Contextual_View } from "../database.ts";
-import { ConversationLists, UserInfo } from "./contact-list.ts";
+import { ConversationLists, ConversationSummary } from "./conversation-list.ts";
 import { new_DM_EditorModel } from "./editor.tsx";
 import { initialModel, Model } from "./app_model.ts";
 import { AppEventBus, Database_Update, UI_Interaction_Event, UI_Interaction_Update } from "./app_update.tsx";
@@ -444,7 +444,7 @@ export function AppComponent(props: {
 // todo: move to somewhere else
 export function getFocusedContent(
     focusedContent: PublicKey | NostrEvent | undefined,
-    allUserInfo: Map<string, UserInfo>,
+    allUserInfo: Map<string, ConversationSummary>,
     threads: MessageThread[],
 ) {
     if (focusedContent == undefined) {

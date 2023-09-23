@@ -6,7 +6,7 @@ import { Model } from "./app_model.ts";
 import { NostrAccountContext } from "../lib/nostr-ts/nostr.ts";
 import { Database_Contextual_View } from "../database.ts";
 import { emitFunc, EventEmitter } from "../event-bus.ts";
-import { ConversationLists, getUserInfoFromPublicKey } from "./contact-list.ts";
+import { ConversationLists, getConversationSummaryFromPublicKey } from "./conversation-list.ts";
 import { EventSyncer } from "./event_syncer.ts";
 import { PrimaryTextColor } from "./style/colors.ts";
 import { EditorEvent } from "./editor.tsx";
@@ -65,7 +65,7 @@ export function SocialPanel(props: {
         // authors
         let matched_at_least_one_author = false;
         for (const author of model.social.filter.author) {
-            const userInfo = getUserInfoFromPublicKey(
+            const userInfo = getConversationSummaryFromPublicKey(
                 thread.root.event.publicKey,
                 props.allUsersInfo.userInfos,
             );
