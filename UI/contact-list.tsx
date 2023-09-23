@@ -48,8 +48,6 @@ export function ConversationList(props: Props) {
         });
     }
 
-    console.log("ContactList:contactsToRender", Date.now() - t);
-
     return (
         <div class={tw`h-full flex flex-col mobile:w-full desktop:w-64 bg-[#2F3136]`}>
             <div

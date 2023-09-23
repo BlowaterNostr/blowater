@@ -56,7 +56,6 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
             throw new Error("impossible state");
         }
     }
-    console.log("DirectMessageContainer", Date.now() - t);
 
     let messagePanel: VNode | undefined;
     if (currentEditorModel) {

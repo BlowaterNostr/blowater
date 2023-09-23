@@ -637,7 +637,6 @@ export async function* Database_Update(
             console.log("Database_Update: getSocialPosts");
             model.social.threads = getSocialPosts(database, allUserInfo.userInfos);
         }
-        console.log("Database_Update:", `loop ${Date.now() - t}`, changes_events);
         yield model;
     }
 }
