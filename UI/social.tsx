@@ -6,7 +6,7 @@ import { Model } from "./app_model.ts";
 import { NostrAccountContext } from "../lib/nostr-ts/nostr.ts";
 import { Database_Contextual_View } from "../database.ts";
 import { emitFunc, EventEmitter } from "../event-bus.ts";
-import { AllUsersInformation, getUserInfoFromPublicKey } from "./contact-list.ts";
+import { ConversationLists, getUserInfoFromPublicKey } from "./contact-list.ts";
 import { EventSyncer } from "./event_syncer.ts";
 import { PrimaryTextColor } from "./style/colors.ts";
 import { EditorEvent } from "./editor.tsx";
@@ -49,7 +49,7 @@ export function SocialPanel(props: {
     >;
     profileSyncer: ProfilesSyncer;
     eventSyncer: EventSyncer;
-    allUsersInfo: AllUsersInformation;
+    allUsersInfo: ConversationLists;
 }) {
     const t = Date.now();
     const model = props.model;

@@ -7,13 +7,13 @@ import {
 } from "../nostr.ts";
 import { ChatMessage } from "./message.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
-import { ContactGroup } from "./contact-list.tsx";
+import { ConversationGroup } from "./contact-list.tsx";
 
 import { SearchModel } from "./search_model.ts";
 import { UserInfo } from "./contact-list.ts";
 
 export type DM_Model = {
-    selectedContactGroup: ContactGroup;
+    selectedContactGroup: ConversationGroup;
     currentSelectedContact: PublicKey | undefined;
     focusedContent: Map<string, NostrEvent /* thread root event */ | PublicKey /* selected user profile */>;
     hasNewMessages: Set<string>;

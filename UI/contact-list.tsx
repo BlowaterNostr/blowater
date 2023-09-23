@@ -1,7 +1,6 @@
 /** @jsx h */
 import { Fragment, h } from "https://esm.sh/preact@10.17.1";
 import { tw } from "https://esm.sh/twind@0.16.16";
-import { Database_Contextual_View } from "../database.ts";
 import { Avatar } from "./components/avatar.tsx";
 import { CenterClass, IconButtonClass, LinearGradientsClass } from "./components/tw.ts";
 import { sortUserInfo, UserInfo } from "./contact-list.ts";
@@ -9,43 +8,36 @@ import { emitFunc } from "../event-bus.ts";
 import { PinIcon, UnpinIcon } from "./icons/mod.tsx";
 import { SearchUpdate } from "./search_model.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
-import { NostrAccountContext } from "../lib/nostr-ts/nostr.ts";
 import { PinContact, UnpinContact } from "../nostr.ts";
 import { AddIcon } from "./icons2/add-icon.tsx";
 import { PrimaryTextColor } from "./style/colors.ts";
 
-export interface ContactRetriever {
+export interface ConversationListRetriever {
     getContacts: () => Iterable<UserInfo>;
     getStrangers: () => Iterable<UserInfo>;
 }
 
-type Props = {
-    myAccountContext: NostrAccountContext;
-    database: Database_Contextual_View;
-    emit: emitFunc<ContactUpdate | SearchUpdate>;
+export type ConversationGroup = "Contacts" | "Strangers";
 
-    // Model
-    userInfo: ContactRetriever;
+export type ContactUpdate = SelectConversationGroup | SearchUpdate | PinContact | UnpinContact;
+
+export type SelectConversationGroup = {
+    type: "SelectConversationGroup";
+    group: ConversationGroup;
+};
+
+type Props = {
+    emit: emitFunc<ContactUpdate | SearchUpdate>;
+    convoListRetriever: ConversationListRetriever;
     currentSelected: PublicKey | undefined;
-    selectedContactGroup: ContactGroup;
+    selectedContactGroup: ConversationGroup;
     hasNewMessages: Set<string>;
 };
-
-export type ContactGroup = "Contacts" | "Strangers";
-
-export type ContactUpdate = SelectGroup | SearchUpdate | PinContact | UnpinContact;
-
-export type SelectGroup = {
-    type: "SelectGroup";
-    group: ContactGroup;
-};
-
-export function ContactList(props: Props) {
+export function ConversationList(props: Props) {
     const t = Date.now();
 
-    console.log("ContactList groupBy", Date.now() - t);
-    let contacts = Array.from(props.userInfo.getContacts());
-    let strangers = Array.from(props.userInfo.getStrangers());
+    let contacts = Array.from(props.convoListRetriever.getContacts());
+    let strangers = Array.from(props.convoListRetriever.getStrangers());
     const listToRender = props.selectedContactGroup == "Contacts" ? contacts : strangers;
 
     const contactsToRender = [];
@@ -55,8 +47,6 @@ export function ContactList(props: Props) {
             isMarked: props.hasNewMessages.has(contact.pubkey.hex),
         });
     }
-
-    console.log("ContactList:contactsToRender", Date.now() - t);
 
     return (
         <div class={tw`h-full flex flex-col mobile:w-full desktop:w-64 bg-[#2F3136]`}>
@@ -90,7 +80,7 @@ export function ContactList(props: Props) {
                     }`}
                     onClick={() => {
                         props.emit({
-                            type: "SelectGroup",
+                            type: "SelectConversationGroup",
                             group: "Contacts",
                         });
                     }}
@@ -106,7 +96,7 @@ export function ContactList(props: Props) {
                     }`}
                     onClick={() => {
                         props.emit({
-                            type: "SelectGroup",
+                            type: "SelectConversationGroup",
                             group: "Strangers",
                         });
                     }}
@@ -158,7 +148,7 @@ function ContactGroup(props: ConversationListProps) {
                         } cursor-pointer p-2 hover:bg-[#3C3F45] my-2 rounded-lg flex items-center w-full relative group`}
                         onClick={() => {
                             props.emit({
-                                type: "SelectProfile",
+                                type: "SelectConversation",
                                 pubkey: contact.userInfo.pubkey,
                             });
                         }}
@@ -203,7 +193,7 @@ function ContactGroup(props: ConversationListProps) {
                         } cursor-pointer p-2 hover:bg-[#3C3F45] my-2 rounded-lg flex items-center w-full relative group`}
                         onClick={() => {
                             props.emit({
-                                type: "SelectProfile",
+                                type: "SelectConversation",
                                 pubkey: contact.userInfo.pubkey,
                             });
                         }}

@@ -1,4 +1,4 @@
-import { ContactGroup, ContactRetriever } from "./contact-list.tsx";
+import { ConversationGroup, ConversationListRetriever } from "./contact-list.tsx";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { CustomAppData, getTags, Profile_Nostr_Event, Text_Note_Event } from "../nostr.ts";
@@ -19,7 +19,7 @@ export function getUserInfoFromPublicKey(k: PublicKey, users: Map<string, UserIn
     return userInfo;
 }
 
-export class AllUsersInformation implements ContactRetriever {
+export class ConversationLists implements ConversationListRetriever {
     readonly userInfos = new Map<string, UserInfo>();
 
     constructor(public readonly ctx: NostrAccountContext) {}
@@ -170,7 +170,7 @@ function sortScore(contact: UserInfo) {
     return score;
 }
 
-export function getGroupOf(pubkey: PublicKey, allUserInfo: Map<string, UserInfo>): ContactGroup {
+export function getGroupOf(pubkey: PublicKey, allUserInfo: Map<string, UserInfo>): ConversationGroup {
     const contact = allUserInfo.get(pubkey.hex);
     if (contact == undefined) {
         return "Strangers";

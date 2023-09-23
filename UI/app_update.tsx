@@ -3,7 +3,7 @@ import { h } from "https://esm.sh/preact@10.17.1";
 import { getProfileEvent, getProfilesByName, ProfilesSyncer, saveProfile } from "../features/profile.ts";
 
 import { App } from "./app.tsx";
-import { AllUsersInformation, getGroupOf, getUserInfoFromPublicKey, UserInfo } from "./contact-list.ts";
+import { ConversationLists, getGroupOf, getUserInfoFromPublicKey, UserInfo } from "./contact-list.ts";
 
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { Database_Contextual_View } from "../database.ts";
@@ -24,7 +24,7 @@ import {
 import { DirectMessagePanelUpdate } from "./message-panel.tsx";
 import { NavigationUpdate } from "./nav.tsx";
 import { Model } from "./app_model.ts";
-import { SearchUpdate, SelectProfile } from "./search_model.ts";
+import { SearchUpdate, SelectConversation } from "./search_model.ts";
 import { fromEvents, LamportTime } from "../time.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
@@ -176,7 +176,7 @@ export async function* UI_Interaction_Update(args: {
         //
         // Contacts
         //
-        else if (event.type == "SelectProfile") {
+        else if (event.type == "SelectConversation") {
             model.search.isSearching = false;
             model.search.searchResults = [];
             model.rightPanelModel = {
@@ -195,7 +195,7 @@ export async function* UI_Interaction_Update(args: {
             app.popOverInputChan.put({ children: undefined });
         } else if (event.type == "BackToContactList") {
             model.dm.currentSelectedContact = undefined;
-        } else if (event.type == "SelectGroup") {
+        } else if (event.type == "SelectConversationGroup") {
             model.dm.selectedContactGroup = event.group;
         } else if (event.type == "PinContact" || event.type == "UnpinContact") {
             console.log("todo: handle", event.type);
@@ -519,8 +519,8 @@ export async function* Database_Update(
     model: Model,
     profileSyncer: ProfilesSyncer,
     lamport: LamportTime,
-    allUserInfo: AllUsersInformation,
-    emit: emitFunc<SelectProfile>,
+    allUserInfo: ConversationLists,
+    emit: emitFunc<SelectConversation>,
 ) {
     const changes = database.subscribe();
     while (true) {
@@ -625,7 +625,7 @@ export async function* Database_Update(
                                 return;
                             }
                             emit({
-                                type: "SelectProfile",
+                                type: "SelectConversation",
                                 pubkey: k,
                             });
                         },
@@ -637,7 +637,6 @@ export async function* Database_Update(
             console.log("Database_Update: getSocialPosts");
             model.social.threads = getSocialPosts(database, allUserInfo.userInfos);
         }
-        console.log("Database_Update:", `loop ${Date.now() - t}`, changes_events);
         yield model;
     }
 }
