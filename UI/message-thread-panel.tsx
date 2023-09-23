@@ -14,7 +14,7 @@ import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { ChatMessage, groupContinuousMessages } from "./message.ts";
 import { Editor, EditorEvent, EditorModel } from "./editor.tsx";
 import { Database_Contextual_View } from "../database.ts";
-import { ConversationSummary, getUserInfoFromPublicKey } from "./conversation-list.ts";
+import { ConversationSummary, getConversationSummaryFromPublicKey } from "./conversation-list.ts";
 import { EventSyncer } from "./event_syncer.ts";
 import { Avatar } from "./components/avatar.tsx";
 import { ProfilesSyncer } from "../features/profile.ts";
@@ -124,7 +124,7 @@ function MessageThreadBoxGroup(props: {
             {MessageThreadActions(first_group.event, props.emit)}
             <Avatar
                 class={tw`h-8 w-8 mt-[0.45rem] mr-2`}
-                picture={getUserInfoFromPublicKey(first_group.event.publicKey, props.allUserInfo)
+                picture={getConversationSummaryFromPublicKey(first_group.event.publicKey, props.allUserInfo)
                     ?.profile?.profile.picture}
                 onClick={() => {
                     props.emit({
@@ -141,7 +141,7 @@ function MessageThreadBoxGroup(props: {
             >
                 {NameAndTime(
                     first_group.event.publicKey,
-                    getUserInfoFromPublicKey(first_group.event.publicKey, props.allUserInfo)
+                    getConversationSummaryFromPublicKey(first_group.event.publicKey, props.allUserInfo)
                         ?.profile?.profile,
                     props.myPublicKey,
                     first_group.created_at,

@@ -26,7 +26,7 @@ import { UserDetail } from "./user-detail.tsx";
 import { MessageThreadPanel } from "./message-thread-panel.tsx";
 import { Database_Contextual_View } from "../database.ts";
 import { LinkColor, PrimaryTextColor } from "./style/colors.ts";
-import { ConversationSummary, getUserInfoFromPublicKey } from "./conversation-list.ts";
+import { ConversationSummary, getConversationSummaryFromPublicKey } from "./conversation-list.ts";
 import { EventSyncer } from "./event_syncer.ts";
 import { ButtonGroup } from "./components/button-group.tsx";
 import { ProfileCard } from "./profile-card.tsx";
@@ -352,7 +352,7 @@ function MessageBoxGroup(props: {
             {MessageActions(first_group.msg.event, props.emit)}
             <Avatar
                 class={tw`h-8 w-8 mt-[0.45rem] mr-2`}
-                picture={getUserInfoFromPublicKey(first_group.msg.event.publicKey, props.allUserInfo)
+                picture={getConversationSummaryFromPublicKey(first_group.msg.event.publicKey, props.allUserInfo)
                     ?.profile?.profile.picture}
                 onClick={() => {
                     props.emit({
@@ -370,7 +370,7 @@ function MessageBoxGroup(props: {
             >
                 {NameAndTime(
                     first_group.msg.event.publicKey,
-                    getUserInfoFromPublicKey(first_group.msg.event.publicKey, props.allUserInfo)
+                    getConversationSummaryFromPublicKey(first_group.msg.event.publicKey, props.allUserInfo)
                         ?.profile?.profile,
                     props.myPublicKey,
                     first_group.msg.created_at,

@@ -14,9 +14,8 @@ export interface ConversationSummary {
     } | undefined;
 }
 
-export function getUserInfoFromPublicKey(k: PublicKey, users: Map<string, ConversationSummary>) {
-    const userInfo = users.get(k.hex);
-    return userInfo;
+export function getConversationSummaryFromPublicKey(k: PublicKey, users: Map<string, ConversationSummary>) {
+    return users.get(k.hex);
 }
 
 export class ConversationLists implements ConversationListRetriever {
