@@ -3,9 +3,8 @@ import { h, render } from "https://esm.sh/preact@10.17.1";
 import { PrivateKey } from "../lib/nostr-ts/key.ts";
 import { InMemoryAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { Database_Contextual_View } from "../database.ts";
-import { testEventBus, testEventsAdapter } from "./_setup.test.ts";
+import { testEventBus } from "./_setup.test.ts";
 import { prepareEncryptedNostrEvent } from "../lib/nostr-ts/event.ts";
-import { getSocialPosts } from "../features/social.ts";
 import { AllUsersInformation } from "./contact-list.ts";
 import { EventSyncer } from "./event_syncer.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
@@ -16,18 +15,26 @@ import { initialModel } from "./app_model.ts";
 import { relays } from "../lib/nostr-ts/relay-list.test.ts";
 import { DirectMessageContainer } from "./dm.tsx";
 import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
+import { NewIndexedDB } from "./dexie-db.ts";
 
 const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
-const database = await Database_Contextual_View.New(testEventsAdapter, ctx);
+const indexedDB = NewIndexedDB();
+if (indexedDB instanceof Error) {
+    fail(indexedDB.message);
+}
+const database = await Database_Contextual_View.New(indexedDB, ctx);
 if (database instanceof Error) {
     fail(database.message);
 }
 const lamport = new LamportTime(0);
 
 const e = await database.addEvent(
-    await prepareEncryptedNostrEvent(ctx, ctx.publicKey, NostrKind.DIRECT_MESSAGE, [
-        ["p", ctx.publicKey.hex],
-    ], "hi") as NostrEvent,
+    await prepareEncryptedNostrEvent(ctx, {
+        encryptKey: ctx.publicKey,
+        kind: NostrKind.DIRECT_MESSAGE,
+        tags: [["p", ctx.publicKey.hex]],
+        content: "hi",
+    }) as NostrEvent,
 );
 if (!e || e instanceof Error) {
     fail();
@@ -35,6 +42,8 @@ if (!e || e instanceof Error) {
 
 const allUserInfo = new AllUsersInformation(ctx);
 allUserInfo.addEvents([e]);
+allUserInfo.addEvents(database.events);
+console.log(database.events);
 const pool = new ConnectionPool();
 const model = initialModel();
 model.dm.currentSelectedContact = ctx.publicKey;
@@ -54,8 +63,6 @@ model.editors.set(ctx.publicKey.hex, {
 pool.addRelayURL(relays[0]);
 
 const view = () => {
-    const threads = getSocialPosts(database, allUserInfo.userInfos);
-    console.log(database.events, threads);
     return (
         <DirectMessageContainer
             allUserInfo={allUserInfo}
@@ -72,7 +79,6 @@ const view = () => {
             hasNewMessages={model.dm.hasNewMessages}
             myAccountContext={ctx}
             pool={pool}
-            search={model.dm.search}
             selectedContactGroup={model.dm.selectedContactGroup}
         />
     );

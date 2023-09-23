@@ -63,7 +63,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
         const convoMsgs = getConversationMessages({
             targetPubkey: currentEditorModel.target.receiver.pubkey.hex,
             allUserInfo: props.allUserInfo.userInfos,
-            dmGetter: props.db
+            dmGetter: props.db,
         });
         console.log("DirectMessageContainer:convoMsgs", Date.now() - t);
 

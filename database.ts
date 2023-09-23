@@ -1,7 +1,16 @@
-import { compare, DirectedMessage_Event, Encrypted_Event, getTags, Parsed_Event, Profile_Nostr_Event, Tag, Text_Note_Event } from "./nostr.ts";
+import {
+    compare,
+    DirectedMessage_Event,
+    Encrypted_Event,
+    getTags,
+    Parsed_Event,
+    Profile_Nostr_Event,
+    Tag,
+    Text_Note_Event,
+} from "./nostr.ts";
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { parseProfileData } from "./features/profile.ts";
-import { parseContent, sortMessage } from "./UI/message.ts";
+import { parseContent } from "./UI/message.ts";
 import { NostrAccountContext, NostrEvent, NostrKind, Tags, verifyEvent } from "./lib/nostr-ts/nostr.ts";
 import { PublicKey } from "./lib/nostr-ts/key.ts";
 import { NoteID } from "./lib/nostr-ts/nip19.ts";
@@ -39,11 +48,12 @@ type Accepted_Event = Text_Note_Event | Encrypted_Event | Profile_Nostr_Event;
 export class Database_Contextual_View implements DirectMessageGetter {
     private readonly sourceOfChange = csp.chan<Accepted_Event>(buffer_size);
     private readonly caster = csp.multi<Accepted_Event>(this.sourceOfChange);
-    private readonly directed_messages = new Map<string, DirectedMessage_Event>
+    private readonly directed_messages = new Map<string, DirectedMessage_Event>();
 
     private constructor(
         private readonly eventsAdapter: EventsAdapter,
-        public readonly events: (Text_Note_Event | NostrEvent<NostrKind.DIRECT_MESSAGE> | Profile_Nostr_Event)[],
+        public readonly events:
+            (Text_Note_Event | NostrEvent<NostrKind.DIRECT_MESSAGE> | Profile_Nostr_Event)[],
         private readonly ctx: NostrAccountContext,
     ) {}
 
@@ -53,19 +63,21 @@ export class Database_Contextual_View implements DirectMessageGetter {
         console.log("Database_Contextual_View:onload", Date.now() - t, allEvents.length);
 
         // Load Non Encrypted Data
-        const initialEvents: (Text_Note_Event | NostrEvent<NostrKind.DIRECT_MESSAGE> | Profile_Nostr_Event)[] = await loadInitialData(allEvents, eventsAdapter);
+        const initialEvents:
+            (Text_Note_Event | NostrEvent<NostrKind.DIRECT_MESSAGE> | Profile_Nostr_Event)[] =
+                await loadInitialData(allEvents, eventsAdapter);
         if (initialEvents instanceof Error) {
             return initialEvents;
         }
         console.log("Database_Contextual_View:parsed", Date.now() - t);
 
         // Load DMs
-        for(const event of allEvents) {
-            if(event.kind == NostrKind.DIRECT_MESSAGE) {
+        for (const event of allEvents) {
+            if (event.kind == NostrKind.DIRECT_MESSAGE) {
                 initialEvents.push({
                     ...event,
-                    kind: event.kind
-                })
+                    kind: event.kind,
+                });
             }
         }
 
@@ -79,19 +91,22 @@ export class Database_Contextual_View implements DirectMessageGetter {
 
         // load decrypted DMs
         (async () => {
-            for(const event of allEvents) {
-                if(event.kind != NostrKind.DIRECT_MESSAGE) {
-                    continue
+            for (const event of allEvents) {
+                if (event.kind != NostrKind.DIRECT_MESSAGE) {
+                    continue;
                 }
                 const dmEvent = await originalEventToEncryptedEvent(
                     // @ts-ignore
                     event,
-                    ctx, getTags(event), PublicKey.FromHex(event.pubkey));
-                if(dmEvent instanceof Error) {
-                    await eventsAdapter.remove(event.id)
-                    continue
+                    ctx,
+                    getTags(event),
+                    PublicKey.FromHex(event.pubkey),
+                );
+                if (dmEvent instanceof Error) {
+                    await eventsAdapter.remove(event.id);
+                    continue;
                 }
-                db.directed_messages.set(event.id, dmEvent)
+                db.directed_messages.set(event.id, dmEvent);
             }
         })();
         return db;
@@ -103,10 +118,10 @@ export class Database_Contextual_View implements DirectMessageGetter {
 
     // get the direct messages between me and this pubkey
     public getDirectMessages(pubkey: string) {
-        const events = []
-        for(const event of this.directed_messages.values()) {
-            if(is_DM_between(event, this.ctx.publicKey.hex, pubkey)) {
-                events.push(event)
+        const events = [];
+        for (const event of this.directed_messages.values()) {
+            if (is_DM_between(event, this.ctx.publicKey.hex, pubkey)) {
+                events.push(event);
             }
         }
         return events.sort(compare);
@@ -221,10 +236,10 @@ async function loadInitialData(events: NostrEvent[], eventsRemover: EventRemover
     const initialEvents = [];
     for await (const event of events) {
         if (event.kind != NostrKind.META_DATA && event.kind != NostrKind.TEXT_NOTE) {
-            continue
+            continue;
         }
         const parsedTags = getTags(event);
-        const publicKey = PublicKey.FromHex(event.pubkey) as PublicKey
+        const publicKey = PublicKey.FromHex(event.pubkey) as PublicKey;
         const parsedEvent = originalEventToUnencryptedEvent(
             // @ts-ignore
             event,
@@ -306,32 +321,31 @@ export async function originalEventToEncryptedEvent(
     ctx: NostrAccountContext,
     parsedTags: Tags,
     publicKey: PublicKey,
-): Promise<Encrypted_Event | Error > {
-
-        const theOther = whoIamTalkingTo(event, ctx.publicKey);
-        if (theOther instanceof Error) {
-            return theOther;
-        }
-        const decrypted = await ctx.decrypt(theOther, event.content);
-        if (decrypted instanceof Error) {
-            return decrypted;
-        }
-        return {
-            ...event,
-            kind: event.kind,
-            parsedTags,
-            publicKey,
-            decryptedContent: decrypted,
-            parsedContentItems: Array.from(parseContent(decrypted)),
-        };
+): Promise<Encrypted_Event | Error> {
+    const theOther = whoIamTalkingTo(event, ctx.publicKey);
+    if (theOther instanceof Error) {
+        return theOther;
+    }
+    const decrypted = await ctx.decrypt(theOther, event.content);
+    if (decrypted instanceof Error) {
+        return decrypted;
+    }
+    return {
+        ...event,
+        kind: event.kind,
+        parsedTags,
+        publicKey,
+        decryptedContent: decrypted,
+        parsedContentItems: Array.from(parseContent(decrypted)),
+    };
 }
 
 function is_DM_between(event: NostrEvent, myPubkey: string, theirPubKey: string) {
-    if(event.pubkey == myPubkey) {
-        return getTags(event).p[0] == theirPubKey
-    } else if(event.pubkey == theirPubKey) {
-        return getTags(event).p[0] == myPubkey
+    if (event.pubkey == myPubkey) {
+        return getTags(event).p[0] == theirPubKey;
+    } else if (event.pubkey == theirPubKey) {
+        return getTags(event).p[0] == myPubkey;
     } else {
-        return false
+        return false;
     }
 }

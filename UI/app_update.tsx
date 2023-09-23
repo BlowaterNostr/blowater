@@ -448,13 +448,13 @@ export async function* UI_Interaction_Update(args: {
 }
 
 export type DirectMessageGetter = {
-    getDirectMessages(publicKey: string): DirectedMessage_Event[]
-}
+    getDirectMessages(publicKey: string): DirectedMessage_Event[];
+};
 
 export function getConversationMessages(args: {
     targetPubkey: string;
     allUserInfo: Map<string, UserInfo>;
-    dmGetter: DirectMessageGetter
+    dmGetter: DirectMessageGetter;
 }): MessageThread[] {
     const { targetPubkey, allUserInfo } = args;
     let t = Date.now();

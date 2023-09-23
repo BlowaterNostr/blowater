@@ -10,8 +10,8 @@ export class EventSyncer {
     syncEvent(id: NoteID) {
         for (const e of this.db.events) {
             if (e.id == id.hex) {
-                if(e.kind == NostrKind.DIRECT_MESSAGE) {
-                    this.db.getDirectMessages(e.id)
+                if (e.kind == NostrKind.DIRECT_MESSAGE) {
+                    this.db.getDirectMessages(e.id);
                 } else {
                     return e;
                 }
