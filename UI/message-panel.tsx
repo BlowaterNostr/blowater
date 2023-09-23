@@ -607,7 +607,9 @@ export function ParseMessageContent(
             case "note":
                 {
                     const event = eventSyncer.syncEvent(item.noteID);
-                    if (event instanceof Promise || event.kind == NostrKind.DIRECT_MESSAGE) {
+                    if (
+                        event instanceof Promise || event.kind == NostrKind.DIRECT_MESSAGE
+                    ) {
                         vnode.push(itemStr);
                         break;
                     }
