@@ -19,7 +19,7 @@ export function getUserInfoFromPublicKey(k: PublicKey, users: Map<string, UserIn
     return userInfo;
 }
 
-export class AllUsersInformation implements ConversationListRetriever {
+export class ConversationLists implements ConversationListRetriever {
     readonly userInfos = new Map<string, UserInfo>();
 
     constructor(public readonly ctx: NostrAccountContext) {}

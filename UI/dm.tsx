@@ -16,7 +16,7 @@ import { ChatMessage } from "./message.ts";
 import { DM_Model } from "./dm.ts";
 import { getFocusedContent } from "./app.tsx";
 import { EventSyncer } from "./event_syncer.ts";
-import { AllUsersInformation } from "./contact-list.ts";
+import { ConversationLists } from "./contact-list.ts";
 
 type DirectMessageContainerProps = {
     editors: Map<string, DM_EditorModel>;
@@ -25,7 +25,7 @@ type DirectMessageContainerProps = {
     pool: ConnectionPool;
     emit: emitFunc<UI_Interaction_Event>;
     db: Database_Contextual_View;
-    allUserInfo: AllUsersInformation;
+    allUserInfo: ConversationLists;
     profilesSyncer: ProfilesSyncer;
     eventSyncer: EventSyncer;
 } & DM_Model;

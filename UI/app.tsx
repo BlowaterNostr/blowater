@@ -8,7 +8,7 @@ import * as nav from "./nav.tsx";
 import { EventBus } from "../event-bus.ts";
 import { Setting } from "./setting.tsx";
 import { Database_Contextual_View } from "../database.ts";
-import { AllUsersInformation, UserInfo } from "./contact-list.ts";
+import { ConversationLists, UserInfo } from "./contact-list.ts";
 import { new_DM_EditorModel } from "./editor.tsx";
 import { initialModel, Model } from "./app_model.ts";
 import { AppEventBus, Database_Update, UI_Interaction_Event, UI_Interaction_Update } from "./app_update.tsx";
@@ -90,7 +90,7 @@ export async function Start(database: DexieDatabase) {
 export class App {
     readonly profileSyncer: ProfilesSyncer;
     readonly eventSyncer: EventSyncer;
-    public readonly allUsersInfo: AllUsersInformation;
+    public readonly allUsersInfo: ConversationLists;
     public readonly relayConfig: RelayConfig;
 
     constructor(
@@ -103,7 +103,7 @@ export class App {
         public readonly popOverInputChan: PopOverInputChannel,
     ) {
         this.eventSyncer = new EventSyncer(pool, this.database);
-        this.allUsersInfo = new AllUsersInformation(ctx);
+        this.allUsersInfo = new ConversationLists(ctx);
         this.allUsersInfo.addEvents(database.events);
         this.relayConfig = RelayConfig.FromLocalStorage(ctx);
         if (this.relayConfig.getRelayURLs().size == 0) {

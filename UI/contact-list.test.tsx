@@ -4,12 +4,10 @@ import { ConversationList } from "./contact-list.tsx";
 import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { Database_Contextual_View } from "../database.ts";
 import { PrivateKey } from "../lib/nostr-ts/key.ts";
-import { InMemoryAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
-import { testEventBus, testEventsAdapter } from "./_setup.test.ts";
-import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
+import { InMemoryAccountContext } from "../lib/nostr-ts/nostr.ts";
+import { testEventBus } from "./_setup.test.ts";
 import { initialModel } from "./app_model.ts";
-import { AllUsersInformation } from "./contact-list.ts";
-import { ProfilesSyncer } from "../features/profile.ts";
+import { ConversationLists } from "./contact-list.ts";
 import { NewIndexedDB } from "./dexie-db.ts";
 
 const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
@@ -22,25 +20,33 @@ if (database instanceof Error) {
     fail(database.message);
 }
 
-const allUserInfo = new AllUsersInformation(ctx);
-allUserInfo.addEvents(database.events);
-
-console.log(Array.from(allUserInfo.getStrangers()).length);
+const convoLists = new ConversationLists(ctx);
+convoLists.addEvents(database.events);
 
 const model = initialModel();
 model.dm.selectedContactGroup = "Strangers";
-render(
-    <ConversationList
-        convoListRetriever={allUserInfo}
-        currentSelected={ctx.publicKey}
-        hasNewMessages={new Set()}
-        selectedContactGroup={model.dm.selectedContactGroup}
-        // common dependencies
-        emit={testEventBus.emit}
-    />,
-    document.body,
-);
+model.dm.currentSelectedContact = ctx.publicKey;
 
+const view = () =>
+    render(
+        <ConversationList
+            convoListRetriever={convoLists}
+            currentSelected={model.dm.currentSelectedContact}
+            hasNewMessages={new Set()}
+            selectedContactGroup={model.dm.selectedContactGroup}
+            // common dependencies
+            emit={testEventBus.emit}
+        />,
+        document.body,
+    );
+
+view();
 for await (const e of testEventBus.onChange()) {
     console.log(e);
+    if (e.type == "SelectProfile") {
+        model.dm.currentSelectedContact = e.pubkey;
+    } else if (e.type == "SelectGroup") {
+        model.dm.selectedContactGroup = e.group;
+    }
+    view();
 }

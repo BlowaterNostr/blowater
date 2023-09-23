@@ -3,7 +3,7 @@ import { h } from "https://esm.sh/preact@10.17.1";
 import { getProfileEvent, getProfilesByName, ProfilesSyncer, saveProfile } from "../features/profile.ts";
 
 import { App } from "./app.tsx";
-import { AllUsersInformation, getGroupOf, getUserInfoFromPublicKey, UserInfo } from "./contact-list.ts";
+import { ConversationLists, getGroupOf, getUserInfoFromPublicKey, UserInfo } from "./contact-list.ts";
 
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { Database_Contextual_View } from "../database.ts";
@@ -519,7 +519,7 @@ export async function* Database_Update(
     model: Model,
     profileSyncer: ProfilesSyncer,
     lamport: LamportTime,
-    allUserInfo: AllUsersInformation,
+    allUserInfo: ConversationLists,
     emit: emitFunc<SelectProfile>,
 ) {
     const changes = database.subscribe();
