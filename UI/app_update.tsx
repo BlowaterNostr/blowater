@@ -27,11 +27,12 @@ import { Model } from "./app_model.ts";
 import { SearchUpdate, SelectProfile } from "./search_model.ts";
 import { fromEvents, LamportTime } from "../time.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
-import { NostrAccountContext, NostrKind } from "../lib/nostr-ts/nostr.ts";
+import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool, RelayAlreadyRegistered } from "../lib/nostr-ts/relay.ts";
 import { SignInEvent, signInWithExtension, signInWithPrivateKey } from "./signIn.tsx";
 import {
     computeThreads,
+    DirectedMessage_Event,
     Encrypted_Event,
     getTags,
     Parsed_Event,
@@ -320,7 +321,7 @@ export async function* UI_Interaction_Update(args: {
             }
             model.rightPanelModel.show = true;
         } else if (event.type == "ViewNoteThread") {
-            let root: Parsed_Event = event.event;
+            let root: NostrEvent = event.event;
             if (event.event.parsedTags.root && event.event.parsedTags.root) {
                 const res = app.eventSyncer.syncEvent(NoteID.FromHex(event.event.parsedTags.root[0]));
                 if (res instanceof Promise) {
@@ -340,10 +341,10 @@ export async function* UI_Interaction_Update(args: {
                 model.social.focusedContent = root;
             } else if (root.kind == NostrKind.DIRECT_MESSAGE) {
                 const myPubkey = app.ctx.publicKey.hex;
-                if (root.publicKey.hex != myPubkey && !root.parsedTags.p.includes(myPubkey)) {
+                if (root.pubkey != myPubkey && !getTags(root).p.includes(myPubkey)) {
                     continue; // if no conversation
                 }
-                updateConversation(model, root.publicKey);
+                updateConversation(model, PublicKey.FromHex(root.pubkey) as PublicKey);
                 if (model.dm.currentSelectedContact) {
                     model.dm.focusedContent.set(
                         model.dm.currentSelectedContact.hex,
@@ -446,14 +447,19 @@ export async function* UI_Interaction_Update(args: {
     }
 }
 
+export type DirectMessageGetter = {
+    getDirectMessages(publicKey: string): DirectedMessage_Event[]
+}
+
 export function getConversationMessages(args: {
     targetPubkey: string;
     allUserInfo: Map<string, UserInfo>;
+    dmGetter: DirectMessageGetter
 }): MessageThread[] {
     const { targetPubkey, allUserInfo } = args;
     let t = Date.now();
 
-    let events = allUserInfo.get(targetPubkey)?.events;
+    let events = args.dmGetter.getDirectMessages(targetPubkey);
     if (events == undefined) {
         events = [];
     }

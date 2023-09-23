@@ -611,12 +611,7 @@ export function ParseMessageContent(
                         vnode.push(itemStr);
                         break;
                     }
-                    if (event.kind == NostrKind.DIRECT_MESSAGE) {
-                        allUserInfo.get(event.pubkey)?.events.find((e) => event.id == e.id);
-                        vnode.push(Card(event, emit, allUserInfo));
-                    } else if (event.kind == NostrKind.TEXT_NOTE || event.kind == NostrKind.META_DATA) {
-                        vnode.push(Card(event, emit, allUserInfo));
-                    }
+                    vnode.push(Card(event, emit, allUserInfo));
                 }
                 break;
             case "tag":
@@ -643,12 +638,6 @@ function Card(
         case NostrKind.DIRECT_MESSAGE:
             const profile = allUserInfo.get(event.pubkey)?.profile?.profile;
             return <NoteCard emit={emit} event={event} profileData={profile} />;
-            // default:
-            //     return (
-            //         <div class={tw`px-4 my-1 py-2 border-2 border-[${PrimaryTextColor}4D] rounded-lg py-1 flex`}>
-            //             {event.content}
-            //         </div>
-            //     );
     }
 }
 
