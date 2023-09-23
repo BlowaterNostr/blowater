@@ -38,7 +38,6 @@ export async function Start(database: DexieDatabase) {
     const popOverInputChan: PopOverInputChannel = new Channel();
 
     const ctx = await getCurrentSignInCtx();
-    console.log("Start::with context", ctx);
     if (ctx instanceof Error) {
         console.error(ctx);
         model.signIn.warningString = "Please add your private key to your NIP-7 extension";

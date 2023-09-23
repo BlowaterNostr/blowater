@@ -522,7 +522,7 @@ export async function* Database_Update(
     allUserInfo: AllUsersInformation,
     emit: emitFunc<SelectProfile>,
 ) {
-    const changes = database.subscribe((_) => true);
+    const changes = database.subscribe();
     while (true) {
         await csp.sleep(333);
         await changes.ready();
@@ -536,6 +536,9 @@ export async function* Database_Update(
             if (e == csp.closed) {
                 console.error("unreachable: db changes channel should never close");
                 break;
+            }
+            if (e == null) {
+                continue;
             }
             changes_events.push(e);
         }

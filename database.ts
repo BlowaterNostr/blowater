@@ -3,7 +3,6 @@ import {
     DirectedMessage_Event,
     Encrypted_Event,
     getTags,
-    Parsed_Event,
     Profile_Nostr_Event,
     Tag,
     Text_Note_Event,
@@ -46,8 +45,8 @@ export type EventsAdapter = EventsFilter & EventRemover & EventGetter & EventPut
 
 type Accepted_Event = Text_Note_Event | Encrypted_Event | Profile_Nostr_Event;
 export class Database_Contextual_View implements DirectMessageGetter {
-    private readonly sourceOfChange = csp.chan<Accepted_Event>(buffer_size);
-    private readonly caster = csp.multi<Accepted_Event>(this.sourceOfChange);
+    private readonly sourceOfChange = csp.chan<Accepted_Event | null>(buffer_size);
+    private readonly caster = csp.multi<Accepted_Event | null>(this.sourceOfChange);
     public readonly directed_messages = new Map<string, DirectedMessage_Event>();
 
     private constructor(
@@ -107,6 +106,7 @@ export class Database_Contextual_View implements DirectMessageGetter {
                     continue;
                 }
                 db.directed_messages.set(event.id, dmEvent);
+                db.sourceOfChange.put(null); // to render once
             }
         })();
         return db;
@@ -159,18 +159,16 @@ export class Database_Contextual_View implements DirectMessageGetter {
     //////////////////
     // On DB Change //
     //////////////////
-    subscribe(filter?: (e: Accepted_Event) => boolean) {
+    subscribe() {
         const c = this.caster.copy();
-        const res = csp.chan<Accepted_Event>(buffer_size);
+        const res = csp.chan<Accepted_Event | null>(buffer_size);
         (async () => {
             for await (const newE of c) {
-                if (filter == undefined || filter(newE)) {
-                    const err = await res.put(newE);
-                    if (err instanceof csp.PutToClosedChannelError) {
-                        await c.close(
-                            "onChange listern has been closed, closing the source",
-                        );
-                    }
+                const err = await res.put(newE);
+                if (err instanceof csp.PutToClosedChannelError) {
+                    await c.close(
+                        "onChange listern has been closed, closing the source",
+                    );
                 }
             }
             await res.close(

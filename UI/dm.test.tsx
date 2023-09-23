@@ -87,8 +87,11 @@ const view = () => {
 render(view(), document.body);
 
 (async () => {
-    for await (const evnet of database.subscribe()) {
-        allUserInfo.addEvents([evnet]);
+    for await (const event of database.subscribe()) {
+        if (event == null) {
+            continue;
+        }
+        allUserInfo.addEvents([event]);
     }
 })();
 
