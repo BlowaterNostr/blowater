@@ -117,9 +117,8 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
         >
             <div class={tw`${currentConversation ? "mobile:hidden" : "mobile:w-full"}`}>
                 {cl.ConversationList({
-                    database: props.db,
                     currentSelected: currentConversation,
-                    userInfo: props.allUserInfo,
+                    convoListRetriever: props.allUserInfo,
                     ...props,
                 })}
             </div>

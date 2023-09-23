@@ -1,4 +1,4 @@
-import { ContactGroup, ContactRetriever } from "./contact-list.tsx";
+import { ContactGroup, ConversationListRetriever } from "./contact-list.tsx";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { CustomAppData, getTags, Profile_Nostr_Event, Text_Note_Event } from "../nostr.ts";
@@ -19,7 +19,7 @@ export function getUserInfoFromPublicKey(k: PublicKey, users: Map<string, UserIn
     return userInfo;
 }
 
-export class AllUsersInformation implements ContactRetriever {
+export class AllUsersInformation implements ConversationListRetriever {
     readonly userInfos = new Map<string, UserInfo>();
 
     constructor(public readonly ctx: NostrAccountContext) {}
