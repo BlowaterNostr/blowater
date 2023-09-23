@@ -352,7 +352,10 @@ function MessageBoxGroup(props: {
             {MessageActions(first_group.msg.event, props.emit)}
             <Avatar
                 class={tw`h-8 w-8 mt-[0.45rem] mr-2`}
-                picture={getConversationSummaryFromPublicKey(first_group.msg.event.publicKey, props.allUserInfo)
+                picture={getConversationSummaryFromPublicKey(
+                    first_group.msg.event.publicKey,
+                    props.allUserInfo,
+                )
                     ?.profile?.profile.picture}
                 onClick={() => {
                     props.emit({

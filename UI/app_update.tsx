@@ -6,8 +6,8 @@ import { App } from "./app.tsx";
 import {
     ConversationLists,
     ConversationSummary,
-    getGroupOf,
     getConversationSummaryFromPublicKey,
+    getGroupOf,
 } from "./conversation-list.ts";
 
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
@@ -615,7 +615,8 @@ export async function* Database_Update(
 
             // notification
             {
-                const author = getConversationSummaryFromPublicKey(e.publicKey, convoLists.userInfos)?.profile;
+                const author = getConversationSummaryFromPublicKey(e.publicKey, convoLists.userInfos)
+                    ?.profile;
                 if (e.pubkey != ctx.publicKey.hex && e.parsedTags.p.includes(ctx.publicKey.hex)) {
                     notify(
                         author?.profile.name ? author.profile.name : "",
