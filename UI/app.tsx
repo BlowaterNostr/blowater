@@ -123,6 +123,10 @@ export class App {
         ///////////////////////////////////
         // relay config synchronization, need to refactor later
         (async () => {
+            const err = await this.relayConfig.syncWithPool(this.pool);
+            if (err instanceof Error) {
+                throw err; // don't know what to do, should crash the app
+            }
             const stream = await this.pool.newSub("relay config", {
                 "#d": ["RelayConfig"],
                 authors: [this.ctx.publicKey.hex],
