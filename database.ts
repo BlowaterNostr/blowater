@@ -127,14 +127,6 @@ export class Database_Contextual_View implements DirectMessageGetter {
         return events.sort(compare);
     }
 
-    // public *get_all_dm_events() {
-    //     for(const event of this.events) {
-    //         if(event.kind == NostrKind.DIRECT_MESSAGE) {
-    //             yield event
-    //         }
-    //     }
-    // }
-
     async addEvent(event: NostrEvent) {
         // check if the event exists
         const storedEvent = await this.eventsAdapter.get({ id: event.id });
@@ -152,13 +144,13 @@ export class Database_Contextual_View implements DirectMessageGetter {
         if (parsedEvent instanceof Error) {
             return parsedEvent;
         }
-        // if (parsedEvent == false) {
-        //     return parsedEvent;
-        // }
 
         // add event to database and notify subscribers
         console.log("Database.addEvent", NoteID.FromHex(event.id).bech32());
         this.events.push(parsedEvent);
+        if (parsedEvent.kind == NostrKind.DIRECT_MESSAGE) {
+            this.directed_messages.set(parsedEvent.id, parsedEvent);
+        }
         await this.eventsAdapter.put(event);
         /* not await */ this.sourceOfChange.put(parsedEvent);
         return parsedEvent;
