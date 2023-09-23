@@ -11,13 +11,7 @@ import { Database_Contextual_View } from "../database.ts";
 import { AllUsersInformation, UserInfo } from "./contact-list.ts";
 import { new_DM_EditorModel } from "./editor.tsx";
 import { initialModel, Model } from "./app_model.ts";
-import {
-    AppEventBus,
-    Database_Update,
-    Relay_Update,
-    UI_Interaction_Event,
-    UI_Interaction_Update,
-} from "./app_update.tsx";
+import { AppEventBus, Database_Update, UI_Interaction_Event, UI_Interaction_Update } from "./app_update.tsx";
 import { getSocialPosts } from "../features/social.ts";
 import * as time from "../time.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
@@ -120,20 +114,6 @@ export class App {
         }
         this.profileSyncer = new ProfilesSyncer(this.database, pool);
         this.profileSyncer.add(ctx.publicKey.hex);
-
-        (async (config: RelayConfig) => {
-            for await (let _ of Relay_Update(pool, config, ctx)) {
-                render(
-                    AppComponent({
-                        eventBus,
-                        model,
-                        pool: pool,
-                        popOverInputChan: this.popOverInputChan,
-                    }),
-                    document.body,
-                );
-            }
-        })(this.relayConfig);
     }
 
     initApp = async () => {

@@ -639,43 +639,6 @@ export async function* Database_Update(
     }
 }
 
-///////////
-// Relay //
-///////////
-export async function* Relay_Update(
-    relayPool: ConnectionPool,
-    relayConfig: RelayConfig,
-    ctx: NostrAccountContext,
-) {
-    for (;;) {
-        await csp.sleep(1000 * 2.5); // every 2.5 sec
-        console.log(`Relay: checking connections`);
-        let changed = false;
-        // first, remove closed relays
-        const relays = relayPool.getRelays();
-        for (const relay of relays) {
-            if (relay.isClosed()) {
-                await relayPool.removeRelay(relay.url);
-                changed = true;
-            }
-        }
-        // second, add urls
-        for (const url of relayConfig.getRelayURLs()) {
-            const err = await relayPool.addRelayURL(url);
-            if (err instanceof Error && !(err instanceof RelayAlreadyRegistered)) {
-                console.log(err.message);
-            }
-        }
-        if (changed) {
-            const event = await relayConfig.toNostrEvent(ctx);
-            if (!(event instanceof Error)) {
-                relayPool.sendEvent(event);
-            }
-        }
-        yield;
-    }
-}
-
 function InsertNewProfileField(model: Model) {
     if (model.newProfileField.key && model.newProfileField.value) {
         model.myProfile = Object.assign(model.myProfile || {}, {
