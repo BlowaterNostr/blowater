@@ -1,15 +1,7 @@
 import { ContactGroup, ContactRetriever } from "./contact-list.tsx";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
-
-import {
-    CustomAppData,
-    DirectedMessage_Event,
-    Encrypted_Event,
-    getTags,
-    Profile_Nostr_Event,
-    Text_Note_Event,
-} from "../nostr.ts";
+import { CustomAppData, getTags, Profile_Nostr_Event, Text_Note_Event } from "../nostr.ts";
 
 export interface UserInfo {
     pubkey: PublicKey;
@@ -20,7 +12,6 @@ export interface UserInfo {
         readonly created_at: number;
         readonly content: CustomAppData;
     } | undefined;
-    events: DirectedMessage_Event[];
 }
 
 export function getUserInfoFromPublicKey(k: PublicKey, users: Map<string, UserInfo>) {
@@ -55,7 +46,7 @@ export class AllUsersInformation implements ContactRetriever {
         }
     }
 
-    addEvents(events: (Profile_Nostr_Event | Text_Note_Event | Encrypted_Event)[]) {
+    addEvents(events: (Profile_Nostr_Event | Text_Note_Event | NostrEvent<NostrKind.DIRECT_MESSAGE>)[]) {
         // const t = Date.now();
         for (const event of events) {
             switch (event.kind) {
@@ -78,7 +69,7 @@ export class AllUsersInformation implements ContactRetriever {
                                 newestEventReceivedByMe: undefined,
                                 newestEventSendByMe: undefined,
                                 profile: profileEvent,
-                                events: [],
+                                // events: [],
                             };
                             this.userInfos.set(event.pubkey, newUserInfo);
                         }
@@ -99,7 +90,7 @@ export class AllUsersInformation implements ContactRetriever {
                         }
                         const userInfo = this.userInfos.get(whoAm_I_TalkingTo);
                         if (userInfo) {
-                            userInfo.events.push(event);
+                            // userInfo.events.push(event);
                             if (whoAm_I_TalkingTo == this.ctx.publicKey.hex) {
                                 // talking to myself
                                 if (userInfo.newestEventSendByMe) {
@@ -139,7 +130,7 @@ export class AllUsersInformation implements ContactRetriever {
                                 newestEventReceivedByMe: undefined,
                                 newestEventSendByMe: undefined,
                                 profile: undefined,
-                                events: [event],
+                                // events: [event],
                             };
                             if (whoAm_I_TalkingTo == this.ctx.publicKey.hex) {
                                 // talking to myself

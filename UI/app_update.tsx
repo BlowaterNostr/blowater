@@ -27,11 +27,12 @@ import { Model } from "./app_model.ts";
 import { SearchUpdate, SelectProfile } from "./search_model.ts";
 import { fromEvents, LamportTime } from "../time.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
-import { NostrAccountContext, NostrKind } from "../lib/nostr-ts/nostr.ts";
+import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool, RelayAlreadyRegistered } from "../lib/nostr-ts/relay.ts";
 import { SignInEvent, signInWithExtension, signInWithPrivateKey } from "./signIn.tsx";
 import {
     computeThreads,
+    DirectedMessage_Event,
     Encrypted_Event,
     getTags,
     Parsed_Event,
@@ -320,7 +321,7 @@ export async function* UI_Interaction_Update(args: {
             }
             model.rightPanelModel.show = true;
         } else if (event.type == "ViewNoteThread") {
-            let root: Parsed_Event = event.event;
+            let root: NostrEvent = event.event;
             if (event.event.parsedTags.root && event.event.parsedTags.root) {
                 const res = app.eventSyncer.syncEvent(NoteID.FromHex(event.event.parsedTags.root[0]));
                 if (res instanceof Promise) {
@@ -340,10 +341,10 @@ export async function* UI_Interaction_Update(args: {
                 model.social.focusedContent = root;
             } else if (root.kind == NostrKind.DIRECT_MESSAGE) {
                 const myPubkey = app.ctx.publicKey.hex;
-                if (root.publicKey.hex != myPubkey && !root.parsedTags.p.includes(myPubkey)) {
+                if (root.pubkey != myPubkey && !getTags(root).p.includes(myPubkey)) {
                     continue; // if no conversation
                 }
-                updateConversation(model, root.publicKey);
+                updateConversation(model, PublicKey.FromHex(root.pubkey) as PublicKey);
                 if (model.dm.currentSelectedContact) {
                     model.dm.focusedContent.set(
                         model.dm.currentSelectedContact.hex,
@@ -446,14 +447,19 @@ export async function* UI_Interaction_Update(args: {
     }
 }
 
+export type DirectMessageGetter = {
+    getDirectMessages(publicKey: string): DirectedMessage_Event[];
+};
+
 export function getConversationMessages(args: {
     targetPubkey: string;
     allUserInfo: Map<string, UserInfo>;
+    dmGetter: DirectMessageGetter;
 }): MessageThread[] {
     const { targetPubkey, allUserInfo } = args;
     let t = Date.now();
 
-    let events = allUserInfo.get(targetPubkey)?.events;
+    let events = args.dmGetter.getDirectMessages(targetPubkey);
     if (events == undefined) {
         events = [];
     }
@@ -516,7 +522,7 @@ export async function* Database_Update(
     allUserInfo: AllUsersInformation,
     emit: emitFunc<SelectProfile>,
 ) {
-    const changes = database.subscribe((_) => true);
+    const changes = database.subscribe();
     while (true) {
         await csp.sleep(333);
         await changes.ready();
@@ -530,6 +536,9 @@ export async function* Database_Update(
             if (e == csp.closed) {
                 console.error("unreachable: db changes channel should never close");
                 break;
+            }
+            if (e == null) {
+                continue;
             }
             changes_events.push(e);
         }
@@ -630,43 +639,6 @@ export async function* Database_Update(
         }
         console.log("Database_Update:", `loop ${Date.now() - t}`, changes_events);
         yield model;
-    }
-}
-
-///////////
-// Relay //
-///////////
-export async function* Relay_Update(
-    relayPool: ConnectionPool,
-    relayConfig: RelayConfig,
-    ctx: NostrAccountContext,
-) {
-    for (;;) {
-        await csp.sleep(1000 * 2.5); // every 2.5 sec
-        console.log(`Relay: checking connections`);
-        let changed = false;
-        // first, remove closed relays
-        const relays = relayPool.getRelays();
-        for (const relay of relays) {
-            if (relay.isClosed()) {
-                await relayPool.removeRelay(relay.url);
-                changed = true;
-            }
-        }
-        // second, add urls
-        for (const url of relayConfig.getRelayURLs()) {
-            const err = await relayPool.addRelayURL(url);
-            if (err instanceof Error && !(err instanceof RelayAlreadyRegistered)) {
-                console.log(err.message);
-            }
-        }
-        if (changed) {
-            const event = await relayConfig.toNostrEvent(ctx);
-            if (!(event instanceof Error)) {
-                relayPool.sendEvent(event);
-            }
-        }
-        yield;
     }
 }
 

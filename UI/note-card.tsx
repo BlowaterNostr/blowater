@@ -6,12 +6,12 @@ import { Avatar } from "./components/avatar.tsx";
 import { HoverButtonBackgroudColor, PrimaryTextColor } from "./style/colors.ts";
 import { emitFunc } from "../event-bus.ts";
 import { ViewNoteThread } from "./message-panel.tsx";
-import { DirectedMessage_Event, Text_Note_Event } from "../nostr.ts";
+import { Text_Note_Event } from "../nostr.ts";
 import { NostrKind } from "../lib/nostr-ts/nostr.ts";
 
 export function NoteCard(props: {
     profileData?: ProfileData;
-    event: Text_Note_Event | DirectedMessage_Event;
+    event: Text_Note_Event;
     emit: emitFunc<ViewNoteThread>;
 }) {
     const { profileData, event, emit } = props;
@@ -32,7 +32,7 @@ export function NoteCard(props: {
             event: event,
         });
 
-    const content = event.kind == NostrKind.DIRECT_MESSAGE ? event.decryptedContent : event.content;
+    const content = event.content;
 
     return (
         <div class={styles.container} onClick={onClick}>
