@@ -5,11 +5,11 @@ import { NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { computeThreads } from "../nostr.ts";
 
 import { MessageThread } from "../UI/dm.tsx";
-import { UserInfo } from "../UI/contact-list.ts";
+import { ConversationSummary } from "../UI/conversation-list.ts";
 
 export function getSocialPosts(
     db: Database_Contextual_View,
-    allUsersInfo: Map<string, UserInfo>,
+    allUsersInfo: Map<string, ConversationSummary>,
 ) {
     const t = Date.now();
     const events = [];

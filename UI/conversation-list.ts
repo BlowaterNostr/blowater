@@ -1,9 +1,9 @@
-import { ConversationGroup, ConversationListRetriever } from "./contact-list.tsx";
+import { ConversationGroup, ConversationListRetriever } from "./conversation-list.tsx";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { CustomAppData, getTags, Profile_Nostr_Event, Text_Note_Event } from "../nostr.ts";
 
-export interface UserInfo {
+export interface ConversationSummary {
     pubkey: PublicKey;
     profile: Profile_Nostr_Event | undefined;
     newestEventSendByMe: NostrEvent | undefined;
@@ -14,15 +14,17 @@ export interface UserInfo {
     } | undefined;
 }
 
-export function getUserInfoFromPublicKey(k: PublicKey, users: Map<string, UserInfo>) {
+export function getUserInfoFromPublicKey(k: PublicKey, users: Map<string, ConversationSummary>) {
     const userInfo = users.get(k.hex);
     return userInfo;
 }
 
 export class ConversationLists implements ConversationListRetriever {
-    readonly userInfos = new Map<string, UserInfo>();
+    readonly userInfos = new Map<string, ConversationSummary>();
 
-    constructor(public readonly ctx: NostrAccountContext) {}
+    constructor(
+        public readonly ctx: NostrAccountContext,
+    ) {}
 
     *getStrangers() {
         for (const userInfo of this.userInfos.values()) {
@@ -63,13 +65,12 @@ export class ConversationLists implements ConversationListRetriever {
                                 userInfo.profile = profileEvent;
                             }
                         } else {
-                            const newUserInfo: UserInfo = {
+                            const newUserInfo: ConversationSummary = {
                                 pinEvent: undefined,
                                 pubkey: PublicKey.FromHex(event.pubkey) as PublicKey,
                                 newestEventReceivedByMe: undefined,
                                 newestEventSendByMe: undefined,
                                 profile: profileEvent,
-                                // events: [],
                             };
                             this.userInfos.set(event.pubkey, newUserInfo);
                         }
@@ -124,7 +125,7 @@ export class ConversationLists implements ConversationListRetriever {
                                 }
                             }
                         } else {
-                            const newUserInfo: UserInfo = {
+                            const newUserInfo: ConversationSummary = {
                                 pubkey: PublicKey.FromHex(whoAm_I_TalkingTo) as PublicKey,
                                 pinEvent: undefined,
                                 newestEventReceivedByMe: undefined,
@@ -151,15 +152,14 @@ export class ConversationLists implements ConversationListRetriever {
                     break;
             }
         }
-        // console.log("AllUsersInformation:addEvents", Date.now() - t);
     }
 }
 
-export const sortUserInfo = (a: UserInfo, b: UserInfo) => {
+export const sortUserInfo = (a: ConversationSummary, b: ConversationSummary) => {
     return sortScore(b) - sortScore(a);
 };
 
-function sortScore(contact: UserInfo) {
+function sortScore(contact: ConversationSummary) {
     let score = 0;
     if (contact.newestEventSendByMe !== undefined) {
         score += contact.newestEventSendByMe.created_at;
@@ -170,7 +170,10 @@ function sortScore(contact: UserInfo) {
     return score;
 }
 
-export function getGroupOf(pubkey: PublicKey, allUserInfo: Map<string, UserInfo>): ConversationGroup {
+export function getGroupOf(
+    pubkey: PublicKey,
+    allUserInfo: Map<string, ConversationSummary>,
+): ConversationGroup {
     const contact = allUserInfo.get(pubkey.hex);
     if (contact == undefined) {
         return "Strangers";

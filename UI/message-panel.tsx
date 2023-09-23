@@ -26,7 +26,7 @@ import { UserDetail } from "./user-detail.tsx";
 import { MessageThreadPanel } from "./message-thread-panel.tsx";
 import { Database_Contextual_View } from "../database.ts";
 import { LinkColor, PrimaryTextColor } from "./style/colors.ts";
-import { getUserInfoFromPublicKey, UserInfo } from "./contact-list.ts";
+import { ConversationSummary, getUserInfoFromPublicKey } from "./conversation-list.ts";
 import { EventSyncer } from "./event_syncer.ts";
 import { ButtonGroup } from "./components/button-group.tsx";
 import { ProfileCard } from "./profile-card.tsx";
@@ -87,7 +87,7 @@ interface DirectMessagePanelProps {
     >;
     profilesSyncer: ProfilesSyncer;
     eventSyncer: EventSyncer;
-    allUserInfo: Map<string, UserInfo>;
+    allUserInfo: Map<string, ConversationSummary>;
 }
 
 // export function MessagePanel(props: DirectMessagePanelProps) {
@@ -203,7 +203,7 @@ interface MessageListProps {
     emit: emitFunc<DirectMessagePanelUpdate>;
     profilesSyncer: ProfilesSyncer;
     eventSyncer: EventSyncer;
-    allUserInfo: Map<string, UserInfo>;
+    allUserInfo: Map<string, ConversationSummary>;
 }
 
 interface MessageListState {
@@ -332,7 +332,7 @@ function MessageBoxGroup(props: {
     }[];
     myPublicKey: PublicKey;
     db: Database_Contextual_View;
-    allUserInfo: Map<string, UserInfo>;
+    allUserInfo: Map<string, ConversationSummary>;
     emit: emitFunc<DirectMessagePanelUpdate | ViewUserDetail>;
     profilesSyncer: ProfilesSyncer;
     eventSyncer: EventSyncer;
@@ -551,7 +551,7 @@ export function NameAndTime(
 
 export function ParseMessageContent(
     message: ChatMessage,
-    allUserInfo: Map<string, UserInfo>,
+    allUserInfo: Map<string, ConversationSummary>,
     profilesSyncer: ProfilesSyncer,
     eventSyncer: EventSyncer,
     emit: emitFunc<ViewUserDetail | ViewThread | ViewNoteThread>,
@@ -631,7 +631,7 @@ export function ParseMessageContent(
 function Card(
     event: Profile_Nostr_Event | Text_Note_Event,
     emit: emitFunc<ViewThread | ViewUserDetail | ViewNoteThread>,
-    allUserInfo: Map<string, UserInfo>,
+    allUserInfo: Map<string, ConversationSummary>,
 ) {
     switch (event.kind) {
         case NostrKind.META_DATA:

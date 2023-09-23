@@ -3,7 +3,7 @@ import { Fragment, h } from "https://esm.sh/preact@10.17.1";
 import { tw } from "https://esm.sh/twind@0.16.16";
 import { Avatar } from "./components/avatar.tsx";
 import { CenterClass, IconButtonClass, LinearGradientsClass } from "./components/tw.ts";
-import { sortUserInfo, UserInfo } from "./contact-list.ts";
+import { ConversationSummary, sortUserInfo } from "./conversation-list.ts";
 import { emitFunc } from "../event-bus.ts";
 import { PinIcon, UnpinIcon } from "./icons/mod.tsx";
 import { SearchUpdate } from "./search_model.ts";
@@ -13,8 +13,8 @@ import { AddIcon } from "./icons2/add-icon.tsx";
 import { PrimaryTextColor } from "./style/colors.ts";
 
 export interface ConversationListRetriever {
-    getContacts: () => Iterable<UserInfo>;
-    getStrangers: () => Iterable<UserInfo>;
+    getContacts: () => Iterable<ConversationSummary>;
+    getStrangers: () => Iterable<ConversationSummary>;
 }
 
 export type ConversationGroup = "Contacts" | "Strangers";
@@ -115,7 +115,7 @@ export function ConversationList(props: Props) {
 }
 
 type ConversationListProps = {
-    contacts: { userInfo: UserInfo; isMarked: boolean }[];
+    contacts: { userInfo: ConversationSummary; isMarked: boolean }[];
     currentSelected: PublicKey | undefined;
     emit: emitFunc<ContactUpdate>;
 };
@@ -233,7 +233,7 @@ function ContactGroup(props: ConversationListProps) {
 }
 
 type ListItemProps = {
-    userInfo: UserInfo;
+    userInfo: ConversationSummary;
     isMarked: boolean;
 };
 
