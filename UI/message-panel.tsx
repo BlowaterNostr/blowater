@@ -607,7 +607,7 @@ export function ParseMessageContent(
             case "note":
                 {
                     const event = eventSyncer.syncEvent(item.noteID);
-                    if (event instanceof Promise) {
+                    if (event instanceof Promise || event.kind == NostrKind.DIRECT_MESSAGE) {
                         vnode.push(itemStr);
                         break;
                     }
@@ -627,7 +627,7 @@ export function ParseMessageContent(
 }
 
 function Card(
-    event: Profile_Nostr_Event | Text_Note_Event | DirectedMessage_Event,
+    event: Profile_Nostr_Event | Text_Note_Event,
     emit: emitFunc<ViewThread | ViewUserDetail | ViewNoteThread>,
     allUserInfo: Map<string, UserInfo>,
 ) {
@@ -635,7 +635,6 @@ function Card(
         case NostrKind.META_DATA:
             return <ProfileCard emit={emit} publicKey={event.publicKey} profileData={event.profile} />;
         case NostrKind.TEXT_NOTE:
-        case NostrKind.DIRECT_MESSAGE:
             const profile = allUserInfo.get(event.pubkey)?.profile?.profile;
             return <NoteCard emit={emit} event={event} profileData={profile} />;
     }

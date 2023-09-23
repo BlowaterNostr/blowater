@@ -48,7 +48,7 @@ type Accepted_Event = Text_Note_Event | Encrypted_Event | Profile_Nostr_Event;
 export class Database_Contextual_View implements DirectMessageGetter {
     private readonly sourceOfChange = csp.chan<Accepted_Event>(buffer_size);
     private readonly caster = csp.multi<Accepted_Event>(this.sourceOfChange);
-    private readonly directed_messages = new Map<string, DirectedMessage_Event>();
+    public readonly directed_messages = new Map<string, DirectedMessage_Event>();
 
     private constructor(
         private readonly eventsAdapter: EventsAdapter,

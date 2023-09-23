@@ -9,13 +9,19 @@ export class EventSyncer {
 
     syncEvent(id: NoteID) {
         for (const e of this.db.events) {
-            if (e.id == id.hex) {
-                if (e.kind == NostrKind.DIRECT_MESSAGE) {
-                    this.db.getDirectMessages(e.id);
-                } else {
-                    return e;
-                }
-            }
+            // if (e.id == id.hex) {
+            //     if (e.kind == NostrKind.DIRECT_MESSAGE) {
+            //         const dm = this.db.directed_messages.get(e.id)
+            //         if(dm) {
+            //             return dm
+            //         } else {
+            //             console.error("shoud not happen")
+            //         }
+            //     } else {
+            //         return e;
+            //     }
+            // }
+            return e;
         }
         return (async () => {
             let events: Error | {
