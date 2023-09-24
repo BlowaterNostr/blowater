@@ -6,11 +6,10 @@ import { CenterClass, IconButtonClass, LinearGradientsClass } from "./components
 import { ConversationSummary, sortUserInfo } from "./conversation-list.ts";
 import { emitFunc } from "../event-bus.ts";
 import { PinIcon, UnpinIcon } from "./icons/mod.tsx";
-import { GroupIcon } from "./icons2/group-icon.tsx";
 import { SearchUpdate } from "./search_model.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { PinContact, UnpinContact } from "../nostr.ts";
-import { PrimaryTextColor, SecondaryBackgroundColor } from "./style/colors.ts";
+import { PrimaryTextColor } from "./style/colors.ts";
 import { ButtonGroup } from "./components/button-group.tsx";
 import { ChatIcon } from "./icons2/chat-icon.tsx";
 import { StartCreateGroupChat } from "./create-group.tsx";
@@ -43,23 +42,18 @@ type Props = {
     hasNewMessages: Set<string>;
 };
 export function ConversationList(props: Props) {
-    const t = Date.now();
-
-    let contacts = Array.from(props.convoListRetriever.getContacts());
-    let strangers = Array.from(props.convoListRetriever.getStrangers());
-    let group = Array.from(props.convoListRetriever.getGroupChat());
     let listToRender: ConversationSummary[] = [];
     switch (props.selectedContactGroup) {
         case "Contacts":
-            listToRender = contacts;
+            listToRender = Array.from(props.convoListRetriever.getContacts());
             break;
         case "Strangers":
-            listToRender = strangers;
+            listToRender = Array.from(props.convoListRetriever.getStrangers());
             break;
         case "Group":
-            listToRender = group;
+            listToRender = Array.from(props.convoListRetriever.getGroupChat());
             break;
-    } 
+    }
 
     const contactsToRender = [];
     for (const contact of listToRender) {
@@ -91,8 +85,9 @@ export function ConversationList(props: Props) {
                         />
                         New Chat
                     </button>
-                    <div class={tw`h-4 w-1 bg-[${SecondaryBackgroundColor}] !p-0`}></div>
-                    <button
+                    {/* <div class={tw`h-4 w-1 bg-[${SecondaryBackgroundColor}] !p-0`}></div> */}
+                    {
+                        /* <button
                         onClick={async () => {
                             props.emit({
                                 type: "StartCreateGroupChat",
@@ -104,7 +99,8 @@ export function ConversationList(props: Props) {
                             class={tw`w-4 h-4 mr-1 text-[${PrimaryTextColor}] fill-current`}
                         />
                         New Group
-                    </button>
+                    </button> */
+                    }
                 </ButtonGroup>
             </div>
 
@@ -140,7 +136,8 @@ export function ConversationList(props: Props) {
                 >
                     Strangers
                 </li>
-                <li
+                {
+                    /* <li
                     class={tw`h-full flex-1 cursor-pointer hover:text-[#F7F7F7] text-[#96989D] bg-[#2F3136] hover:bg-[#42464D] ${CenterClass} ${
                         props.selectedContactGroup == "Group"
                             ? "border-b-2 border-[#54D48C] bg-[#42464D] text-[#F7F7F7]"
@@ -154,7 +151,8 @@ export function ConversationList(props: Props) {
                     }}
                 >
                     Group
-                </li>
+                </li> */
+                }
             </ul>
 
             <ContactGroup
