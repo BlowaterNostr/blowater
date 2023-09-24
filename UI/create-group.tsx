@@ -18,11 +18,6 @@ export type CreateGroupChat = {
     profileData: ProfileData;
 };
 
-export type CreateGroupChatEventContent = {
-    decryptKey: string;
-    groupKey: string;
-};
-
 type Props = {
     emit: emitFunc<CreateGroupChat>;
 };

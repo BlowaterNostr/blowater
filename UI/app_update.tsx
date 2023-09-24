@@ -51,16 +51,12 @@ import { PopOverInputChannel } from "./components/popover.tsx";
 import { Search } from "./search.tsx";
 import { NoteID } from "../lib/nostr-ts/nip19.ts";
 import { EventDetail, EventDetailItem } from "./event-detail.tsx";
-import {
-    CreateGroup,
-    CreateGroupChat,
-    CreateGroupChatEventContent,
-    StartCreateGroupChat,
-} from "./create-group.tsx";
+import { CreateGroup, CreateGroupChat, StartCreateGroupChat } from "./create-group.tsx";
 import { prepareNormalNostrEvent, prepareParameterizedEvent } from "../lib/nostr-ts/event.ts";
 import { PrivateKey, PublicKey } from "../lib/nostr-ts/key.ts";
 import { InMemoryAccountContext, NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
+import { GroupChatController } from "../group-chat.ts";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -92,6 +88,7 @@ export async function* UI_Interaction_Update(args: {
     dexieDB: DexieDatabase;
     pool: ConnectionPool;
     popOver: PopOverInputChannel;
+    groupChatController: GroupChatController;
 }) {
     const { model, eventBus, dexieDB, pool } = args;
     const events = eventBus.onChange();
@@ -369,25 +366,36 @@ export async function* UI_Interaction_Update(args: {
             });
         } else if (event.type == "CreateGroupChat") {
             const profileData = event.profileData;
-            const group_decrypt_key = PrivateKey.Generate();
-            const group_key = PrivateKey.Generate();
-            const eventContent: CreateGroupChatEventContent = {
-                decryptKey: group_decrypt_key.hex,
-                groupKey: group_key.hex,
-            };
-            const createGroupEvent = await prepareParameterizedEvent(app.ctx, {
-                content: JSON.stringify(eventContent),
-                kind: NostrKind.Custom_App_Data,
-                d: "create-group",
+
+            const groupAdminCtx = args.groupChatController.createGroupChat({
+                cipherKey: PrivateKey.Generate(),
+                groupKey: PrivateKey.Generate(),
             });
+            if (groupAdminCtx instanceof Error) {
+                console.error(groupAdminCtx);
+                continue;
+            }
+            const groupCreations = await args.groupChatController.encodeCreationsToNostrEvent();
+            if (groupCreations instanceof Error) {
+                console.error(groupAdminCtx);
+                continue;
+            }
+            const err = await pool.sendEvent(groupCreations);
+            if (err instanceof Error) {
+                console.error(err);
+                continue;
+            }
             const profileEvent = await prepareNormalNostrEvent(
-                InMemoryAccountContext.New(group_key),
+                groupAdminCtx,
                 NostrKind.META_DATA,
                 [],
                 JSON.stringify(profileData),
             );
-            pool.sendEvent(createGroupEvent);
-            pool.sendEvent(profileEvent);
+            const err2 = pool.sendEvent(profileEvent);
+            if (err2 instanceof Error) {
+                console.error(err2);
+                continue;
+            }
             app.popOverInputChan.put({ children: undefined });
         } //
         //

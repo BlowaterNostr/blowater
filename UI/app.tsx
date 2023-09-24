@@ -170,7 +170,7 @@ export class App {
                     continue;
                 }
                 const content = JSON.parse(msg.res.event.content) as CreateGroupChatEventContent;
-                const decryptKey = PrivateKey.FromHex(content.decryptKey);
+                const decryptKey = PrivateKey.FromHex(content.cipher);
                 const groupKey = PrivateKey.FromHex(content.groupKey);
                 if (decryptKey instanceof Error || groupKey instanceof Error) {
                     continue;
