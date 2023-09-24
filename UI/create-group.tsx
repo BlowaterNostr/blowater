@@ -9,13 +9,17 @@ import { Avatar } from "./components/avatar.tsx";
 import { ProfileData } from "../features/profile.ts";
 import { emitFunc } from "../event-bus.ts";
 
-export type CreateChatGroup = {
-    type: "CreateChatGroup";
+export type StartCreateGroupChat = {
+    type: "StartCreateGroupChat";
+};
+
+export type CreateGroupChat = {
+    type: "CreateGroupChat";
     profileData: ProfileData;
 };
 
 type Props = {
-    emit: emitFunc<CreateChatGroup>;
+    emit: emitFunc<CreateGroupChat>;
 };
 
 type State = {
@@ -72,7 +76,7 @@ export class CreateGroup extends Component<Props, State> {
         }
 
         this.props.emit({
-            type: "CreateChatGroup",
+            type: "CreateGroupChat",
             profileData: {
                 name: name,
                 picture: this.state.picture,

@@ -67,7 +67,7 @@ export function SocialPanel(props: {
         for (const author of model.social.filter.author) {
             const userInfo = getConversationSummaryFromPublicKey(
                 thread.root.event.publicKey,
-                props.allUsersInfo.userInfos,
+                props.allUsersInfo.convoSummaries,
             );
             if (userInfo && userInfo.profile?.profile.name?.toLowerCase().includes(author.toLowerCase())) {
                 matched_at_least_one_author = true;
@@ -93,7 +93,7 @@ export function SocialPanel(props: {
             emit={props.emit}
             profilesSyncer={props.profileSyncer}
             eventSyncer={props.eventSyncer}
-            allUserInfo={props.allUsersInfo.userInfos}
+            allUserInfo={props.allUsersInfo.convoSummaries}
         />
     );
     console.log("SocialPanel:MessagePanel", Date.now() - t);

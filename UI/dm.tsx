@@ -61,7 +61,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
     if (currentEditorModel) {
         const convoMsgs = getConversationMessages({
             targetPubkey: currentEditorModel.target.receiver.pubkey.hex,
-            allUserInfo: props.allUserInfo.userInfos,
+            allUserInfo: props.allUserInfo.convoSummaries,
             dmGetter: props.db,
         });
         console.log("DirectMessageContainer:convoMsgs", Date.now() - t);
@@ -69,7 +69,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
         const focusedContent = (() => {
             let _ = getFocusedContent(
                 props.focusedContent.get(currentEditorModel.target.receiver.pubkey.hex),
-                props.allUserInfo.userInfos,
+                props.allUserInfo.convoSummaries,
                 convoMsgs,
             );
             if (_?.type == "MessageThread") {
@@ -106,7 +106,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
             db: props.db,
             profilesSyncer: props.profilesSyncer,
             eventSyncer: props.eventSyncer,
-            allUserInfo: props.allUserInfo.userInfos,
+            allUserInfo: props.allUserInfo.convoSummaries,
         }).render();
     }
 

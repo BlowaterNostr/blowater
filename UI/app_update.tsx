@@ -31,9 +31,6 @@ import { NavigationUpdate } from "./nav.tsx";
 import { Model } from "./app_model.ts";
 import { SearchUpdate, SelectConversation } from "./search_model.ts";
 import { fromEvents, LamportTime } from "../time.ts";
-import { PublicKey } from "../lib/nostr-ts/key.ts";
-import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
-import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { SignInEvent, signInWithExtension, signInWithPrivateKey } from "./signIn.tsx";
 import {
     computeThreads,
@@ -54,7 +51,12 @@ import { PopOverInputChannel } from "./components/popover.tsx";
 import { Search } from "./search.tsx";
 import { NoteID } from "../lib/nostr-ts/nip19.ts";
 import { EventDetail, EventDetailItem } from "./event-detail.tsx";
-import { CreateChatGroup } from "./create-group.tsx";
+import { CreateGroup, CreateGroupChat, StartCreateGroupChat } from "./create-group.tsx";
+import { prepareNormalNostrEvent, prepareParameterizedEvent } from "../lib/nostr-ts/event.ts";
+import { PrivateKey, PublicKey } from "../lib/nostr-ts/key.ts";
+import { InMemoryAccountContext, NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
+import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
+import { GroupChatController } from "../group-chat.ts";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -69,7 +71,8 @@ export type UI_Interaction_Event =
     | SignInEvent
     | SocialUpdates
     | RelayConfigChange
-    | CreateChatGroup;
+    | CreateGroupChat
+    | StartCreateGroupChat;
 
 type BackToContactList = {
     type: "BackToContactList";
@@ -138,7 +141,7 @@ export async function* UI_Interaction_Update(args: {
         //
 
         //
-        // Search
+        // Searchx
         //
         else if (event.type == "CancelPopOver") {
             model.search.isSearching = false;
@@ -187,7 +190,7 @@ export async function* UI_Interaction_Update(args: {
             };
             const group = getGroupOf(
                 event.pubkey,
-                app.allUsersInfo.userInfos,
+                app.conversationLists.convoSummaries,
             );
             model.dm.selectedContactGroup = group;
             updateConversation(app.model, event.pubkey);
@@ -198,7 +201,7 @@ export async function* UI_Interaction_Update(args: {
             app.popOverInputChan.put({ children: undefined });
         } else if (event.type == "BackToContactList") {
             model.dm.currentSelectedContact = undefined;
-        } else if (event.type == "SelectConversationGroup") {
+        } else if (event.type == "SelectConversationType") {
             model.dm.selectedContactGroup = event.group;
         } else if (event.type == "PinContact" || event.type == "UnpinContact") {
             console.log("todo: handle", event.type);
@@ -356,6 +359,46 @@ export async function* UI_Interaction_Update(args: {
                 }
             }
             model.rightPanelModel.show = true;
+        } else if (event.type == "StartCreateGroupChat") {
+            app.popOverInputChan.put({
+                children: <CreateGroup emit={eventBus.emit} />,
+            });
+        } else if (event.type == "CreateGroupChat") {
+            const profileData = event.profileData;
+
+            const groupAdminCtx = app.groupChatController.createGroupChat({
+                cipherKey: PrivateKey.Generate(),
+                groupKey: PrivateKey.Generate(),
+            });
+            if (groupAdminCtx instanceof Error) {
+                console.error(groupAdminCtx);
+                continue;
+            }
+            const groupCreations = await app.groupChatController.encodeCreationsToNostrEvent();
+            if (groupCreations instanceof Error) {
+                console.error(groupAdminCtx);
+                continue;
+            }
+            const err = await pool.sendEvent(groupCreations);
+            if (err instanceof Error) {
+                console.error(err);
+                continue;
+            }
+            console.log("profile", profileData);
+            const profileEvent = await prepareNormalNostrEvent(
+                groupAdminCtx,
+                NostrKind.META_DATA,
+                [],
+                JSON.stringify(profileData),
+            );
+            const err2 = pool.sendEvent(profileEvent);
+            if (err2 instanceof Error) {
+                console.error(err2);
+                continue;
+            }
+            app.popOverInputChan.put({ children: undefined });
+            console.log(profileEvent, groupAdminCtx.publicKey.hex);
+            app.profileSyncer.add(groupAdminCtx.publicKey.hex);
         } //
         //
         // Social
@@ -368,7 +411,7 @@ export async function* UI_Interaction_Update(args: {
                 model.social.filter.adding_author = "";
 
                 const pubkeys: string[] = [];
-                for (const userInfo of app.allUsersInfo.userInfos.values()) {
+                for (const userInfo of app.conversationLists.convoSummaries.values()) {
                     for (const name of model.social.filter.author) {
                         if (userInfo.profile?.profile.name?.toLowerCase().includes(name.toLowerCase())) {
                             pubkeys.push(userInfo.pubkey.hex);
@@ -555,7 +598,7 @@ export async function* Database_Update(
                 lamport.set(t);
             }
             if (e.kind == NostrKind.META_DATA || e.kind == NostrKind.DIRECT_MESSAGE) {
-                for (const contact of convoLists.userInfos.values()) {
+                for (const contact of convoLists.convoSummaries.values()) {
                     const editor = model.editors.get(contact.pubkey.hex);
                     if (editor == null) { // a stranger sends a message
                         const pubkey = PublicKey.FromHex(contact.pubkey.hex);
@@ -615,7 +658,7 @@ export async function* Database_Update(
 
             // notification
             {
-                const author = getConversationSummaryFromPublicKey(e.publicKey, convoLists.userInfos)
+                const author = getConversationSummaryFromPublicKey(e.publicKey, convoLists.convoSummaries)
                     ?.profile;
                 if (e.pubkey != ctx.publicKey.hex && e.parsedTags.p.includes(ctx.publicKey.hex)) {
                     notify(
@@ -639,7 +682,7 @@ export async function* Database_Update(
         }
         if (hasKind_1) {
             console.log("Database_Update: getSocialPosts");
-            model.social.threads = getSocialPosts(database, convoLists.userInfos);
+            model.social.threads = getSocialPosts(database, convoLists.convoSummaries);
         }
         yield model;
     }

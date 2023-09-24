@@ -31,11 +31,11 @@ const model = initialModel();
 pool.addRelayURL(relays[0]);
 
 const view = () => {
-    const threads = getSocialPosts(database, allUserInfo.userInfos);
+    const threads = getSocialPosts(database, allUserInfo.convoSummaries);
     console.log(database.events, threads);
     return (
         <MessagePanel
-            allUserInfo={allUserInfo.userInfos}
+            allUserInfo={allUserInfo.convoSummaries}
             db={database}
             editorModel={model.social.editor}
             eventSyncer={new EventSyncer(pool, database)}
