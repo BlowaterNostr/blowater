@@ -21,7 +21,7 @@ export interface ConversationListRetriever {
     getGroupChat: () => Iterable<ConversationSummary>;
 }
 
-export type ConversationType = "Contacts" | "Strangers";
+export type ConversationType = "Contacts" | "Strangers" | "Group";
 
 export type ContactUpdate =
     | SelectConversationType
@@ -47,7 +47,19 @@ export function ConversationList(props: Props) {
 
     let contacts = Array.from(props.convoListRetriever.getContacts());
     let strangers = Array.from(props.convoListRetriever.getStrangers());
-    const listToRender = props.selectedContactGroup == "Contacts" ? contacts : strangers;
+    let group = Array.from(props.convoListRetriever.getGroupChat());
+    let listToRender: ConversationSummary[] = [];
+    switch (props.selectedContactGroup) {
+        case "Contacts":
+            listToRender = contacts;
+            break;
+        case "Strangers":
+            listToRender = strangers;
+            break;
+        case "Group":
+            listToRender = group;
+            break;
+    } 
 
     const contactsToRender = [];
     for (const contact of listToRender) {
@@ -110,7 +122,7 @@ export function ConversationList(props: Props) {
                         });
                     }}
                 >
-                    Contacts: {contacts.length}
+                    Contacts
                 </li>
                 <li class={tw`w-[0.05rem] h-full bg-[#2F3136]`}></li>
                 <li
@@ -126,7 +138,22 @@ export function ConversationList(props: Props) {
                         });
                     }}
                 >
-                    Strangers: {strangers.length}
+                    Strangers
+                </li>
+                <li
+                    class={tw`h-full flex-1 cursor-pointer hover:text-[#F7F7F7] text-[#96989D] bg-[#2F3136] hover:bg-[#42464D] ${CenterClass} ${
+                        props.selectedContactGroup == "Group"
+                            ? "border-b-2 border-[#54D48C] bg-[#42464D] text-[#F7F7F7]"
+                            : ""
+                    }`}
+                    onClick={() => {
+                        props.emit({
+                            type: "SelectConversationType",
+                            group: "Group",
+                        });
+                    }}
+                >
+                    Group
                 </li>
             </ul>
 
