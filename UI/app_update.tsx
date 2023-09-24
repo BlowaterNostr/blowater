@@ -141,7 +141,7 @@ export async function* UI_Interaction_Update(args: {
         //
 
         //
-        // Search
+        // Searchx
         //
         else if (event.type == "CancelPopOver") {
             model.search.isSearching = false;
@@ -384,6 +384,7 @@ export async function* UI_Interaction_Update(args: {
                 console.error(err);
                 continue;
             }
+            console.log("profile", profileData)
             const profileEvent = await prepareNormalNostrEvent(
                 groupAdminCtx,
                 NostrKind.META_DATA,
@@ -396,6 +397,8 @@ export async function* UI_Interaction_Update(args: {
                 continue;
             }
             app.popOverInputChan.put({ children: undefined });
+            console.log(profileEvent, groupAdminCtx.publicKey.hex)
+            app.profileSyncer.add(groupAdminCtx.publicKey.hex)
         } //
         //
         // Social
