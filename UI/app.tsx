@@ -28,7 +28,7 @@ import { SocialPanel } from "./social.tsx";
 import { getProfileEvent, ProfilesSyncer } from "../features/profile.ts";
 import { Popover, PopOverInputChannel } from "./components/popover.tsx";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { CreateChatGroupEventContent } from "./create-group.tsx";
+import { CreateGroupChatEventContent } from "./create-group.tsx";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
@@ -155,8 +155,8 @@ export class App {
             }
         })();
 
-         // create group synchronization
-         (async () => {
+        // create group synchronization
+        (async () => {
             const stream = await this.pool.newSub("create group", {
                 "#d": ["create-group"],
                 authors: [this.ctx.publicKey.hex],
@@ -169,7 +169,7 @@ export class App {
                 if (msg.res.type == "EOSE") {
                     continue;
                 }
-                const content = JSON.parse(msg.res.event.content) as CreateChatGroupEventContent;
+                const content = JSON.parse(msg.res.event.content) as CreateGroupChatEventContent;
                 const decryptKey = PrivateKey.FromHex(content.decryptKey);
                 const groupKey = PrivateKey.FromHex(content.groupKey);
                 if (decryptKey instanceof Error || groupKey instanceof Error) {
@@ -199,14 +199,14 @@ export class App {
         })(this.database, this.ctx, this.pool);
 
         console.log("App allUsersInfo");
-        this.model.social.threads = getSocialPosts(this.database, this.allUsersInfo.userInfos);
+        this.model.social.threads = getSocialPosts(this.database, this.allUsersInfo.convoSummaries);
 
         /* my profile */
-        this.model.myProfile = this.allUsersInfo.userInfos.get(this.ctx.publicKey.hex)?.profile
+        this.model.myProfile = this.allUsersInfo.convoSummaries.get(this.ctx.publicKey.hex)?.profile
             ?.profile;
 
         /* contacts */
-        for (const contact of this.allUsersInfo.userInfos.values()) {
+        for (const contact of this.allUsersInfo.convoSummaries.values()) {
             const editor = this.model.editors.get(contact.pubkey.hex);
             if (editor == null) {
                 const pubkey = PublicKey.FromHex(contact.pubkey.hex);
@@ -225,11 +225,11 @@ export class App {
         }
 
         this.profileSyncer.add(
-            ...Array.from(this.allUsersInfo.userInfos.keys()),
+            ...Array.from(this.allUsersInfo.convoSummaries.keys()),
         );
         console.log("user set", this.profileSyncer.userSet);
 
-        const ps = Array.from(this.allUsersInfo.userInfos.values()).map((u) => u.pubkey.hex);
+        const ps = Array.from(this.allUsersInfo.convoSummaries.values()).map((u) => u.pubkey.hex);
         this.eventSyncer.syncEvents({
             kinds: [NostrKind.TEXT_NOTE],
             authors: ps,
@@ -299,7 +299,7 @@ export function AppComponent(props: {
             // console.log("AppComponent:getFocusedContent before", Date.now() - t);
             let _ = getFocusedContent(
                 model.social.focusedContent,
-                app.allUsersInfo.userInfos,
+                app.allUsersInfo.convoSummaries,
                 model.social.threads,
             );
             // console.log("AppComponent:getFocusedContent", Date.now() - t);

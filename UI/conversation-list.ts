@@ -1,5 +1,5 @@
-import { ConversationGroup, ConversationListRetriever } from "./conversation-list.tsx";
-import { PublicKey } from "../lib/nostr-ts/key.ts";
+import { ConversationListRetriever, ConversationType } from "./conversation-list.tsx";
+import { PrivateKey, PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { CustomAppData, getTags, Profile_Nostr_Event, Text_Note_Event } from "../nostr.ts";
 
@@ -19,14 +19,15 @@ export function getConversationSummaryFromPublicKey(k: PublicKey, users: Map<str
 }
 
 export class ConversationLists implements ConversationListRetriever {
-    readonly userInfos = new Map<string, ConversationSummary>();
+    readonly convoSummaries = new Map<string, ConversationSummary>();
+    readonly groupChatSummaries = new Map<string, ConversationSummary>();
 
     constructor(
         public readonly ctx: NostrAccountContext,
     ) {}
 
     *getStrangers() {
-        for (const userInfo of this.userInfos.values()) {
+        for (const userInfo of this.convoSummaries.values()) {
             if (
                 userInfo.newestEventReceivedByMe == undefined ||
                 userInfo.newestEventSendByMe == undefined
@@ -37,7 +38,7 @@ export class ConversationLists implements ConversationListRetriever {
     }
 
     *getContacts() {
-        for (const userInfo of this.userInfos.values()) {
+        for (const userInfo of this.convoSummaries.values()) {
             if (
                 userInfo.newestEventReceivedByMe != undefined &&
                 userInfo.newestEventSendByMe != undefined
@@ -47,13 +48,19 @@ export class ConversationLists implements ConversationListRetriever {
         }
     }
 
+    *getGroupChat() {
+        for (const value of this.groupChatSummaries.values()) {
+            yield value;
+        }
+    }
+
     addEvents(events: (Profile_Nostr_Event | Text_Note_Event | NostrEvent<NostrKind.DIRECT_MESSAGE>)[]) {
         // const t = Date.now();
         for (const event of events) {
             switch (event.kind) {
                 case NostrKind.META_DATA:
                     {
-                        const userInfo = this.userInfos.get(event.pubkey);
+                        const userInfo = this.convoSummaries.get(event.pubkey);
                         const profileEvent = event;
                         if (userInfo) {
                             if (userInfo.profile) {
@@ -71,7 +78,7 @@ export class ConversationLists implements ConversationListRetriever {
                                 newestEventSendByMe: undefined,
                                 profile: profileEvent,
                             };
-                            this.userInfos.set(event.pubkey, newUserInfo);
+                            this.convoSummaries.set(event.pubkey, newUserInfo);
                         }
                     }
                     break;
@@ -88,7 +95,7 @@ export class ConversationLists implements ConversationListRetriever {
                             // I am neither. Possible because other user has used this device before
                             break;
                         }
-                        const userInfo = this.userInfos.get(whoAm_I_TalkingTo);
+                        const userInfo = this.convoSummaries.get(whoAm_I_TalkingTo);
                         if (userInfo) {
                             // userInfo.events.push(event);
                             if (whoAm_I_TalkingTo == this.ctx.publicKey.hex) {
@@ -145,7 +152,7 @@ export class ConversationLists implements ConversationListRetriever {
                                     newUserInfo.newestEventReceivedByMe = event;
                                 }
                             }
-                            this.userInfos.set(whoAm_I_TalkingTo, newUserInfo);
+                            this.convoSummaries.set(whoAm_I_TalkingTo, newUserInfo);
                         }
                     }
                     break;
@@ -172,7 +179,7 @@ function sortScore(contact: ConversationSummary) {
 export function getGroupOf(
     pubkey: PublicKey,
     allUserInfo: Map<string, ConversationSummary>,
-): ConversationGroup {
+): ConversationType {
     const contact = allUserInfo.get(pubkey.hex);
     if (contact == undefined) {
         return "Strangers";

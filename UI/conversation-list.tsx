@@ -13,27 +13,33 @@ import { PinContact, UnpinContact } from "../nostr.ts";
 import { PrimaryTextColor, SecondaryBackgroundColor } from "./style/colors.ts";
 import { ButtonGroup } from "./components/button-group.tsx";
 import { ChatIcon } from "./icons2/chat-icon.tsx";
-import { StartCreateChatGroup } from "./create-group.tsx";
+import { StartCreateGroupChat } from "./create-group.tsx";
 
 export interface ConversationListRetriever {
     getContacts: () => Iterable<ConversationSummary>;
     getStrangers: () => Iterable<ConversationSummary>;
+    getGroupChat: () => Iterable<ConversationSummary>;
 }
 
-export type ConversationGroup = "Contacts" | "Strangers";
+export type ConversationType = "Contacts" | "Strangers";
 
-export type ContactUpdate = SelectConversationGroup | SearchUpdate | PinContact | UnpinContact | StartCreateChatGroup;
+export type ContactUpdate =
+    | SelectConversationType
+    | SearchUpdate
+    | PinContact
+    | UnpinContact
+    | StartCreateGroupChat;
 
-export type SelectConversationGroup = {
-    type: "SelectConversationGroup";
-    group: ConversationGroup;
+export type SelectConversationType = {
+    type: "SelectConversationType";
+    group: ConversationType;
 };
 
 type Props = {
     emit: emitFunc<ContactUpdate | SearchUpdate>;
     convoListRetriever: ConversationListRetriever;
     currentSelected: PublicKey | undefined;
-    selectedContactGroup: ConversationGroup;
+    selectedContactGroup: ConversationType;
     hasNewMessages: Set<string>;
 };
 export function ConversationList(props: Props) {
@@ -77,7 +83,7 @@ export function ConversationList(props: Props) {
                     <button
                         onClick={async () => {
                             props.emit({
-                                type: "StartCreateChatGroup",
+                                type: "StartCreateGroupChat",
                             });
                         }}
                         class={tw`w-full h-10 ${CenterClass} text-sm text-[${PrimaryTextColor}] !hover:bg-transparent hover:font-bold group`}
@@ -99,7 +105,7 @@ export function ConversationList(props: Props) {
                     }`}
                     onClick={() => {
                         props.emit({
-                            type: "SelectConversationGroup",
+                            type: "SelectConversationType",
                             group: "Contacts",
                         });
                     }}
@@ -115,7 +121,7 @@ export function ConversationList(props: Props) {
                     }`}
                     onClick={() => {
                         props.emit({
-                            type: "SelectConversationGroup",
+                            type: "SelectConversationType",
                             group: "Strangers",
                         });
                     }}

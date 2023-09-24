@@ -51,10 +51,15 @@ import { PopOverInputChannel } from "./components/popover.tsx";
 import { Search } from "./search.tsx";
 import { NoteID } from "../lib/nostr-ts/nip19.ts";
 import { EventDetail, EventDetailItem } from "./event-detail.tsx";
-import { CreateChatGroup, CreateChatGroupEventContent, CreateGroup, StartCreateChatGroup } from "./create-group.tsx";
+import {
+    CreateGroup,
+    CreateGroupChat,
+    CreateGroupChatEventContent,
+    StartCreateGroupChat,
+} from "./create-group.tsx";
 import { prepareNormalNostrEvent, prepareParameterizedEvent } from "../lib/nostr-ts/event.ts";
-import { PublicKey,PrivateKey } from "../lib/nostr-ts/key.ts";
-import { NostrKind,NostrEvent,InMemoryAccountContext,NostrAccountContext } from "../lib/nostr-ts/nostr.ts";
+import { PrivateKey, PublicKey } from "../lib/nostr-ts/key.ts";
+import { InMemoryAccountContext, NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 
 export type UI_Interaction_Event =
@@ -70,8 +75,8 @@ export type UI_Interaction_Event =
     | SignInEvent
     | SocialUpdates
     | RelayConfigChange
-    | CreateChatGroup
-    | StartCreateChatGroup;
+    | CreateGroupChat
+    | StartCreateGroupChat;
 
 type BackToContactList = {
     type: "BackToContactList";
@@ -189,7 +194,7 @@ export async function* UI_Interaction_Update(args: {
             };
             const group = getGroupOf(
                 event.pubkey,
-                app.allUsersInfo.userInfos,
+                app.allUsersInfo.convoSummaries,
             );
             model.dm.selectedContactGroup = group;
             updateConversation(app.model, event.pubkey);
@@ -200,7 +205,7 @@ export async function* UI_Interaction_Update(args: {
             app.popOverInputChan.put({ children: undefined });
         } else if (event.type == "BackToContactList") {
             model.dm.currentSelectedContact = undefined;
-        } else if (event.type == "SelectConversationGroup") {
+        } else if (event.type == "SelectConversationType") {
             model.dm.selectedContactGroup = event.group;
         } else if (event.type == "PinContact" || event.type == "UnpinContact") {
             console.log("todo: handle", event.type);
@@ -358,34 +363,32 @@ export async function* UI_Interaction_Update(args: {
                 }
             }
             model.rightPanelModel.show = true;
-        } else if (event.type == "StartCreateChatGroup") {
+        } else if (event.type == "StartCreateGroupChat") {
             app.popOverInputChan.put({
-                children: (
-                    <CreateGroup emit={eventBus.emit} />
-                ),
+                children: <CreateGroup emit={eventBus.emit} />,
             });
-        } else if (event.type == "CreateChatGroup") {
+        } else if (event.type == "CreateGroupChat") {
             const profileData = event.profileData;
             const group_decrypt_key = PrivateKey.Generate();
             const group_key = PrivateKey.Generate();
-            const eventContent: CreateChatGroupEventContent = {
+            const eventContent: CreateGroupChatEventContent = {
                 decryptKey: group_decrypt_key.hex,
-                groupKey: group_key.hex
-            }
+                groupKey: group_key.hex,
+            };
             const createGroupEvent = await prepareParameterizedEvent(app.ctx, {
                 content: JSON.stringify(eventContent),
                 kind: NostrKind.Custom_App_Data,
-                d: "create-group"
+                d: "create-group",
             });
             const profileEvent = await prepareNormalNostrEvent(
                 InMemoryAccountContext.New(group_key),
                 NostrKind.META_DATA,
                 [],
-                JSON.stringify(profileData)
+                JSON.stringify(profileData),
             );
             pool.sendEvent(createGroupEvent);
             pool.sendEvent(profileEvent);
-            app.popOverInputChan.put({children: undefined});
+            app.popOverInputChan.put({ children: undefined });
         } //
         //
         // Social
@@ -398,7 +401,7 @@ export async function* UI_Interaction_Update(args: {
                 model.social.filter.adding_author = "";
 
                 const pubkeys: string[] = [];
-                for (const userInfo of app.allUsersInfo.userInfos.values()) {
+                for (const userInfo of app.allUsersInfo.convoSummaries.values()) {
                     for (const name of model.social.filter.author) {
                         if (userInfo.profile?.profile.name?.toLowerCase().includes(name.toLowerCase())) {
                             pubkeys.push(userInfo.pubkey.hex);
@@ -585,7 +588,7 @@ export async function* Database_Update(
                 lamport.set(t);
             }
             if (e.kind == NostrKind.META_DATA || e.kind == NostrKind.DIRECT_MESSAGE) {
-                for (const contact of convoLists.userInfos.values()) {
+                for (const contact of convoLists.convoSummaries.values()) {
                     const editor = model.editors.get(contact.pubkey.hex);
                     if (editor == null) { // a stranger sends a message
                         const pubkey = PublicKey.FromHex(contact.pubkey.hex);
@@ -645,7 +648,7 @@ export async function* Database_Update(
 
             // notification
             {
-                const author = getConversationSummaryFromPublicKey(e.publicKey, convoLists.userInfos)
+                const author = getConversationSummaryFromPublicKey(e.publicKey, convoLists.convoSummaries)
                     ?.profile;
                 if (e.pubkey != ctx.publicKey.hex && e.parsedTags.p.includes(ctx.publicKey.hex)) {
                     notify(
@@ -669,7 +672,7 @@ export async function* Database_Update(
         }
         if (hasKind_1) {
             console.log("Database_Update: getSocialPosts");
-            model.social.threads = getSocialPosts(database, convoLists.userInfos);
+            model.social.threads = getSocialPosts(database, convoLists.convoSummaries);
         }
         yield model;
     }
