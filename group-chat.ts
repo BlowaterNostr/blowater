@@ -1,3 +1,4 @@
+import { ConversationLists } from "./UI/conversation-list.ts";
 import { prepareParameterizedEvent } from "./lib/nostr-ts/event.ts";
 import { PrivateKey, PublicKey } from "./lib/nostr-ts/key.ts";
 import { InMemoryAccountContext, NostrAccountContext, NostrEvent, NostrKind } from "./lib/nostr-ts/nostr.ts";
@@ -17,6 +18,7 @@ export class GroupChatController {
 
     constructor(
         private readonly ctx: NostrAccountContext,
+        private readonly conversationLists: ConversationLists,
     ) {}
 
     async encodeCreationsToNostrEvent() {
@@ -38,6 +40,13 @@ export class GroupChatController {
             return new Error("to do: change text");
         }
         this.created_groups.set(args.groupKey.bech32, args);
+        this.conversationLists.groupChatSummaries.set(args.groupKey.bech32, {
+            newestEventReceivedByMe: undefined,
+            newestEventSendByMe: undefined,
+            pinEvent: undefined,
+            profile: undefined,
+            pubkey: args.groupKey.toPublicKey(),
+        });
         return InMemoryAccountContext.New(args.groupKey);
     }
 
@@ -51,7 +60,8 @@ export class GroupChatController {
         }
     }
 
-    addEvent(event: NostrEvent<NostrKind.Custom_App_Data>) {
+    addEvent(event: NostrEvent) {
+        console.log("add event");
     }
 
     getGroupChatCtx(group_addr: PublicKey): InMemoryAccountContext | undefined {

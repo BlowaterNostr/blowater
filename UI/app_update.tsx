@@ -88,7 +88,6 @@ export async function* UI_Interaction_Update(args: {
     dexieDB: DexieDatabase;
     pool: ConnectionPool;
     popOver: PopOverInputChannel;
-    groupChatController: GroupChatController;
 }) {
     const { model, eventBus, dexieDB, pool } = args;
     const events = eventBus.onChange();
@@ -191,7 +190,7 @@ export async function* UI_Interaction_Update(args: {
             };
             const group = getGroupOf(
                 event.pubkey,
-                app.allUsersInfo.convoSummaries,
+                app.conversationLists.convoSummaries,
             );
             model.dm.selectedContactGroup = group;
             updateConversation(app.model, event.pubkey);
@@ -367,7 +366,7 @@ export async function* UI_Interaction_Update(args: {
         } else if (event.type == "CreateGroupChat") {
             const profileData = event.profileData;
 
-            const groupAdminCtx = args.groupChatController.createGroupChat({
+            const groupAdminCtx = app.groupChatController.createGroupChat({
                 cipherKey: PrivateKey.Generate(),
                 groupKey: PrivateKey.Generate(),
             });
@@ -375,7 +374,7 @@ export async function* UI_Interaction_Update(args: {
                 console.error(groupAdminCtx);
                 continue;
             }
-            const groupCreations = await args.groupChatController.encodeCreationsToNostrEvent();
+            const groupCreations = await app.groupChatController.encodeCreationsToNostrEvent();
             if (groupCreations instanceof Error) {
                 console.error(groupAdminCtx);
                 continue;
@@ -409,7 +408,7 @@ export async function* UI_Interaction_Update(args: {
                 model.social.filter.adding_author = "";
 
                 const pubkeys: string[] = [];
-                for (const userInfo of app.allUsersInfo.convoSummaries.values()) {
+                for (const userInfo of app.conversationLists.convoSummaries.values()) {
                     for (const name of model.social.filter.author) {
                         if (userInfo.profile?.profile.name?.toLowerCase().includes(name.toLowerCase())) {
                             pubkeys.push(userInfo.pubkey.hex);

@@ -28,7 +28,7 @@ import { SocialPanel } from "./social.tsx";
 import { getProfileEvent, ProfilesSyncer } from "../features/profile.ts";
 import { Popover, PopOverInputChannel } from "./components/popover.tsx";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { CreateGroupChatEventContent } from "./create-group.tsx";
+import { GroupChatController } from "../group-chat.ts";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
@@ -91,8 +91,9 @@ export async function Start(database: DexieDatabase) {
 export class App {
     readonly profileSyncer: ProfilesSyncer;
     readonly eventSyncer: EventSyncer;
-    public readonly allUsersInfo: ConversationLists;
+    public readonly conversationLists: ConversationLists;
     public readonly relayConfig: RelayConfig;
+    public readonly groupChatController: GroupChatController;
 
     constructor(
         public readonly database: Database_Contextual_View,
@@ -104,8 +105,9 @@ export class App {
         public readonly popOverInputChan: PopOverInputChannel,
     ) {
         this.eventSyncer = new EventSyncer(pool, this.database);
-        this.allUsersInfo = new ConversationLists(ctx);
-        this.allUsersInfo.addEvents(database.events);
+        this.conversationLists = new ConversationLists(ctx);
+        this.conversationLists.addEvents(database.events);
+        this.groupChatController = new GroupChatController(ctx, this.conversationLists);
         this.relayConfig = RelayConfig.FromLocalStorage(ctx);
         if (this.relayConfig.getRelayURLs().size == 0) {
             for (const url of defaultRelays) {
@@ -157,25 +159,19 @@ export class App {
 
         // create group synchronization
         (async () => {
-            const stream = await this.pool.newSub("create group", {
-                "#d": ["create-group"],
+            const stream = await this.pool.newSub("group creations", {
+                "#d": [GroupChatController.name],
                 authors: [this.ctx.publicKey.hex],
                 kinds: [NostrKind.Custom_App_Data],
             });
             if (stream instanceof Error) {
-                throw stream; // impossible
+                throw stream; // crash to app
             }
             for await (const msg of stream.chan) {
                 if (msg.res.type == "EOSE") {
                     continue;
                 }
-                const content = JSON.parse(msg.res.event.content) as CreateGroupChatEventContent;
-                const decryptKey = PrivateKey.FromHex(content.cipher);
-                const groupKey = PrivateKey.FromHex(content.groupKey);
-                if (decryptKey instanceof Error || groupKey instanceof Error) {
-                    continue;
-                }
-                const profile_event = getProfileEvent(this.database, groupKey.toPublicKey());
+                this.groupChatController.addEvent(msg.res.event);
             }
         })();
         // Sync DM events
@@ -199,14 +195,14 @@ export class App {
         })(this.database, this.ctx, this.pool);
 
         console.log("App allUsersInfo");
-        this.model.social.threads = getSocialPosts(this.database, this.allUsersInfo.convoSummaries);
+        this.model.social.threads = getSocialPosts(this.database, this.conversationLists.convoSummaries);
 
         /* my profile */
-        this.model.myProfile = this.allUsersInfo.convoSummaries.get(this.ctx.publicKey.hex)?.profile
+        this.model.myProfile = this.conversationLists.convoSummaries.get(this.ctx.publicKey.hex)?.profile
             ?.profile;
 
         /* contacts */
-        for (const contact of this.allUsersInfo.convoSummaries.values()) {
+        for (const contact of this.conversationLists.convoSummaries.values()) {
             const editor = this.model.editors.get(contact.pubkey.hex);
             if (editor == null) {
                 const pubkey = PublicKey.FromHex(contact.pubkey.hex);
@@ -225,11 +221,11 @@ export class App {
         }
 
         this.profileSyncer.add(
-            ...Array.from(this.allUsersInfo.convoSummaries.keys()),
+            ...Array.from(this.conversationLists.convoSummaries.keys()),
         );
         console.log("user set", this.profileSyncer.userSet);
 
-        const ps = Array.from(this.allUsersInfo.convoSummaries.values()).map((u) => u.pubkey.hex);
+        const ps = Array.from(this.conversationLists.convoSummaries.values()).map((u) => u.pubkey.hex);
         this.eventSyncer.syncEvents({
             kinds: [NostrKind.TEXT_NOTE],
             authors: ps,
@@ -245,7 +241,7 @@ export class App {
                     this.model,
                     this.profileSyncer,
                     this.lamport,
-                    this.allUsersInfo,
+                    this.conversationLists,
                     this.eventBus.emit,
                 )
             ) {
@@ -299,7 +295,7 @@ export function AppComponent(props: {
             // console.log("AppComponent:getFocusedContent before", Date.now() - t);
             let _ = getFocusedContent(
                 model.social.focusedContent,
-                app.allUsersInfo.convoSummaries,
+                app.conversationLists.convoSummaries,
                 model.social.threads,
             );
             // console.log("AppComponent:getFocusedContent", Date.now() - t);
@@ -329,7 +325,7 @@ export function AppComponent(props: {
         let focusedContent = focusedContentGetter();
         console.log("AppComponent:getFocusedContent", Date.now() - t);
         socialPostsPanel = SocialPanel({
-            allUsersInfo: app.allUsersInfo,
+            allUsersInfo: app.conversationLists,
             ctx: app.ctx,
             db: app.database,
             emit: app.eventBus.emit,
@@ -388,7 +384,7 @@ export function AppComponent(props: {
                         myAccountContext: myAccountCtx,
                         db: app.database,
                         pool: props.pool,
-                        allUserInfo: app.allUsersInfo,
+                        allUserInfo: app.conversationLists,
                         profilesSyncer: app.profileSyncer,
                         eventSyncer: app.eventSyncer,
                     })}
