@@ -1,5 +1,5 @@
 import { ConversationListRetriever, ConversationType } from "./conversation-list.tsx";
-import { PrivateKey, PublicKey } from "../lib/nostr-ts/key.ts";
+import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { CustomAppData, getTags, Profile_Nostr_Event, Text_Note_Event } from "../nostr.ts";
 
