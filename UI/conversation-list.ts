@@ -1,7 +1,8 @@
 import { ConversationListRetriever, ConversationType } from "./conversation-list.tsx";
-import { PublicKey } from "../lib/nostr-ts/key.ts";
+import { InvalidKey, PrivateKey, PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { CustomAppData, getTags, Profile_Nostr_Event, Text_Note_Event } from "../nostr.ts";
+import { GroupChatController } from "../group-chat.ts";
 
 export interface ConversationSummary {
     pubkey: PublicKey;
@@ -56,10 +57,45 @@ export class ConversationLists implements ConversationListRetriever {
         }
     }
 
-    addEvents(events: (Profile_Nostr_Event | Text_Note_Event | NostrEvent<NostrKind.DIRECT_MESSAGE>)[]) {
+    async addEvents(
+        events: (Profile_Nostr_Event | Text_Note_Event | NostrEvent<NostrKind.DIRECT_MESSAGE>)[] | NostrEvent<
+            NostrKind.Custom_App_Data
+        >[],
+    ) {
         // const t = Date.now();
         for (const event of events) {
             switch (event.kind) {
+                case NostrKind.Custom_App_Data:
+                    const d = getTags(event).d;
+                    if (d && d == GroupChatController.name) {
+                        try {
+                            const decryptedContent = await this.ctx.decrypt(event.pubkey, event.content);
+                            if (decryptedContent instanceof Error) {
+                                continue;
+                            }
+                            const content = JSON.parse(decryptedContent);
+                            if (content.length == 0) {
+                                continue;
+                            }
+                            for (const keys of content) {
+                                const groupKey = keys.groupKey.hex;
+                                const privateKey = PrivateKey.FromHex(groupKey);
+                                if (privateKey instanceof Error) {
+                                    continue;
+                                }
+
+                                this.groupChatSummaries.set(privateKey.bech32, {
+                                    newestEventReceivedByMe: undefined,
+                                    newestEventSendByMe: undefined,
+                                    profile: undefined,
+                                    pubkey: privateKey.toPublicKey(),
+                                });
+                            }
+                        } catch {
+                            continue;
+                        }
+                    }
+                    break;
                 case NostrKind.META_DATA:
                     {
                         const userInfo = this.convoSummaries.get(event.pubkey);

@@ -173,7 +173,11 @@ export class App {
                 if (msg.res.type == "EOSE") {
                     continue;
                 }
-                this.groupChatController.addEvent(msg.res.event);
+
+                this.groupChatController.addEvent({
+                    ...msg.res.event,
+                    kind: NostrKind.Custom_App_Data,
+                });
             }
         })();
         // Sync DM events

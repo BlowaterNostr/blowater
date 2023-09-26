@@ -49,7 +49,7 @@ export class GroupChatController {
         return InMemoryAccountContext.New(args.groupKey);
     }
 
-    addEvents(...events: NostrEvent[]) {
+    addEvents(...events: NostrEvent<NostrKind.Custom_App_Data>[]) {
         for (const event of events) {
             if (event.kind != NostrKind.Custom_App_Data) {
                 continue;
@@ -59,8 +59,8 @@ export class GroupChatController {
         }
     }
 
-    addEvent(event: NostrEvent) {
-        console.log("add event");
+    addEvent(event: NostrEvent<NostrKind.Custom_App_Data>) {
+        this.conversationLists.addEvents([event]);
     }
 
     getGroupChatCtx(group_addr: PublicKey): InMemoryAccountContext | undefined {

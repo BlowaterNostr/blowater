@@ -5,15 +5,14 @@ import { Avatar } from "./components/avatar.tsx";
 import { CenterClass, IconButtonClass, LinearGradientsClass } from "./components/tw.ts";
 import { ConversationSummary, sortUserInfo } from "./conversation-list.ts";
 import { emitFunc } from "../event-bus.ts";
-import { PinIcon, UnpinIcon } from "./icons/mod.tsx";
+import { ChatIcon, GroupIcon, PinIcon, UnpinIcon } from "./icons/mod.tsx";
 import { SearchUpdate } from "./search_model.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
-import { PinConversation, UnpinConversation } from "../nostr.ts";
-import { PrimaryTextColor } from "./style/colors.ts";
+import { PinConversation,UnpinConversation } from "../nostr.ts";
 import { ButtonGroup } from "./components/button-group.tsx";
-import { ChatIcon } from "./icons2/chat-icon.tsx";
 import { StartCreateGroupChat } from "./create-group.tsx";
-import { OtherConfig } from "./config-other.ts";
+import { InviteIcon } from "./icons2/invite-icon.tsx";
+import { PrimaryTextColor,SecondaryBackgroundColor } from "./style/colors.ts";
 
 export interface ConversationListRetriever {
     getContacts: () => Iterable<ConversationSummary>;
@@ -82,9 +81,8 @@ export function ConversationList(props: Props) {
                         />
                         New Chat
                     </button>
-                    {/* <div class={tw`h-4 w-1 bg-[${SecondaryBackgroundColor}] !p-0`}></div> */}
-                    {
-                        /* <button
+                    <div class={tw`h-4 w-1 bg-[${SecondaryBackgroundColor}] !p-0`}></div>
+                    <button
                         onClick={async () => {
                             props.emit({
                                 type: "StartCreateGroupChat",
@@ -96,8 +94,7 @@ export function ConversationList(props: Props) {
                             class={tw`w-4 h-4 mr-1 text-[${PrimaryTextColor}] fill-current`}
                         />
                         New Group
-                    </button> */
-                    }
+                    </button>
                 </ButtonGroup>
             </div>
 
@@ -133,8 +130,7 @@ export function ConversationList(props: Props) {
                 >
                     Strangers: {strangers.length}
                 </li>
-                {
-                    /* <li
+                <li
                     class={tw`h-full flex-1 cursor-pointer hover:text-[#F7F7F7] text-[#96989D] bg-[#2F3136] hover:bg-[#42464D] ${CenterClass} ${
                         props.selectedContactGroup == "Group"
                             ? "border-b-2 border-[#54D48C] bg-[#42464D] text-[#F7F7F7]"
@@ -148,8 +144,7 @@ export function ConversationList(props: Props) {
                     }}
                 >
                     Group
-                </li> */
-                }
+                </li>
             </ul>
 
             <ContactGroup
@@ -213,26 +208,45 @@ function ContactGroup(props: ConversationListProps) {
                             isPinned={true}
                         />
 
-                        <button
-                            class={tw`w-6 h-6 absolute hidden group-hover:flex top-[-0.75rem] right-[0.75rem] ${IconButtonClass} bg-[#42464D] hover:bg-[#2F3136]`}
+                        <ButtonGroup
+                            class={tw`hidden group-hover:flex absolute top-[-0.75rem] right-[1rem]`}
                             style={{
                                 boxShadow: "2px 2px 5px 0 black",
                             }}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                props.emit({
-                                    type: "UnpinConversation",
-                                    pubkey: contact.userInfo.pubkey.hex,
-                                });
-                            }}
                         >
-                            <UnpinIcon
-                                class={tw`w-4 h-4`}
-                                style={{
-                                    fill: "#ED4245",
+                            <button
+                                class={tw`w-6 h-6 flex items-center justify-center`}
+                                onClick={e => {
+                                    e.stopPropagation();
+
                                 }}
-                            />
-                        </button>
+                            >
+                                <InviteIcon
+                                    class={tw`w-4 h-4 scale-150`}
+                                    style={{
+                                        fill: PrimaryTextColor,
+                                    }}
+                                />
+                            </button>
+
+                            <button
+                                class={tw`w-6 h-6 flex items-center justify-center`}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    props.emit({
+                                        type: "UnpinConversation",
+                                        pubkey: contact.userInfo.pubkey.hex,
+                                    });
+                                }}
+                            >
+                                <UnpinIcon
+                                    class={tw`w-4 h-4 scale-150`}
+                                    style={{
+                                        fill: PrimaryTextColor,
+                                    }}
+                                />
+                            </button>
+                        </ButtonGroup>
                     </li>
                 );
             })}
@@ -259,28 +273,47 @@ function ContactGroup(props: ConversationListProps) {
                             isPinned={false}
                         />
 
-                        <button
-                            class={tw`w-6 h-6 absolute hidden group-hover:flex top-[-0.75rem] right-[0.75rem] ${IconButtonClass} bg-[#42464D] hover:bg-[#2F3136]`}
+                        <ButtonGroup
+                            class={tw`hidden group-hover:flex absolute top-[-0.75rem] right-[1rem]`}
                             style={{
                                 boxShadow: "2px 2px 5px 0 black",
                             }}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                props.emit({
-                                    type: "PinConversation",
-                                    pubkey: contact.userInfo.pubkey.hex,
-                                });
-                            }}
                         >
-                            <PinIcon
-                                class={tw`w-4 h-4`}
-                                style={{
-                                    fill: "rgb(185, 187, 190)",
-                                    stroke: "rgb(185, 187, 190)",
-                                    strokeWidth: 2,
+                            <button
+                                class={tw`w-6 h-6 flex items-center justify-center`}
+                                onClick={e => {
+                                    e.stopPropagation();
+
                                 }}
-                            />
-                        </button>
+                            >
+                                <InviteIcon
+                                    class={tw`w-4 h-4 scale-150`}
+                                    style={{
+                                        fill: PrimaryTextColor,
+                                    }}
+                                />
+                            </button>
+
+                            <button
+                                class={tw`w-64 h-64 z-20 flex items-center justify-center`}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    props.emit({
+                                        type: "PinConversation",
+                                        pubkey: contact.userInfo.pubkey.hex,
+                                    });
+                                }}
+                            >
+                                <PinIcon
+                                    class={tw`w-4 h-4 scale-150`}
+                                    style={{
+                                        fill: PrimaryTextColor,
+                                        stroke: PrimaryTextColor,
+                                        strokeWidth: 2,
+                                    }}
+                                />
+                            </button>
+                        </ButtonGroup>
                     </li>
                 );
             })}
