@@ -7,12 +7,16 @@ import { PrivateKey } from "../lib/nostr-ts/key.ts";
 import { tw } from "https://esm.sh/twind@0.16.16";
 import { CenterClass } from "./components/tw.ts";
 
-const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
+const privateKey = PrivateKey.Generate();
+const ctx = InMemoryAccountContext.New(privateKey);
 const conversationlist = new ConversationLists(ctx);
 
 render(
     <div class={tw`${CenterClass} w-screen h-screen`}>
-        <InviteButton groupChat={Array.from(conversationlist.getGroupChat())} />
+        <InviteButton
+            groupChat={Array.from(conversationlist.getGroupChat())}
+            targetPublicKey={privateKey.toPublicKey()}
+        />
     </div>,
     document.body,
 );

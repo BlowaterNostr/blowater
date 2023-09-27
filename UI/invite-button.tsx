@@ -5,6 +5,7 @@ import { InviteIcon } from "./icons2/invite-icon.tsx";
 import { DividerBackgroundColor, HoverButtonBackgroudColor, PrimaryTextColor } from "./style/colors.ts";
 import { NoOutlineClass } from "./components/tw.ts";
 import { ConversationSummary } from "./conversation-list.ts";
+import { PublicKey } from "../lib/nostr-ts/key.ts";
 
 type State = {
     show: boolean;
@@ -12,6 +13,7 @@ type State = {
 
 type Props = {
     groupChat: ConversationSummary[];
+    targetPublicKey: PublicKey;
 };
 
 export class InviteButton extends Component<Props, State> {
@@ -24,6 +26,10 @@ export class InviteButton extends Component<Props, State> {
         },
         ul: tw`absolute top-6 rounded right-0 text-[${PrimaryTextColor}] bg-[${HoverButtonBackgroudColor}] z-20 overflow-y-auto`,
         li: tw`p-2 text-left hover:bg-[${DividerBackgroundColor}] first:rounded-t last:rounded-b w-32 whitespace-nowrap truncate text-xs`,
+    };
+
+    sendEvent = (groupPubKey: ConversationSummary) => {
+        console.log(groupPubKey, this.props.targetPublicKey);
     };
 
     render() {
@@ -59,6 +65,7 @@ export class InviteButton extends Component<Props, State> {
                                     return (
                                         <li
                                             class={this.styles.li}
+                                            onClick={() => this.sendEvent(group)}
                                         >
                                             {group.profile?.profile.name || group.pubkey}
                                         </li>

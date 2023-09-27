@@ -13,7 +13,6 @@ import { PrimaryTextColor } from "./style/colors.ts";
 import { ButtonGroup } from "./components/button-group.tsx";
 import { ChatIcon } from "./icons2/chat-icon.tsx";
 import { StartCreateGroupChat } from "./create-group.tsx";
-import { InviteButton } from "./invite-button.tsx";
 
 export interface ConversationListRetriever {
     getContacts: () => Iterable<ConversationSummary>;
@@ -206,26 +205,30 @@ function ContactGroup(props: ConversationListProps) {
                             isMarked={contact.isMarked}
                         />
 
-                        <button
-                            class={tw`w-6 h-6 absolute hidden group-hover:flex top-[-0.75rem] right-[0.75rem] ${IconButtonClass} bg-[#42464D] hover:bg-[#2F3136]`}
+                        <ButtonGroup
+                            class={tw`hidden group-hover:flex absolute top-[-0.75rem] right-[1rem]`}
                             style={{
                                 boxShadow: "2px 2px 5px 0 black",
                             }}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                props.emit({
-                                    type: "UnpinContact",
-                                    pubkey: contact.userInfo.pubkey.hex,
-                                });
-                            }}
                         >
-                            <UnpinIcon
-                                class={tw`w-4 h-4`}
-                                style={{
-                                    fill: "#ED4245",
+                            <button
+                                class={tw`w-6 h-6 flex items-center justify-center`}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    props.emit({
+                                        type: "UnpinContact",
+                                        pubkey: contact.userInfo.pubkey.hex,
+                                    });
                                 }}
-                            />
-                        </button>
+                            >
+                                <UnpinIcon
+                                    class={tw`w-4 h-4`}
+                                    style={{
+                                        fill: "#ED4245",
+                                    }}
+                                />
+                            </button>
+                        </ButtonGroup>
                     </li>
                 );
             })}
@@ -257,8 +260,6 @@ function ContactGroup(props: ConversationListProps) {
                                 boxShadow: "2px 2px 5px 0 black",
                             }}
                         >
-                            <InviteButton groupChat={props.groupChat} />
-
                             <button
                                 class={tw`w-6 h-6 flex items-center justify-center`}
                                 onClick={(e) => {
