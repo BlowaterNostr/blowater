@@ -8,36 +8,20 @@ export class EventSyncer {
     constructor(private readonly pool: ConnectionPool, private readonly db: Database_Contextual_View) {}
 
     syncEvent(id: NoteID) {
+        const subID = EventSyncer.name + ":syncEvent";
         for (const e of this.db.events) {
             if (e.id == id.hex) {
                 return e;
             }
         }
         return (async () => {
-            let events: Error | {
-                filter: NostrFilters;
-                chan: Channel<{
-                    res: RelayResponse_REQ_Message;
-                    url: string;
-                }>;
-            } = await this.pool.newSub("EventSyncer", {
-                ids: [id.hex],
-            });
-            if (events instanceof SubscriptionAlreadyExist) {
-                events = await this.pool.updateSub("EventSyncer", {
-                    ids: [id.hex],
-                });
-            }
+            await this.pool.closeSub(subID);
+            let events = await this.pool.newSub(subID, { ids: [id.hex] });
             if (events instanceof Error) {
                 return events;
             }
             for await (const { res, url } of events.chan) {
                 if (res.type != "EVENT") {
-                    continue;
-                }
-                const ok = await verifyEvent(res.event);
-                if (!ok) {
-                    console.warn(res.event, url, "not valid");
                     continue;
                 }
                 await this.db.addEvent(res.event);
@@ -47,26 +31,13 @@ export class EventSyncer {
     }
 
     async syncEvents(filter: NostrFilters) {
-        let events: Error | {
-            filter: NostrFilters;
-            chan: Channel<{
-                res: RelayResponse_REQ_Message;
-                url: string;
-            }>;
-        } = await this.pool.newSub("syncEvents", filter);
-        if (events instanceof SubscriptionAlreadyExist) {
-            events = await this.pool.updateSub("syncEvents", filter);
-        }
+        await this.pool.closeSub(EventSyncer.name);
+        let events = await this.pool.newSub(EventSyncer.name, filter);
         if (events instanceof Error) {
             return events;
         }
         for await (const { res, url } of events.chan) {
             if (res.type != "EVENT") {
-                continue;
-            }
-            const ok = await verifyEvent(res.event);
-            if (!ok) {
-                console.warn(res.event, url, "not valid");
                 continue;
             }
             await this.db.addEvent(res.event);

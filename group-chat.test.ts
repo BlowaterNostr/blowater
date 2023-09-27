@@ -5,6 +5,9 @@ import { InMemoryAccountContext, RelayResponse_REQ_Message } from "./lib/nostr-t
 import { Channel, closed } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { ConnectionPool } from "./lib/nostr-ts/relay.ts";
 import { relays } from "./lib/nostr-ts/relay-list.test.ts";
+import { GroupChatController } from "./group-chat.ts";
+import { ConversationList } from "./UI/conversation-list.tsx";
+import { ConversationLists } from "./UI/conversation-list.ts";
 
 Deno.test("group chat", async () => {
     const pool = new ConnectionPool();
