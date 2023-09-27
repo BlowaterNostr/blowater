@@ -11,7 +11,8 @@ export class ProfilesSyncer {
     constructor(
         private readonly database: Database_Contextual_View,
         private readonly pool: ConnectionPool,
-    ) {}
+    ) {
+    }
 
     async add(...users: string[]) {
         const size = this.userSet.size;
@@ -21,13 +22,11 @@ export class ProfilesSyncer {
         if (this.userSet.size == size) {
             return;
         }
-        const resp = await this.pool.updateSub(
-            "profilesStream",
-            {
-                authors: Array.from(this.userSet),
-                kinds: [NostrKind.META_DATA],
-            },
-        );
+        await this.pool.closeSub(ProfilesSyncer.name);
+        const resp = await this.pool.newSub(ProfilesSyncer.name, {
+            authors: Array.from(this.userSet),
+            kinds: [NostrKind.META_DATA],
+        });
         if (resp instanceof Error) {
             console.error(resp.message);
             return;
