@@ -27,12 +27,18 @@ export class ConversationLists implements ConversationListRetriever {
     ) {}
 
     *getStrangers() {
-        for (const userInfo of this.convoSummaries.values()) {
+        for (const convoSummary of this.convoSummaries.values()) {
             if (
-                userInfo.newestEventReceivedByMe == undefined ||
-                userInfo.newestEventSendByMe == undefined
+                (
+                    convoSummary.newestEventReceivedByMe == undefined ||
+                    convoSummary.newestEventSendByMe == undefined
+                ) &&
+                !(
+                    convoSummary.newestEventReceivedByMe == undefined &&
+                    convoSummary.newestEventSendByMe == undefined
+                )
             ) {
-                yield userInfo;
+                yield convoSummary;
             }
         }
     }

@@ -42,22 +42,17 @@ type Props = {
     hasNewMessages: Set<string>;
 };
 export function ConversationList(props: Props) {
-    let listToRender: ConversationSummary[] = [];
-    switch (props.selectedContactGroup) {
-        case "Contacts":
-            listToRender = Array.from(props.convoListRetriever.getContacts());
-            break;
-        case "Strangers":
-            listToRender = Array.from(props.convoListRetriever.getStrangers());
-            break;
-        case "Group":
-            listToRender = Array.from(props.convoListRetriever.getGroupChat());
-            break;
+    const contacts = Array.from(props.convoListRetriever.getContacts());
+    const strangers = Array.from(props.convoListRetriever.getStrangers());
+    // const groups = Array.from(props.convoListRetriever.getGroupChat());
+    let listToRender = contacts;
+    if (props.selectedContactGroup == "Strangers") {
+        listToRender = strangers;
     }
 
-    const contactsToRender = [];
+    const convoListToRender = [];
     for (const contact of listToRender) {
-        contactsToRender.push({
+        convoListToRender.push({
             userInfo: contact,
             isMarked: props.hasNewMessages.has(contact.pubkey.hex),
         });
@@ -118,7 +113,7 @@ export function ConversationList(props: Props) {
                         });
                     }}
                 >
-                    Contacts
+                    Contacts: {contacts.length}
                 </li>
                 <li class={tw`w-[0.05rem] h-full bg-[#2F3136]`}></li>
                 <li
@@ -134,7 +129,7 @@ export function ConversationList(props: Props) {
                         });
                     }}
                 >
-                    Strangers
+                    Strangers: {strangers.length}
                 </li>
                 {
                     /* <li
@@ -156,7 +151,7 @@ export function ConversationList(props: Props) {
             </ul>
 
             <ContactGroup
-                contacts={Array.from(contactsToRender.values())}
+                contacts={Array.from(convoListToRender.values())}
                 currentSelected={props.currentSelected}
                 emit={props.emit}
             />
