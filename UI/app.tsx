@@ -289,53 +289,53 @@ export function AppComponent(props: {
     const app = model.app;
     const myAccountCtx = model.app.ctx;
 
-    let socialPostsPanel: VNode | undefined;
-    if (model.navigationModel.activeNav == "Social") {
-        let focusedContentGetter = () => {
-            // console.log("AppComponent:getFocusedContent before", Date.now() - t);
-            let _ = getFocusedContent(
-                model.social.focusedContent,
-                app.conversationLists.convoSummaries,
-                model.social.threads,
-            );
-            // console.log("AppComponent:getFocusedContent", Date.now() - t);
-            if (_?.type === "MessageThread") {
-                let editor = model.social.replyEditors.get(_.data.root.event.id);
-                if (editor == undefined) {
-                    editor = {
-                        id: _.data.root.event.id,
-                        files: [],
-                        text: "",
-                        tags: [
-                            ["e", _.data.root.event.id],
-                        ],
-                        target: {
-                            kind: NostrKind.TEXT_NOTE,
-                        },
-                    };
-                    model.social.replyEditors.set(editor.id, editor);
-                }
-                return {
-                    ..._,
-                    editor,
-                };
-            }
-            return _;
-        };
-        let focusedContent = focusedContentGetter();
-        console.log("AppComponent:getFocusedContent", Date.now() - t);
-        socialPostsPanel = SocialPanel({
-            allUsersInfo: app.conversationLists,
-            ctx: app.ctx,
-            db: app.database,
-            emit: app.eventBus.emit,
-            eventSyncer: app.eventSyncer,
-            focusedContent: focusedContent,
-            model: app.model,
-            profileSyncer: app.profileSyncer,
-        });
-        console.debug("AppComponent:social done", Date.now() - t);
-    }
+    // let socialPostsPanel: VNode | undefined;
+    // if (model.navigationModel.activeNav == "Social") {
+    //     let focusedContentGetter = () => {
+    //         // console.log("AppComponent:getFocusedContent before", Date.now() - t);
+    //         let _ = getFocusedContent(
+    //             model.social.focusedContent,
+    //             app.conversationLists.convoSummaries,
+    //             model.social.threads,
+    //         );
+    //         // console.log("AppComponent:getFocusedContent", Date.now() - t);
+    //         if (_?.type === "MessageThread") {
+    //             let editor = model.social.replyEditors.get(_.data.root.event.id);
+    //             if (editor == undefined) {
+    //                 editor = {
+    //                     id: _.data.root.event.id,
+    //                     files: [],
+    //                     text: "",
+    //                     tags: [
+    //                         ["e", _.data.root.event.id],
+    //                     ],
+    //                     target: {
+    //                         kind: NostrKind.TEXT_NOTE,
+    //                     },
+    //                 };
+    //                 model.social.replyEditors.set(editor.id, editor);
+    //             }
+    //             return {
+    //                 ..._,
+    //                 editor,
+    //             };
+    //         }
+    //         return _;
+    //     };
+    //     let focusedContent = focusedContentGetter();
+    //     console.log("AppComponent:getFocusedContent", Date.now() - t);
+    //     socialPostsPanel = SocialPanel({
+    //         allUsersInfo: app.conversationLists,
+    //         ctx: app.ctx,
+    //         db: app.database,
+    //         emit: app.eventBus.emit,
+    //         eventSyncer: app.eventSyncer,
+    //         focusedContent: focusedContent,
+    //         model: app.model,
+    //         profileSyncer: app.profileSyncer,
+    //     });
+    //     console.debug("AppComponent:social done", Date.now() - t);
+    // }
 
     let settingNode;
     if (model.navigationModel.activeNav == "Setting") {
@@ -434,7 +434,7 @@ export function AppComponent(props: {
                     {dmVNode}
                     {aboutNode}
                     {settingNode}
-                    {socialPostsPanel}
+                    {/* {socialPostsPanel} */}
                     {appList}
                     <Popover
                         inputChan={props.popOverInputChan}

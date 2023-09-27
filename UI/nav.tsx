@@ -29,7 +29,7 @@ export type Props = {
 } & NavigationModel;
 
 export type ActiveNav = ActiveTab | "Setting";
-export type ActiveTab = "DM" | /* "Group" | */ "Profile" | "About" | "Social" | "AppList";
+export type ActiveTab = "DM" | /* "Group" | */ "Profile" | "About" | "AppList";
 
 export type NavigationModel = {
     activeNav: ActiveNav;
@@ -40,7 +40,7 @@ export type NavigationUpdate = {
     index: ActiveNav;
 };
 
-const navTabLayoutOrder: ActiveTab[] = ["DM", /*"Group",*/ "Profile", "About", "Social", "AppList"];
+const navTabLayoutOrder: ActiveTab[] = ["DM", /*"Group",*/ "Profile", "About", "AppList"];
 const tabs = {
     "DM": (active: boolean) => (
         <ChatIcon

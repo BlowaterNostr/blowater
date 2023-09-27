@@ -301,9 +301,10 @@ export async function* UI_Interaction_Update(args: {
         else if (event.type == "ToggleRightPanel") {
             model.rightPanelModel.show = event.show;
         } else if (event.type == "ViewThread") {
-            if (model.navigationModel.activeNav == "Social") {
-                model.social.focusedContent = event.root;
-            } else if (model.navigationModel.activeNav == "DM") {
+            // if (model.navigationModel.activeNav == "Social") {
+            //     model.social.focusedContent = event.root;
+            // } else
+            if (model.navigationModel.activeNav == "DM") {
                 if (model.dm.currentSelectedContact) {
                     model.dm.focusedContent.set(
                         model.dm.currentSelectedContact.hex,
@@ -313,9 +314,10 @@ export async function* UI_Interaction_Update(args: {
             }
             model.rightPanelModel.show = true;
         } else if (event.type == "ViewUserDetail") {
-            if (model.navigationModel.activeNav == "Social") {
-                model.social.focusedContent = event.pubkey;
-            } else if (
+            // if (model.navigationModel.activeNav == "Social") {
+            //     model.social.focusedContent = event.pubkey;
+            // } else
+            if (
                 model.navigationModel.activeNav == "DM"
             ) {
                 if (model.dm.currentSelectedContact) {
@@ -343,7 +345,7 @@ export async function* UI_Interaction_Update(args: {
             }
 
             if (root.kind == NostrKind.TEXT_NOTE) {
-                model.navigationModel.activeNav = "Social";
+                // model.navigationModel.activeNav = "Social";
                 model.social.focusedContent = root;
             } else if (root.kind == NostrKind.DIRECT_MESSAGE) {
                 const myPubkey = app.ctx.publicKey.hex;
@@ -680,10 +682,10 @@ export async function* Database_Update(
                 }
             }
         }
-        if (hasKind_1) {
-            console.log("Database_Update: getSocialPosts");
-            model.social.threads = getSocialPosts(database, convoLists.convoSummaries);
-        }
+        // if (hasKind_1) {
+        //     console.log("Database_Update: getSocialPosts");
+        //     model.social.threads = getSocialPosts(database, convoLists.convoSummaries);
+        // }
         yield model;
     }
 }
