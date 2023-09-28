@@ -12,7 +12,7 @@ import { DividerBackgroundColor, PrimaryBackgroundColor, PrimaryTextColor } from
 import { SendIcon } from "./icons2/send-icon.tsx";
 import { RemoveIcon } from "./icons2/remove-icon.tsx";
 
-export type EditorModel = DM_EditorModel | Social_EditorModel;
+export type EditorModel = DM_EditorModel;
 
 export type DM_EditorModel = {
     id: string;
@@ -22,15 +22,7 @@ export type DM_EditorModel = {
     readonly target: DM_Target;
 };
 
-export type Social_EditorModel = {
-    id: string;
-    text: string;
-    files: Blob[];
-    tags: Tag[];
-    readonly target: Social_Target;
-};
-
-export type EditorSubmissionTarget = DM_Target | Social_Target;
+export type EditorSubmissionTarget = DM_Target;
 
 export type DM_Target = {
     kind: NostrKind.DIRECT_MESSAGE;
@@ -39,9 +31,6 @@ export type DM_Target = {
         name?: string;
         picture?: string;
     };
-};
-export type Social_Target = {
-    kind: NostrKind.TEXT_NOTE;
 };
 
 export function new_DM_EditorModel(receiver: {
@@ -57,18 +46,6 @@ export function new_DM_EditorModel(receiver: {
         target: {
             kind: NostrKind.DIRECT_MESSAGE,
             receiver,
-        },
-    };
-}
-
-export function new_Social_EditorModel(): Social_EditorModel {
-    return {
-        id: "social",
-        text: "",
-        files: [],
-        tags: [],
-        target: {
-            kind: NostrKind.TEXT_NOTE,
         },
     };
 }

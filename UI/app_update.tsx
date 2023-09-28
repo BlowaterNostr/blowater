@@ -19,13 +19,7 @@ import { notify } from "./notification.ts";
 import { emitFunc, EventBus } from "../event-bus.ts";
 import { ContactUpdate } from "./conversation-list.tsx";
 import { MyProfileUpdate } from "./edit-profile.tsx";
-import {
-    DM_EditorModel,
-    EditorEvent,
-    new_DM_EditorModel,
-    SendMessage,
-    Social_EditorModel,
-} from "./editor.tsx";
+import { DM_EditorModel, EditorEvent, new_DM_EditorModel, SendMessage } from "./editor.tsx";
 import { DirectMessagePanelUpdate } from "./message-panel.tsx";
 import { NavigationUpdate } from "./nav.tsx";
 import { Model } from "./app_model.ts";
@@ -44,8 +38,6 @@ import {
 } from "../nostr.ts";
 import { MessageThread } from "./dm.tsx";
 import { DexieDatabase } from "./dexie-db.ts";
-import { getSocialPosts } from "../features/social.ts";
-import { SocialUpdates } from "./social.tsx";
 import { RelayConfigChange } from "./setting.tsx";
 import { PopOverInputChannel } from "./components/popover.tsx";
 import { Search } from "./search.tsx";
@@ -69,7 +61,6 @@ export type UI_Interaction_Event =
     | PinContact
     | UnpinContact
     | SignInEvent
-    | SocialUpdates
     | RelayConfigChange
     | CreateGroupChat
     | StartCreateGroupChat;
@@ -216,8 +207,6 @@ export async function* UI_Interaction_Update(args: {
                 app.lamport,
                 pool,
                 app.model.editors,
-                app.model.social.editor,
-                app.model.social.replyEditors,
                 app.database,
             );
             if (err instanceof Error) {
@@ -233,17 +222,6 @@ export async function* UI_Interaction_Update(args: {
                     console.log(event.target.receiver, event.id);
                     throw new Error("impossible state");
                 }
-            } else {
-                if (event.id == "social") {
-                    model.social.editor.files = event.files;
-                } else {
-                    const editor = model.social.replyEditors.get(event.id);
-                    if (editor) {
-                        editor.files = event.files;
-                    } else {
-                        throw new Error("impossible state");
-                    }
-                }
             }
         } else if (event.type == "UpdateMessageText") {
             if (event.target.kind == NostrKind.DIRECT_MESSAGE) {
@@ -253,17 +231,6 @@ export async function* UI_Interaction_Update(args: {
                 } else {
                     console.log(event.target.receiver, event.id);
                     throw new Error("impossible state");
-                }
-            } else {
-                if (event.id == "social") {
-                    model.social.editor.text = event.text;
-                } else {
-                    const editor = model.social.replyEditors.get(event.id);
-                    if (editor) {
-                        editor.text = event.text;
-                    } else {
-                        throw new Error("impossible state");
-                    }
                 }
             }
         } //
@@ -344,10 +311,7 @@ export async function* UI_Interaction_Update(args: {
                 root = res;
             }
 
-            if (root.kind == NostrKind.TEXT_NOTE) {
-                // model.navigationModel.activeNav = "Social";
-                model.social.focusedContent = root;
-            } else if (root.kind == NostrKind.DIRECT_MESSAGE) {
+            if (root.kind == NostrKind.DIRECT_MESSAGE) {
                 const myPubkey = app.ctx.publicKey.hex;
                 if (root.pubkey != myPubkey && !getTags(root).p.includes(myPubkey)) {
                     continue; // if no conversation
@@ -401,37 +365,6 @@ export async function* UI_Interaction_Update(args: {
             app.popOverInputChan.put({ children: undefined });
             console.log(profileEvent, groupAdminCtx.publicKey.hex);
             app.profileSyncer.add(groupAdminCtx.publicKey.hex);
-        } //
-        //
-        // Social
-        //
-        else if (event.type == "SocialFilterChanged_content") {
-            model.social.filter.content = event.content;
-        } else if (event.type == "SocialFilterChanged_authors") {
-            if (model.social.filter.adding_author) {
-                model.social.filter.author.add(model.social.filter.adding_author);
-                model.social.filter.adding_author = "";
-
-                const pubkeys: string[] = [];
-                for (const userInfo of app.conversationLists.convoSummaries.values()) {
-                    for (const name of model.social.filter.author) {
-                        if (userInfo.profile?.profile.name?.toLowerCase().includes(name.toLowerCase())) {
-                            pubkeys.push(userInfo.pubkey.hex);
-                            continue;
-                        }
-                    }
-                }
-
-                /* do not await */ app.eventSyncer.syncEvents({
-                    kinds: [NostrKind.TEXT_NOTE],
-                    authors: pubkeys,
-                });
-                // model.social.activeSyncingFilter =
-            }
-        } else if (event.type == "SocialFilterChanged_adding_author") {
-            model.social.filter.adding_author = event.value;
-        } else if (event.type == "SocialFilterChanged_remove_author") {
-            model.social.filter.author.delete(event.value);
         } else if (event.type == "RelayConfigChange") {
             const e = await app.relayConfig.toNostrEvent(app.ctx);
             if (e instanceof Error) {
@@ -708,8 +641,6 @@ export async function handle_SendMessage(
     lamport: LamportTime,
     pool: ConnectionPool,
     dmEditors: Map<string, DM_EditorModel>,
-    socialEditor: Social_EditorModel,
-    replyEditors: Map<string, Social_EditorModel>,
     db: Database_Contextual_View,
 ) {
     if (event.target.kind == NostrKind.DIRECT_MESSAGE) {
@@ -733,27 +664,6 @@ export async function handle_SendMessage(
             }
         }
         const editor = dmEditors.get(event.id);
-        if (editor) {
-            editor.files = [];
-            editor.text = "";
-        }
-    } else {
-        const eventSent = await sendSocialPost({
-            sender: ctx,
-            message: event.text,
-            lamport_timestamp: lamport.now(),
-            pool,
-            tags: event.tags,
-        });
-        if (eventSent instanceof Error) {
-            return eventSent;
-        }
-        await db.addEvent(eventSent);
-        if (event.id == "social") {
-            socialEditor.files = [];
-            socialEditor.text = "";
-        }
-        const editor = replyEditors.get(event.id);
         if (editor) {
             editor.files = [];
             editor.text = "";
