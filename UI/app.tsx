@@ -12,9 +12,8 @@ import { ConversationLists, ConversationSummary } from "./conversation-list.ts";
 import { new_DM_EditorModel } from "./editor.tsx";
 import { initialModel, Model } from "./app_model.ts";
 import { AppEventBus, Database_Update, UI_Interaction_Event, UI_Interaction_Update } from "./app_update.tsx";
-import { getSocialPosts } from "../features/social.ts";
 import * as time from "../time.ts";
-import { PrivateKey, PublicKey } from "../lib/nostr-ts/key.ts";
+import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { getCurrentSignInCtx, setSignInState, SignIn } from "./signIn.tsx";
@@ -24,8 +23,7 @@ import { EventSyncer } from "./event_syncer.ts";
 import { defaultRelays, RelayConfig } from "./relay-config.ts";
 import { DexieDatabase } from "./dexie-db.ts";
 import { About } from "./about.tsx";
-import { SocialPanel } from "./social.tsx";
-import { getProfileEvent, ProfilesSyncer } from "../features/profile.ts";
+import { ProfilesSyncer } from "../features/profile.ts";
 import { Popover, PopOverInputChannel } from "./components/popover.tsx";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { GroupChatController } from "../group-chat.ts";
@@ -193,9 +191,6 @@ export class App {
                 }
             }
         })(this.database, this.ctx, this.pool);
-
-        console.log("App allUsersInfo");
-        this.model.social.threads = getSocialPosts(this.database, this.conversationLists.convoSummaries);
 
         /* my profile */
         this.model.myProfile = this.conversationLists.convoSummaries.get(this.ctx.publicKey.hex)?.profile
