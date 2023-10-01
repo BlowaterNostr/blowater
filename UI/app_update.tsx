@@ -1,6 +1,6 @@
 /** @jsx h */
 import { h } from "https://esm.sh/preact@10.17.1";
-import { getProfileEvent, getProfilesByName, ProfilesSyncer, saveProfile } from "../features/profile.ts";
+import { getProfileEvent, getProfilesByName, ProfileSyncer, saveProfile } from "../features/profile.ts";
 
 import { App } from "./app.tsx";
 import {
@@ -498,7 +498,7 @@ export async function* Database_Update(
     ctx: NostrAccountContext,
     database: Database_Contextual_View,
     model: Model,
-    profileSyncer: ProfilesSyncer,
+    profileSyncer: ProfileSyncer,
     lamport: LamportTime,
     convoLists: ConversationLists,
     emit: emitFunc<SelectConversation>,

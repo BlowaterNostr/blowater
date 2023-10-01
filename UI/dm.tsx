@@ -11,7 +11,7 @@ import { DM_EditorModel } from "./editor.tsx";
 import { getConversationMessages, UI_Interaction_Event } from "./app_update.tsx";
 import { NostrAccountContext, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
-import { getProfileEvent, ProfilesSyncer } from "../features/profile.ts";
+import { getProfileEvent, ProfileSyncer } from "../features/profile.ts";
 import { ChatMessage } from "./message.ts";
 import { DM_Model } from "./dm.ts";
 import { getFocusedContent } from "./app.tsx";
@@ -26,7 +26,7 @@ type DirectMessageContainerProps = {
     emit: emitFunc<UI_Interaction_Event>;
     db: Database_Contextual_View;
     allUserInfo: ConversationLists;
-    profilesSyncer: ProfilesSyncer;
+    profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
 } & DM_Model;
 

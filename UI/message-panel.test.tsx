@@ -10,7 +10,7 @@ import { getSocialPosts } from "../features/social.ts";
 import { ConversationLists } from "./conversation-list.ts";
 import { EventSyncer } from "./event_syncer.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
-import { ProfilesSyncer } from "../features/profile.ts";
+import { ProfileSyncer } from "../features/profile.ts";
 import { handle_SendMessage } from "./app_update.tsx";
 import { LamportTime } from "../time.ts";
 import { initialModel } from "./app_model.ts";
@@ -41,7 +41,7 @@ const view = () => {
             eventSyncer={new EventSyncer(pool, database)}
             focusedContent={undefined}
             myPublicKey={ctx.publicKey}
-            profilesSyncer={new ProfilesSyncer(database, pool)}
+            profilesSyncer={new ProfileSyncer(database, pool)}
             emit={testEventBus.emit}
             messages={threads}
             rightPanelModel={{

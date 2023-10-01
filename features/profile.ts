@@ -6,7 +6,7 @@ import { Parsed_Event, Profile_Nostr_Event } from "../nostr.ts";
 import { prepareNormalNostrEvent } from "../lib/nostr-ts/event.ts";
 import { semaphore } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 
-export class ProfilesSyncer {
+export class ProfileSyncer {
     readonly userSet = new Set<string>();
     private readonly lock = semaphore(1);
 
@@ -25,8 +25,8 @@ export class ProfilesSyncer {
             return;
         }
         const resp = await this.lock(async () => {
-            await this.pool.closeSub(ProfilesSyncer.name);
-            const resp = await this.pool.newSub(ProfilesSyncer.name, {
+            await this.pool.closeSub(ProfileSyncer.name);
+            const resp = await this.pool.newSub(ProfileSyncer.name, {
                 authors: Array.from(this.userSet),
                 kinds: [NostrKind.META_DATA],
             });

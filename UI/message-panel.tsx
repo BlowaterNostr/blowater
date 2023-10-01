@@ -20,7 +20,7 @@ import {
     Text_Note_Event,
     UnpinContact,
 } from "../nostr.ts";
-import { ProfileData, ProfilesSyncer } from "../features/profile.ts";
+import { ProfileData, ProfileSyncer } from "../features/profile.ts";
 import { MessageThread } from "./dm.tsx";
 import { UserDetail } from "./user-detail.tsx";
 import { MessageThreadPanel } from "./message-thread-panel.tsx";
@@ -85,7 +85,7 @@ interface DirectMessagePanelProps {
     emit: emitFunc<
         EditorEvent | DirectMessagePanelUpdate | PinContact | UnpinContact
     >;
-    profilesSyncer: ProfilesSyncer;
+    profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
     allUserInfo: Map<string, ConversationSummary>;
 }
@@ -201,7 +201,7 @@ interface MessageListProps {
     threads: MessageThread[];
     db: Database_Contextual_View;
     emit: emitFunc<DirectMessagePanelUpdate>;
-    profilesSyncer: ProfilesSyncer;
+    profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
     allUserInfo: Map<string, ConversationSummary>;
 }
@@ -334,7 +334,7 @@ function MessageBoxGroup(props: {
     db: Database_Contextual_View;
     allUserInfo: Map<string, ConversationSummary>;
     emit: emitFunc<DirectMessagePanelUpdate | ViewUserDetail>;
-    profilesSyncer: ProfilesSyncer;
+    profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
 }) {
     // const t = Date.now();
@@ -555,7 +555,7 @@ export function NameAndTime(
 export function ParseMessageContent(
     message: ChatMessage,
     allUserInfo: Map<string, ConversationSummary>,
-    profilesSyncer: ProfilesSyncer,
+    profilesSyncer: ProfileSyncer,
     eventSyncer: EventSyncer,
     emit: emitFunc<ViewUserDetail | ViewThread | ViewNoteThread>,
 ) {

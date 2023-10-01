@@ -23,7 +23,7 @@ import { EventSyncer } from "./event_syncer.ts";
 import { defaultRelays, RelayConfig } from "./relay-config.ts";
 import { DexieDatabase } from "./dexie-db.ts";
 import { About } from "./about.tsx";
-import { ProfilesSyncer } from "../features/profile.ts";
+import { ProfileSyncer } from "../features/profile.ts";
 import { Popover, PopOverInputChannel } from "./components/popover.tsx";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { GroupChatController } from "../group-chat.ts";
@@ -87,7 +87,7 @@ export async function Start(database: DexieDatabase) {
 }
 
 export class App {
-    readonly profileSyncer: ProfilesSyncer;
+    readonly profileSyncer: ProfileSyncer;
     readonly eventSyncer: EventSyncer;
     public readonly conversationLists: ConversationLists;
     public readonly relayConfig: RelayConfig;
@@ -112,7 +112,7 @@ export class App {
                 this.relayConfig.add(url);
             }
         }
-        this.profileSyncer = new ProfilesSyncer(this.database, pool);
+        this.profileSyncer = new ProfileSyncer(this.database, pool);
         this.profileSyncer.add(ctx.publicKey.hex);
     }
 
