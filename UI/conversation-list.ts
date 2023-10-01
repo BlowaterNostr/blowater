@@ -143,7 +143,6 @@ export class ConversationLists implements ConversationListRetriever {
                                 newestEventReceivedByMe: undefined,
                                 newestEventSendByMe: undefined,
                                 profile: undefined,
-                                // events: [event],
                             };
                             if (whoAm_I_TalkingTo == this.ctx.publicKey.hex) {
                                 // talking to myself

@@ -17,7 +17,7 @@ import { Database_Contextual_View } from "../database.ts";
 import { ConversationSummary, getConversationSummaryFromPublicKey } from "./conversation-list.ts";
 import { EventSyncer } from "./event_syncer.ts";
 import { Avatar } from "./components/avatar.tsx";
-import { ProfilesSyncer } from "../features/profile.ts";
+import { ProfileSyncer } from "../features/profile.ts";
 import { DirectedMessage_Event, Text_Note_Event } from "../nostr.ts";
 import { ButtonGroup } from "./components/button-group.tsx";
 import { AboutIcon } from "./icons/about-icon.tsx";
@@ -29,7 +29,7 @@ interface MessageThreadProps {
     myPublicKey: PublicKey;
     db: Database_Contextual_View;
     editorModel: EditorModel;
-    profilesSyncer: ProfilesSyncer;
+    profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
     allUserInfo: Map<string, ConversationSummary>;
 }
@@ -73,7 +73,7 @@ function MessageThreadList(props: {
     myPublicKey: PublicKey;
     messages: ChatMessage[];
     db: Database_Contextual_View;
-    profilesSyncer: ProfilesSyncer;
+    profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
     emit: emitFunc<ViewUserDetail | ViewThread | DirectMessagePanelUpdate>;
     allUserInfo: Map<string, ConversationSummary>;
@@ -110,7 +110,7 @@ function MessageThreadBoxGroup(props: {
     messages: ChatMessage[];
     myPublicKey: PublicKey;
     db: Database_Contextual_View;
-    profilesSyncer: ProfilesSyncer;
+    profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
     emit: emitFunc<ViewUserDetail | ViewThread | DirectMessagePanelUpdate>;
     allUserInfo: Map<string, ConversationSummary>;
