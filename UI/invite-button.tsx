@@ -24,7 +24,7 @@ export class InviteButton extends Component<Props, State> {
                 tw`w-6 h-6 flex items-center justify-center relative bg-[${DividerBackgroundColor}] hover:[${HoverButtonBackgroudColor}] ${NoOutlineClass}`,
             icon: tw`w-4 h-4 scale-150 fill-current text-[${PrimaryTextColor}]`,
         },
-        ul: tw`absolute top-6 rounded right-0 text-[${PrimaryTextColor}] bg-[${HoverButtonBackgroudColor}] z-20 overflow-y-auto`,
+        ul: tw`absolute top-6 rounded right-[-3rem] text-[${PrimaryTextColor}] bg-[${HoverButtonBackgroudColor}] z-20 overflow-y-auto`,
         li: tw`p-2 text-left hover:bg-[${DividerBackgroundColor}] first:rounded-t last:rounded-b w-32 whitespace-nowrap truncate text-xs`,
     };
 
