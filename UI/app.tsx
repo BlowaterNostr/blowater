@@ -47,7 +47,8 @@ export async function Start(database: DexieDatabase) {
             throw dbView;
         }
         const lamport = time.fromEvents(dbView.events);
-        const app = new App(dbView, lamport, model, ctx, eventBus, pool, popOverInputChan);
+        const otherConfig = await OtherConfig.FromLocalStorage(ctx);
+        const app = new App(dbView, lamport, model, ctx, eventBus, pool, popOverInputChan, otherConfig);
         await app.initApp();
         model.app = app;
     }
@@ -93,7 +94,6 @@ export class App {
     public readonly conversationLists: ConversationLists;
     public readonly relayConfig: RelayConfig;
     public readonly groupChatController: GroupChatController;
-    public readonly otherConfig: OtherConfig = new OtherConfig();
 
     constructor(
         public readonly database: Database_Contextual_View,
@@ -103,6 +103,7 @@ export class App {
         public readonly eventBus: EventBus<UI_Interaction_Event>,
         public readonly pool: ConnectionPool,
         public readonly popOverInputChan: PopOverInputChannel,
+        public readonly otherConfig: OtherConfig,
     ) {
         this.eventSyncer = new EventSyncer(pool, this.database);
         this.conversationLists = new ConversationLists(ctx);
