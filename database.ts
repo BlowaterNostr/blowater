@@ -214,7 +214,6 @@ export function whoIamTalkingTo(event: NostrEvent, myPublicKey: PublicKey) {
                 `This is not a valid DM, id ${event.id}, kind ${event.kind}`,
             );
         } else {
-            console.log(event);
             return Error(`Multiple tag p: ${event}`);
         }
     }
