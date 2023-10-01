@@ -122,7 +122,7 @@ export class OtherConfig implements PinListGetter {
     }
 }
 
-class AutomergeSet {
+export class AutomergeSet {
     private set = Automerge.init<{
         [key: string]: true;
     }>();
