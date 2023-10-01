@@ -9,7 +9,7 @@ export class OtherConfig implements PinListGetter {
         return new OtherConfig();
     }
 
-    readonly pinList = new Set<string>(); // set of pubkeys in npub format
+    private pinList = new Set<string>(); // set of pubkeys in npub format
     getPinList(): Set<string> {
         return this.pinList;
     }
@@ -30,11 +30,11 @@ export class OtherConfig implements PinListGetter {
         const pinList = JSON.parse(decrypted);
         const c = new OtherConfig();
         for (const pin of pinList) {
-            const pubkey = PublicKey.FromBech32(pin);
+            const pubkey = PublicKey.FromString(pin);
             if (pubkey instanceof Error) {
                 continue;
             }
-            c.pinList.add(pubkey.bech32());
+            c.pinList.add(pubkey.hex);
         }
         return c;
     }
@@ -63,6 +63,34 @@ export class OtherConfig implements PinListGetter {
         const err = pool.sendEvent(nostrEvent);
         if (err instanceof Error) {
             return err;
+        }
+    }
+
+    async syncFromRelay(pool: ConnectionPool, ctx: NostrAccountContext) {
+        const stream = await pool.newSub(OtherConfig.name, {
+            "#d": [OtherConfig.name],
+            authors: [ctx.publicKey.hex],
+            kinds: [NostrKind.Custom_App_Data],
+        });
+        if (stream instanceof Error) {
+            throw stream; // impossible
+        }
+        for await (const msg of stream.chan) {
+            if (msg.res.type == "EOSE") {
+                continue;
+            }
+            console.log("pin list", msg);
+            const config = await OtherConfig.FromNostrEvent(
+                // @ts-ignore
+                msg.res.event,
+                ctx,
+            );
+            if (config instanceof Error) {
+                console.error(config);
+                continue;
+            }
+            this.pinList = config.pinList;
+            console.log(this.pinList);
         }
     }
 }

@@ -157,6 +157,8 @@ export class App {
             }
         })();
 
+        this.otherConfig.syncFromRelay(this.pool, this.ctx);
+
         // create group synchronization
         (async () => {
             const stream = await this.pool.newSub("group creations", {
