@@ -25,7 +25,7 @@ Deno.test("Other Configs", async () => {
         });
         const config = await OtherConfig.FromNostrEvent(event, ctx);
         if (config instanceof Error) fail(config.message);
-        assertEquals(config.getPinList(), new Set([pub.bech32(), pub2.bech32()]));
+        assertEquals(config.getPinList(), new Set([pub.hex, pub2.hex]));
 
         // encode back to events
         const event_2 = await config.toNostrEvent(ctx);
