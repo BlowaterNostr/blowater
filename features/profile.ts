@@ -30,11 +30,11 @@ export class ProfileSyncer {
                 authors: Array.from(this.userSet),
                 kinds: [NostrKind.META_DATA],
             });
-            return resp
+            return resp;
         });
-        if(resp instanceof Error) {
-            console.log(resp)
-            return
+        if (resp instanceof Error) {
+            console.log(resp);
+            return;
         }
         for await (let { res: nostrMessage, url: relayUrl } of resp.chan) {
             if (nostrMessage.type === "EVENT" && nostrMessage.event.content) {
