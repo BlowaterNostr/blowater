@@ -1,13 +1,26 @@
 import { prepareParameterizedEvent } from "../lib/nostr-ts/event.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
+import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
+import { PinListGetter } from "./conversation-list.tsx";
 
-export class OtherConfig {
+export class OtherConfig implements PinListGetter {
     static Empty() {
         return new OtherConfig();
     }
 
     readonly pinList = new Set<string>(); // set of pubkeys in npub format
+    getPinList(): Set<string> {
+        return this.pinList;
+    }
+
+    addPin(pubkey: string) {
+        this.pinList.add(pubkey);
+    }
+
+    removePin(pubkey: string) {
+        this.pinList.delete(pubkey);
+    }
 
     static async FromNostrEvent(event: NostrEvent<NostrKind.Custom_App_Data>, ctx: NostrAccountContext) {
         const decrypted = await ctx.decrypt(ctx.publicKey.hex, event.content);
@@ -38,8 +51,18 @@ export class OtherConfig {
             content: encryptedContent,
             d: OtherConfig.name,
             kind: NostrKind.Custom_App_Data,
-            created_at: Date.now() / 1000,
         });
         return event;
+    }
+
+    async saveToRelay(pool: ConnectionPool, ctx: NostrAccountContext) {
+        const nostrEvent = await this.toNostrEvent(ctx);
+        if (nostrEvent instanceof Error) {
+            return nostrEvent;
+        }
+        const err = pool.sendEvent(nostrEvent);
+        if (err instanceof Error) {
+            return err;
+        }
     }
 }

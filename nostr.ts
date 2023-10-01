@@ -55,10 +55,10 @@ export type DirectedMessage_Event = Parsed_Event<NostrKind.DIRECT_MESSAGE> & {
 };
 export type Encrypted_Event = DirectedMessage_Event;
 
-export type CustomAppData = PinContact | UnpinContact | UserLogin;
+export type CustomAppData = PinConversation | UnpinContact | UserLogin;
 
-export type PinContact = {
-    type: "PinContact";
+export type PinConversation = {
+    type: "PinConversation";
     pubkey: string;
 };
 

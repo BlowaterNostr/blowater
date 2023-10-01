@@ -31,7 +31,7 @@ import {
     DirectedMessage_Event,
     Encrypted_Event,
     getTags,
-    PinContact,
+    PinConversation,
     Profile_Nostr_Event,
     Text_Note_Event,
     UnpinContact,
@@ -58,7 +58,7 @@ export type UI_Interaction_Event =
     | DirectMessagePanelUpdate
     | BackToContactList
     | MyProfileUpdate
-    | PinContact
+    | PinConversation
     | UnpinContact
     | SignInEvent
     | RelayConfigChange
@@ -194,8 +194,20 @@ export async function* UI_Interaction_Update(args: {
             model.dm.currentSelectedContact = undefined;
         } else if (event.type == "SelectConversationType") {
             model.dm.selectedContactGroup = event.group;
-        } else if (event.type == "PinContact" || event.type == "UnpinContact") {
-            console.log("todo: handle", event.type);
+        } else if (event.type == "PinConversation") {
+            app.otherConfig.addPin(event.pubkey);
+            const err = app.otherConfig.saveToRelay(pool, app.ctx);
+            if (err instanceof Error) {
+                console.error(err);
+                continue;
+            }
+        } else if (event.type == "UnpinContact") {
+            app.otherConfig.removePin(event.pubkey);
+            const err = app.otherConfig.saveToRelay(pool, app.ctx);
+            if (err instanceof Error) {
+                console.error(err);
+                continue;
+            }
         } //
         //
         // Editor

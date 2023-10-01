@@ -28,6 +28,7 @@ type DirectMessageContainerProps = {
     allUserInfo: ConversationLists;
     profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
+    pinListGetter: cl.PinListGetter;
 } & DM_Model;
 
 export type MessageThread = {

@@ -43,7 +43,6 @@ export class GroupChatController {
         this.conversationLists.groupChatSummaries.set(args.groupKey.bech32, {
             newestEventReceivedByMe: undefined,
             newestEventSendByMe: undefined,
-            pinEvent: undefined,
             profile: undefined,
             pubkey: args.groupKey.toPublicKey(),
         });

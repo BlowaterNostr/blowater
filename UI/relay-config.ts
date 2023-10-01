@@ -102,7 +102,6 @@ export class RelayConfig {
         this.config = Automerge.change(this.config, "add", (config) => {
             config[url] = true;
         });
-        const hex = secp256k1.utils.bytesToHex(this.save());
     }
 
     async remove(url: string) {
