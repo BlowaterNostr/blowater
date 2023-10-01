@@ -4,9 +4,11 @@ import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { groupBy, NostrAccountContext, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { Parsed_Event, Profile_Nostr_Event } from "../nostr.ts";
 import { prepareNormalNostrEvent } from "../lib/nostr-ts/event.ts";
+import { semaphore } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 
 export class ProfilesSyncer {
     readonly userSet = new Set<string>();
+    private readonly lock = semaphore(1);
 
     constructor(
         private readonly database: Database_Contextual_View,
@@ -22,14 +24,17 @@ export class ProfilesSyncer {
         if (this.userSet.size == size) {
             return;
         }
-        await this.pool.closeSub(ProfilesSyncer.name);
-        const resp = await this.pool.newSub(ProfilesSyncer.name, {
-            authors: Array.from(this.userSet),
-            kinds: [NostrKind.META_DATA],
+        const resp = await this.lock(async () => {
+            await this.pool.closeSub(ProfilesSyncer.name);
+            const resp = await this.pool.newSub(ProfilesSyncer.name, {
+                authors: Array.from(this.userSet),
+                kinds: [NostrKind.META_DATA],
+            });
+            return resp
         });
-        if (resp instanceof Error) {
-            console.error(resp.message);
-            return;
+        if(resp instanceof Error) {
+            console.log(resp)
+            return
         }
         for await (let { res: nostrMessage, url: relayUrl } of resp.chan) {
             if (nostrMessage.type === "EVENT" && nostrMessage.event.content) {
