@@ -153,6 +153,7 @@ export function ConversationList(props: Props) {
 
             <ContactGroup
                 contacts={Array.from(convoListToRender.values())}
+                groupChat={Array.from(props.convoListRetriever.getGroupChat())}
                 currentSelected={props.currentSelected}
                 emit={props.emit}
             />
@@ -163,6 +164,7 @@ export function ConversationList(props: Props) {
 type ConversationListProps = {
     contacts: { userInfo: ConversationSummary; isMarked: boolean }[];
     currentSelected: PublicKey | undefined;
+    groupChat: ConversationSummary[];
     emit: emitFunc<ContactUpdate>;
 };
 
@@ -255,7 +257,7 @@ function ContactGroup(props: ConversationListProps) {
                                 boxShadow: "2px 2px 5px 0 black",
                             }}
                         >
-                            <InviteButton />
+                            <InviteButton groupChat={props.groupChat} />
 
                             <button
                                 class={tw`w-6 h-6 flex items-center justify-center`}

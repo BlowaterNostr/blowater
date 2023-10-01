@@ -4,12 +4,17 @@ import { tw } from "https://esm.sh/twind@0.16.16";
 import { InviteIcon } from "./icons2/invite-icon.tsx";
 import { DividerBackgroundColor, HoverButtonBackgroudColor, PrimaryTextColor } from "./style/colors.ts";
 import { NoOutlineClass } from "./components/tw.ts";
+import { ConversationSummary } from "./conversation-list.ts";
 
 type State = {
     show: boolean;
 };
 
-export class InviteButton extends Component<{}, State> {
+type Props = {
+    groupChat: ConversationSummary[];
+};
+
+export class InviteButton extends Component<Props, State> {
     state = { show: false };
     styles = {
         button: {
@@ -17,19 +22,16 @@ export class InviteButton extends Component<{}, State> {
                 tw`w-6 h-6 flex items-center justify-center relative bg-[${DividerBackgroundColor}] hover:[${HoverButtonBackgroudColor}] ${NoOutlineClass}`,
             icon: tw`w-4 h-4 scale-150 fill-current text-[${PrimaryTextColor}]`,
         },
-        ul: tw`absolute top-6 rounded right-0 text-[${PrimaryTextColor}] bg-[${HoverButtonBackgroudColor}] z-20`,
-        li: tw`p-2 text-left hover:bg-[${DividerBackgroundColor}] first:rounded-t last:rounded-b`,
+        ul: tw`absolute top-6 rounded right-0 text-[${PrimaryTextColor}] bg-[${HoverButtonBackgroudColor}] z-20 overflow-y-auto`,
+        li: tw`p-2 text-left hover:bg-[${DividerBackgroundColor}] first:rounded-t last:rounded-b w-32 whitespace-nowrap truncate text-xs`,
     };
 
     render() {
+        const { groupChat } = this.props;
+
         return (
             <button
                 class={this.styles.button.container}
-                onMouseOver={() => {
-                    this.setState({
-                        show: true,
-                    });
-                }}
                 onMouseLeave={() => {
                     this.setState({
                         show: false,
@@ -37,6 +39,9 @@ export class InviteButton extends Component<{}, State> {
                 }}
                 onClick={(e) => {
                     e.stopPropagation();
+                    this.setState({
+                        show: true,
+                    });
                 }}
             >
                 <InviteIcon class={this.styles.button.icon} />
@@ -46,11 +51,20 @@ export class InviteButton extends Component<{}, State> {
                             class={this.styles.ul}
                             style={{
                                 boxShadow: "2px 2px 5px 0 black",
+                                maxHeight: "20rem",
                             }}
                         >
-                            <li class={this.styles.li}>adsfsaf</li>
-                            <li class={this.styles.li}>ggdsgdffdsafdsa</li>
-                            <li class={this.styles.li}>ssdf</li>
+                            {groupChat.length > 0
+                                ? groupChat.map((group) => {
+                                    return (
+                                        <li
+                                            class={this.styles.li}
+                                        >
+                                            {group.profile?.profile.name || group.pubkey}
+                                        </li>
+                                    );
+                                })
+                                : <li class={this.styles.li}>No Group</li>}
                         </ul>
                     )
                     : undefined}
