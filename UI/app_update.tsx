@@ -49,6 +49,7 @@ import { PrivateKey, PublicKey } from "../lib/nostr-ts/key.ts";
 import { InMemoryAccountContext, NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { GroupChatController } from "../group-chat.ts";
+import { OtherConfig } from "./config-other.ts";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -112,7 +113,17 @@ export async function* UI_Interaction_Update(args: {
                         throw dbView;
                     }
                     const lamport = fromEvents(dbView.events);
-                    const app = new App(dbView, lamport, model, ctx, eventBus, pool, args.popOver);
+                    const otherConfig = await OtherConfig.FromLocalStorage(ctx);
+                    const app = new App(
+                        dbView,
+                        lamport,
+                        model,
+                        ctx,
+                        eventBus,
+                        pool,
+                        args.popOver,
+                        otherConfig,
+                    );
                     await app.initApp();
                     model.app = app;
                 } else {
@@ -196,14 +207,24 @@ export async function* UI_Interaction_Update(args: {
             model.dm.selectedContactGroup = event.group;
         } else if (event.type == "PinConversation") {
             app.otherConfig.addPin(event.pubkey);
-            const err = app.otherConfig.saveToRelay(pool, app.ctx);
+            let err = await app.otherConfig.saveToLocalStorage(app.ctx);
+            if (err instanceof Error) {
+                console.error(err);
+                continue;
+            }
+            err = await app.otherConfig.saveToRelay(pool, app.ctx);
             if (err instanceof Error) {
                 console.error(err);
                 continue;
             }
         } else if (event.type == "UnpinConversation") {
             app.otherConfig.removePin(event.pubkey);
-            const err = app.otherConfig.saveToRelay(pool, app.ctx);
+            let err = await app.otherConfig.saveToLocalStorage(app.ctx);
+            if (err instanceof Error) {
+                console.error(err);
+                continue;
+            }
+            err = await app.otherConfig.saveToRelay(pool, app.ctx);
             if (err instanceof Error) {
                 console.error(err);
                 continue;
