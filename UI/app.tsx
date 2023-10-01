@@ -27,6 +27,7 @@ import { ProfileSyncer } from "../features/profile.ts";
 import { Popover, PopOverInputChannel } from "./components/popover.tsx";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { GroupChatController } from "../group-chat.ts";
+import { OtherConfig } from "./config-other.ts";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
@@ -92,6 +93,7 @@ export class App {
     public readonly conversationLists: ConversationLists;
     public readonly relayConfig: RelayConfig;
     public readonly groupChatController: GroupChatController;
+    public readonly otherConfig: OtherConfig = new OtherConfig();
 
     constructor(
         public readonly database: Database_Contextual_View,
@@ -154,6 +156,8 @@ export class App {
                 this.relayConfig.saveToLocalStorage(this.ctx);
             }
         })();
+
+        this.otherConfig.syncFromRelay(this.pool, this.ctx);
 
         // create group synchronization
         (async () => {
@@ -382,6 +386,7 @@ export function AppComponent(props: {
                         allUserInfo: app.conversationLists,
                         profilesSyncer: app.profileSyncer,
                         eventSyncer: app.eventSyncer,
+                        pinListGetter: app.otherConfig,
                     })}
                 </div>
             );

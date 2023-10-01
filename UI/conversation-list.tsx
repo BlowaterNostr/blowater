@@ -8,11 +8,12 @@ import { emitFunc } from "../event-bus.ts";
 import { PinIcon, UnpinIcon } from "./icons/mod.tsx";
 import { SearchUpdate } from "./search_model.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
-import { PinContact, UnpinContact } from "../nostr.ts";
+import { PinConversation, UnpinConversation } from "../nostr.ts";
 import { PrimaryTextColor } from "./style/colors.ts";
 import { ButtonGroup } from "./components/button-group.tsx";
 import { ChatIcon } from "./icons2/chat-icon.tsx";
 import { StartCreateGroupChat } from "./create-group.tsx";
+import { OtherConfig } from "./config-other.ts";
 
 export interface ConversationListRetriever {
     getContacts: () => Iterable<ConversationSummary>;
@@ -25,8 +26,8 @@ export type ConversationType = "Contacts" | "Strangers" | "Group";
 export type ContactUpdate =
     | SelectConversationType
     | SearchUpdate
-    | PinContact
-    | UnpinContact
+    | PinConversation
+    | UnpinConversation
     | StartCreateGroupChat;
 
 export type SelectConversationType = {
@@ -39,6 +40,7 @@ type Props = {
     convoListRetriever: ConversationListRetriever;
     currentSelected: PublicKey | undefined;
     selectedContactGroup: ConversationType;
+    pinListGetter: PinListGetter;
     hasNewMessages: Set<string>;
 };
 export function ConversationList(props: Props) {
@@ -153,15 +155,21 @@ export function ConversationList(props: Props) {
             <ContactGroup
                 contacts={Array.from(convoListToRender.values())}
                 currentSelected={props.currentSelected}
+                pinListGetter={props.pinListGetter}
                 emit={props.emit}
             />
         </div>
     );
 }
 
+export interface PinListGetter {
+    getPinList(): Set<string>;
+}
+
 type ConversationListProps = {
     contacts: { userInfo: ConversationSummary; isMarked: boolean }[];
     currentSelected: PublicKey | undefined;
+    pinListGetter: PinListGetter;
     emit: emitFunc<ContactUpdate>;
 };
 
@@ -170,10 +178,11 @@ function ContactGroup(props: ConversationListProps) {
     props.contacts.sort((a, b) => {
         return sortUserInfo(a.userInfo, b.userInfo);
     });
+    const pinList = props.pinListGetter.getPinList();
     const pinned = [];
     const unpinned = [];
     for (const contact of props.contacts) {
-        if (contact.userInfo.pinEvent && contact.userInfo.pinEvent.content.type == "PinContact") {
+        if (pinList.has(contact.userInfo.pubkey.hex)) {
             pinned.push(contact);
         } else {
             unpinned.push(contact);
@@ -201,6 +210,7 @@ function ContactGroup(props: ConversationListProps) {
                         <ConversationListItem
                             userInfo={contact.userInfo}
                             isMarked={contact.isMarked}
+                            isPinned={true}
                         />
 
                         <button
@@ -211,7 +221,7 @@ function ContactGroup(props: ConversationListProps) {
                             onClick={(e) => {
                                 e.stopPropagation();
                                 props.emit({
-                                    type: "UnpinContact",
+                                    type: "UnpinConversation",
                                     pubkey: contact.userInfo.pubkey.hex,
                                 });
                             }}
@@ -246,6 +256,7 @@ function ContactGroup(props: ConversationListProps) {
                         <ConversationListItem
                             userInfo={contact.userInfo}
                             isMarked={contact.isMarked}
+                            isPinned={false}
                         />
 
                         <button
@@ -256,7 +267,7 @@ function ContactGroup(props: ConversationListProps) {
                             onClick={(e) => {
                                 e.stopPropagation();
                                 props.emit({
-                                    type: "PinContact",
+                                    type: "PinConversation",
                                     pubkey: contact.userInfo.pubkey.hex,
                                 });
                             }}
@@ -280,6 +291,7 @@ function ContactGroup(props: ConversationListProps) {
 type ListItemProps = {
     userInfo: ConversationSummary;
     isMarked: boolean;
+    isPinned: boolean;
 };
 
 function ConversationListItem(props: ListItemProps) {
@@ -316,7 +328,7 @@ function ConversationListItem(props: ListItemProps) {
                         </span>
                     )
                     : undefined}
-                {props.userInfo.pinEvent != undefined && props.userInfo.pinEvent.content.type == "PinContact"
+                {props.isPinned
                     ? (
                         <PinIcon
                             class={tw`w-3 h-3 absolute top-0 right-0`}

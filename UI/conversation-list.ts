@@ -8,10 +8,6 @@ export interface ConversationSummary {
     profile: Profile_Nostr_Event | undefined;
     newestEventSendByMe: NostrEvent | undefined;
     newestEventReceivedByMe: NostrEvent | undefined;
-    pinEvent: {
-        readonly created_at: number;
-        readonly content: CustomAppData;
-    } | undefined;
 }
 
 export function getConversationSummaryFromPublicKey(k: PublicKey, users: Map<string, ConversationSummary>) {
@@ -78,7 +74,6 @@ export class ConversationLists implements ConversationListRetriever {
                             }
                         } else {
                             const newUserInfo: ConversationSummary = {
-                                pinEvent: undefined,
                                 pubkey: PublicKey.FromHex(event.pubkey) as PublicKey,
                                 newestEventReceivedByMe: undefined,
                                 newestEventSendByMe: undefined,
@@ -139,7 +134,6 @@ export class ConversationLists implements ConversationListRetriever {
                         } else {
                             const newUserInfo: ConversationSummary = {
                                 pubkey: PublicKey.FromHex(whoAm_I_TalkingTo) as PublicKey,
-                                pinEvent: undefined,
                                 newestEventReceivedByMe: undefined,
                                 newestEventSendByMe: undefined,
                                 profile: undefined,

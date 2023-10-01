@@ -7,7 +7,7 @@ import { PrivateKey } from "../lib/nostr-ts/key.ts";
 Deno.test("Other Configs", async () => {
     {
         const config = OtherConfig.Empty();
-        assertEquals(config.pinList, new Set());
+        assertEquals(config.getPinList(), new Set());
     }
 
     const ctx = InMemoryAccountContext.Generate();
@@ -25,7 +25,7 @@ Deno.test("Other Configs", async () => {
         });
         const config = await OtherConfig.FromNostrEvent(event, ctx);
         if (config instanceof Error) fail(config.message);
-        assertEquals(config.pinList, new Set([pub.bech32(), pub2.bech32()]));
+        assertEquals(config.getPinList(), new Set([pub.hex, pub2.hex]));
 
         // encode back to events
         const event_2 = await config.toNostrEvent(ctx);
@@ -33,6 +33,6 @@ Deno.test("Other Configs", async () => {
 
         const config_2 = await OtherConfig.FromNostrEvent(event_2, ctx);
         if (config_2 instanceof Error) fail(config_2.message);
-        assertEquals(config.pinList, config_2.pinList);
+        assertEquals(config.getPinList(), config_2.getPinList());
     }
 });

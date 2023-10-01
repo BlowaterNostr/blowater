@@ -15,10 +15,10 @@ import { NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import {
     DirectedMessage_Event,
     Parsed_Event,
-    PinContact,
+    PinConversation,
     Profile_Nostr_Event,
     Text_Note_Event,
-    UnpinContact,
+    UnpinConversation,
 } from "../nostr.ts";
 import { ProfileData, ProfileSyncer } from "../features/profile.ts";
 import { MessageThread } from "./dm.tsx";
@@ -83,7 +83,7 @@ interface DirectMessagePanelProps {
 
     db: Database_Contextual_View;
     emit: emitFunc<
-        EditorEvent | DirectMessagePanelUpdate | PinContact | UnpinContact
+        EditorEvent | DirectMessagePanelUpdate | PinConversation | UnpinConversation
     >;
     profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
