@@ -8,7 +8,7 @@ import { emitFunc } from "../event-bus.ts";
 import { PinIcon, UnpinIcon } from "./icons/mod.tsx";
 import { SearchUpdate } from "./search_model.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
-import { PinConversation, UnpinContact } from "../nostr.ts";
+import { PinConversation, UnpinConversation } from "../nostr.ts";
 import { PrimaryTextColor } from "./style/colors.ts";
 import { ButtonGroup } from "./components/button-group.tsx";
 import { ChatIcon } from "./icons2/chat-icon.tsx";
@@ -27,7 +27,7 @@ export type ContactUpdate =
     | SelectConversationType
     | SearchUpdate
     | PinConversation
-    | UnpinContact
+    | UnpinConversation
     | StartCreateGroupChat;
 
 export type SelectConversationType = {
@@ -221,7 +221,7 @@ function ContactGroup(props: ConversationListProps) {
                             onClick={(e) => {
                                 e.stopPropagation();
                                 props.emit({
-                                    type: "UnpinContact",
+                                    type: "UnpinConversation",
                                     pubkey: contact.userInfo.pubkey.hex,
                                 });
                             }}

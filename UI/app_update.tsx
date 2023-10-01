@@ -34,7 +34,7 @@ import {
     PinConversation,
     Profile_Nostr_Event,
     Text_Note_Event,
-    UnpinContact,
+    UnpinConversation,
 } from "../nostr.ts";
 import { MessageThread } from "./dm.tsx";
 import { DexieDatabase } from "./dexie-db.ts";
@@ -59,7 +59,7 @@ export type UI_Interaction_Event =
     | BackToContactList
     | MyProfileUpdate
     | PinConversation
-    | UnpinContact
+    | UnpinConversation
     | SignInEvent
     | RelayConfigChange
     | CreateGroupChat
@@ -201,7 +201,7 @@ export async function* UI_Interaction_Update(args: {
                 console.error(err);
                 continue;
             }
-        } else if (event.type == "UnpinContact") {
+        } else if (event.type == "UnpinConversation") {
             app.otherConfig.removePin(event.pubkey);
             const err = app.otherConfig.saveToRelay(pool, app.ctx);
             if (err instanceof Error) {
