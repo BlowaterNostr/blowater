@@ -107,7 +107,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
             db: props.db,
             profilesSyncer: props.profilesSyncer,
             eventSyncer: props.eventSyncer,
-            allUserInfo: props.allUserInfo.convoSummaries,
+            conversationSummaries: props.allUserInfo.convoSummaries,
         }).render();
     }
 

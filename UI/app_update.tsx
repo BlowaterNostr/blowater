@@ -14,7 +14,7 @@ import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master
 import { Database_Contextual_View } from "../database.ts";
 import { convertEventsToChatMessages } from "./dm.ts";
 
-import { sendDMandImages, sendSocialPost } from "../features/dm.ts";
+import { sendDMandImages, sendGroupChat, sendSocialPost } from "../features/dm.ts";
 import { notify } from "./notification.ts";
 import { emitFunc, EventBus } from "../event-bus.ts";
 import { ContactUpdate } from "./conversation-list.tsx";
@@ -179,11 +179,11 @@ export async function* UI_Interaction_Update(args: {
             model.rightPanelModel = {
                 show: false,
             };
-            const group = getGroupOf(
-                event.pubkey,
-                app.conversationLists.convoSummaries,
-            );
-            model.dm.selectedContactGroup = group;
+            // const group = getGroupOf(
+            //     event.pubkey,
+            //     app.conversationLists,
+            // );
+            // model.dm.selectedContactGroup = group;
             updateConversation(app.model, event.pubkey);
 
             if (!model.dm.focusedContent.get(event.pubkey.hex)) {
@@ -220,6 +220,7 @@ export async function* UI_Interaction_Update(args: {
                 pool,
                 app.model.editors,
                 app.database,
+                app.groupChatController
             );
             if (err instanceof Error) {
                 console.error("update:SendMessage", err);
@@ -654,6 +655,7 @@ export async function handle_SendMessage(
     pool: ConnectionPool,
     dmEditors: Map<string, DM_EditorModel>,
     db: Database_Contextual_View,
+    groupChatController: GroupChatController,
 ) {
     if (event.target.kind == NostrKind.DIRECT_MESSAGE) {
         const events = await sendDMandImages({
@@ -679,6 +681,19 @@ export async function handle_SendMessage(
         if (editor) {
             editor.files = [];
             editor.text = "";
+        }
+    } else if (event.target.kind == NostrKind.Group_Chat) {
+        const events = await sendGroupChat({
+          sender: ctx,
+          groupPublicKey: event.target.receiver.pubkey,
+          message: event.text,
+          lamport_timestamp: lamport.now(),
+          pool,
+          tags: event.tags,
+          groupChatController: groupChatController,
+        });
+        if (events instanceof Error) {
+            return events;
         }
     }
 }

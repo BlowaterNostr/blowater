@@ -31,7 +31,7 @@ interface MessageThreadProps {
     editorModel: EditorModel;
     profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
-    allUserInfo: Map<string, ConversationSummary>;
+    conversationSummaries: Map<string, ConversationSummary>;
 }
 
 export function MessageThreadPanel(props: MessageThreadProps) {
@@ -55,7 +55,7 @@ export function MessageThreadPanel(props: MessageThreadProps) {
                     profilesSyncer={props.profilesSyncer}
                     eventSyncer={props.eventSyncer}
                     emit={props.emit}
-                    allUserInfo={props.allUserInfo}
+                    allUserInfo={props.conversationSummaries}
                 />
             </div>
 

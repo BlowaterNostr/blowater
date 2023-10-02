@@ -9,6 +9,7 @@ export interface ConversationSummary {
     profile: Profile_Nostr_Event | undefined;
     newestEventSendByMe: NostrEvent | undefined;
     newestEventReceivedByMe: NostrEvent | undefined;
+    isGroup?: boolean;
 }
 
 export function getConversationSummaryFromPublicKey(k: PublicKey, users: Map<string, ConversationSummary>) {
@@ -84,11 +85,12 @@ export class ConversationLists implements ConversationListRetriever {
                                     continue;
                                 }
 
-                                this.groupChatSummaries.set(privateKey.bech32, {
+                                this.groupChatSummaries.set(privateKey.toPublicKey().hex, {
                                     newestEventReceivedByMe: undefined,
                                     newestEventSendByMe: undefined,
                                     profile: undefined,
                                     pubkey: privateKey.toPublicKey(),
+                                    isGroup: true,
                                 });
                             }
                         } catch {
@@ -108,7 +110,8 @@ export class ConversationLists implements ConversationListRetriever {
                             } else {
                                 userInfo.profile = profileEvent;
                             }
-                        } else {
+                        }
+                        else {
                             const newUserInfo: ConversationSummary = {
                                 pubkey: PublicKey.FromHex(event.pubkey) as PublicKey,
                                 newestEventReceivedByMe: undefined,
@@ -213,15 +216,19 @@ function sortScore(contact: ConversationSummary) {
 
 export function getGroupOf(
     pubkey: PublicKey,
-    allUserInfo: Map<string, ConversationSummary>,
+    conversationLists: ConversationLists,
 ): ConversationType {
-    const contact = allUserInfo.get(pubkey.hex);
-    if (contact == undefined) {
-        return "Strangers";
+    console.log(pubkey, conversationLists.groupChatSummaries, conversationLists.convoSummaries, "=======");
+    const convoSummary = conversationLists.convoSummaries.get(pubkey.hex);
+    console.log(convoSummary, "+++++++++++++++++++++==========");
+    if (convoSummary == undefined) {
+        const groupChatSummary = conversationLists.groupChatSummaries.get(pubkey.hex);
+        console.log(groupChatSummary, "++++++++");
+        if (groupChatSummary == undefined) return "Strangers";
+        return "Group";
     }
-    console.log(contact);
     if (
-        contact.newestEventReceivedByMe == undefined || contact.newestEventSendByMe == undefined
+        convoSummary.newestEventReceivedByMe == undefined || convoSummary.newestEventSendByMe == undefined
     ) {
         return "Strangers";
     } else {

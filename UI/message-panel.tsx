@@ -87,7 +87,7 @@ interface DirectMessagePanelProps {
     >;
     profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
-    allUserInfo: Map<string, ConversationSummary>;
+    conversationSummaries: Map<string, ConversationSummary>;
 }
 
 // export function MessagePanel(props: DirectMessagePanelProps) {
@@ -116,7 +116,7 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
                             editorModel={props.focusedContent.editor}
                             profilesSyncer={props.profilesSyncer}
                             eventSyncer={props.eventSyncer}
-                            allUserInfo={props.allUserInfo}
+                            conversationSummaries={props.conversationSummaries}
                         />
                     );
                 } else if (props.focusedContent.type == "ProfileData") {
@@ -155,7 +155,7 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
                             db={props.db}
                             profilesSyncer={props.profilesSyncer}
                             eventSyncer={props.eventSyncer}
-                            allUserInfo={props.allUserInfo}
+                            conversationSummaries={props.conversationSummaries}
                         />
                     }
                     {
@@ -203,7 +203,7 @@ interface MessageListProps {
     emit: emitFunc<DirectMessagePanelUpdate>;
     profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
-    allUserInfo: Map<string, ConversationSummary>;
+    conversationSummaries: Map<string, ConversationSummary>;
 }
 
 interface MessageListState {
@@ -279,7 +279,7 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
                     db: this.props.db,
                     profilesSyncer: this.props.profilesSyncer,
                     eventSyncer: this.props.eventSyncer,
-                    allUserInfo: this.props.allUserInfo,
+                    conversationSummaries: this.props.conversationSummaries,
                 }),
             );
         }
@@ -332,7 +332,7 @@ function MessageBoxGroup(props: {
     }[];
     myPublicKey: PublicKey;
     db: Database_Contextual_View;
-    allUserInfo: Map<string, ConversationSummary>;
+    conversationSummaries: Map<string, ConversationSummary>;
     emit: emitFunc<DirectMessagePanelUpdate | ViewUserDetail>;
     profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
@@ -354,7 +354,7 @@ function MessageBoxGroup(props: {
                 class={tw`h-8 w-8 mt-[0.45rem] mr-2`}
                 picture={getConversationSummaryFromPublicKey(
                     first_group.msg.event.publicKey,
-                    props.allUserInfo,
+                    props.conversationSummaries,
                 )
                     ?.profile?.profile.picture}
                 onClick={() => {
@@ -373,7 +373,10 @@ function MessageBoxGroup(props: {
             >
                 {NameAndTime(
                     first_group.msg.event.publicKey,
-                    getConversationSummaryFromPublicKey(first_group.msg.event.publicKey, props.allUserInfo)
+                    getConversationSummaryFromPublicKey(
+                        first_group.msg.event.publicKey,
+                        props.conversationSummaries,
+                    )
                         ?.profile?.profile,
                     props.myPublicKey,
                     first_group.msg.created_at,
@@ -383,7 +386,7 @@ function MessageBoxGroup(props: {
                 >
                                 {ParseMessageContent(
                                     first_group.msg,
-                                    props.allUserInfo,
+                                    props.conversationSummaries,
                                     props.profilesSyncer,
                                     props.eventSyncer,
                                     props.emit,
@@ -429,7 +432,7 @@ function MessageBoxGroup(props: {
                     >
                     {ParseMessageContent(
                         msg.msg,
-                        props.allUserInfo,
+                        props.conversationSummaries,
                         props.profilesSyncer,
                         props.eventSyncer,
                         props.emit,

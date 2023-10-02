@@ -22,10 +22,27 @@ export type DM_EditorModel = {
     readonly target: DM_Target;
 };
 
-export type EditorSubmissionTarget = DM_Target;
+export type GroupChat_EditorModel = {
+    id: string;
+    text: string;
+    files: Blob[];
+    tags: Tag[];
+    readonly target: Group_Target;
+}
+
+export type EditorSubmissionTarget = DM_Target | Group_Target;
 
 export type DM_Target = {
     kind: NostrKind.DIRECT_MESSAGE;
+    receiver: {
+        pubkey: PublicKey;
+        name?: string;
+        picture?: string;
+    };
+};
+
+export type Group_Target = {
+    kind: NostrKind.Group_Chat;
     receiver: {
         pubkey: PublicKey;
         name?: string;
@@ -48,6 +65,23 @@ export function new_DM_EditorModel(receiver: {
             receiver,
         },
     };
+}
+
+export function new_GroupChat_EditorModel(group: {
+    pubkey: PublicKey;
+    name?: string;
+    picture?: string;
+}): GroupChat_EditorModel {
+    return {
+        id: group.pubkey.hex,
+        text: "",
+        files: [],
+        tags: [],
+        target: {
+            kind: NostrKind.Group_Chat,
+            receiver: group
+        }
+    }
 }
 
 export type EditorEvent = SendMessage | UpdateMessageText | UpdateMessageFiles;

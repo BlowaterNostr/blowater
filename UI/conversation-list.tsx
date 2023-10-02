@@ -8,7 +8,7 @@ import { emitFunc } from "../event-bus.ts";
 import { PinIcon, UnpinIcon } from "./icons/mod.tsx";
 import { SearchUpdate } from "./search_model.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
-import { PinConversation,UnpinConversation } from "../nostr.ts";
+import { PinConversation, UnpinConversation } from "../nostr.ts";
 import { ButtonGroup } from "./components/button-group.tsx";
 import { StartCreateGroupChat } from "./create-group.tsx";
 import { PrimaryTextColor } from "./style/colors.ts";
@@ -222,7 +222,8 @@ function ContactGroup(props: ConversationListProps) {
                                 boxShadow: "2px 2px 5px 0 black",
                             }}
                         >
-                            {/* <button
+                            {
+                                /* <button
                                 class={tw`w-6 h-6 flex items-center justify-center`}
                                 onClick={e => {
                                     e.stopPropagation();
@@ -235,7 +236,8 @@ function ContactGroup(props: ConversationListProps) {
                                         fill: PrimaryTextColor,
                                     }}
                                 />
-                            </button> */}
+                            </button> */
+                            }
 
                             <button
                                 class={tw`w-6 h-6 flex items-center justify-center`}
@@ -287,7 +289,8 @@ function ContactGroup(props: ConversationListProps) {
                                 boxShadow: "2px 2px 5px 0 black",
                             }}
                         >
-                            {/* <button
+                            {
+                                /* <button
                                 class={tw`w-6 h-6 flex items-center justify-center`}
                                 onClick={e => {
                                     e.stopPropagation();
@@ -300,7 +303,8 @@ function ContactGroup(props: ConversationListProps) {
                                         fill: PrimaryTextColor,
                                     }}
                                 />
-                            </button> */}
+                            </button> */
+                            }
 
                             <button
                                 class={tw`w-6 h-6 flex items-center justify-center`}

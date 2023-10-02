@@ -35,7 +35,7 @@ const view = () => {
     console.log(database.events, threads);
     return (
         <MessagePanel
-            allUserInfo={allUserInfo.convoSummaries}
+            conversationSummaries={allUserInfo.convoSummaries}
             db={database}
             editorModel={model.social.editor}
             eventSyncer={new EventSyncer(pool, database)}
