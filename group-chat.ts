@@ -54,7 +54,6 @@ export class GroupChatController {
             if (event.kind != NostrKind.Custom_App_Data) {
                 continue;
             }
-            // @ts-ignore
             this.addEvent(event);
         }
     }

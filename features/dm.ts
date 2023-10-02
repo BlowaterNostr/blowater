@@ -12,6 +12,7 @@ import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { prepareNostrImageEvent, Tag } from "../nostr.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { prepareEncryptedNostrEvent, prepareNormalNostrEvent } from "../lib/nostr-ts/event.ts";
+import { GroupChatController } from "../group-chat.ts";
 
 export async function sendDMandImages(args: {
     sender: NostrAccountContext;
@@ -90,6 +91,38 @@ export async function sendSocialPost(args: {
         return err;
     }
     return event;
+}
+
+export async function sendGroupChat(args: {
+    sender: NostrAccountContext;
+    message: string;
+    lamport_timestamp: number;
+    pool: ConnectionPool;
+    tags: Tag[];
+    groupPublicKey: PublicKey;
+    groupChatController: GroupChatController;
+}) {
+    const { sender, groupChatController, groupPublicKey, lamport_timestamp, tags, message } = args;
+    const cipherCtx = groupChatController.getGroupAdminCtx(groupPublicKey);
+    if (!cipherCtx) {
+        return;
+    }
+    const nostrEvent = await prepareEncryptedNostrEvent(
+        sender,
+        {
+            encryptKey: cipherCtx.publicKey,
+            kind: NostrKind.Group_Chat,
+            tags: [
+                ["p", groupPublicKey.hex],
+                ["lamport", String(lamport_timestamp)],
+                ...tags,
+            ],
+            content: message,
+        },
+    );
+    if (nostrEvent instanceof Error) {
+        return nostrEvent;
+    }
 }
 
 export function getAllEncryptedMessagesOf(
