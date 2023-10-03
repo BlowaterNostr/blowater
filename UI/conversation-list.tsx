@@ -28,33 +28,38 @@ export interface GroupChatListGetter {
 export type ConversationType = "Contacts" | "Strangers" | "Group";
 
 export type ContactUpdate =
-    | SelectConversationType
     | SearchUpdate
     | PinConversation
     | UnpinConversation
     | StartCreateGroupChat;
 
-export type SelectConversationType = {
-    type: "SelectConversationType";
-    conversationType: ConversationType;
-};
-
 type Props = {
     emit: emitFunc<ContactUpdate | SearchUpdate>;
     convoListRetriever: ConversationListRetriever;
     currentSelected: PublicKey | undefined;
-    selectedContactGroup: ConversationType;
     pinListGetter: PinListGetter;
     hasNewMessages: Set<string>;
 };
 
-export class ConversationList extends Component<Props> {
+type State = {
+    selectedContactGroup: ConversationType;
+};
+
+export class ConversationList extends Component<Props, State> {
+    constructor() {
+        super();
+    }
+
+    state: Readonly<State> = {
+        selectedContactGroup: "Contacts",
+    };
+
     render(props: Props) {
         let listToRender: ConversationSummary[];
         const contacts = Array.from(props.convoListRetriever.getContacts());
         const strangers = Array.from(props.convoListRetriever.getStrangers());
         const groups = Array.from(props.convoListRetriever.getGroupChat());
-        switch (props.selectedContactGroup) {
+        switch (this.state.selectedContactGroup) {
             case "Contacts":
                 listToRender = contacts;
                 break;
@@ -116,30 +121,24 @@ export class ConversationList extends Component<Props> {
                 <ul class={tw`bg-[#36393F] w-full flex h-[3rem] border-b border-[#36393F]`}>
                     <li
                         class={tw`h-full flex-1 cursor-pointer hover:text-[#F7F7F7] text-[#96989D] bg-[#2F3136] hover:bg-[#42464D] ${CenterClass} ${
-                            props.selectedContactGroup == "Contacts"
+                            this.state.selectedContactGroup == "Contacts"
                                 ? "border-b-2 border-[#54D48C] bg-[#42464D] text-[#F7F7F7]"
                                 : ""
                         }`}
-                        onClick={() => {
-                            props.emit({
-                                type: "SelectConversationType",
-                                conversationType: "Contacts",
-                            });
-                        }}
+                        onClick={() => this.setState({ selectedContactGroup: "Contacts" })}
                     >
                         Contacts: {contacts.length}
                     </li>
                     <li class={tw`w-[0.05rem] h-full bg-[#2F3136]`}></li>
                     <li
                         class={tw`h-full flex-1 cursor-pointer hover:text-[#F7F7F7] text-[#96989D] bg-[#2F3136] hover:bg-[#42464D] ${CenterClass} ${
-                            props.selectedContactGroup == "Strangers"
+                            this.state.selectedContactGroup == "Strangers"
                                 ? "border-b-2 border-[#54D48C] bg-[#42464D] text-[#F7F7F7]"
                                 : ""
                         }`}
                         onClick={() => {
-                            props.emit({
-                                type: "SelectConversationType",
-                                conversationType: "Strangers",
+                            this.setState({
+                                selectedContactGroup: "Strangers",
                             });
                         }}
                     >
@@ -148,14 +147,13 @@ export class ConversationList extends Component<Props> {
 
                     <li
                         class={tw`h-full flex-1 cursor-pointer hover:text-[#F7F7F7] text-[#96989D] bg-[#2F3136] hover:bg-[#42464D] ${CenterClass} ${
-                            props.selectedContactGroup == "Group"
+                            this.state.selectedContactGroup == "Group"
                                 ? "border-b-2 border-[#54D48C] bg-[#42464D] text-[#F7F7F7]"
                                 : ""
                         }`}
                         onClick={() => {
-                            props.emit({
-                                type: "SelectConversationType",
-                                conversationType: "Group",
+                            this.setState({
+                                selectedContactGroup: "Group",
                             });
                         }}
                     >

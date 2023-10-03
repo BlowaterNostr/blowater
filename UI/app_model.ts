@@ -34,7 +34,6 @@ export function initialModel(): Model {
         app: undefined,
         search: SearchInitModel(),
         dm: {
-            selectedContactGroup: "Contacts",
             focusedContent: new Map(),
             hasNewMessages: new Set(),
             currentSelectedContact: undefined,
