@@ -13,161 +13,167 @@ import { PrimaryTextColor } from "./style/colors.ts";
 import { ButtonGroup } from "./components/button-group.tsx";
 import { ChatIcon } from "./icons2/chat-icon.tsx";
 import { StartCreateGroupChat } from "./create-group.tsx";
-import { OtherConfig } from "./config-other.ts";
 import { GroupIcon } from "./icons2/group-icon.tsx";
+import { Component } from "https://esm.sh/preact@10.17.1";
 
-export interface ConversationListRetriever {
+export interface ConversationListRetriever extends GroupChatListGetter {
     getContacts: () => Iterable<ConversationSummary>;
     getStrangers: () => Iterable<ConversationSummary>;
+}
+
+export interface GroupChatListGetter {
     getGroupChat: () => Iterable<ConversationSummary>;
 }
 
 export type ConversationType = "Contacts" | "Strangers" | "Group";
 
 export type ContactUpdate =
-    | SelectConversationType
     | SearchUpdate
     | PinConversation
     | UnpinConversation
     | StartCreateGroupChat;
 
-export type SelectConversationType = {
-    type: "SelectConversationType";
-    group: ConversationType;
-};
-
 type Props = {
     emit: emitFunc<ContactUpdate | SearchUpdate>;
     convoListRetriever: ConversationListRetriever;
     currentSelected: PublicKey | undefined;
-    selectedContactGroup: ConversationType;
     pinListGetter: PinListGetter;
     hasNewMessages: Set<string>;
 };
-export function ConversationList(props: Props) {
-    let listToRender: ConversationSummary[];
-    const contacts = Array.from(props.convoListRetriever.getContacts());
-    const strangers = Array.from(props.convoListRetriever.getStrangers());
-    const groups = Array.from(props.convoListRetriever.getGroupChat());
-    switch (props.selectedContactGroup) {
-        case "Contacts":
-            listToRender = contacts;
-            break;
-        case "Strangers":
-            listToRender = strangers;
-            break;
-        case "Group":
-            listToRender = groups;
-            break;
-    }
-    const convoListToRender = [];
-    for (const contact of listToRender) {
-        convoListToRender.push({
-            userInfo: contact,
-            isMarked: props.hasNewMessages.has(contact.pubkey.hex),
-        });
+
+type State = {
+    selectedContactGroup: ConversationType;
+};
+
+export class ConversationList extends Component<Props, State> {
+    constructor() {
+        super();
     }
 
-    return (
-        <div class={tw`h-full flex flex-col mobile:w-full desktop:w-64 bg-[#2F3136]`}>
-            <div
-                class={tw`flex items-center gap-2 px-4 h-20 border-b border-[#36393F]`}
-            >
-                <ButtonGroup class={tw`flex-1 ${LinearGradientsClass}} items-center`}>
-                    <button
-                        onClick={async () => {
-                            props.emit({
-                                type: "StartSearch",
-                            });
-                        }}
-                        class={tw`w-full h-10 ${CenterClass} text-sm text-[${PrimaryTextColor}] !hover:bg-transparent hover:font-bold group`}
-                    >
-                        <ChatIcon
-                            class={tw`w-4 h-4m mr-1 text-[${PrimaryTextColor}] stroke-current`}
-                            style={{
-                                fill: "none",
+    state: Readonly<State> = {
+        selectedContactGroup: "Contacts",
+    };
+
+    render(props: Props) {
+        let listToRender: ConversationSummary[];
+        const contacts = Array.from(props.convoListRetriever.getContacts());
+        const strangers = Array.from(props.convoListRetriever.getStrangers());
+        const groups = Array.from(props.convoListRetriever.getGroupChat());
+        switch (this.state.selectedContactGroup) {
+            case "Contacts":
+                listToRender = contacts;
+                break;
+            case "Strangers":
+                listToRender = strangers;
+                break;
+            case "Group":
+                listToRender = groups;
+                break;
+        }
+        const convoListToRender = [];
+        for (const conversationSummary of listToRender) {
+            convoListToRender.push({
+                conversation: conversationSummary,
+                isMarked: props.hasNewMessages.has(conversationSummary.pubkey.hex),
+            });
+        }
+
+        return (
+            <div class={tw`h-full flex flex-col mobile:w-full desktop:w-64 bg-[#2F3136]`}>
+                <div
+                    class={tw`flex items-center gap-2 px-4 h-20 border-b border-[#36393F]`}
+                >
+                    <ButtonGroup class={tw`flex-1 ${LinearGradientsClass}} items-center`}>
+                        <button
+                            onClick={async () => {
+                                props.emit({
+                                    type: "StartSearch",
+                                });
                             }}
-                        />
-                        New Chat
-                    </button>
-                    {
-                        /* <div class={tw`h-4 w-1 bg-[${PrimaryTextColor}] !p-0`}></div>
-                    <button
-                        onClick={async () => {
-                            props.emit({
-                                type: "StartCreateGroupChat",
+                            class={tw`w-full h-10 ${CenterClass} text-sm text-[${PrimaryTextColor}] !hover:bg-transparent hover:font-bold group`}
+                        >
+                            <ChatIcon
+                                class={tw`w-4 h-4m mr-1 text-[${PrimaryTextColor}] stroke-current`}
+                                style={{
+                                    fill: "none",
+                                }}
+                            />
+                            New Chat
+                        </button>
+
+                        {
+                            /* <div class={tw`h-4 w-1 bg-[${PrimaryTextColor}] !p-0`}></div>
+                        <button
+                            onClick={async () => {
+                                props.emit({
+                                    type: "StartCreateGroupChat",
+                                });
+                            }}
+                            class={tw`w-full h-10 ${CenterClass} text-sm text-[${PrimaryTextColor}] !hover:bg-transparent hover:font-bold group`}
+                        >
+                            <GroupIcon
+                                class={tw`w-4 h-4 mr-1 text-[${PrimaryTextColor}] fill-current`}
+                            />
+                            New Group
+                        </button> */
+                        }
+                    </ButtonGroup>
+                </div>
+
+                <ul class={tw`bg-[#36393F] w-full flex h-[3rem] border-b border-[#36393F]`}>
+                    <li
+                        class={tw`h-full flex-1 cursor-pointer hover:text-[#F7F7F7] text-[#96989D] bg-[#2F3136] hover:bg-[#42464D] ${CenterClass} ${
+                            this.state.selectedContactGroup == "Contacts"
+                                ? "border-b-2 border-[#54D48C] bg-[#42464D] text-[#F7F7F7]"
+                                : ""
+                        }`}
+                        onClick={() => this.setState({ selectedContactGroup: "Contacts" })}
+                    >
+                        Contacts: {contacts.length}
+                    </li>
+                    <li class={tw`w-[0.05rem] h-full bg-[#2F3136]`}></li>
+                    <li
+                        class={tw`h-full flex-1 cursor-pointer hover:text-[#F7F7F7] text-[#96989D] bg-[#2F3136] hover:bg-[#42464D] ${CenterClass} ${
+                            this.state.selectedContactGroup == "Strangers"
+                                ? "border-b-2 border-[#54D48C] bg-[#42464D] text-[#F7F7F7]"
+                                : ""
+                        }`}
+                        onClick={() => {
+                            this.setState({
+                                selectedContactGroup: "Strangers",
                             });
                         }}
-                        class={tw`w-full h-10 ${CenterClass} text-sm text-[${PrimaryTextColor}] !hover:bg-transparent hover:font-bold group`}
                     >
-                        <GroupIcon
-                            class={tw`w-4 h-4 mr-1 text-[${PrimaryTextColor}] fill-current`}
-                        />
-                        New Group
-                    </button> */
+                        Strangers: {strangers.length}
+                    </li>
+
+                    {
+                        /* <li
+                        class={tw`h-full flex-1 cursor-pointer hover:text-[#F7F7F7] text-[#96989D] bg-[#2F3136] hover:bg-[#42464D] ${CenterClass} ${
+                            this.state.selectedContactGroup == "Group"
+                                ? "border-b-2 border-[#54D48C] bg-[#42464D] text-[#F7F7F7]"
+                                : ""
+                        }`}
+                        onClick={() => {
+                            this.setState({
+                                selectedContactGroup: "Group",
+                            });
+                        }}
+                    >
+                        Group: {groups.length}
+                    </li> */
                     }
-                </ButtonGroup>
+                </ul>
+
+                <ContactGroup
+                    contacts={Array.from(convoListToRender.values())}
+                    currentSelected={props.currentSelected}
+                    pinListGetter={props.pinListGetter}
+                    emit={props.emit}
+                />
             </div>
-
-            <ul class={tw`bg-[#36393F] w-full flex h-[3rem] border-b border-[#36393F]`}>
-                <li
-                    class={tw`h-full flex-1 cursor-pointer hover:text-[#F7F7F7] text-[#96989D] bg-[#2F3136] hover:bg-[#42464D] ${CenterClass} ${
-                        props.selectedContactGroup == "Contacts"
-                            ? "border-b-2 border-[#54D48C] bg-[#42464D] text-[#F7F7F7]"
-                            : ""
-                    }`}
-                    onClick={() => {
-                        props.emit({
-                            type: "SelectConversationType",
-                            group: "Contacts",
-                        });
-                    }}
-                >
-                    Contacts: {contacts.length}
-                </li>
-                <li class={tw`w-[0.05rem] h-full bg-[#2F3136]`}></li>
-                <li
-                    class={tw`h-full flex-1 cursor-pointer hover:text-[#F7F7F7] text-[#96989D] bg-[#2F3136] hover:bg-[#42464D] ${CenterClass} ${
-                        props.selectedContactGroup == "Strangers"
-                            ? "border-b-2 border-[#54D48C] bg-[#42464D] text-[#F7F7F7]"
-                            : ""
-                    }`}
-                    onClick={() => {
-                        props.emit({
-                            type: "SelectConversationType",
-                            group: "Strangers",
-                        });
-                    }}
-                >
-                    Strangers: {strangers.length}
-                </li>
-                {
-                    /* <li
-                    class={tw`h-full flex-1 cursor-pointer hover:text-[#F7F7F7] text-[#96989D] bg-[#2F3136] hover:bg-[#42464D] ${CenterClass} ${
-                        props.selectedContactGroup == "Group"
-                            ? "border-b-2 border-[#54D48C] bg-[#42464D] text-[#F7F7F7]"
-                            : ""
-                    }`}
-                    onClick={() => {
-                        props.emit({
-                            type: "SelectConversationType",
-                            group: "Group",
-                        });
-                    }}
-                >
-                    Group
-                </li> */
-                }
-            </ul>
-
-            <ContactGroup
-                contacts={Array.from(convoListToRender.values())}
-                currentSelected={props.currentSelected}
-                pinListGetter={props.pinListGetter}
-                emit={props.emit}
-            />
-        </div>
-    );
+        );
+    }
 }
 
 export interface PinListGetter {
@@ -175,7 +181,7 @@ export interface PinListGetter {
 }
 
 type ConversationListProps = {
-    contacts: { userInfo: ConversationSummary; isMarked: boolean }[];
+    contacts: { conversation: ConversationSummary; isMarked: boolean }[];
     currentSelected: PublicKey | undefined;
     pinListGetter: PinListGetter;
     emit: emitFunc<ContactUpdate>;
@@ -184,13 +190,13 @@ type ConversationListProps = {
 function ContactGroup(props: ConversationListProps) {
     const t = Date.now();
     props.contacts.sort((a, b) => {
-        return sortUserInfo(a.userInfo, b.userInfo);
+        return sortUserInfo(a.conversation, b.conversation);
     });
     const pinList = props.pinListGetter.getPinList();
     const pinned = [];
     const unpinned = [];
     for (const contact of props.contacts) {
-        if (pinList.has(contact.userInfo.pubkey.hex)) {
+        if (pinList.has(contact.conversation.pubkey.hex)) {
             pinned.push(contact);
         } else {
             unpinned.push(contact);
@@ -203,7 +209,7 @@ function ContactGroup(props: ConversationListProps) {
                 return (
                     <li
                         class={tw`${
-                            props.currentSelected && contact.userInfo.pubkey.hex ===
+                            props.currentSelected && contact.conversation.pubkey.hex ===
                                     props.currentSelected.hex
                                 ? "bg-[#42464D] text-[#FFFFFF]"
                                 : "bg-[#42464D] text-[#96989D]"
@@ -211,12 +217,12 @@ function ContactGroup(props: ConversationListProps) {
                         onClick={() => {
                             props.emit({
                                 type: "SelectConversation",
-                                pubkey: contact.userInfo.pubkey,
+                                pubkey: contact.conversation.pubkey,
                             });
                         }}
                     >
                         <ConversationListItem
-                            userInfo={contact.userInfo}
+                            userInfo={contact.conversation}
                             isMarked={contact.isMarked}
                             isPinned={true}
                         />
@@ -230,7 +236,7 @@ function ContactGroup(props: ConversationListProps) {
                                 e.stopPropagation();
                                 props.emit({
                                     type: "UnpinConversation",
-                                    pubkey: contact.userInfo.pubkey.hex,
+                                    pubkey: contact.conversation.pubkey.hex,
                                 });
                             }}
                         >
@@ -249,7 +255,7 @@ function ContactGroup(props: ConversationListProps) {
                 return (
                     <li
                         class={tw`${
-                            props.currentSelected && contact.userInfo?.pubkey.hex ===
+                            props.currentSelected && contact.conversation?.pubkey.hex ===
                                     props.currentSelected.hex
                                 ? "bg-[#42464D] text-[#FFFFFF]"
                                 : "bg-transparent text-[#96989D]"
@@ -257,12 +263,12 @@ function ContactGroup(props: ConversationListProps) {
                         onClick={() => {
                             props.emit({
                                 type: "SelectConversation",
-                                pubkey: contact.userInfo.pubkey,
+                                pubkey: contact.conversation.pubkey,
                             });
                         }}
                     >
                         <ConversationListItem
-                            userInfo={contact.userInfo}
+                            userInfo={contact.conversation}
                             isMarked={contact.isMarked}
                             isPinned={false}
                         />
@@ -276,7 +282,7 @@ function ContactGroup(props: ConversationListProps) {
                                 e.stopPropagation();
                                 props.emit({
                                     type: "PinConversation",
-                                    pubkey: contact.userInfo.pubkey.hex,
+                                    pubkey: contact.conversation.pubkey.hex,
                                 });
                             }}
                         >

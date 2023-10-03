@@ -7,14 +7,13 @@ import {
     ConversationLists,
     ConversationSummary,
     getConversationSummaryFromPublicKey,
-    getGroupOf,
 } from "./conversation-list.ts";
 
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { Database_Contextual_View } from "../database.ts";
 import { convertEventsToChatMessages } from "./dm.ts";
 
-import { sendDMandImages, sendSocialPost } from "../features/dm.ts";
+import { sendDMandImages } from "../features/dm.ts";
 import { notify } from "./notification.ts";
 import { emitFunc, EventBus } from "../event-bus.ts";
 import { ContactUpdate } from "./conversation-list.tsx";
@@ -44,11 +43,10 @@ import { Search } from "./search.tsx";
 import { NoteID } from "../lib/nostr-ts/nip19.ts";
 import { EventDetail, EventDetailItem } from "./event-detail.tsx";
 import { CreateGroup, CreateGroupChat, StartCreateGroupChat } from "./create-group.tsx";
-import { prepareNormalNostrEvent, prepareParameterizedEvent } from "../lib/nostr-ts/event.ts";
-import { PrivateKey, PublicKey } from "../lib/nostr-ts/key.ts";
-import { InMemoryAccountContext, NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
+import { prepareNormalNostrEvent } from "../lib/nostr-ts/event.ts";
+import { PublicKey } from "../lib/nostr-ts/key.ts";
+import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
-import { GroupChatController } from "../group-chat.ts";
 import { OtherConfig } from "./config-other.ts";
 
 export type UI_Interaction_Event =
@@ -131,7 +129,6 @@ export async function* UI_Interaction_Update(args: {
                 }
                 yield model;
                 continue;
-                break;
         }
 
         const app = model.app;
@@ -190,11 +187,6 @@ export async function* UI_Interaction_Update(args: {
             model.rightPanelModel = {
                 show: false,
             };
-            const group = getGroupOf(
-                event.pubkey,
-                app.conversationLists.convoSummaries,
-            );
-            model.dm.selectedContactGroup = group;
             updateConversation(app.model, event.pubkey);
 
             if (!model.dm.focusedContent.get(event.pubkey.hex)) {
@@ -203,8 +195,6 @@ export async function* UI_Interaction_Update(args: {
             app.popOverInputChan.put({ children: undefined });
         } else if (event.type == "BackToContactList") {
             model.dm.currentSelectedContact = undefined;
-        } else if (event.type == "SelectConversationType") {
-            model.dm.selectedContactGroup = event.group;
         } else if (event.type == "PinConversation") {
             app.otherConfig.addPin(event.pubkey);
             let err = await app.otherConfig.saveToLocalStorage(app.ctx);
@@ -301,9 +291,6 @@ export async function* UI_Interaction_Update(args: {
         else if (event.type == "ToggleRightPanel") {
             model.rightPanelModel.show = event.show;
         } else if (event.type == "ViewThread") {
-            // if (model.navigationModel.activeNav == "Social") {
-            //     model.social.focusedContent = event.root;
-            // } else
             if (model.navigationModel.activeNav == "DM") {
                 if (model.dm.currentSelectedContact) {
                     model.dm.focusedContent.set(
@@ -314,9 +301,6 @@ export async function* UI_Interaction_Update(args: {
             }
             model.rightPanelModel.show = true;
         } else if (event.type == "ViewUserDetail") {
-            // if (model.navigationModel.activeNav == "Social") {
-            //     model.social.focusedContent = event.pubkey;
-            // } else
             if (
                 model.navigationModel.activeNav == "DM"
             ) {

@@ -9,6 +9,9 @@ import { testEventBus } from "./_setup.test.ts";
 import { initialModel } from "./app_model.ts";
 import { ConversationLists } from "./conversation-list.ts";
 import { NewIndexedDB } from "./dexie-db.ts";
+import { ProfileSyncer } from "../features/profile.ts";
+import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
+import { OtherConfig } from "./config-other.ts";
 
 const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
 const db = NewIndexedDB();
@@ -20,11 +23,10 @@ if (database instanceof Error) {
     fail(database.message);
 }
 
-const convoLists = new ConversationLists(ctx);
+const convoLists = new ConversationLists(ctx, new ProfileSyncer(database, new ConnectionPool()));
 convoLists.addEvents(database.events);
 
 const model = initialModel();
-model.dm.selectedContactGroup = "Strangers";
 model.dm.currentSelectedContact = ctx.publicKey;
 
 const view = () =>
@@ -33,7 +35,7 @@ const view = () =>
             convoListRetriever={convoLists}
             currentSelected={model.dm.currentSelectedContact}
             hasNewMessages={new Set()}
-            selectedContactGroup={model.dm.selectedContactGroup}
+            pinListGetter={OtherConfig.Empty()}
             // common dependencies
             emit={testEventBus.emit}
         />,
@@ -45,8 +47,6 @@ for await (const e of testEventBus.onChange()) {
     console.log(e);
     if (e.type == "SelectConversation") {
         model.dm.currentSelectedContact = e.pubkey;
-    } else if (e.type == "SelectConversationType") {
-        model.dm.selectedContactGroup = e.group;
     }
     view();
 }

@@ -1,8 +1,7 @@
-import { ConversationListRetriever, ConversationType } from "./conversation-list.tsx";
+import { ConversationListRetriever, ConversationType, GroupChatListGetter } from "./conversation-list.tsx";
 import { PrivateKey, PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
-import { CustomAppData, getTags, Profile_Nostr_Event, Text_Note_Event } from "../nostr.ts";
-import { GroupChatController } from "../group-chat.ts";
+import { getTags, Profile_Nostr_Event, Text_Note_Event } from "../nostr.ts";
 import { ProfileSyncer } from "../features/profile.ts";
 
 export interface ConversationSummary {
@@ -16,7 +15,7 @@ export function getConversationSummaryFromPublicKey(k: PublicKey, users: Map<str
     return users.get(k.hex);
 }
 
-export class ConversationLists implements ConversationListRetriever {
+export class ConversationLists implements ConversationListRetriever, GroupChatListGetter {
     readonly convoSummaries = new Map<string, ConversationSummary>();
     readonly groupChatSummaries = new Map<string, ConversationSummary>();
     private readonly profile = new Map<string, Profile_Nostr_Event>();
@@ -57,6 +56,20 @@ export class ConversationLists implements ConversationListRetriever {
     *getGroupChat() {
         for (const value of this.groupChatSummaries.values()) {
             yield value;
+        }
+    }
+
+    getConversationType(pubkey: PublicKey) {
+        const contact = this.convoSummaries.get(pubkey.hex);
+        if (contact == undefined) {
+            return "Strangers";
+        }
+        if (
+            contact.newestEventReceivedByMe == undefined || contact.newestEventSendByMe == undefined
+        ) {
+            return "Strangers";
+        } else {
+            return "Contacts";
         }
     }
 
@@ -219,22 +232,4 @@ function sortScore(contact: ConversationSummary) {
         score += contact.newestEventReceivedByMe.created_at;
     }
     return score;
-}
-
-export function getGroupOf(
-    pubkey: PublicKey,
-    allUserInfo: Map<string, ConversationSummary>,
-): ConversationType {
-    const contact = allUserInfo.get(pubkey.hex);
-    if (contact == undefined) {
-        return "Strangers";
-    }
-    console.log(contact);
-    if (
-        contact.newestEventReceivedByMe == undefined || contact.newestEventSendByMe == undefined
-    ) {
-        return "Strangers";
-    } else {
-        return "Contacts";
-    }
 }
