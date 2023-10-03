@@ -365,10 +365,8 @@ export async function* UI_Interaction_Update(args: {
         } else if (event.type == "CreateGroupChat") {
             const profileData = event.profileData;
 
-            const groupChatCreation = app.groupChatController.createGroupChat();
-            const creationEvent = await app.groupChatController.encodeCreationsToNostrEvent(
-                groupChatCreation,
-            );
+            const groupCtx = app.groupChatController.createGroupChat();
+            const creationEvent = await app.groupChatController.encodeCreationsToNostrEvent(groupCtx);
             if (creationEvent instanceof Error) {
                 console.error(creationEvent);
                 continue;
@@ -379,9 +377,8 @@ export async function* UI_Interaction_Update(args: {
                 continue;
             }
             console.log("profile", profileData);
-            const groupAdminCtx = InMemoryAccountContext.New(groupChatCreation.groupKey);
             const profileEvent = await prepareNormalNostrEvent(
-                groupAdminCtx,
+                groupCtx,
                 NostrKind.META_DATA,
                 [],
                 JSON.stringify(profileData),
@@ -392,8 +389,8 @@ export async function* UI_Interaction_Update(args: {
                 continue;
             }
             app.popOverInputChan.put({ children: undefined });
-            console.log(profileEvent, groupAdminCtx.publicKey.hex);
-            app.profileSyncer.add(groupAdminCtx.publicKey.hex);
+            console.log(profileEvent, groupCtx.publicKey.hex);
+            app.profileSyncer.add(groupCtx.publicKey.hex);
         } else if (event.type == "RelayConfigChange") {
             const e = await app.relayConfig.toNostrEvent(app.ctx);
             if (e instanceof Error) {

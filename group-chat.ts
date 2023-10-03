@@ -22,13 +22,12 @@ export class GroupChatController {
         private readonly conversationLists: ConversationLists,
     ) {}
 
-    async encodeCreationsToNostrEvent(groupChatCreation: GroupChatCreation) {
+    async encodeCreationsToNostrEvent(ctx: InMemoryAccountContext) {
+        const groupChatCreation = this.created_groups.get(ctx.privateKey.hex);
         const event = prepareEncryptedNostrEvent(this.ctx, {
             encryptKey: this.ctx.publicKey,
             kind: NostrKind.Group_Creation,
-            tags: [
-                ["d", GroupChatController.name],
-            ],
+            tags: [],
             content: JSON.stringify(groupChatCreation),
         });
         return event;
@@ -39,9 +38,8 @@ export class GroupChatController {
             cipherKey: PrivateKey.Generate(),
             groupKey: PrivateKey.Generate(),
         };
-        const pubkey = groupChatCreation.groupKey.toPublicKey().hex;
-        this.created_groups.set(pubkey, groupChatCreation);
-        return groupChatCreation;
+        this.created_groups.set(groupChatCreation.groupKey.hex, groupChatCreation);
+        return InMemoryAccountContext.New(groupChatCreation.groupKey);
     }
 
     // addEvents(...events: NostrEvent[]) {

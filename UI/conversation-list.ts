@@ -3,6 +3,7 @@ import { PrivateKey, PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { CustomAppData, getTags, Profile_Nostr_Event, Text_Note_Event } from "../nostr.ts";
 import { GroupChatController } from "../group-chat.ts";
+import { ProfileSyncer } from "../features/profile.ts";
 
 export interface ConversationSummary {
     pubkey: PublicKey;
@@ -22,6 +23,7 @@ export class ConversationLists implements ConversationListRetriever {
 
     constructor(
         public readonly ctx: NostrAccountContext,
+        private readonly profileSyncer: ProfileSyncer,
     ) {}
 
     *getStrangers() {
@@ -95,6 +97,7 @@ export class ConversationLists implements ConversationListRetriever {
                                 newestEventSendByMe: undefined,
                                 profile: this.profile.get(publicKey.hex),
                             });
+                            this.profileSyncer.add(publicKey.hex);
                             console.log(publicKey.hex, "========");
                         } catch (e) {
                             console.error(e);
