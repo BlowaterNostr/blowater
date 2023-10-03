@@ -165,7 +165,7 @@ export class App {
             const stream = await this.pool.newSub("group creations", {
                 "#d": [GroupChatController.name],
                 authors: [this.ctx.publicKey.hex],
-                kinds: [NostrKind.Custom_App_Data],
+                kinds: [NostrKind.Group_Creation],
             });
             if (stream instanceof Error) {
                 throw stream; // crash to app
@@ -174,7 +174,10 @@ export class App {
                 if (msg.res.type == "EOSE") {
                     continue;
                 }
-                // this.groupChatController.addEvent(msg.res.event);
+                this.groupChatController.addEvent({
+                    ...msg.res.event,
+                    kind: NostrKind.Group_Creation,
+                });
             }
         })();
         // Sync DM events
