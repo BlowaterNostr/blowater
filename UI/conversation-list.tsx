@@ -14,6 +14,7 @@ import { ButtonGroup } from "./components/button-group.tsx";
 import { ChatIcon } from "./icons2/chat-icon.tsx";
 import { StartCreateGroupChat } from "./create-group.tsx";
 import { OtherConfig } from "./config-other.ts";
+import { GroupIcon } from "./icons2/group-icon.tsx";
 
 export interface ConversationListRetriever {
     getContacts: () => Iterable<ConversationSummary>;
@@ -82,9 +83,8 @@ export function ConversationList(props: Props) {
                         />
                         New Chat
                     </button>
-                    {/* <div class={tw`h-4 w-1 bg-[${SecondaryBackgroundColor}] !p-0`}></div> */}
-                    {
-                        /* <button
+                    <div class={tw`h-4 w-1 bg-[${PrimaryTextColor}] !p-0`}></div>
+                    <button
                         onClick={async () => {
                             props.emit({
                                 type: "StartCreateGroupChat",
@@ -96,8 +96,7 @@ export function ConversationList(props: Props) {
                             class={tw`w-4 h-4 mr-1 text-[${PrimaryTextColor}] fill-current`}
                         />
                         New Group
-                    </button> */
-                    }
+                    </button>
                 </ButtonGroup>
             </div>
 

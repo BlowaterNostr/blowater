@@ -365,25 +365,21 @@ export async function* UI_Interaction_Update(args: {
         } else if (event.type == "CreateGroupChat") {
             const profileData = event.profileData;
 
-            const groupAdminCtx = app.groupChatController.createGroupChat({
-                cipherKey: PrivateKey.Generate(),
-                groupKey: PrivateKey.Generate(),
-            });
-            if (groupAdminCtx instanceof Error) {
-                console.error(groupAdminCtx);
+            const groupChatCreation = app.groupChatController.createGroupChat();
+            const creationEvent = await app.groupChatController.encodeCreationsToNostrEvent(
+                groupChatCreation,
+            );
+            if (creationEvent instanceof Error) {
+                console.error(creationEvent);
                 continue;
             }
-            const groupCreations = await app.groupChatController.encodeCreationsToNostrEvent();
-            if (groupCreations instanceof Error) {
-                console.error(groupAdminCtx);
-                continue;
-            }
-            const err = await pool.sendEvent(groupCreations);
+            const err = await pool.sendEvent(creationEvent);
             if (err instanceof Error) {
                 console.error(err);
                 continue;
             }
             console.log("profile", profileData);
+            const groupAdminCtx = InMemoryAccountContext.New(groupChatCreation.groupKey);
             const profileEvent = await prepareNormalNostrEvent(
                 groupAdminCtx,
                 NostrKind.META_DATA,

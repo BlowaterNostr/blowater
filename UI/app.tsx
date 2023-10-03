@@ -108,7 +108,7 @@ export class App {
         this.eventSyncer = new EventSyncer(pool, this.database);
         this.conversationLists = new ConversationLists(ctx);
         this.conversationLists.addEvents(database.events);
-        this.groupChatController = new GroupChatController(ctx, this.conversationLists);
+        this.groupChatController = new GroupChatController(ctx);
         this.relayConfig = RelayConfig.FromLocalStorage(ctx);
         if (this.relayConfig.getRelayURLs().size == 0) {
             for (const url of defaultRelays) {
@@ -174,7 +174,7 @@ export class App {
                 if (msg.res.type == "EOSE") {
                     continue;
                 }
-                this.groupChatController.addEvent(msg.res.event);
+                // this.groupChatController.addEvent(msg.res.event);
             }
         })();
         // Sync DM events
