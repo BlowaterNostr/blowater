@@ -13,7 +13,6 @@ import { PrimaryTextColor } from "./style/colors.ts";
 import { ButtonGroup } from "./components/button-group.tsx";
 import { ChatIcon } from "./icons2/chat-icon.tsx";
 import { StartCreateGroupChat } from "./create-group.tsx";
-import { OtherConfig } from "./config-other.ts";
 import { GroupIcon } from "./icons2/group-icon.tsx";
 
 export interface ConversationListRetriever {
@@ -90,8 +89,8 @@ export function ConversationList(props: Props) {
                         />
                         New Chat
                     </button>
-                    {
-                        /* <div class={tw`h-4 w-1 bg-[${PrimaryTextColor}] !p-0`}></div>
+
+                    <div class={tw`h-4 w-1 bg-[${PrimaryTextColor}] !p-0`}></div>
                     <button
                         onClick={async () => {
                             props.emit({
@@ -104,8 +103,7 @@ export function ConversationList(props: Props) {
                             class={tw`w-4 h-4 mr-1 text-[${PrimaryTextColor}] fill-current`}
                         />
                         New Group
-                    </button> */
-                    }
+                    </button>
                 </ButtonGroup>
             </div>
 
@@ -141,8 +139,8 @@ export function ConversationList(props: Props) {
                 >
                     Strangers: {strangers.length}
                 </li>
-                {
-                    /* <li
+
+                <li
                     class={tw`h-full flex-1 cursor-pointer hover:text-[#F7F7F7] text-[#96989D] bg-[#2F3136] hover:bg-[#42464D] ${CenterClass} ${
                         props.selectedContactGroup == "Group"
                             ? "border-b-2 border-[#54D48C] bg-[#42464D] text-[#F7F7F7]"
@@ -155,9 +153,8 @@ export function ConversationList(props: Props) {
                         });
                     }}
                 >
-                    Group
-                </li> */
-                }
+                    Group: {groups.length}
+                </li>
             </ul>
 
             <ContactGroup

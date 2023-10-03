@@ -221,7 +221,7 @@ function sortScore(contact: ConversationSummary) {
     return score;
 }
 
-export function getGroupOf(
+export function getConversationTypeOf(
     pubkey: PublicKey,
     allUserInfo: Map<string, ConversationSummary>,
 ): ConversationType {
@@ -229,7 +229,6 @@ export function getGroupOf(
     if (contact == undefined) {
         return "Strangers";
     }
-    console.log(contact);
     if (
         contact.newestEventReceivedByMe == undefined || contact.newestEventSendByMe == undefined
     ) {

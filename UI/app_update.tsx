@@ -7,7 +7,7 @@ import {
     ConversationLists,
     ConversationSummary,
     getConversationSummaryFromPublicKey,
-    getGroupOf,
+    getConversationTypeOf,
 } from "./conversation-list.ts";
 
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
@@ -190,11 +190,10 @@ export async function* UI_Interaction_Update(args: {
             model.rightPanelModel = {
                 show: false,
             };
-            const group = getGroupOf(
+            model.dm.selectedContactGroup = getConversationTypeOf(
                 event.pubkey,
                 app.conversationLists.convoSummaries,
             );
-            model.dm.selectedContactGroup = group;
             updateConversation(app.model, event.pubkey);
 
             if (!model.dm.focusedContent.get(event.pubkey.hex)) {
