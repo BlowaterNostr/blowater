@@ -14,7 +14,7 @@ import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master
 import { Database_Contextual_View } from "../database.ts";
 import { convertEventsToChatMessages } from "./dm.ts";
 
-import { sendDMandImages, sendSocialPost } from "../features/dm.ts";
+import { sendDMandImages } from "../features/dm.ts";
 import { notify } from "./notification.ts";
 import { emitFunc, EventBus } from "../event-bus.ts";
 import { ContactUpdate } from "./conversation-list.tsx";
@@ -44,11 +44,10 @@ import { Search } from "./search.tsx";
 import { NoteID } from "../lib/nostr-ts/nip19.ts";
 import { EventDetail, EventDetailItem } from "./event-detail.tsx";
 import { CreateGroup, CreateGroupChat, StartCreateGroupChat } from "./create-group.tsx";
-import { prepareNormalNostrEvent, prepareParameterizedEvent } from "../lib/nostr-ts/event.ts";
-import { PrivateKey, PublicKey } from "../lib/nostr-ts/key.ts";
-import { InMemoryAccountContext, NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
+import { prepareNormalNostrEvent } from "../lib/nostr-ts/event.ts";
+import { PublicKey } from "../lib/nostr-ts/key.ts";
+import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
-import { GroupChatController } from "../group-chat.ts";
 import { OtherConfig } from "./config-other.ts";
 
 export type UI_Interaction_Event =
@@ -131,7 +130,6 @@ export async function* UI_Interaction_Update(args: {
                 }
                 yield model;
                 continue;
-                break;
         }
 
         const app = model.app;
@@ -300,9 +298,6 @@ export async function* UI_Interaction_Update(args: {
         else if (event.type == "ToggleRightPanel") {
             model.rightPanelModel.show = event.show;
         } else if (event.type == "ViewThread") {
-            // if (model.navigationModel.activeNav == "Social") {
-            //     model.social.focusedContent = event.root;
-            // } else
             if (model.navigationModel.activeNav == "DM") {
                 if (model.dm.currentSelectedContact) {
                     model.dm.focusedContent.set(
@@ -313,9 +308,6 @@ export async function* UI_Interaction_Update(args: {
             }
             model.rightPanelModel.show = true;
         } else if (event.type == "ViewUserDetail") {
-            // if (model.navigationModel.activeNav == "Social") {
-            //     model.social.focusedContent = event.pubkey;
-            // } else
             if (
                 model.navigationModel.activeNav == "DM"
             ) {
