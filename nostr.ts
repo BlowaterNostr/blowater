@@ -25,7 +25,6 @@ type Tags = {
     lamport_timestamp?: number;
     reply?: [nostr.EventID, RelayURL, "reply"];
     root?: [nostr.EventID, RelayURL, "root"];
-    d?: string;
 } & nostr.Tags;
 
 type Event = nostr.NostrEvent<NostrKind, Tag>;
@@ -102,9 +101,6 @@ export function getTags(event: Event): Tags {
                 break;
             case "lamport":
                 tags.lamport_timestamp = Number(tag[1]);
-                break;
-            case "d":
-                tags.d = tag[1];
                 break;
         }
     }
