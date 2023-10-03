@@ -16,6 +16,7 @@ export type SearchPublicKey = {
 export type SelectConversation = {
     type: "SelectConversation";
     pubkey: PublicKey;
+    conversationType: "DM" | "GM";
 };
 
 export type SearchModel = {

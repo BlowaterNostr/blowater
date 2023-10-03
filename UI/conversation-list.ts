@@ -1,8 +1,7 @@
-import { ConversationListRetriever, ConversationType } from "./conversation-list.tsx";
+import { ConversationListRetriever, ConversationType, GroupChatListGetter } from "./conversation-list.tsx";
 import { PrivateKey, PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
-import { CustomAppData, getTags, Profile_Nostr_Event, Text_Note_Event } from "../nostr.ts";
-import { GroupChatController } from "../group-chat.ts";
+import { getTags, Profile_Nostr_Event, Text_Note_Event } from "../nostr.ts";
 import { ProfileSyncer } from "../features/profile.ts";
 
 export interface ConversationSummary {
@@ -16,7 +15,7 @@ export function getConversationSummaryFromPublicKey(k: PublicKey, users: Map<str
     return users.get(k.hex);
 }
 
-export class ConversationLists implements ConversationListRetriever {
+export class ConversationLists implements ConversationListRetriever, GroupChatListGetter {
     readonly convoSummaries = new Map<string, ConversationSummary>();
     readonly groupChatSummaries = new Map<string, ConversationSummary>();
     private readonly profile = new Map<string, Profile_Nostr_Event>();

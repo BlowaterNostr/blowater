@@ -15,9 +15,12 @@ import { ChatIcon } from "./icons2/chat-icon.tsx";
 import { StartCreateGroupChat } from "./create-group.tsx";
 import { GroupIcon } from "./icons2/group-icon.tsx";
 
-export interface ConversationListRetriever {
+export interface ConversationListRetriever extends GroupChatListGetter {
     getContacts: () => Iterable<ConversationSummary>;
     getStrangers: () => Iterable<ConversationSummary>;
+}
+
+export interface GroupChatListGetter {
     getGroupChat: () => Iterable<ConversationSummary>;
 }
 
@@ -60,10 +63,10 @@ export function ConversationList(props: Props) {
             break;
     }
     const convoListToRender = [];
-    for (const contact of listToRender) {
+    for (const conversationSummary of listToRender) {
         convoListToRender.push({
-            userInfo: contact,
-            isMarked: props.hasNewMessages.has(contact.pubkey.hex),
+            conversation: conversationSummary,
+            isMarked: props.hasNewMessages.has(conversationSummary.pubkey.hex),
         });
     }
 
@@ -172,7 +175,7 @@ export interface PinListGetter {
 }
 
 type ConversationListProps = {
-    contacts: { userInfo: ConversationSummary; isMarked: boolean }[];
+    contacts: { conversation: ConversationSummary; isMarked: boolean }[];
     currentSelected: PublicKey | undefined;
     pinListGetter: PinListGetter;
     emit: emitFunc<ContactUpdate>;
@@ -181,13 +184,13 @@ type ConversationListProps = {
 function ContactGroup(props: ConversationListProps) {
     const t = Date.now();
     props.contacts.sort((a, b) => {
-        return sortUserInfo(a.userInfo, b.userInfo);
+        return sortUserInfo(a.conversation, b.conversation);
     });
     const pinList = props.pinListGetter.getPinList();
     const pinned = [];
     const unpinned = [];
     for (const contact of props.contacts) {
-        if (pinList.has(contact.userInfo.pubkey.hex)) {
+        if (pinList.has(contact.conversation.pubkey.hex)) {
             pinned.push(contact);
         } else {
             unpinned.push(contact);
@@ -200,7 +203,7 @@ function ContactGroup(props: ConversationListProps) {
                 return (
                     <li
                         class={tw`${
-                            props.currentSelected && contact.userInfo.pubkey.hex ===
+                            props.currentSelected && contact.conversation.pubkey.hex ===
                                     props.currentSelected.hex
                                 ? "bg-[#42464D] text-[#FFFFFF]"
                                 : "bg-[#42464D] text-[#96989D]"
@@ -208,12 +211,13 @@ function ContactGroup(props: ConversationListProps) {
                         onClick={() => {
                             props.emit({
                                 type: "SelectConversation",
-                                pubkey: contact.userInfo.pubkey,
+                                pubkey: contact.conversation.pubkey,
+                                conversationType: "DM",
                             });
                         }}
                     >
                         <ConversationListItem
-                            userInfo={contact.userInfo}
+                            userInfo={contact.conversation}
                             isMarked={contact.isMarked}
                             isPinned={true}
                         />
@@ -227,7 +231,7 @@ function ContactGroup(props: ConversationListProps) {
                                 e.stopPropagation();
                                 props.emit({
                                     type: "UnpinConversation",
-                                    pubkey: contact.userInfo.pubkey.hex,
+                                    pubkey: contact.conversation.pubkey.hex,
                                 });
                             }}
                         >
@@ -246,7 +250,7 @@ function ContactGroup(props: ConversationListProps) {
                 return (
                     <li
                         class={tw`${
-                            props.currentSelected && contact.userInfo?.pubkey.hex ===
+                            props.currentSelected && contact.conversation?.pubkey.hex ===
                                     props.currentSelected.hex
                                 ? "bg-[#42464D] text-[#FFFFFF]"
                                 : "bg-transparent text-[#96989D]"
@@ -254,12 +258,13 @@ function ContactGroup(props: ConversationListProps) {
                         onClick={() => {
                             props.emit({
                                 type: "SelectConversation",
-                                pubkey: contact.userInfo.pubkey,
+                                pubkey: contact.conversation.pubkey,
+                                conversationType: "DM",
                             });
                         }}
                     >
                         <ConversationListItem
-                            userInfo={contact.userInfo}
+                            userInfo={contact.conversation}
                             isMarked={contact.isMarked}
                             isPinned={false}
                         />
@@ -273,7 +278,7 @@ function ContactGroup(props: ConversationListProps) {
                                 e.stopPropagation();
                                 props.emit({
                                     type: "PinConversation",
-                                    pubkey: contact.userInfo.pubkey.hex,
+                                    pubkey: contact.conversation.pubkey.hex,
                                 });
                             }}
                         >

@@ -39,7 +39,6 @@ export type MessageThread = {
 export function DirectMessageContainer(props: DirectMessageContainerProps) {
     const t = Date.now();
     const currentConversation = props.currentSelectedContact;
-    // todo: refactor it to be more performant
     let currentEditorModel: DM_EditorModel | undefined;
     if (currentConversation) {
         for (const [v, editor] of props.editors.entries()) {

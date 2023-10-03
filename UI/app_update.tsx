@@ -626,6 +626,7 @@ export async function* Database_Update(
                             emit({
                                 type: "SelectConversation",
                                 pubkey: k,
+                                conversationType: "DM",
                             });
                         },
                     );
