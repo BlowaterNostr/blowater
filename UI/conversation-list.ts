@@ -98,7 +98,6 @@ export class ConversationLists implements ConversationListRetriever {
                                 profile: this.profile.get(publicKey.hex),
                             });
                             this.profileSyncer.add(publicKey.hex);
-                            console.log(publicKey.hex, "========");
                         } catch (e) {
                             console.error(e);
                             continue; // do no thing
@@ -106,7 +105,6 @@ export class ConversationLists implements ConversationListRetriever {
                     }
                     break;
                 case NostrKind.META_DATA:
-                    console.log(event, "+++++++++++");
                     {
                         this.profile.set(event.publicKey.hex, event);
                         const convoSummary = this.convoSummaries.get(event.pubkey);
