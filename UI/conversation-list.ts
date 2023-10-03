@@ -59,6 +59,20 @@ export class ConversationLists implements ConversationListRetriever, GroupChatLi
         }
     }
 
+    getConversationType(pubkey: PublicKey) {
+        const contact = this.convoSummaries.get(pubkey.hex);
+        if (contact == undefined) {
+            return "Strangers";
+        }
+        if (
+            contact.newestEventReceivedByMe == undefined || contact.newestEventSendByMe == undefined
+        ) {
+            return "Strangers";
+        } else {
+            return "Contacts";
+        }
+    }
+
     async addEvents(
         events: (
             | Profile_Nostr_Event
@@ -218,21 +232,4 @@ function sortScore(contact: ConversationSummary) {
         score += contact.newestEventReceivedByMe.created_at;
     }
     return score;
-}
-
-export function getConversationTypeOf(
-    pubkey: PublicKey,
-    allUserInfo: Map<string, ConversationSummary>,
-): ConversationType {
-    const contact = allUserInfo.get(pubkey.hex);
-    if (contact == undefined) {
-        return "Strangers";
-    }
-    if (
-        contact.newestEventReceivedByMe == undefined || contact.newestEventSendByMe == undefined
-    ) {
-        return "Strangers";
-    } else {
-        return "Contacts";
-    }
 }

@@ -7,7 +7,6 @@ import {
     ConversationLists,
     ConversationSummary,
     getConversationSummaryFromPublicKey,
-    getConversationTypeOf,
 } from "./conversation-list.ts";
 
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
@@ -188,10 +187,7 @@ export async function* UI_Interaction_Update(args: {
             model.rightPanelModel = {
                 show: false,
             };
-            model.dm.selectedContactGroup = getConversationTypeOf(
-                event.pubkey,
-                app.conversationLists.convoSummaries,
-            );
+            model.dm.selectedContactGroup = app.conversationLists.getConversationType(event.pubkey);
             updateConversation(app.model, event.pubkey);
 
             if (!model.dm.focusedContent.get(event.pubkey.hex)) {
@@ -201,7 +197,7 @@ export async function* UI_Interaction_Update(args: {
         } else if (event.type == "BackToContactList") {
             model.dm.currentSelectedContact = undefined;
         } else if (event.type == "SelectConversationType") {
-            model.dm.selectedContactGroup = event.group;
+            model.dm.selectedContactGroup = event.conversationType;
         } else if (event.type == "PinConversation") {
             app.otherConfig.addPin(event.pubkey);
             let err = await app.otherConfig.saveToLocalStorage(app.ctx);

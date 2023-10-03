@@ -14,6 +14,7 @@ import { ButtonGroup } from "./components/button-group.tsx";
 import { ChatIcon } from "./icons2/chat-icon.tsx";
 import { StartCreateGroupChat } from "./create-group.tsx";
 import { GroupIcon } from "./icons2/group-icon.tsx";
+import { Component } from "https://esm.sh/preact@10.17.1";
 
 export interface ConversationListRetriever extends GroupChatListGetter {
     getContacts: () => Iterable<ConversationSummary>;
@@ -35,7 +36,7 @@ export type ContactUpdate =
 
 export type SelectConversationType = {
     type: "SelectConversationType";
-    group: ConversationType;
+    conversationType: ConversationType;
 };
 
 type Props = {
@@ -46,128 +47,131 @@ type Props = {
     pinListGetter: PinListGetter;
     hasNewMessages: Set<string>;
 };
-export function ConversationList(props: Props) {
-    let listToRender: ConversationSummary[];
-    const contacts = Array.from(props.convoListRetriever.getContacts());
-    const strangers = Array.from(props.convoListRetriever.getStrangers());
-    const groups = Array.from(props.convoListRetriever.getGroupChat());
-    switch (props.selectedContactGroup) {
-        case "Contacts":
-            listToRender = contacts;
-            break;
-        case "Strangers":
-            listToRender = strangers;
-            break;
-        case "Group":
-            listToRender = groups;
-            break;
-    }
-    const convoListToRender = [];
-    for (const conversationSummary of listToRender) {
-        convoListToRender.push({
-            conversation: conversationSummary,
-            isMarked: props.hasNewMessages.has(conversationSummary.pubkey.hex),
-        });
-    }
 
-    return (
-        <div class={tw`h-full flex flex-col mobile:w-full desktop:w-64 bg-[#2F3136]`}>
-            <div
-                class={tw`flex items-center gap-2 px-4 h-20 border-b border-[#36393F]`}
-            >
-                <ButtonGroup class={tw`flex-1 ${LinearGradientsClass}} items-center`}>
-                    <button
-                        onClick={async () => {
-                            props.emit({
-                                type: "StartSearch",
-                            });
-                        }}
-                        class={tw`w-full h-10 ${CenterClass} text-sm text-[${PrimaryTextColor}] !hover:bg-transparent hover:font-bold group`}
-                    >
-                        <ChatIcon
-                            class={tw`w-4 h-4m mr-1 text-[${PrimaryTextColor}] stroke-current`}
-                            style={{
-                                fill: "none",
+export class ConversationList extends Component<Props> {
+    render(props: Props) {
+        let listToRender: ConversationSummary[];
+        const contacts = Array.from(props.convoListRetriever.getContacts());
+        const strangers = Array.from(props.convoListRetriever.getStrangers());
+        const groups = Array.from(props.convoListRetriever.getGroupChat());
+        switch (props.selectedContactGroup) {
+            case "Contacts":
+                listToRender = contacts;
+                break;
+            case "Strangers":
+                listToRender = strangers;
+                break;
+            case "Group":
+                listToRender = groups;
+                break;
+        }
+        const convoListToRender = [];
+        for (const conversationSummary of listToRender) {
+            convoListToRender.push({
+                conversation: conversationSummary,
+                isMarked: props.hasNewMessages.has(conversationSummary.pubkey.hex),
+            });
+        }
+
+        return (
+            <div class={tw`h-full flex flex-col mobile:w-full desktop:w-64 bg-[#2F3136]`}>
+                <div
+                    class={tw`flex items-center gap-2 px-4 h-20 border-b border-[#36393F]`}
+                >
+                    <ButtonGroup class={tw`flex-1 ${LinearGradientsClass}} items-center`}>
+                        <button
+                            onClick={async () => {
+                                props.emit({
+                                    type: "StartSearch",
+                                });
                             }}
-                        />
-                        New Chat
-                    </button>
+                            class={tw`w-full h-10 ${CenterClass} text-sm text-[${PrimaryTextColor}] !hover:bg-transparent hover:font-bold group`}
+                        >
+                            <ChatIcon
+                                class={tw`w-4 h-4m mr-1 text-[${PrimaryTextColor}] stroke-current`}
+                                style={{
+                                    fill: "none",
+                                }}
+                            />
+                            New Chat
+                        </button>
 
-                    <div class={tw`h-4 w-1 bg-[${PrimaryTextColor}] !p-0`}></div>
-                    <button
-                        onClick={async () => {
+                        <div class={tw`h-4 w-1 bg-[${PrimaryTextColor}] !p-0`}></div>
+                        <button
+                            onClick={async () => {
+                                props.emit({
+                                    type: "StartCreateGroupChat",
+                                });
+                            }}
+                            class={tw`w-full h-10 ${CenterClass} text-sm text-[${PrimaryTextColor}] !hover:bg-transparent hover:font-bold group`}
+                        >
+                            <GroupIcon
+                                class={tw`w-4 h-4 mr-1 text-[${PrimaryTextColor}] fill-current`}
+                            />
+                            New Group
+                        </button>
+                    </ButtonGroup>
+                </div>
+
+                <ul class={tw`bg-[#36393F] w-full flex h-[3rem] border-b border-[#36393F]`}>
+                    <li
+                        class={tw`h-full flex-1 cursor-pointer hover:text-[#F7F7F7] text-[#96989D] bg-[#2F3136] hover:bg-[#42464D] ${CenterClass} ${
+                            props.selectedContactGroup == "Contacts"
+                                ? "border-b-2 border-[#54D48C] bg-[#42464D] text-[#F7F7F7]"
+                                : ""
+                        }`}
+                        onClick={() => {
                             props.emit({
-                                type: "StartCreateGroupChat",
+                                type: "SelectConversationType",
+                                conversationType: "Contacts",
                             });
                         }}
-                        class={tw`w-full h-10 ${CenterClass} text-sm text-[${PrimaryTextColor}] !hover:bg-transparent hover:font-bold group`}
                     >
-                        <GroupIcon
-                            class={tw`w-4 h-4 mr-1 text-[${PrimaryTextColor}] fill-current`}
-                        />
-                        New Group
-                    </button>
-                </ButtonGroup>
+                        Contacts: {contacts.length}
+                    </li>
+                    <li class={tw`w-[0.05rem] h-full bg-[#2F3136]`}></li>
+                    <li
+                        class={tw`h-full flex-1 cursor-pointer hover:text-[#F7F7F7] text-[#96989D] bg-[#2F3136] hover:bg-[#42464D] ${CenterClass} ${
+                            props.selectedContactGroup == "Strangers"
+                                ? "border-b-2 border-[#54D48C] bg-[#42464D] text-[#F7F7F7]"
+                                : ""
+                        }`}
+                        onClick={() => {
+                            props.emit({
+                                type: "SelectConversationType",
+                                conversationType: "Strangers",
+                            });
+                        }}
+                    >
+                        Strangers: {strangers.length}
+                    </li>
+
+                    <li
+                        class={tw`h-full flex-1 cursor-pointer hover:text-[#F7F7F7] text-[#96989D] bg-[#2F3136] hover:bg-[#42464D] ${CenterClass} ${
+                            props.selectedContactGroup == "Group"
+                                ? "border-b-2 border-[#54D48C] bg-[#42464D] text-[#F7F7F7]"
+                                : ""
+                        }`}
+                        onClick={() => {
+                            props.emit({
+                                type: "SelectConversationType",
+                                conversationType: "Group",
+                            });
+                        }}
+                    >
+                        Group: {groups.length}
+                    </li>
+                </ul>
+
+                <ContactGroup
+                    contacts={Array.from(convoListToRender.values())}
+                    currentSelected={props.currentSelected}
+                    pinListGetter={props.pinListGetter}
+                    emit={props.emit}
+                />
             </div>
-
-            <ul class={tw`bg-[#36393F] w-full flex h-[3rem] border-b border-[#36393F]`}>
-                <li
-                    class={tw`h-full flex-1 cursor-pointer hover:text-[#F7F7F7] text-[#96989D] bg-[#2F3136] hover:bg-[#42464D] ${CenterClass} ${
-                        props.selectedContactGroup == "Contacts"
-                            ? "border-b-2 border-[#54D48C] bg-[#42464D] text-[#F7F7F7]"
-                            : ""
-                    }`}
-                    onClick={() => {
-                        props.emit({
-                            type: "SelectConversationType",
-                            group: "Contacts",
-                        });
-                    }}
-                >
-                    Contacts: {contacts.length}
-                </li>
-                <li class={tw`w-[0.05rem] h-full bg-[#2F3136]`}></li>
-                <li
-                    class={tw`h-full flex-1 cursor-pointer hover:text-[#F7F7F7] text-[#96989D] bg-[#2F3136] hover:bg-[#42464D] ${CenterClass} ${
-                        props.selectedContactGroup == "Strangers"
-                            ? "border-b-2 border-[#54D48C] bg-[#42464D] text-[#F7F7F7]"
-                            : ""
-                    }`}
-                    onClick={() => {
-                        props.emit({
-                            type: "SelectConversationType",
-                            group: "Strangers",
-                        });
-                    }}
-                >
-                    Strangers: {strangers.length}
-                </li>
-
-                <li
-                    class={tw`h-full flex-1 cursor-pointer hover:text-[#F7F7F7] text-[#96989D] bg-[#2F3136] hover:bg-[#42464D] ${CenterClass} ${
-                        props.selectedContactGroup == "Group"
-                            ? "border-b-2 border-[#54D48C] bg-[#42464D] text-[#F7F7F7]"
-                            : ""
-                    }`}
-                    onClick={() => {
-                        props.emit({
-                            type: "SelectConversationType",
-                            group: "Group",
-                        });
-                    }}
-                >
-                    Group: {groups.length}
-                </li>
-            </ul>
-
-            <ContactGroup
-                contacts={Array.from(convoListToRender.values())}
-                currentSelected={props.currentSelected}
-                pinListGetter={props.pinListGetter}
-                emit={props.emit}
-            />
-        </div>
-    );
+        );
+    }
 }
 
 export interface PinListGetter {

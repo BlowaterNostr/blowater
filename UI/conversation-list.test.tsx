@@ -46,7 +46,7 @@ for await (const e of testEventBus.onChange()) {
     if (e.type == "SelectConversation") {
         model.dm.currentSelectedContact = e.pubkey;
     } else if (e.type == "SelectConversationType") {
-        model.dm.selectedContactGroup = e.group;
+        model.dm.selectedContactGroup = e.conversationType;
     }
     view();
 }
