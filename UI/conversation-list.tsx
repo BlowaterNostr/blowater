@@ -218,7 +218,6 @@ function ContactGroup(props: ConversationListProps) {
                             props.emit({
                                 type: "SelectConversation",
                                 pubkey: contact.conversation.pubkey,
-                                conversationType: "DM",
                             });
                         }}
                     >
@@ -265,7 +264,6 @@ function ContactGroup(props: ConversationListProps) {
                             props.emit({
                                 type: "SelectConversation",
                                 pubkey: contact.conversation.pubkey,
-                                conversationType: "DM",
                             });
                         }}
                     >
