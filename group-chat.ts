@@ -19,6 +19,7 @@ export class GroupChatController {
 
     constructor(
         private readonly ctx: NostrAccountContext,
+        private readonly conversationLists: ConversationLists,
     ) {}
 
     async encodeCreationsToNostrEvent(groupChatCreation: GroupChatCreation) {
@@ -54,31 +55,7 @@ export class GroupChatController {
     // }
 
     async addEvent(event: NostrEvent<NostrKind.Group_Creation>) {
-        const d = getTags(event).d;
-        if (d && d == GroupChatController.name) {
-            try {
-                const decryptedContent = await this.ctx.decrypt(event.pubkey, event.content);
-                if (decryptedContent instanceof Error) {
-                    return;
-                }
-                const content = JSON.parse(decryptedContent);
-                if (content.length == 0) {
-                    return;
-                }
-                const groupKey = PrivateKey.FromHex(content.groupKey.hex);
-                const cipherKey = PrivateKey.FromHex(content.cipherKey.hex);
-                if (groupKey instanceof Error || cipherKey instanceof Error) {
-                    return;
-                }
-
-                this.created_groups.set(groupKey.toPublicKey().hex, {
-                    groupKey: groupKey,
-                    cipherKey: cipherKey,
-                });
-            } catch (e) {
-                // do no thing
-            }
-        }
+        this.conversationLists.addEvents([event]);
     }
 
     // getGroupChatCtx(group_addr: PublicKey): InMemoryAccountContext | undefined {

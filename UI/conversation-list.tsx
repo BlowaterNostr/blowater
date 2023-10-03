@@ -45,14 +45,18 @@ type Props = {
     hasNewMessages: Set<string>;
 };
 export function ConversationList(props: Props) {
-    const contacts = Array.from(props.convoListRetriever.getContacts());
-    const strangers = Array.from(props.convoListRetriever.getStrangers());
-    // const groups = Array.from(props.convoListRetriever.getGroupChat());
-    let listToRender = contacts;
-    if (props.selectedContactGroup == "Strangers") {
-        listToRender = strangers;
+    let listToRender: ConversationSummary[];
+    switch (props.selectedContactGroup) {
+        case "Contacts":
+            listToRender = Array.from(props.convoListRetriever.getContacts());
+            break;
+        case "Strangers":
+            listToRender = Array.from(props.convoListRetriever.getStrangers());
+            break;
+        case "Group":
+            listToRender = Array.from(props.convoListRetriever.getGroupChat());
+            break;
     }
-
     const convoListToRender = [];
     for (const contact of listToRender) {
         convoListToRender.push({
@@ -114,7 +118,7 @@ export function ConversationList(props: Props) {
                         });
                     }}
                 >
-                    Contacts: {contacts.length}
+                    Contacts
                 </li>
                 <li class={tw`w-[0.05rem] h-full bg-[#2F3136]`}></li>
                 <li
@@ -130,10 +134,9 @@ export function ConversationList(props: Props) {
                         });
                     }}
                 >
-                    Strangers: {strangers.length}
+                    Strangers
                 </li>
-                {
-                    /* <li
+                <li
                     class={tw`h-full flex-1 cursor-pointer hover:text-[#F7F7F7] text-[#96989D] bg-[#2F3136] hover:bg-[#42464D] ${CenterClass} ${
                         props.selectedContactGroup == "Group"
                             ? "border-b-2 border-[#54D48C] bg-[#42464D] text-[#F7F7F7]"
@@ -147,8 +150,7 @@ export function ConversationList(props: Props) {
                     }}
                 >
                     Group
-                </li> */
-                }
+                </li>
             </ul>
 
             <ContactGroup

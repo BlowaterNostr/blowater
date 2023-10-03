@@ -107,8 +107,8 @@ export class App {
     ) {
         this.eventSyncer = new EventSyncer(pool, this.database);
         this.conversationLists = new ConversationLists(ctx);
+        this.groupChatController = new GroupChatController(ctx, this.conversationLists);
         this.conversationLists.addEvents(database.events);
-        this.groupChatController = new GroupChatController(ctx);
         this.relayConfig = RelayConfig.FromLocalStorage(ctx);
         if (this.relayConfig.getRelayURLs().size == 0) {
             for (const url of defaultRelays) {
