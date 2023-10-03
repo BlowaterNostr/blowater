@@ -14,6 +14,7 @@ import { ButtonGroup } from "./components/button-group.tsx";
 import { ChatIcon } from "./icons2/chat-icon.tsx";
 import { StartCreateGroupChat } from "./create-group.tsx";
 import { OtherConfig } from "./config-other.ts";
+import { GroupIcon } from "./icons2/group-icon.tsx";
 
 export interface ConversationListRetriever {
     getContacts: () => Iterable<ConversationSummary>;
@@ -44,14 +45,21 @@ type Props = {
     hasNewMessages: Set<string>;
 };
 export function ConversationList(props: Props) {
+    let listToRender: ConversationSummary[];
     const contacts = Array.from(props.convoListRetriever.getContacts());
     const strangers = Array.from(props.convoListRetriever.getStrangers());
-    // const groups = Array.from(props.convoListRetriever.getGroupChat());
-    let listToRender = contacts;
-    if (props.selectedContactGroup == "Strangers") {
-        listToRender = strangers;
+    const groups = Array.from(props.convoListRetriever.getGroupChat());
+    switch (props.selectedContactGroup) {
+        case "Contacts":
+            listToRender = contacts;
+            break;
+        case "Strangers":
+            listToRender = strangers;
+            break;
+        case "Group":
+            listToRender = groups;
+            break;
     }
-
     const convoListToRender = [];
     for (const contact of listToRender) {
         convoListToRender.push({
@@ -82,9 +90,9 @@ export function ConversationList(props: Props) {
                         />
                         New Chat
                     </button>
-                    {/* <div class={tw`h-4 w-1 bg-[${SecondaryBackgroundColor}] !p-0`}></div> */}
                     {
-                        /* <button
+                        /* <div class={tw`h-4 w-1 bg-[${PrimaryTextColor}] !p-0`}></div>
+                    <button
                         onClick={async () => {
                             props.emit({
                                 type: "StartCreateGroupChat",

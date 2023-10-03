@@ -365,27 +365,20 @@ export async function* UI_Interaction_Update(args: {
         } else if (event.type == "CreateGroupChat") {
             const profileData = event.profileData;
 
-            const groupAdminCtx = app.groupChatController.createGroupChat({
-                cipherKey: PrivateKey.Generate(),
-                groupKey: PrivateKey.Generate(),
-            });
-            if (groupAdminCtx instanceof Error) {
-                console.error(groupAdminCtx);
+            const groupCtx = app.groupChatController.createGroupChat();
+            const creationEvent = await app.groupChatController.encodeCreationsToNostrEvent(groupCtx);
+            if (creationEvent instanceof Error) {
+                console.error(creationEvent);
                 continue;
             }
-            const groupCreations = await app.groupChatController.encodeCreationsToNostrEvent();
-            if (groupCreations instanceof Error) {
-                console.error(groupAdminCtx);
-                continue;
-            }
-            const err = await pool.sendEvent(groupCreations);
+            const err = await pool.sendEvent(creationEvent);
             if (err instanceof Error) {
                 console.error(err);
                 continue;
             }
             console.log("profile", profileData);
             const profileEvent = await prepareNormalNostrEvent(
-                groupAdminCtx,
+                groupCtx,
                 NostrKind.META_DATA,
                 [],
                 JSON.stringify(profileData),
@@ -396,8 +389,8 @@ export async function* UI_Interaction_Update(args: {
                 continue;
             }
             app.popOverInputChan.put({ children: undefined });
-            console.log(profileEvent, groupAdminCtx.publicKey.hex);
-            app.profileSyncer.add(groupAdminCtx.publicKey.hex);
+            console.log(profileEvent, groupCtx.publicKey.hex);
+            app.profileSyncer.add(groupCtx.publicKey.hex);
         } else if (event.type == "RelayConfigChange") {
             const e = await app.relayConfig.toNostrEvent(app.ctx);
             if (e instanceof Error) {

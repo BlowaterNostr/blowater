@@ -1,7 +1,9 @@
 import { ConversationListRetriever, ConversationType } from "./conversation-list.tsx";
-import { PublicKey } from "../lib/nostr-ts/key.ts";
+import { PrivateKey, PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { CustomAppData, getTags, Profile_Nostr_Event, Text_Note_Event } from "../nostr.ts";
+import { GroupChatController } from "../group-chat.ts";
+import { ProfileSyncer } from "../features/profile.ts";
 
 export interface ConversationSummary {
     pubkey: PublicKey;
@@ -17,9 +19,11 @@ export function getConversationSummaryFromPublicKey(k: PublicKey, users: Map<str
 export class ConversationLists implements ConversationListRetriever {
     readonly convoSummaries = new Map<string, ConversationSummary>();
     readonly groupChatSummaries = new Map<string, ConversationSummary>();
+    private readonly profile = new Map<string, Profile_Nostr_Event>();
 
     constructor(
         public readonly ctx: NostrAccountContext,
+        private readonly profileSyncer: ProfileSyncer,
     ) {}
 
     *getStrangers() {
@@ -56,30 +60,72 @@ export class ConversationLists implements ConversationListRetriever {
         }
     }
 
-    addEvents(events: (Profile_Nostr_Event | Text_Note_Event | NostrEvent<NostrKind.DIRECT_MESSAGE>)[]) {
+    async addEvents(
+        events: (
+            | Profile_Nostr_Event
+            | Text_Note_Event
+            | NostrEvent<NostrKind.DIRECT_MESSAGE>
+            | NostrEvent<NostrKind.Group_Creation>
+        )[],
+    ) {
         // const t = Date.now();
         for (const event of events) {
             switch (event.kind) {
+                case NostrKind.Group_Creation:
+                    try {
+                        const decryptedContent = await this.ctx.decrypt(event.pubkey, event.content);
+                        if (decryptedContent instanceof Error) {
+                            console.error(decryptedContent);
+                            continue;
+                        }
+                        const content = JSON.parse(decryptedContent);
+                        if (content.length == 0) {
+                            continue;
+                        }
+                        const groupKey = PrivateKey.FromHex(content.groupKey.hex);
+                        const cipherKey = PrivateKey.FromHex(content.cipherKey.hex);
+                        if (groupKey instanceof Error || cipherKey instanceof Error) {
+                            continue;
+                        }
+
+                        const publicKey = groupKey.toPublicKey();
+                        this.groupChatSummaries.set(publicKey.hex, {
+                            pubkey: publicKey,
+                            newestEventReceivedByMe: undefined,
+                            newestEventSendByMe: undefined,
+                            profile: this.profile.get(publicKey.hex),
+                        });
+                        this.profileSyncer.add(publicKey.hex);
+                    } catch (e) {
+                        console.error(e);
+                        continue; // do nothing
+                    }
+                    break;
                 case NostrKind.META_DATA:
                     {
-                        const userInfo = this.convoSummaries.get(event.pubkey);
+                        this.profile.set(event.publicKey.hex, event);
+                        const convoSummary = this.convoSummaries.get(event.pubkey);
+                        const groupChatSummary = this.groupChatSummaries.get(event.pubkey);
                         const profileEvent = event;
-                        if (userInfo) {
-                            if (userInfo.profile) {
-                                if (profileEvent.created_at > userInfo.profile?.created_at) {
-                                    userInfo.profile = profileEvent;
+
+                        if (convoSummary) {
+                            if (convoSummary.profile) {
+                                if (profileEvent.created_at > convoSummary.profile?.created_at) {
+                                    convoSummary.profile = profileEvent;
                                 }
                             } else {
-                                userInfo.profile = profileEvent;
+                                convoSummary.profile = profileEvent;
                             }
-                        } else {
-                            const newUserInfo: ConversationSummary = {
-                                pubkey: PublicKey.FromHex(event.pubkey) as PublicKey,
-                                newestEventReceivedByMe: undefined,
-                                newestEventSendByMe: undefined,
-                                profile: profileEvent,
-                            };
-                            this.convoSummaries.set(event.pubkey, newUserInfo);
+                        }
+
+                        if (groupChatSummary) {
+                            if (groupChatSummary.profile) {
+                                if (profileEvent.created_at > groupChatSummary.profile?.created_at) {
+                                    groupChatSummary.profile = profileEvent;
+                                }
+                            } else {
+                                groupChatSummary.profile = profileEvent;
+                            }
                         }
                     }
                     break;
@@ -136,7 +182,7 @@ export class ConversationLists implements ConversationListRetriever {
                                 pubkey: PublicKey.FromHex(whoAm_I_TalkingTo) as PublicKey,
                                 newestEventReceivedByMe: undefined,
                                 newestEventSendByMe: undefined,
-                                profile: undefined,
+                                profile: this.profile.get(whoAm_I_TalkingTo),
                             };
                             if (whoAm_I_TalkingTo == this.ctx.publicKey.hex) {
                                 // talking to myself

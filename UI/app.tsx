@@ -106,9 +106,6 @@ export class App {
         public readonly otherConfig: OtherConfig,
     ) {
         this.eventSyncer = new EventSyncer(pool, this.database);
-        this.conversationLists = new ConversationLists(ctx);
-        this.conversationLists.addEvents(database.events);
-        this.groupChatController = new GroupChatController(ctx, this.conversationLists);
         this.relayConfig = RelayConfig.FromLocalStorage(ctx);
         if (this.relayConfig.getRelayURLs().size == 0) {
             for (const url of defaultRelays) {
@@ -117,6 +114,10 @@ export class App {
         }
         this.profileSyncer = new ProfileSyncer(this.database, pool);
         this.profileSyncer.add(ctx.publicKey.hex);
+
+        this.conversationLists = new ConversationLists(ctx, this.profileSyncer);
+        this.groupChatController = new GroupChatController(ctx, this.conversationLists);
+        this.conversationLists.addEvents(database.events);
     }
 
     initApp = async () => {
@@ -163,9 +164,8 @@ export class App {
         // create group synchronization
         (async () => {
             const stream = await this.pool.newSub("group creations", {
-                "#d": [GroupChatController.name],
                 authors: [this.ctx.publicKey.hex],
-                kinds: [NostrKind.Custom_App_Data],
+                kinds: [NostrKind.Group_Creation],
             });
             if (stream instanceof Error) {
                 throw stream; // crash to app
@@ -174,7 +174,10 @@ export class App {
                 if (msg.res.type == "EOSE") {
                     continue;
                 }
-                this.groupChatController.addEvent(msg.res.event);
+                this.groupChatController.addEvent({
+                    ...msg.res.event,
+                    kind: NostrKind.Group_Creation,
+                });
             }
         })();
         // Sync DM events
