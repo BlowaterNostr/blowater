@@ -75,6 +75,7 @@ export class ConversationLists implements ConversationListRetriever {
                         try {
                             const decryptedContent = await this.ctx.decrypt(event.pubkey, event.content);
                             if (decryptedContent instanceof Error) {
+                                console.error(decryptedContent);
                                 continue;
                             }
                             const content = JSON.parse(decryptedContent);
@@ -95,7 +96,8 @@ export class ConversationLists implements ConversationListRetriever {
                                 profile: this.profile.get(publicKey.hex),
                             });
                             console.log(publicKey.hex, "========");
-                        } catch {
+                        } catch (e) {
+                            console.error(e);
                             continue; // do no thing
                         }
                     }
