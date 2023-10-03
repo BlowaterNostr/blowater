@@ -65,9 +65,6 @@ export class Database_Contextual_View implements DirectMessageGetter {
         const initialEvents:
             (Text_Note_Event | NostrEvent<NostrKind.DIRECT_MESSAGE> | Profile_Nostr_Event)[] =
                 await loadInitialData(allEvents, eventsAdapter);
-        if (initialEvents instanceof Error) {
-            return initialEvents;
-        }
         console.log("Database_Contextual_View:parsed", Date.now() - t);
 
         // Load DMs

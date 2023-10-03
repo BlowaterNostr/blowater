@@ -650,6 +650,7 @@ export async function* Database_Update(
                             emit({
                                 type: "SelectConversation",
                                 pubkey: k,
+                                isGroupChat: false // todo
                             });
                         },
                     );

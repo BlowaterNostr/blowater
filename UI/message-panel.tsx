@@ -90,7 +90,6 @@ interface DirectMessagePanelProps {
     allUserInfo: Map<string, ConversationSummary>;
 }
 
-// export function MessagePanel(props: DirectMessagePanelProps) {
 export class MessagePanel extends Component<DirectMessagePanelProps> {
     render() {
         const props = this.props;
