@@ -69,7 +69,7 @@ const view = () => {
             db={database}
             eventSyncer={new EventSyncer(pool, database)}
             profilesSyncer={new ProfileSyncer(database, pool)}
-            emit={testEventBus.emit}
+            bus={testEventBus.emit}
             rightPanelModel={{
                 show: true,
             }}

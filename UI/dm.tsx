@@ -4,7 +4,7 @@ import { tw } from "https://esm.sh/twind@0.16.16";
 import * as cl from "./conversation-list.tsx";
 import { Database_Contextual_View } from "../database.ts";
 import { MessagePanel, RightPanelModel } from "./message-panel.tsx";
-import { emitFunc } from "../event-bus.ts";
+import { emitFunc, EventBus } from "../event-bus.ts";
 import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
 import { CenterClass, IconButtonClass } from "./components/tw.ts";
 import { DM_EditorModel } from "./editor.tsx";
@@ -27,7 +27,7 @@ type DirectMessageContainerProps = {
     rightPanelModel: RightPanelModel;
     ctx: NostrAccountContext;
     pool: ConnectionPool;
-    emit: emitFunc<UI_Interaction_Event>;
+    bus: EventBus<UI_Interaction_Event>;
     db: Database_Contextual_View;
     conversationLists: ConversationLists;
     profilesSyncer: ProfileSyncer;
@@ -105,7 +105,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
             myPublicKey: props.ctx.publicKey,
             messages: convoMsgs,
             rightPanelModel: props.rightPanelModel,
-            emit: props.emit,
+            emit: props.bus.emit,
             editorModel: currentEditorModel,
             focusedContent: focusedContent,
             db: props.db,
@@ -123,7 +123,8 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
         >
             <div class={tw`${currentConversation ? "mobile:hidden" : "mobile:w-full"}`}>
                 <cl.ConversationList
-                    currentSelected={currentConversation}
+                    eventBus={props.bus}
+                    emit={props.bus.emit}
                     convoListRetriever={props.conversationLists}
                     {...props}
                 />
@@ -137,7 +138,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                             <div class={tw`flex items-center`}>
                                 <button
                                     onClick={() => {
-                                        props.emit({
+                                        props.bus.emit({
                                             type: "BackToContactList",
                                         });
                                     }}
@@ -161,7 +162,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                                         <button
                                             class={tw`w-8 h-8 ${CenterClass}`}
                                             onClick={() => {
-                                                props.emit({
+                                                props.bus.emit({
                                                     type: "StartEditGroupChatProfile",
                                                     publicKey: currentConversation,
                                                 });

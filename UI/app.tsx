@@ -386,7 +386,7 @@ export function AppComponent(props: {
                         editors: model.editors,
                         ...model.dm,
                         rightPanelModel: model.rightPanelModel,
-                        emit: app.eventBus.emit,
+                        bus: app.eventBus,
                         ctx: myAccountCtx,
                         db: app.database,
                         pool: props.pool,

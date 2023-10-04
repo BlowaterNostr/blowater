@@ -1,6 +1,6 @@
-import { chan, multi } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { chan, Channel, multi } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 
-export class EventBus<T> implements EventEmitter<T> {
+export class EventBus<T> implements EventEmitter<T>, EventSubscriber<T> {
     private readonly c = chan<T>();
     private readonly caster = multi<T>(this.c);
 
@@ -17,3 +17,7 @@ export type EventEmitter<T> = {
     emit: (event: T) => void;
 };
 export type emitFunc<T extends { type: string }> = (event: T) => void;
+
+export type EventSubscriber<T> = {
+    onChange(): Channel<T>;
+};
