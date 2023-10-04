@@ -3,6 +3,7 @@ import { PrivateKey, PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { getTags, Profile_Nostr_Event, Text_Note_Event } from "../nostr.ts";
 import { ProfileSyncer } from "../features/profile.ts";
+import { GroupChatCreation } from "../group-chat.ts";
 
 export interface ConversationSummary {
     pubkey: PublicKey;

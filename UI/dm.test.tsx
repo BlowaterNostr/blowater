@@ -65,7 +65,7 @@ pool.addRelayURL(relays[0]);
 const view = () => {
     return (
         <DirectMessageContainer
-            allUserInfo={allUserInfo}
+            conversationLists={allUserInfo}
             db={database}
             eventSyncer={new EventSyncer(pool, database)}
             profilesSyncer={new ProfileSyncer(database, pool)}

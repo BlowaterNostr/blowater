@@ -6,7 +6,7 @@ import { Database_Contextual_View } from "../database.ts";
 import { MessagePanel, RightPanelModel } from "./message-panel.tsx";
 import { emitFunc, EventBus } from "../event-bus.ts";
 import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
-import { IconButtonClass } from "./components/tw.ts";
+import { CenterClass, IconButtonClass } from "./components/tw.ts";
 import { DM_EditorModel } from "./editor.tsx";
 import { getConversationMessages, UI_Interaction_Event } from "./app_update.tsx";
 import { NostrAccountContext, NostrKind } from "../lib/nostr-ts/nostr.ts";
@@ -17,6 +17,10 @@ import { DM_Model } from "./dm.ts";
 import { getFocusedContent } from "./app.tsx";
 import { EventSyncer } from "./event_syncer.ts";
 import { ConversationLists } from "./conversation-list.ts";
+import { ButtonGroup } from "./components/button-group.tsx";
+import { PrimaryTextColor } from "./style/colors.ts";
+import { SettingIcon } from "./icons2/setting-icon.tsx";
+import { GroupChatController } from "../group-chat.ts";
 
 type DirectMessageContainerProps = {
     editors: Map<string, DM_EditorModel>;
@@ -25,10 +29,11 @@ type DirectMessageContainerProps = {
     pool: ConnectionPool;
     emit: emitFunc<UI_Interaction_Event>;
     db: Database_Contextual_View;
-    allUserInfo: ConversationLists;
+    conversationLists: ConversationLists;
     profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
     pinListGetter: cl.PinListGetter;
+    groupChatController: GroupChatController;
 } & DM_Model;
 
 export type MessageThread = {
@@ -61,7 +66,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
     if (currentEditorModel) {
         const convoMsgs = getConversationMessages({
             targetPubkey: currentEditorModel.target.receiver.pubkey.hex,
-            allUserInfo: props.allUserInfo.convoSummaries,
+            allUserInfo: props.conversationLists.convoSummaries,
             dmGetter: props.db,
         });
         console.log("DirectMessageContainer:convoMsgs", Date.now() - t);
@@ -69,7 +74,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
         const focusedContent = (() => {
             let _ = getFocusedContent(
                 props.focusedContent.get(currentEditorModel.target.receiver.pubkey.hex),
-                props.allUserInfo.convoSummaries,
+                props.conversationLists.convoSummaries,
                 convoMsgs,
             );
             if (_?.type == "MessageThread") {
@@ -106,9 +111,13 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
             db: props.db,
             profilesSyncer: props.profilesSyncer,
             eventSyncer: props.eventSyncer,
-            allUserInfo: props.allUserInfo.convoSummaries,
+            allUserInfo: props.conversationLists.convoSummaries,
         }).render();
     }
+    const canEditGroup = currentConversation &&
+        Array.from(props.groupChatController.created_groups.values()).filter((group) =>
+                group.groupKey.toPublicKey().hex == currentConversation.hex
+            ).length == 1;
 
     const vDom = (
         <div
@@ -117,7 +126,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
             <div class={tw`${currentConversation ? "mobile:hidden" : "mobile:w-full"}`}>
                 <cl.ConversationList
                     currentSelected={currentConversation}
-                    convoListRetriever={props.allUserInfo}
+                    convoListRetriever={props.conversationLists}
                     {...props}
                 />
             </div>
@@ -125,27 +134,49 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                 ? (
                     <div class={tw`flex-1 overflow-hidden flex-col flex`}>
                         <div
-                            class={tw`h-14 border-l border-b border-[#36393F] flex items-center px-5 bg-[#2F3136]`}
+                            class={tw`h-14 border-l border-b border-[#36393F] flex items-center justify-between px-5 bg-[#2F3136]`}
                         >
-                            <button
-                                onClick={() => {
-                                    props.emit({
-                                        type: "BackToContactList",
-                                    });
-                                }}
-                                class={tw`w-6 h-6 mr-4 desktop:hidden ${IconButtonClass}`}
-                            >
-                                <LeftArrowIcon
-                                    class={tw`w-4 h-4`}
-                                    style={{
-                                        fill: "rgb(185, 187, 190)",
+                            <div class={tw`flex items-center`}>
+                                <button
+                                    onClick={() => {
+                                        props.emit({
+                                            type: "BackToContactList",
+                                        });
                                     }}
-                                />
-                            </button>
-                            <span class={tw`text-[#F3F4EA] text-[1.2rem] whitespace-nowrap truncate`}>
-                                {currentEditorModel?.target.receiver.name ||
-                                    currentConversation.bech32()}
-                            </span>
+                                    class={tw`w-6 h-6 mr-4 desktop:hidden ${IconButtonClass}`}
+                                >
+                                    <LeftArrowIcon
+                                        class={tw`w-4 h-4`}
+                                        style={{
+                                            fill: "rgb(185, 187, 190)",
+                                        }}
+                                    />
+                                </button>
+                                <span class={tw`text-[#F3F4EA] text-[1.2rem] whitespace-nowrap truncate`}>
+                                    {currentEditorModel?.target.receiver.name ||
+                                        currentConversation.bech32()}
+                                </span>
+                            </div>
+                            {canEditGroup
+                                ? (
+                                    <ButtonGroup>
+                                        <button
+                                            class={tw`w-8 h-8 ${CenterClass}`}
+                                            onClick={() => {
+                                                props.emit({
+                                                    type: "StartEditGroupChat",
+                                                    publicKey: currentConversation,
+                                                });
+                                            }}
+                                        >
+                                            <SettingIcon
+                                                class={tw`w-6 h-6 text-[${PrimaryTextColor}] stroke-current`}
+                                                style={{ fill: "none" }}
+                                            />
+                                        </button>
+                                    </ButtonGroup>
+                                )
+                                : undefined}
                         </div>
                         <div class={tw`flex-1 overflow-x-auto`}>
                             {messagePanel}

@@ -100,9 +100,7 @@ export class ConversationList extends Component<Props, State> {
                             />
                             New Chat
                         </button>
-
-                        {
-                            /* <div class={tw`h-4 w-1 bg-[${PrimaryTextColor}] !p-0`}></div>
+                        <div class={tw`h-4 w-1 bg-[${PrimaryTextColor}] !p-0`}></div>
                         <button
                             onClick={async () => {
                                 props.emit({
@@ -115,8 +113,7 @@ export class ConversationList extends Component<Props, State> {
                                 class={tw`w-4 h-4 mr-1 text-[${PrimaryTextColor}] fill-current`}
                             />
                             New Group
-                        </button> */
-                        }
+                        </button>
                     </ButtonGroup>
                 </div>
 
@@ -147,8 +144,7 @@ export class ConversationList extends Component<Props, State> {
                         Strangers: {strangers.length}
                     </li>
 
-                    {
-                        /* <li
+                    <li
                         class={tw`h-full flex-1 cursor-pointer hover:text-[#F7F7F7] text-[#96989D] bg-[#2F3136] hover:bg-[#42464D] ${CenterClass} ${
                             this.state.selectedContactGroup == "Group"
                                 ? "border-b-2 border-[#54D48C] bg-[#42464D] text-[#F7F7F7]"
@@ -161,8 +157,7 @@ export class ConversationList extends Component<Props, State> {
                         }}
                     >
                         Group: {groups.length}
-                    </li> */
-                    }
+                    </li>
                 </ul>
 
                 <ContactGroup
@@ -222,7 +217,7 @@ function ContactGroup(props: ConversationListProps) {
                         }}
                     >
                         <ConversationListItem
-                            userInfo={contact.conversation}
+                            conversation={contact.conversation}
                             isMarked={contact.isMarked}
                             isPinned={true}
                         />
@@ -268,7 +263,7 @@ function ContactGroup(props: ConversationListProps) {
                         }}
                     >
                         <ConversationListItem
-                            userInfo={contact.conversation}
+                            conversation={contact.conversation}
                             isMarked={contact.isMarked}
                             isPinned={false}
                         />
@@ -303,7 +298,7 @@ function ContactGroup(props: ConversationListProps) {
 }
 
 type ListItemProps = {
-    userInfo: ConversationSummary;
+    conversation: ConversationSummary;
     isMarked: boolean;
     isPinned: boolean;
 };
@@ -313,21 +308,21 @@ function ConversationListItem(props: ListItemProps) {
         <Fragment>
             <Avatar
                 class={tw`w-8 h-8 mr-2`}
-                picture={props.userInfo.profile?.profile.picture}
+                picture={props.conversation.profile?.profile.picture}
             />
             <div
                 class={tw`flex-1 overflow-hidden relative`}
             >
                 <p class={tw`truncate w-full`}>
-                    {props.userInfo.profile?.profile.name || props.userInfo.pubkey.bech32()}
+                    {props.conversation.profile?.profile.name || props.conversation.pubkey.bech32()}
                 </p>
-                {props.userInfo.newestEventReceivedByMe !== undefined
+                {props.conversation.newestEventReceivedByMe !== undefined
                     ? (
                         <p
                             class={tw`text-[#78828B] text-[0.8rem] truncate`}
                         >
                             {new Date(
-                                props.userInfo.newestEventReceivedByMe
+                                props.conversation.newestEventReceivedByMe
                                     .created_at * 1000,
                             ).toLocaleString()}
                         </p>

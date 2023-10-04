@@ -387,10 +387,11 @@ export function AppComponent(props: {
                         myAccountContext: myAccountCtx,
                         db: app.database,
                         pool: props.pool,
-                        allUserInfo: app.conversationLists,
+                        conversationLists: app.conversationLists,
                         profilesSyncer: app.profileSyncer,
                         eventSyncer: app.eventSyncer,
                         pinListGetter: app.otherConfig,
+                        groupChatController: app.groupChatController,
                     })}
                 </div>
             );

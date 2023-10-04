@@ -54,6 +54,30 @@ export class GroupChatController {
 
     async addEvent(event: NostrEvent<NostrKind.Group_Creation>) {
         this.conversationLists.addEvents([event]);
+        try {
+            const decryptedContent = await this.ctx.decrypt(event.pubkey, event.content);
+            if (decryptedContent instanceof Error) {
+                console.error(decryptedContent);
+                return;
+            }
+            const content = JSON.parse(decryptedContent);
+            if (content.length == 0) {
+                return;
+            }
+            const groupKey = PrivateKey.FromHex(content.groupKey.hex);
+            const cipherKey = PrivateKey.FromHex(content.cipherKey.hex);
+            if (groupKey instanceof Error || cipherKey instanceof Error) {
+                return;
+            }
+
+            this.created_groups.set(groupKey.hex, {
+                groupKey: groupKey,
+                cipherKey: cipherKey,
+            });
+        } catch (e) {
+            console.error(e);
+            return; // do nothing
+        }
     }
 
     // getGroupChatCtx(group_addr: PublicKey): InMemoryAccountContext | undefined {
