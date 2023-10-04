@@ -77,7 +77,7 @@ const view = () => {
             currentSelectedContact={model.dm.currentSelectedContact}
             focusedContent={model.dm.focusedContent}
             hasNewMessages={model.dm.hasNewMessages}
-            myAccountContext={ctx}
+            ctx={ctx}
             pool={pool}
             selectedContactGroup={model.dm.selectedContactGroup}
         />

@@ -25,7 +25,7 @@ import { GroupChatController } from "../group-chat.ts";
 type DirectMessageContainerProps = {
     editors: Map<string, DM_EditorModel>;
     rightPanelModel: RightPanelModel;
-    myAccountContext: NostrAccountContext;
+    ctx: NostrAccountContext;
     pool: ConnectionPool;
     emit: emitFunc<UI_Interaction_Event>;
     db: Database_Contextual_View;
@@ -102,7 +102,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
             return _;
         })();
         messagePanel = new MessagePanel({
-            myPublicKey: props.myAccountContext.publicKey,
+            myPublicKey: props.ctx.publicKey,
             messages: convoMsgs,
             rightPanelModel: props.rightPanelModel,
             emit: props.emit,
