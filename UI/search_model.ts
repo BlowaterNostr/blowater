@@ -16,7 +16,7 @@ export type SearchPublicKey = {
 export type SelectConversation = {
     type: "SelectConversation";
     pubkey: PublicKey;
-    isGroupChat: boolean
+    isGroupChat: boolean;
 };
 
 export type SearchModel = {

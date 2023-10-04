@@ -180,7 +180,7 @@ type ConversationListProps = {
     contacts: { conversation: ConversationSummary; isMarked: boolean }[];
     currentSelected: PublicKey | undefined;
     pinListGetter: PinListGetter;
-    isGroupChat: boolean
+    isGroupChat: boolean;
     emit: emitFunc<ContactUpdate>;
 };
 
@@ -214,7 +214,7 @@ function ContactGroup(props: ConversationListProps) {
                             props.emit({
                                 type: "SelectConversation",
                                 pubkey: contact.conversation.pubkey,
-                                isGroupChat: props.isGroupChat
+                                isGroupChat: props.isGroupChat,
                             });
                         }}
                     >
@@ -261,7 +261,7 @@ function ContactGroup(props: ConversationListProps) {
                             props.emit({
                                 type: "SelectConversation",
                                 pubkey: contact.conversation.pubkey,
-                                isGroupChat: props.isGroupChat
+                                isGroupChat: props.isGroupChat,
                             });
                         }}
                     >

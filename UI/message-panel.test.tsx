@@ -29,7 +29,12 @@ const pool = new ConnectionPool();
 const model = initialModel();
 pool.addRelayURL(relays[0]);
 
+const editor = model.editors.get(ctx.publicKey.hex);
+
 const view = () => {
+    if (editor == undefined) {
+        return undefined;
+    }
     return (
         <MessagePanel
             allUserInfo={allUserInfo.convoSummaries}
@@ -38,7 +43,7 @@ const view = () => {
              * If we use a map to store all editor models,
              * need to distinguish editor models for DMs and GMs
              */
-            editorModel={model.editors.get(ctx.publicKey.hex)}
+            editorModel={editor}
             eventSyncer={new EventSyncer(pool, database)}
             focusedContent={undefined}
             myPublicKey={ctx.publicKey}
@@ -70,7 +75,6 @@ for await (const e of testEventBus.onChange()) {
             continue; // todo: global error toast
         }
     } else if (e.type == "UpdateMessageText") {
-
     }
     render(view(), document.body);
 }
