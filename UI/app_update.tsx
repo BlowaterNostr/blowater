@@ -393,6 +393,7 @@ export async function* UI_Interaction_Update(args: {
             const publicKey = event.publicKey;
             const groupCtx = app.groupChatController.getGroupAdminCtx(publicKey);
             if (!groupCtx) {
+                console.error(`No permission to modify gorup ${publicKey}'s profile`);
                 continue;
             }
             console.log("profile", profileData);
