@@ -363,7 +363,6 @@ export async function* UI_Interaction_Update(args: {
                 console.error(err);
                 continue;
             }
-            console.log("profile", profileData);
             const profileEvent = await prepareNormalNostrEvent(
                 groupCtx,
                 NostrKind.META_DATA,
@@ -376,7 +375,6 @@ export async function* UI_Interaction_Update(args: {
                 continue;
             }
             app.popOverInputChan.put({ children: undefined });
-            console.log(profileEvent, groupCtx.publicKey.hex);
             app.profileSyncer.add(groupCtx.publicKey.hex);
         } else if (event.type == "StartEditGroupChatProfile") {
             app.popOverInputChan.put({
@@ -396,7 +394,6 @@ export async function* UI_Interaction_Update(args: {
                 console.error(`No permission to modify gorup ${publicKey}'s profile`);
                 continue;
             }
-            console.log("profile", profileData);
             const profileEvent = await prepareNormalNostrEvent(
                 groupCtx,
                 NostrKind.META_DATA,
