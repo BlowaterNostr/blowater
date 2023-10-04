@@ -23,7 +23,7 @@ export class GroupChatController {
     ) {}
 
     async encodeCreationsToNostrEvent(ctx: InMemoryAccountContext) {
-        const groupChatCreation = this.created_groups.get(ctx.privateKey.hex);
+        const groupChatCreation = this.created_groups.get(ctx.privateKey.toPublicKey().bech32());
         const event = prepareEncryptedNostrEvent(this.ctx, {
             encryptKey: this.ctx.publicKey,
             kind: NostrKind.Group_Creation,
@@ -38,7 +38,7 @@ export class GroupChatController {
             cipherKey: PrivateKey.Generate(),
             groupKey: PrivateKey.Generate(),
         };
-        this.created_groups.set(groupChatCreation.groupKey.hex, groupChatCreation);
+        this.created_groups.set(groupChatCreation.groupKey.toPublicKey().bech32(), groupChatCreation);
         return InMemoryAccountContext.New(groupChatCreation.groupKey);
     }
 
@@ -73,7 +73,7 @@ export class GroupChatController {
                 groupKey: groupKey,
                 cipherKey: cipherKey,
             };
-            this.created_groups.set(groupKey.hex, groupChatCreation);
+            this.created_groups.set(groupKey.toPublicKey().bech32(), groupChatCreation);
 
             this.conversationLists.addGroupCreation(groupChatCreation);
         } catch (e) {
@@ -91,12 +91,10 @@ export class GroupChatController {
     // }
 
     getGroupAdminCtx(group_addr: PublicKey): InMemoryAccountContext | undefined {
-        const creations = Array.from(this.created_groups.values()).filter((group) =>
-            group.groupKey.toPublicKey().hex == group_addr.hex
-        );
-        if (creations.length != 1) {
+        const creation = this.created_groups.get(group_addr.bech32());
+        if (!creation) {
             return;
         }
-        return InMemoryAccountContext.New(creations[0].groupKey);
+        return InMemoryAccountContext.New(creation.groupKey);
     }
 }

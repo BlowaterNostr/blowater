@@ -95,36 +95,6 @@ export class ConversationLists implements ConversationListRetriever, GroupChatLi
         // const t = Date.now();
         for (const event of events) {
             switch (event.kind) {
-                // case NostrKind.Group_Creation:
-                //     try {
-                //         const decryptedContent = await this.ctx.decrypt(event.pubkey, event.content);
-                //         if (decryptedContent instanceof Error) {
-                //             console.error(decryptedContent);
-                //             continue;
-                //         }
-                //         const content = JSON.parse(decryptedContent);
-                //         if (content.length == 0) {
-                //             continue;
-                //         }
-                //         const groupKey = PrivateKey.FromHex(content.groupKey.hex);
-                //         const cipherKey = PrivateKey.FromHex(content.cipherKey.hex);
-                //         if (groupKey instanceof Error || cipherKey instanceof Error) {
-                //             continue;
-                //         }
-
-                //         const publicKey = groupKey.toPublicKey();
-                //         this.groupChatSummaries.set(publicKey.hex, {
-                //             pubkey: publicKey,
-                //             newestEventReceivedByMe: undefined,
-                //             newestEventSendByMe: undefined,
-                //             profile: this.profile.get(publicKey.hex),
-                //         });
-                //         this.profileSyncer.add(publicKey.hex);
-                //     } catch (e) {
-                //         console.error(e);
-                //         continue; // do nothing
-                //     }
-                //     break;
                 case NostrKind.META_DATA:
                     {
                         const profile = this.profile.get(event.publicKey.hex);
