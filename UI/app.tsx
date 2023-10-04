@@ -174,10 +174,13 @@ export class App {
                 if (msg.res.type == "EOSE") {
                     continue;
                 }
-                this.groupChatController.addEvent({
+                const res = this.groupChatController.addEvent({
                     ...msg.res.event,
                     kind: NostrKind.Group_Creation,
                 });
+                if (res instanceof Error) {
+                    console.error(res);
+                }
             }
         })();
         // Sync DM events

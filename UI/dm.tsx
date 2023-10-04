@@ -114,7 +114,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
             allUserInfo: props.conversationLists.convoSummaries,
         }).render();
     }
-    const canEditGroup = currentConversation &&
+    const canEditGroupProfile = currentConversation &&
         props.groupChatController.getGroupAdminCtx(currentConversation);
 
     const vDom = (
@@ -155,7 +155,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                                         currentConversation.bech32()}
                                 </span>
                             </div>
-                            {canEditGroup
+                            {canEditGroupProfile
                                 ? (
                                     <ButtonGroup>
                                         <button
