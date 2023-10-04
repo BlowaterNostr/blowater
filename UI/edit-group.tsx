@@ -11,19 +11,19 @@ import { emitFunc } from "../event-bus.ts";
 import { PrivateKey, PublicKey } from "../lib/nostr-ts/key.ts";
 import { ConversationLists } from "./conversation-list.ts";
 
-export type StartEditGroupChat = {
-    type: "StartEditGroupChat";
+export type StartEditGroupChatProfile = {
+    type: "StartEditGroupChatProfile";
     publicKey: PublicKey;
 };
 
-export type EditGroupChat = {
-    type: "EditGroupChat";
+export type EditGroupChatProfile = {
+    type: "EditGroupChatProfile";
     publicKey: PublicKey;
     profileData: ProfileData;
 };
 
 type Props = {
-    emit: emitFunc<EditGroupChat>;
+    emit: emitFunc<EditGroupChatProfile>;
     publicKey: PublicKey;
     conversationLists: ConversationLists;
 };
@@ -84,7 +84,7 @@ export class EditGroup extends Component<Props, State> {
         }
 
         this.props.emit({
-            type: "EditGroupChat",
+            type: "EditGroupChatProfile",
             publicKey: this.props.publicKey,
             profileData: {
                 name: name,

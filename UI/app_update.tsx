@@ -48,7 +48,7 @@ import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { InMemoryAccountContext, NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { OtherConfig } from "./config-other.ts";
-import { EditGroup, EditGroupChat, StartEditGroupChat } from "./edit-group.tsx";
+import { EditGroup, EditGroupChatProfile, StartEditGroupChatProfile } from "./edit-group.tsx";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -64,8 +64,8 @@ export type UI_Interaction_Event =
     | RelayConfigChange
     | CreateGroupChat
     | StartCreateGroupChat
-    | EditGroupChat
-    | StartEditGroupChat;
+    | EditGroupChatProfile
+    | StartEditGroupChatProfile;
 
 type BackToContactList = {
     type: "BackToContactList";
@@ -378,7 +378,7 @@ export async function* UI_Interaction_Update(args: {
             app.popOverInputChan.put({ children: undefined });
             console.log(profileEvent, groupCtx.publicKey.hex);
             app.profileSyncer.add(groupCtx.publicKey.hex);
-        } else if (event.type == "StartEditGroupChat") {
+        } else if (event.type == "StartEditGroupChatProfile") {
             app.popOverInputChan.put({
                 children: (
                     <EditGroup
@@ -388,7 +388,7 @@ export async function* UI_Interaction_Update(args: {
                     />
                 ),
             });
-        } else if (event.type == "EditGroupChat") {
+        } else if (event.type == "EditGroupChatProfile") {
             const profileData = event.profileData;
             const publicKey = event.publicKey;
             const groupCtx = app.groupChatController.getGroupAdminCtx(publicKey);

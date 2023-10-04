@@ -162,7 +162,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                                             class={tw`w-8 h-8 ${CenterClass}`}
                                             onClick={() => {
                                                 props.emit({
-                                                    type: "StartEditGroupChat",
+                                                    type: "StartEditGroupChatProfile",
                                                     publicKey: currentConversation,
                                                 });
                                             }}
