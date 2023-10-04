@@ -4,7 +4,7 @@ import { tw } from "https://esm.sh/twind@0.16.16";
 import * as cl from "./conversation-list.tsx";
 import { Database_Contextual_View } from "../database.ts";
 import { MessagePanel, RightPanelModel } from "./message-panel.tsx";
-import { emitFunc, EventBus } from "../event-bus.ts";
+import { EventBus } from "../event-bus.ts";
 import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
 import { CenterClass, IconButtonClass } from "./components/tw.ts";
 import { DM_EditorModel } from "./editor.tsx";

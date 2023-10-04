@@ -20,6 +20,7 @@ import { UI_Interaction_Event } from "./app_update.tsx";
 export interface ConversationListRetriever extends GroupChatListGetter {
     getContacts: () => Iterable<ConversationSummary>;
     getStrangers: () => Iterable<ConversationSummary>;
+    getConversationType(pubkey: PublicKey, isGourpChat: boolean): "Contacts" | "Strangers" | "Group";
 }
 
 export interface GroupChatListGetter {
@@ -57,6 +58,10 @@ export class ConversationList extends Component<Props, State> {
             if (e.type == "SelectConversation") {
                 this.setState({
                     currentSelected: e,
+                    selectedContactGroup: this.props.convoListRetriever.getConversationType(
+                        e.pubkey,
+                        e.isGroupChat,
+                    ),
                 });
             }
         }
