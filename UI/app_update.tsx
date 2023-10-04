@@ -391,15 +391,13 @@ export async function* UI_Interaction_Update(args: {
         } else if (event.type == "EditGroupChat") {
             const profileData = event.profileData;
             const publicKey = event.publicKey;
-            const group = Array.from(app.groupChatController.created_groups.values()).filter((g) =>
-                g.groupKey.toPublicKey().hex == publicKey.hex
-            );
-            if (group.length != 1) {
+            const groupCtx = app.groupChatController.getGroupAdminCtx(publicKey);
+            if (!groupCtx) {
                 continue;
             }
             console.log("profile", profileData);
             const profileEvent = await prepareNormalNostrEvent(
-                InMemoryAccountContext.New(group[0].groupKey),
+                groupCtx,
                 NostrKind.META_DATA,
                 [],
                 JSON.stringify(profileData),

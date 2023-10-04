@@ -53,7 +53,6 @@ export class GroupChatController {
     // }
 
     async addEvent(event: NostrEvent<NostrKind.Group_Creation>) {
-        this.conversationLists.addEvents([event]);
         try {
             const decryptedContent = await this.ctx.decrypt(event.pubkey, event.content);
             if (decryptedContent instanceof Error) {
@@ -70,10 +69,13 @@ export class GroupChatController {
                 return;
             }
 
-            this.created_groups.set(groupKey.hex, {
+            const groupChatCreation = {
                 groupKey: groupKey,
                 cipherKey: cipherKey,
-            });
+            };
+            this.created_groups.set(groupKey.hex, groupChatCreation);
+
+            this.conversationLists.addGroupCreation(groupChatCreation);
         } catch (e) {
             console.error(e);
             return; // do nothing
@@ -88,11 +90,13 @@ export class GroupChatController {
     //     return InMemoryAccountContext.New(invitation.cipher_key);
     // }
 
-    // getGroupAdminCtx(group_addr: PublicKey): InMemoryAccountContext | undefined {
-    //     const creations = this.created_groups.get(group_addr.hex);
-    //     if (creations == undefined) {
-    //         return;
-    //     }
-    //     return InMemoryAccountContext.New(creations.groupKey);
-    // }
+    getGroupAdminCtx(group_addr: PublicKey): InMemoryAccountContext | undefined {
+        const creations = Array.from(this.created_groups.values()).filter((group) =>
+            group.groupKey.toPublicKey().hex == group_addr.hex
+        );
+        if (creations.length != 1) {
+            return;
+        }
+        return InMemoryAccountContext.New(creations[0].groupKey);
+    }
 }

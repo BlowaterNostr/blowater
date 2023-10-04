@@ -115,9 +115,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
         }).render();
     }
     const canEditGroup = currentConversation &&
-        Array.from(props.groupChatController.created_groups.values()).filter((group) =>
-                group.groupKey.toPublicKey().hex == currentConversation.hex
-            ).length == 1;
+        props.groupChatController.getGroupAdminCtx(currentConversation);
 
     const vDom = (
         <div
