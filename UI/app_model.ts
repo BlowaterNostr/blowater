@@ -37,6 +37,7 @@ export function initialModel(): Model {
             focusedContent: new Map(),
             hasNewMessages: new Set(),
             currentSelectedContact: undefined,
+            isGroupMessage: false,
         },
         // allUsersInfo: new Map(),
         editors: editors,

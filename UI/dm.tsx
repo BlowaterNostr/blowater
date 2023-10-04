@@ -114,7 +114,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
             allUserInfo: props.conversationLists.convoSummaries,
         }).render();
     }
-    const canEditGroupProfile = currentConversation &&
+    const canEditGroupProfile = currentConversation && props.isGroupMessage &&
         props.groupChatController.getGroupAdminCtx(currentConversation);
 
     const vDom = (

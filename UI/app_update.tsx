@@ -196,6 +196,7 @@ export async function* UI_Interaction_Update(args: {
                 model.dm.focusedContent.set(event.pubkey.hex, event.pubkey);
             }
             app.popOverInputChan.put({ children: undefined });
+            app.model.dm.isGroupMessage = event.isGroupChat;
         } else if (event.type == "BackToContactList") {
             model.dm.currentSelectedContact = undefined;
         } else if (event.type == "PinConversation") {
