@@ -69,7 +69,7 @@ const view = () => {
             db={database}
             eventSyncer={new EventSyncer(pool, database)}
             profilesSyncer={new ProfileSyncer(database, pool)}
-            emit={testEventBus.emit}
+            bus={testEventBus.emit}
             rightPanelModel={{
                 show: true,
             }}
@@ -77,7 +77,7 @@ const view = () => {
             currentSelectedContact={model.dm.currentSelectedContact}
             focusedContent={model.dm.focusedContent}
             hasNewMessages={model.dm.hasNewMessages}
-            myAccountContext={ctx}
+            ctx={ctx}
             pool={pool}
             selectedContactGroup={model.dm.selectedContactGroup}
         />

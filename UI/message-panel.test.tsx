@@ -6,7 +6,6 @@ import { InMemoryAccountContext, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { Database_Contextual_View } from "../database.ts";
 import { testEventBus, testEventsAdapter } from "./_setup.test.ts";
 import { prepareNormalNostrEvent } from "../lib/nostr-ts/event.ts";
-import { getSocialPosts } from "../features/social.ts";
 import { ConversationLists } from "./conversation-list.ts";
 import { EventSyncer } from "./event_syncer.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
@@ -25,25 +24,32 @@ const lamport = new LamportTime(0);
 await database.addEvent(await prepareNormalNostrEvent(ctx, NostrKind.TEXT_NOTE, [], `hi`));
 await database.addEvent(await prepareNormalNostrEvent(ctx, NostrKind.TEXT_NOTE, [], `hi 2`));
 await database.addEvent(await prepareNormalNostrEvent(ctx, NostrKind.TEXT_NOTE, [], `hi 3`));
-const allUserInfo = new ConversationLists(ctx);
+const allUserInfo = new ConversationLists(ctx, new ProfileSyncer(database, new ConnectionPool()));
 const pool = new ConnectionPool();
 const model = initialModel();
 pool.addRelayURL(relays[0]);
 
+const editor = model.editors.get(ctx.publicKey.hex);
+
 const view = () => {
-    const threads = getSocialPosts(database, allUserInfo.convoSummaries);
-    console.log(database.events, threads);
+    if (editor == undefined) {
+        return undefined;
+    }
     return (
         <MessagePanel
             allUserInfo={allUserInfo.convoSummaries}
             db={database}
-            editorModel={model.social.editor}
+            /**
+             * If we use a map to store all editor models,
+             * need to distinguish editor models for DMs and GMs
+             */
+            editorModel={editor}
             eventSyncer={new EventSyncer(pool, database)}
             focusedContent={undefined}
             myPublicKey={ctx.publicKey}
             profilesSyncer={new ProfileSyncer(database, pool)}
             emit={testEventBus.emit}
-            messages={threads}
+            messages={[]}
             rightPanelModel={{
                 show: true,
             }}
@@ -62,8 +68,6 @@ for await (const e of testEventBus.onChange()) {
             lamport,
             pool,
             model.editors,
-            model.social.editor,
-            model.social.replyEditors,
             database,
         );
         if (err instanceof Error) {
@@ -71,7 +75,6 @@ for await (const e of testEventBus.onChange()) {
             continue; // todo: global error toast
         }
     } else if (e.type == "UpdateMessageText") {
-        model.social.editor.text = e.text;
     }
     render(view(), document.body);
 }

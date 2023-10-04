@@ -4,9 +4,9 @@ import { tw } from "https://esm.sh/twind@0.16.16";
 import { Avatar } from "./components/avatar.tsx";
 import { CenterClass, IconButtonClass, LinearGradientsClass } from "./components/tw.ts";
 import { ConversationSummary, sortUserInfo } from "./conversation-list.ts";
-import { emitFunc } from "../event-bus.ts";
+import { emitFunc, EventSubscriber } from "../event-bus.ts";
 import { PinIcon, UnpinIcon } from "./icons/mod.tsx";
-import { SearchUpdate } from "./search_model.ts";
+import { SearchUpdate, SelectConversation } from "./search_model.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { PinConversation, UnpinConversation } from "../nostr.ts";
 import { PrimaryTextColor } from "./style/colors.ts";
@@ -15,10 +15,12 @@ import { ChatIcon } from "./icons2/chat-icon.tsx";
 import { StartCreateGroupChat } from "./create-group.tsx";
 import { GroupIcon } from "./icons2/group-icon.tsx";
 import { Component } from "https://esm.sh/preact@10.17.1";
+import { UI_Interaction_Event } from "./app_update.tsx";
 
 export interface ConversationListRetriever extends GroupChatListGetter {
     getContacts: () => Iterable<ConversationSummary>;
     getStrangers: () => Iterable<ConversationSummary>;
+    getConversationType(pubkey: PublicKey, isGourpChat: boolean): "Contacts" | "Strangers" | "Group";
 }
 
 export interface GroupChatListGetter {
@@ -35,14 +37,15 @@ export type ContactUpdate =
 
 type Props = {
     emit: emitFunc<ContactUpdate | SearchUpdate>;
+    eventBus: EventSubscriber<UI_Interaction_Event>;
     convoListRetriever: ConversationListRetriever;
-    currentSelected: PublicKey | undefined;
     pinListGetter: PinListGetter;
     hasNewMessages: Set<string>;
 };
 
 type State = {
     selectedContactGroup: ConversationType;
+    currentSelected: SelectConversation | undefined;
 };
 
 export class ConversationList extends Component<Props, State> {
@@ -50,8 +53,23 @@ export class ConversationList extends Component<Props, State> {
         super();
     }
 
+    async componentDidMount() {
+        for await (const e of this.props.eventBus.onChange()) {
+            if (e.type == "SelectConversation") {
+                this.setState({
+                    currentSelected: e,
+                    selectedContactGroup: this.props.convoListRetriever.getConversationType(
+                        e.pubkey,
+                        e.isGroupChat,
+                    ),
+                });
+            }
+        }
+    }
+
     state: Readonly<State> = {
         selectedContactGroup: "Contacts",
+        currentSelected: undefined,
     };
 
     render(props: Props) {
@@ -166,8 +184,9 @@ export class ConversationList extends Component<Props, State> {
 
                 <ContactGroup
                     contacts={Array.from(convoListToRender.values())}
-                    currentSelected={props.currentSelected}
+                    currentSelected={this.state.currentSelected}
                     pinListGetter={props.pinListGetter}
+                    isGroupChat={listToRender === groups}
                     emit={props.emit}
                 />
             </div>
@@ -181,13 +200,13 @@ export interface PinListGetter {
 
 type ConversationListProps = {
     contacts: { conversation: ConversationSummary; isMarked: boolean }[];
-    currentSelected: PublicKey | undefined;
+    currentSelected: SelectConversation | undefined;
     pinListGetter: PinListGetter;
+    isGroupChat: boolean;
     emit: emitFunc<ContactUpdate>;
 };
 
 function ContactGroup(props: ConversationListProps) {
-    const t = Date.now();
     props.contacts.sort((a, b) => {
         return sortUserInfo(a.conversation, b.conversation);
     });
@@ -209,16 +228,16 @@ function ContactGroup(props: ConversationListProps) {
                     <li
                         class={tw`${
                             props.currentSelected && contact.conversation.pubkey.hex ===
-                                    props.currentSelected.hex
+                                    props.currentSelected.pubkey.hex &&
+                                props.isGroupChat == props.currentSelected.isGroupChat
                                 ? "bg-[#42464D] text-[#FFFFFF]"
                                 : "bg-[#42464D] text-[#96989D]"
                         } cursor-pointer p-2 hover:bg-[#3C3F45] my-2 rounded-lg flex items-center w-full relative group`}
-                        onClick={() => {
-                            props.emit({
-                                type: "SelectConversation",
-                                pubkey: contact.conversation.pubkey,
-                            });
-                        }}
+                        onClick={selectConversation(
+                            props.emit,
+                            contact.conversation.pubkey,
+                            props.isGroupChat,
+                        )}
                     >
                         <ConversationListItem
                             conversation={contact.conversation}
@@ -255,16 +274,16 @@ function ContactGroup(props: ConversationListProps) {
                     <li
                         class={tw`${
                             props.currentSelected && contact.conversation?.pubkey.hex ===
-                                    props.currentSelected.hex
+                                    props.currentSelected.pubkey.hex &&
+                                props.isGroupChat == props.currentSelected.isGroupChat
                                 ? "bg-[#42464D] text-[#FFFFFF]"
                                 : "bg-transparent text-[#96989D]"
                         } cursor-pointer p-2 hover:bg-[#3C3F45] my-2 rounded-lg flex items-center w-full relative group`}
-                        onClick={() => {
-                            props.emit({
-                                type: "SelectConversation",
-                                pubkey: contact.conversation.pubkey,
-                            });
-                        }}
+                        onClick={selectConversation(
+                            props.emit,
+                            contact.conversation.pubkey,
+                            props.isGroupChat,
+                        )}
                     >
                         <ConversationListItem
                             conversation={contact.conversation}
@@ -357,3 +376,12 @@ function ConversationListItem(props: ListItemProps) {
         </Fragment>
     );
 }
+
+const selectConversation =
+    (emit: emitFunc<SelectConversation>, pubkey: PublicKey, isGroupChat: boolean) => () => {
+        emit({
+            type: "SelectConversation",
+            pubkey,
+            isGroupChat,
+        });
+    };

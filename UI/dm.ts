@@ -13,6 +13,7 @@ export type DM_Model = {
     currentSelectedContact: PublicKey | undefined;
     focusedContent: Map<string, NostrEvent /* thread root event */ | PublicKey /* selected user profile */>;
     hasNewMessages: Set<string>;
+    isGroupMessage: boolean;
 };
 
 export function convertEventsToChatMessages(

@@ -1,7 +1,7 @@
 /** @jsx h */
 import { Fragment, h } from "https://esm.sh/preact@10.17.1";
 import { tw } from "https://esm.sh/twind@0.16.16";
-import { emitFunc, EventEmitter } from "../event-bus.ts";
+import { emitFunc } from "../event-bus.ts";
 import {
     DirectMessagePanelUpdate,
     NameAndTime,

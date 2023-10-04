@@ -60,7 +60,10 @@ export class ConversationLists implements ConversationListRetriever, GroupChatLi
         }
     }
 
-    getConversationType(pubkey: PublicKey) {
+    getConversationType(pubkey: PublicKey, isGroupChat: boolean) {
+        if (isGroupChat) {
+            return "Group";
+        }
         const contact = this.convoSummaries.get(pubkey.hex);
         if (contact == undefined) {
             return "Strangers";
