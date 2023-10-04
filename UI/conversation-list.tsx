@@ -4,7 +4,7 @@ import { tw } from "https://esm.sh/twind@0.16.16";
 import { Avatar } from "./components/avatar.tsx";
 import { CenterClass, IconButtonClass, LinearGradientsClass } from "./components/tw.ts";
 import { ConversationSummary, sortUserInfo } from "./conversation-list.ts";
-import { emitFunc, EventBus, EventSubscriber } from "../event-bus.ts";
+import { emitFunc, EventSubscriber } from "../event-bus.ts";
 import { PinIcon, UnpinIcon } from "./icons/mod.tsx";
 import { SearchUpdate, SelectConversation } from "./search_model.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
@@ -44,7 +44,7 @@ type Props = {
 
 type State = {
     selectedContactGroup: ConversationType;
-    currentSelected: PublicKey | undefined;
+    currentSelected: SelectConversation | undefined;
 };
 
 export class ConversationList extends Component<Props, State> {
@@ -56,7 +56,7 @@ export class ConversationList extends Component<Props, State> {
         for await (const e of this.props.eventBus.onChange()) {
             if (e.type == "SelectConversation") {
                 this.setState({
-                    currentSelected: e.pubkey,
+                    currentSelected: e,
                 });
             }
         }
@@ -191,7 +191,7 @@ export interface PinListGetter {
 
 type ConversationListProps = {
     contacts: { conversation: ConversationSummary; isMarked: boolean }[];
-    currentSelected: PublicKey | undefined;
+    currentSelected: SelectConversation | undefined;
     pinListGetter: PinListGetter;
     isGroupChat: boolean;
     emit: emitFunc<ContactUpdate>;
@@ -219,7 +219,8 @@ function ContactGroup(props: ConversationListProps) {
                     <li
                         class={tw`${
                             props.currentSelected && contact.conversation.pubkey.hex ===
-                                    props.currentSelected.hex
+                                    props.currentSelected.pubkey.hex &&
+                                props.isGroupChat == props.currentSelected.isGroupChat
                                 ? "bg-[#42464D] text-[#FFFFFF]"
                                 : "bg-[#42464D] text-[#96989D]"
                         } cursor-pointer p-2 hover:bg-[#3C3F45] my-2 rounded-lg flex items-center w-full relative group`}
@@ -264,7 +265,8 @@ function ContactGroup(props: ConversationListProps) {
                     <li
                         class={tw`${
                             props.currentSelected && contact.conversation?.pubkey.hex ===
-                                    props.currentSelected.hex
+                                    props.currentSelected.pubkey.hex &&
+                                props.isGroupChat == props.currentSelected.isGroupChat
                                 ? "bg-[#42464D] text-[#FFFFFF]"
                                 : "bg-transparent text-[#96989D]"
                         } cursor-pointer p-2 hover:bg-[#3C3F45] my-2 rounded-lg flex items-center w-full relative group`}
