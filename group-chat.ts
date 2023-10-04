@@ -77,8 +77,7 @@ export class GroupChatController {
 
             this.conversationLists.addGroupCreation(groupChatCreation);
         } catch (e) {
-            console.error(e);
-            return; // do nothing
+            return e; // do nothing
         }
     }
 
