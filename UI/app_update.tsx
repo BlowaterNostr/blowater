@@ -45,9 +45,10 @@ import { EventDetail, EventDetailItem } from "./event-detail.tsx";
 import { CreateGroup, CreateGroupChat, StartCreateGroupChat } from "./create-group.tsx";
 import { prepareNormalNostrEvent } from "../lib/nostr-ts/event.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
-import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
+import { InMemoryAccountContext, NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { OtherConfig } from "./config-other.ts";
+import { EditGroup, EditGroupChatProfile, StartEditGroupChatProfile } from "./edit-group.tsx";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -62,7 +63,9 @@ export type UI_Interaction_Event =
     | SignInEvent
     | RelayConfigChange
     | CreateGroupChat
-    | StartCreateGroupChat;
+    | StartCreateGroupChat
+    | EditGroupChatProfile
+    | StartEditGroupChatProfile;
 
 type BackToContactList = {
     type: "BackToContactList";
@@ -360,7 +363,6 @@ export async function* UI_Interaction_Update(args: {
                 console.error(err);
                 continue;
             }
-            console.log("profile", profileData);
             const profileEvent = await prepareNormalNostrEvent(
                 groupCtx,
                 NostrKind.META_DATA,
@@ -373,8 +375,37 @@ export async function* UI_Interaction_Update(args: {
                 continue;
             }
             app.popOverInputChan.put({ children: undefined });
-            console.log(profileEvent, groupCtx.publicKey.hex);
             app.profileSyncer.add(groupCtx.publicKey.hex);
+        } else if (event.type == "StartEditGroupChatProfile") {
+            app.popOverInputChan.put({
+                children: (
+                    <EditGroup
+                        emit={eventBus.emit}
+                        publicKey={event.publicKey}
+                        conversationLists={app.conversationLists}
+                    />
+                ),
+            });
+        } else if (event.type == "EditGroupChatProfile") {
+            const profileData = event.profileData;
+            const publicKey = event.publicKey;
+            const groupCtx = app.groupChatController.getGroupAdminCtx(publicKey);
+            if (!groupCtx) {
+                console.error(`No permission to modify gorup ${publicKey}'s profile`);
+                continue;
+            }
+            const profileEvent = await prepareNormalNostrEvent(
+                groupCtx,
+                NostrKind.META_DATA,
+                [],
+                JSON.stringify(profileData),
+            );
+            const err = pool.sendEvent(profileEvent);
+            if (err instanceof Error) {
+                console.error(err);
+                continue;
+            }
+            app.popOverInputChan.put({ children: undefined });
         } else if (event.type == "RelayConfigChange") {
             const e = await app.relayConfig.toNostrEvent(app.ctx);
             if (e instanceof Error) {

@@ -174,10 +174,13 @@ export class App {
                 if (msg.res.type == "EOSE") {
                     continue;
                 }
-                this.groupChatController.addEvent({
+                const res = this.groupChatController.addEvent({
                     ...msg.res.event,
                     kind: NostrKind.Group_Creation,
                 });
+                if (res instanceof Error) {
+                    console.error(res);
+                }
             }
         })();
         // Sync DM events
@@ -387,10 +390,11 @@ export function AppComponent(props: {
                         myAccountContext: myAccountCtx,
                         db: app.database,
                         pool: props.pool,
-                        allUserInfo: app.conversationLists,
+                        conversationLists: app.conversationLists,
                         profilesSyncer: app.profileSyncer,
                         eventSyncer: app.eventSyncer,
                         pinListGetter: app.otherConfig,
+                        groupChatController: app.groupChatController,
                     })}
                 </div>
             );

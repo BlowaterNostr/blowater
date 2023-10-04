@@ -100,10 +100,9 @@ export class ConversationList extends Component<Props, State> {
                             />
                             New Chat
                         </button>
-
+                        {/* <div class={tw`h-4 w-1 bg-[${PrimaryTextColor}] !p-0`}></div> */}
                         {
-                            /* <div class={tw`h-4 w-1 bg-[${PrimaryTextColor}] !p-0`}></div>
-                        <button
+                            /* <button
                             onClick={async () => {
                                 props.emit({
                                     type: "StartCreateGroupChat",
@@ -222,7 +221,7 @@ function ContactGroup(props: ConversationListProps) {
                         }}
                     >
                         <ConversationListItem
-                            userInfo={contact.conversation}
+                            conversation={contact.conversation}
                             isMarked={contact.isMarked}
                             isPinned={true}
                         />
@@ -268,7 +267,7 @@ function ContactGroup(props: ConversationListProps) {
                         }}
                     >
                         <ConversationListItem
-                            userInfo={contact.conversation}
+                            conversation={contact.conversation}
                             isMarked={contact.isMarked}
                             isPinned={false}
                         />
@@ -303,7 +302,7 @@ function ContactGroup(props: ConversationListProps) {
 }
 
 type ListItemProps = {
-    userInfo: ConversationSummary;
+    conversation: ConversationSummary;
     isMarked: boolean;
     isPinned: boolean;
 };
@@ -313,21 +312,21 @@ function ConversationListItem(props: ListItemProps) {
         <Fragment>
             <Avatar
                 class={tw`w-8 h-8 mr-2`}
-                picture={props.userInfo.profile?.profile.picture}
+                picture={props.conversation.profile?.profile.picture}
             />
             <div
                 class={tw`flex-1 overflow-hidden relative`}
             >
                 <p class={tw`truncate w-full`}>
-                    {props.userInfo.profile?.profile.name || props.userInfo.pubkey.bech32()}
+                    {props.conversation.profile?.profile.name || props.conversation.pubkey.bech32()}
                 </p>
-                {props.userInfo.newestEventReceivedByMe !== undefined
+                {props.conversation.newestEventReceivedByMe !== undefined
                     ? (
                         <p
                             class={tw`text-[#78828B] text-[0.8rem] truncate`}
                         >
                             {new Date(
-                                props.userInfo.newestEventReceivedByMe
+                                props.conversation.newestEventReceivedByMe
                                     .created_at * 1000,
                             ).toLocaleString()}
                         </p>
