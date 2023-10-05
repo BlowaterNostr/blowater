@@ -68,10 +68,6 @@ export class Search extends Component<Props, State> {
                 searchResults: profile_event ? [profile_event] : pubkey,
             });
         }
-        this.props.emit({
-            type: "Search",
-            text,
-        });
     };
 
     onSelect = (profile: Profile_Nostr_Event | PublicKey) => () => {
