@@ -1,6 +1,6 @@
 /** @jsx h */
 import { h } from "https://esm.sh/preact@10.17.1";
-import { getProfileEvent, getProfilesByName, ProfileSyncer, saveProfile } from "../features/profile.ts";
+import { ProfileSyncer, saveProfile } from "../features/profile.ts";
 
 import { App } from "./app.tsx";
 import {
@@ -577,7 +577,7 @@ export async function* Database_Update(
                 if (e.kind == NostrKind.META_DATA) {
                     // my profile update
                     if (ctx && e.pubkey == ctx.publicKey.hex) {
-                        const newProfile = getProfileEvent(database, ctx.publicKey);
+                        const newProfile = database.getProfilesByPublicKey(ctx.publicKey);
                         if (newProfile == undefined) {
                             throw new Error("impossible");
                         }

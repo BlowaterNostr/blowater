@@ -11,7 +11,7 @@ import { DM_EditorModel } from "./editor.tsx";
 import { getConversationMessages, UI_Interaction_Event } from "./app_update.tsx";
 import { NostrAccountContext, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
-import { getProfileEvent, ProfileSyncer } from "../features/profile.ts";
+import { ProfileSyncer } from "../features/profile.ts";
 import { ChatMessage } from "./message.ts";
 import { DM_Model } from "./dm.ts";
 import { getFocusedContent } from "./app.tsx";
@@ -49,7 +49,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
         for (const [v, editor] of props.editors.entries()) {
             if (v == currentConversation.hex) {
                 currentEditorModel = editor;
-                const profile = getProfileEvent(props.db, currentConversation);
+                const profile = props.db.getProfilesByPublicKey(currentConversation);
                 currentEditorModel.target.receiver = {
                     pubkey: currentConversation,
                     name: profile?.profile.name,
@@ -108,7 +108,6 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
             emit: props.bus.emit,
             editorModel: currentEditorModel,
             focusedContent: focusedContent,
-            db: props.db,
             profilesSyncer: props.profilesSyncer,
             eventSyncer: props.eventSyncer,
             allUserInfo: props.conversationLists.convoSummaries,

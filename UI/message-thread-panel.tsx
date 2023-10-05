@@ -27,7 +27,6 @@ interface MessageThreadProps {
     emit: emitFunc<DirectMessagePanelUpdate | EditorEvent>;
     messages: ChatMessage[];
     myPublicKey: PublicKey;
-    db: Database_Contextual_View;
     editorModel: EditorModel;
     profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
@@ -51,7 +50,6 @@ export function MessageThreadPanel(props: MessageThreadProps) {
                 <MessageThreadList
                     myPublicKey={props.myPublicKey}
                     messages={props.messages}
-                    db={props.db}
                     profilesSyncer={props.profilesSyncer}
                     eventSyncer={props.eventSyncer}
                     emit={props.emit}
@@ -72,7 +70,6 @@ export function MessageThreadPanel(props: MessageThreadProps) {
 function MessageThreadList(props: {
     myPublicKey: PublicKey;
     messages: ChatMessage[];
-    db: Database_Contextual_View;
     profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
     emit: emitFunc<ViewUserDetail | ViewThread | DirectMessagePanelUpdate>;
@@ -89,7 +86,6 @@ function MessageThreadList(props: {
             <MessageThreadBoxGroup
                 messages={group}
                 myPublicKey={props.myPublicKey}
-                db={props.db}
                 profilesSyncer={props.profilesSyncer}
                 eventSyncer={props.eventSyncer}
                 emit={props.emit}
@@ -109,7 +105,6 @@ function MessageThreadList(props: {
 function MessageThreadBoxGroup(props: {
     messages: ChatMessage[];
     myPublicKey: PublicKey;
-    db: Database_Contextual_View;
     profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
     emit: emitFunc<ViewUserDetail | ViewThread | DirectMessagePanelUpdate>;

@@ -10,10 +10,18 @@ import {
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { parseProfileData } from "./features/profile.ts";
 import { parseContent } from "./UI/message.ts";
-import { NostrAccountContext, NostrEvent, NostrKind, Tags, verifyEvent } from "./lib/nostr-ts/nostr.ts";
+import {
+    groupBy,
+    NostrAccountContext,
+    NostrEvent,
+    NostrKind,
+    Tags,
+    verifyEvent,
+} from "./lib/nostr-ts/nostr.ts";
 import { PublicKey } from "./lib/nostr-ts/key.ts";
 import { NoteID } from "./lib/nostr-ts/nip19.ts";
 import { DirectMessageGetter } from "./UI/app_update.tsx";
+import { ProfileGetter } from "./UI/search.tsx";
 
 export const NotFound = Symbol("Not Found");
 const buffer_size = 2000;
@@ -44,7 +52,7 @@ export interface EventPutter {
 export type EventsAdapter = EventsFilter & EventRemover & EventGetter & EventPutter;
 
 type Accepted_Event = Text_Note_Event | Encrypted_Event | Profile_Nostr_Event;
-export class Database_Contextual_View implements DirectMessageGetter {
+export class Database_Contextual_View implements DirectMessageGetter, ProfileGetter {
     private readonly sourceOfChange = csp.chan<Accepted_Event | null>(buffer_size);
     private readonly caster = csp.multi<Accepted_Event | null>(this.sourceOfChange);
     public readonly directed_messages = new Map<string, DirectedMessage_Event>();
@@ -55,6 +63,44 @@ export class Database_Contextual_View implements DirectMessageGetter {
             (Text_Note_Event | NostrEvent<NostrKind.DIRECT_MESSAGE> | Profile_Nostr_Event)[],
         private readonly ctx: NostrAccountContext,
     ) {}
+
+    getProfilesByText(name: string): Profile_Nostr_Event[] {
+        const events: Profile_Nostr_Event[] = [];
+        for (const e of this.events) {
+            if (e.kind === NostrKind.META_DATA) {
+                events.push(e);
+            }
+        }
+        if (events.length == 0) {
+            return [];
+        }
+        const profilesPerUser = groupBy(events, (e) => e.pubkey);
+
+        const result = [];
+        for (const events of profilesPerUser.values()) {
+            events.sort((e1, e2) => e2.created_at - e1.created_at);
+            const p = events[0];
+            if (p.profile.name && p.profile.name?.toLocaleLowerCase().indexOf(name.toLowerCase()) != -1) {
+                result.push(p);
+            }
+        }
+        return result;
+    }
+
+    getProfilesByPublicKey(pubkey: PublicKey): Profile_Nostr_Event | undefined {
+        const events: Profile_Nostr_Event[] = [];
+        for (const e of this.events) {
+            if (e.kind === NostrKind.META_DATA && e.pubkey === pubkey.hex) {
+                events.push(e);
+            }
+        }
+        if (events.length == 0) {
+            return undefined;
+        }
+        events.sort((e1, e2) => e2.created_at - e1.created_at);
+        const newest = events[0];
+        return newest;
+    }
 
     static async New(eventsAdapter: EventsAdapter, ctx: NostrAccountContext) {
         const t = Date.now();
