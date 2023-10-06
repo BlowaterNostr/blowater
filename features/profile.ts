@@ -59,18 +59,6 @@ export async function saveProfile(
     pool.sendEvent(event);
 }
 
-export function getProfiles(
-    db: ProfileGetter,
-    pubkeys: Set<string>,
-): Map<string, /*pubkey*/ Profile_Nostr_Event | undefined> {
-    const contacts: Map<string, Profile_Nostr_Event | undefined> = new Map();
-    for (const key of pubkeys) {
-        const event = db.getProfilesByPublicKey(PublicKey.FromHex(key) as PublicKey);
-        contacts.set(key, event);
-    }
-    return contacts;
-}
-
 // aka user profile
 export interface ProfileData {
     name?: string;
