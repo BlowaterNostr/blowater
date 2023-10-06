@@ -39,35 +39,31 @@ export class GroupChatController {
     }
 
     async addEvent(event: NostrEvent<NostrKind.Group_Message>) {
-        try {
-            const decryptedContent = await this.ctx.decrypt(event.pubkey, event.content);
-            if (decryptedContent instanceof Error) {
-                console.error(decryptedContent);
-                return;
-            }
-            const content = JSON.parse(decryptedContent);
-            if (content.length == 0) {
-                return;
-            }
-            const groupKey = PrivateKey.FromHex(content.groupKey);
-            if (groupKey instanceof Error) {
-                return groupKey;
-            }
-            const cipherKey = PrivateKey.FromHex(content.cipherKey);
-            if (cipherKey instanceof Error) {
-                return cipherKey;
-            }
-
-            const groupChatCreation = {
-                groupKey: InMemoryAccountContext.New(groupKey),
-                cipherKey: InMemoryAccountContext.New(cipherKey),
-            };
-            this.created_groups.set(groupKey.toPublicKey().bech32(), groupChatCreation);
-
-            this.conversationLists.addGroupCreation(groupChatCreation);
-        } catch (e) {
-            return e; // do nothing
+        const decryptedContent = await this.ctx.decrypt(event.pubkey, event.content);
+        if (decryptedContent instanceof Error) {
+            console.error(decryptedContent);
+            return;
         }
+        const content = JSON.parse(decryptedContent);
+        if (content.length == 0) {
+            return;
+        }
+        const groupKey = PrivateKey.FromString(content.groupKey);
+        if (groupKey instanceof Error) {
+            return groupKey;
+        }
+        const cipherKey = PrivateKey.FromString(content.cipherKey);
+        if (cipherKey instanceof Error) {
+            return cipherKey;
+        }
+
+        const groupChatCreation = {
+            groupKey: InMemoryAccountContext.New(groupKey),
+            cipherKey: InMemoryAccountContext.New(cipherKey),
+        };
+        this.created_groups.set(groupKey.toPublicKey().bech32(), groupChatCreation);
+
+        this.conversationLists.addGroupCreation(groupChatCreation);
     }
 
     // getGroupChatCtx(group_addr: PublicKey): InMemoryAccountContext | undefined {

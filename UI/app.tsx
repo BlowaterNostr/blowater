@@ -174,7 +174,7 @@ export class App {
                 if (msg.res.type == "EOSE") {
                     continue;
                 }
-                const res = this.groupChatController.addEvent({
+                const res = await this.groupChatController.addEvent({
                     ...msg.res.event,
                     kind: NostrKind.Group_Message,
                 });
