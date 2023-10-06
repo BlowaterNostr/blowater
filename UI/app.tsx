@@ -165,7 +165,7 @@ export class App {
         (async () => {
             const stream = await this.pool.newSub("group creations", {
                 authors: [this.ctx.publicKey.hex],
-                kinds: [NostrKind.Group_Creation],
+                kinds: [NostrKind.Group_Message],
             });
             if (stream instanceof Error) {
                 throw stream; // crash to app
@@ -176,7 +176,7 @@ export class App {
                 }
                 const res = this.groupChatController.addEvent({
                     ...msg.res.event,
-                    kind: NostrKind.Group_Creation,
+                    kind: NostrKind.Group_Message,
                 });
                 if (res instanceof Error) {
                     console.error(res);

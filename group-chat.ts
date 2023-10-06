@@ -1,58 +1,44 @@
 import { ConversationLists } from "./UI/conversation-list.ts";
-import { prepareEncryptedNostrEvent, prepareParameterizedEvent } from "./lib/nostr-ts/event.ts";
+import { prepareEncryptedNostrEvent } from "./lib/nostr-ts/event.ts";
 import { PrivateKey, PublicKey } from "./lib/nostr-ts/key.ts";
 import { InMemoryAccountContext, NostrAccountContext, NostrEvent, NostrKind } from "./lib/nostr-ts/nostr.ts";
-import { getTags } from "./nostr.ts";
 
 export type GroupChatCreation = {
-    cipherKey: PrivateKey;
-    groupKey: PrivateKey;
+    cipherKey: InMemoryAccountContext;
+    groupKey: InMemoryAccountContext;
 };
 
 export class GroupChatController {
     created_groups = new Map<string, GroupChatCreation>();
-
-    // invitations = new Map<string, {
-    //     cipher_key: PrivateKey;
-    //     group_addr: PublicKey;
-    // }>();
 
     constructor(
         private readonly ctx: NostrAccountContext,
         private readonly conversationLists: ConversationLists,
     ) {}
 
-    async encodeCreationsToNostrEvent(ctx: InMemoryAccountContext) {
-        const groupChatCreation = this.created_groups.get(ctx.privateKey.toPublicKey().bech32());
+    async encodeCreationToNostrEvent(groupCreation: GroupChatCreation) {
         const event = prepareEncryptedNostrEvent(this.ctx, {
             encryptKey: this.ctx.publicKey,
-            kind: NostrKind.Group_Creation,
+            kind: NostrKind.Group_Message,
             tags: [],
-            content: JSON.stringify(groupChatCreation),
+            content: JSON.stringify({
+                cipherKey: groupCreation.cipherKey.privateKey.bech32,
+                groupKey: groupCreation.groupKey.privateKey.bech32,
+            }),
         });
         return event;
     }
 
     createGroupChat() {
         const groupChatCreation: GroupChatCreation = {
-            cipherKey: PrivateKey.Generate(),
-            groupKey: PrivateKey.Generate(),
+            cipherKey: InMemoryAccountContext.New(PrivateKey.Generate()),
+            groupKey: InMemoryAccountContext.New(PrivateKey.Generate()),
         };
-        this.created_groups.set(groupChatCreation.groupKey.toPublicKey().bech32(), groupChatCreation);
-        return InMemoryAccountContext.New(groupChatCreation.groupKey);
+        this.created_groups.set(groupChatCreation.groupKey.publicKey.bech32(), groupChatCreation);
+        return groupChatCreation;
     }
 
-    // addEvents(...events: NostrEvent[]) {
-    //     for (const event of events) {
-    //         if (event.kind != NostrKind.Custom_App_Data) {
-    //             continue;
-    //         }
-    //         // @ts-ignore
-    //         this.addEvent(event);
-    //     }
-    // }
-
-    async addEvent(event: NostrEvent<NostrKind.Group_Creation>) {
+    async addEvent(event: NostrEvent<NostrKind.Group_Message>) {
         try {
             const decryptedContent = await this.ctx.decrypt(event.pubkey, event.content);
             if (decryptedContent instanceof Error) {
@@ -63,15 +49,18 @@ export class GroupChatController {
             if (content.length == 0) {
                 return;
             }
-            const groupKey = PrivateKey.FromHex(content.groupKey.hex);
-            const cipherKey = PrivateKey.FromHex(content.cipherKey.hex);
-            if (groupKey instanceof Error || cipherKey instanceof Error) {
-                return;
+            const groupKey = PrivateKey.FromHex(content.groupKey);
+            if (groupKey instanceof Error) {
+                return groupKey;
+            }
+            const cipherKey = PrivateKey.FromHex(content.cipherKey);
+            if (cipherKey instanceof Error) {
+                return cipherKey;
             }
 
             const groupChatCreation = {
-                groupKey: groupKey,
-                cipherKey: cipherKey,
+                groupKey: InMemoryAccountContext.New(groupKey),
+                cipherKey: InMemoryAccountContext.New(cipherKey),
             };
             this.created_groups.set(groupKey.toPublicKey().bech32(), groupChatCreation);
 
@@ -94,6 +83,6 @@ export class GroupChatController {
         if (!creation) {
             return;
         }
-        return InMemoryAccountContext.New(creation.groupKey);
+        return creation.groupKey;
     }
 }

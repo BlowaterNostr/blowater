@@ -78,7 +78,7 @@ export class ConversationLists implements ConversationListRetriever, GroupChatLi
     }
 
     addGroupCreation(groupChatCreation: GroupChatCreation) {
-        const publicKey = groupChatCreation.groupKey.toPublicKey();
+        const publicKey = groupChatCreation.groupKey.publicKey;
         this.groupChatSummaries.set(publicKey.hex, {
             pubkey: publicKey,
             newestEventReceivedByMe: undefined,

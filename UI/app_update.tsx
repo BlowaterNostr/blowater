@@ -329,8 +329,8 @@ export async function* UI_Interaction_Update(args: {
         } else if (event.type == "CreateGroupChat") {
             const profileData = event.profileData;
 
-            const groupCtx = app.groupChatController.createGroupChat();
-            const creationEvent = await app.groupChatController.encodeCreationsToNostrEvent(groupCtx);
+            const groupCreation = app.groupChatController.createGroupChat();
+            const creationEvent = await app.groupChatController.encodeCreationToNostrEvent(groupCreation);
             if (creationEvent instanceof Error) {
                 console.error(creationEvent);
                 continue;
@@ -341,7 +341,7 @@ export async function* UI_Interaction_Update(args: {
                 continue;
             }
             const profileEvent = await prepareNormalNostrEvent(
-                groupCtx,
+                groupCreation.groupKey,
                 NostrKind.META_DATA,
                 [],
                 JSON.stringify(profileData),
@@ -352,7 +352,7 @@ export async function* UI_Interaction_Update(args: {
                 continue;
             }
             app.popOverInputChan.put({ children: undefined });
-            app.profileSyncer.add(groupCtx.publicKey.hex);
+            app.profileSyncer.add(groupCreation.groupKey.publicKey.hex);
         } else if (event.type == "StartEditGroupChatProfile") {
             app.popOverInputChan.put({
                 children: (
