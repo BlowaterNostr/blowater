@@ -1,7 +1,6 @@
 import { Database_Contextual_View } from "../database.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
-import { PublicKey } from "../lib/nostr-ts/key.ts";
-import { groupBy, NostrAccountContext, NostrKind } from "../lib/nostr-ts/nostr.ts";
+import { NostrAccountContext, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { Parsed_Event, Profile_Nostr_Event } from "../nostr.ts";
 import { prepareNormalNostrEvent } from "../lib/nostr-ts/event.ts";
 import { semaphore } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
@@ -56,59 +55,6 @@ export async function saveProfile(
         JSON.stringify(profile),
     );
     pool.sendEvent(event);
-}
-
-export function getProfileEvent(
-    db: Database_Contextual_View,
-    pubkey: PublicKey,
-): Profile_Nostr_Event | undefined {
-    const events: Profile_Nostr_Event[] = [];
-    for (const e of db.events) {
-        if (e.kind === NostrKind.META_DATA && e.pubkey === pubkey.hex) {
-            events.push(e);
-        }
-    }
-    if (events.length == 0) {
-        return undefined;
-    }
-    events.sort((e1, e2) => e2.created_at - e1.created_at);
-    const newest = events[0];
-    return newest;
-}
-
-export function getProfilesByName(db: Database_Contextual_View, name: string): Profile_Nostr_Event[] {
-    const events: Profile_Nostr_Event[] = [];
-    for (const e of db.events) {
-        if (e.kind === NostrKind.META_DATA) {
-            events.push(e);
-        }
-    }
-    if (events.length == 0) {
-        return [];
-    }
-    const profilesPerUser = groupBy(events, (e) => e.pubkey);
-
-    const result = [];
-    for (const events of profilesPerUser.values()) {
-        events.sort((e1, e2) => e2.created_at - e1.created_at);
-        const p = events[0];
-        if (p.profile.name && p.profile.name?.toLocaleLowerCase().indexOf(name.toLowerCase()) != -1) {
-            result.push(p);
-        }
-    }
-    return result;
-}
-
-export function getProfiles(
-    db: Database_Contextual_View,
-    pubkeys: Set<string>,
-): Map<string, /*pubkey*/ Profile_Nostr_Event | undefined> {
-    const contacts: Map<string, Profile_Nostr_Event | undefined> = new Map();
-    for (const key of pubkeys) {
-        const event = getProfileEvent(db, PublicKey.FromHex(key) as PublicKey);
-        contacts.set(key, event);
-    }
-    return contacts;
 }
 
 // aka user profile

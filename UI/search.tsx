@@ -12,10 +12,8 @@ import { Component } from "https://esm.sh/preact@10.17.1";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { emitFunc } from "../event-bus.ts";
 import { SearchUpdate } from "./search_model.ts";
-import { Database_Contextual_View } from "../database.ts";
-import { getProfileEvent, getProfilesByName } from "../features/profile.ts";
 import { Profile_Nostr_Event } from "../nostr.ts";
-import { InvalidKey, PublicKey } from "../lib/nostr-ts/key.ts";
+import { PublicKey } from "../lib/nostr-ts/key.ts";
 
 export type SearchResultChannel = Channel<SearchResult[]>;
 
@@ -25,9 +23,14 @@ type SearchResult = {
     id: string;
 };
 
+export interface ProfileGetter {
+    getProfilesByText(input: string): Profile_Nostr_Event[];
+    getProfilesByPublicKey(pubkey: PublicKey): Profile_Nostr_Event | undefined;
+}
+
 type Props = {
     placeholder: string;
-    db: Database_Contextual_View;
+    db: ProfileGetter;
     emit: emitFunc<SearchUpdate>;
 };
 
@@ -57,21 +60,16 @@ export class Search extends Component<Props, State> {
         const text = e.currentTarget.value;
         const pubkey = PublicKey.FromString(text);
         if (pubkey instanceof Error) {
-            const profiles = getProfilesByName(this.props.db, text);
-            console.log(profiles);
+            const profiles = this.props.db.getProfilesByText(text);
             this.setState({
                 searchResults: profiles,
             });
         } else {
-            const profile_event = getProfileEvent(this.props.db, pubkey);
+            const profile_event = this.props.db.getProfilesByPublicKey(pubkey);
             this.setState({
                 searchResults: profile_event ? [profile_event] : pubkey,
             });
         }
-        this.props.emit({
-            type: "Search",
-            text,
-        });
     };
 
     onSelect = (profile: Profile_Nostr_Event | PublicKey) => () => {

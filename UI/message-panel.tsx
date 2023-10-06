@@ -81,7 +81,6 @@ interface DirectMessagePanelProps {
 
     rightPanelModel: RightPanelModel;
 
-    db: Database_Contextual_View;
     emit: emitFunc<
         EditorEvent | DirectMessagePanelUpdate | PinConversation | UnpinConversation
     >;
@@ -111,7 +110,6 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
                             emit={props.emit}
                             messages={[props.focusedContent.data.root, ...props.focusedContent.data.replies]}
                             myPublicKey={props.myPublicKey}
-                            db={props.db}
                             editorModel={props.focusedContent.editor}
                             profilesSyncer={props.profilesSyncer}
                             eventSyncer={props.eventSyncer}
@@ -151,7 +149,6 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
                             myPublicKey={props.myPublicKey}
                             threads={props.messages}
                             emit={props.emit}
-                            db={props.db}
                             profilesSyncer={props.profilesSyncer}
                             eventSyncer={props.eventSyncer}
                             allUserInfo={props.allUserInfo}
@@ -198,7 +195,6 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
 interface MessageListProps {
     myPublicKey: PublicKey;
     threads: MessageThread[];
-    db: Database_Contextual_View;
     emit: emitFunc<DirectMessagePanelUpdate>;
     profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
@@ -275,7 +271,6 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
                     }),
                     myPublicKey: this.props.myPublicKey,
                     emit: this.props.emit,
-                    db: this.props.db,
                     profilesSyncer: this.props.profilesSyncer,
                     eventSyncer: this.props.eventSyncer,
                     allUserInfo: this.props.allUserInfo,
@@ -330,7 +325,6 @@ function MessageBoxGroup(props: {
         replyCount: number;
     }[];
     myPublicKey: PublicKey;
-    db: Database_Contextual_View;
     allUserInfo: Map<string, ConversationSummary>;
     emit: emitFunc<DirectMessagePanelUpdate | ViewUserDetail>;
     profilesSyncer: ProfileSyncer;

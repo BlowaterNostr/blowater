@@ -1,6 +1,6 @@
 /** @jsx h */
 import { h } from "https://esm.sh/preact@10.17.1";
-import { getProfileEvent, getProfilesByName, ProfileSyncer, saveProfile } from "../features/profile.ts";
+import { ProfileSyncer, saveProfile } from "../features/profile.ts";
 
 import { App } from "./app.tsx";
 import {
@@ -147,7 +147,6 @@ export async function* UI_Interaction_Update(args: {
         //
         else if (event.type == "CancelPopOver") {
             model.search.isSearching = false;
-            model.search.searchResults = [];
         } else if (event.type == "StartSearch") {
             model.search.isSearching = true;
             const search = (
@@ -158,35 +157,12 @@ export async function* UI_Interaction_Update(args: {
                 />
             );
             args.popOver.put({ children: search });
-        } else if (event.type == "Search") {
-            const pubkey = PublicKey.FromString(event.text);
-            if (pubkey instanceof PublicKey) {
-                app.profileSyncer.add(pubkey.hex);
-                const profile = getProfileEvent(app.database, pubkey);
-                model.search.searchResults = [{
-                    pubkey: pubkey,
-                    profile: profile?.profile,
-                }];
-            } else {
-                const profiles = getProfilesByName(app.database, event.text);
-                model.search.searchResults = profiles.map((p) => {
-                    const pubkey = PublicKey.FromString(p.pubkey);
-                    if (pubkey instanceof Error) {
-                        throw new Error("impossible");
-                    }
-                    return {
-                        pubkey: pubkey,
-                        profile: p.profile,
-                    };
-                });
-            }
         } //
         //
         // Contacts
         //
         else if (event.type == "SelectConversation") {
             model.search.isSearching = false;
-            model.search.searchResults = [];
             model.rightPanelModel = {
                 show: false,
             };
@@ -599,19 +575,9 @@ export async function* Database_Update(
                 }
 
                 if (e.kind == NostrKind.META_DATA) {
-                    if (model.search.searchResults.length > 0) {
-                        const previous = model.search.searchResults;
-                        model.search.searchResults = previous.map((profile) => {
-                            const profileEvent = getProfileEvent(database, profile.pubkey);
-                            return {
-                                pubkey: profile.pubkey,
-                                profile: profileEvent?.profile,
-                            };
-                        });
-                    }
                     // my profile update
                     if (ctx && e.pubkey == ctx.publicKey.hex) {
-                        const newProfile = getProfileEvent(database, ctx.publicKey);
+                        const newProfile = database.getProfilesByPublicKey(ctx.publicKey);
                         if (newProfile == undefined) {
                             throw new Error("impossible");
                         }

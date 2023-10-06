@@ -38,7 +38,6 @@ const view = () => {
     return (
         <MessagePanel
             allUserInfo={allUserInfo.convoSummaries}
-            db={database}
             /**
              * If we use a map to store all editor models,
              * need to distinguish editor models for DMs and GMs

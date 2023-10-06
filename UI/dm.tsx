@@ -8,10 +8,10 @@ import { EventBus } from "../event-bus.ts";
 import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
 import { CenterClass, IconButtonClass } from "./components/tw.ts";
 import { DM_EditorModel } from "./editor.tsx";
-import { getConversationMessages, UI_Interaction_Event } from "./app_update.tsx";
+import { DirectMessageGetter, getConversationMessages, UI_Interaction_Event } from "./app_update.tsx";
 import { NostrAccountContext, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
-import { getProfileEvent, ProfileSyncer } from "../features/profile.ts";
+import { ProfileSyncer } from "../features/profile.ts";
 import { ChatMessage } from "./message.ts";
 import { DM_Model } from "./dm.ts";
 import { getFocusedContent } from "./app.tsx";
@@ -21,6 +21,7 @@ import { ButtonGroup } from "./components/button-group.tsx";
 import { PrimaryTextColor } from "./style/colors.ts";
 import { SettingIcon } from "./icons2/setting-icon.tsx";
 import { GroupChatController } from "../group-chat.ts";
+import { ProfileGetter } from "./search.tsx";
 
 type DirectMessageContainerProps = {
     editors: Map<string, DM_EditorModel>;
@@ -28,7 +29,8 @@ type DirectMessageContainerProps = {
     ctx: NostrAccountContext;
     pool: ConnectionPool;
     bus: EventBus<UI_Interaction_Event>;
-    db: Database_Contextual_View;
+    profileGetter: ProfileGetter;
+    dmGetter: DirectMessageGetter;
     conversationLists: ConversationLists;
     profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
@@ -49,7 +51,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
         for (const [v, editor] of props.editors.entries()) {
             if (v == currentConversation.hex) {
                 currentEditorModel = editor;
-                const profile = getProfileEvent(props.db, currentConversation);
+                const profile = props.profileGetter.getProfilesByPublicKey(currentConversation);
                 currentEditorModel.target.receiver = {
                     pubkey: currentConversation,
                     name: profile?.profile.name,
@@ -67,7 +69,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
         const convoMsgs = getConversationMessages({
             targetPubkey: currentEditorModel.target.receiver.pubkey.hex,
             allUserInfo: props.conversationLists.convoSummaries,
-            dmGetter: props.db,
+            dmGetter: props.dmGetter,
         });
         console.log("DirectMessageContainer:convoMsgs", Date.now() - t);
 
@@ -108,7 +110,6 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
             emit: props.bus.emit,
             editorModel: currentEditorModel,
             focusedContent: focusedContent,
-            db: props.db,
             profilesSyncer: props.profilesSyncer,
             eventSyncer: props.eventSyncer,
             allUserInfo: props.conversationLists.convoSummaries,
