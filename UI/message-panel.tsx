@@ -195,7 +195,6 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
 interface MessageListProps {
     myPublicKey: PublicKey;
     threads: MessageThread[];
-    // db: Database_Contextual_View;
     emit: emitFunc<DirectMessagePanelUpdate>;
     profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
