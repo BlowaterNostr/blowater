@@ -8,7 +8,7 @@ import {
     Text_Note_Event,
 } from "./nostr.ts";
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { parseProfileData } from "./features/profile.ts";
+import { parseJSON, ProfileData } from "./features/profile.ts";
 import { parseContent } from "./UI/message.ts";
 import {
     groupBy,
@@ -322,7 +322,7 @@ export function originalEventToUnencryptedEvent<Kind extends NostrKind.META_DATA
     if (publicKey instanceof Error) return publicKey;
 
     if (event.kind == NostrKind.META_DATA) {
-        const profileData = parseProfileData(event.content);
+        const profileData = parseJSON<ProfileData>(event.content);
         if (profileData instanceof Error) {
             return profileData;
         }

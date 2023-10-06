@@ -128,7 +128,7 @@ Deno.test("group chat", async () => {
         const invitationEvent = await next(stream.chan);
         const invitation = await ctx_B.decrypt(invitationEvent.pubkey, invitationEvent.content);
         if (invitation instanceof Error) fail(invitation.message);
-        const decrypt_key = JSON.parse(invitation).decrypt_key;
+        const decrypt_key = parseJSON(invitation).decrypt_key;
 
         console.log("group member private key:", invitation);
         const ctx_decrypt_received_by_B = InMemoryAccountContext.New(
@@ -192,7 +192,7 @@ Deno.test("group chat", async () => {
             const invitationEvent = await next(stream.chan);
             const invitation = await ctx_C.decrypt(invitationEvent.pubkey, invitationEvent.content);
             if (invitation instanceof Error) fail(invitation.message);
-            const decrypt_key = JSON.parse(invitation).decrypt_key;
+            const decrypt_key = parseJSON(invitation).decrypt_key;
 
             const group_decrypt_ctx_received_by_C = InMemoryAccountContext.New(
                 PrivateKey.FromString(decrypt_key) as PrivateKey,

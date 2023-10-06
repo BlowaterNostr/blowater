@@ -3,6 +3,7 @@ import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nost
 import * as secp256k1 from "../lib/nostr-ts/vendor/secp256k1.js";
 import { ConnectionPool, RelayAlreadyRegistered } from "../lib/nostr-ts/relay.ts";
 import { prepareParameterizedEvent } from "../lib/nostr-ts/event.ts";
+import { parseJSON } from "../features/profile.ts";
 
 export const defaultRelays = [
     "wss://nos.lol",
@@ -48,7 +49,12 @@ export class RelayConfig {
             return decrypted;
         }
 
-        const json = JSON.parse(decrypted);
+        const json = parseJSON<{
+            data: Config;
+        }>(decrypted);
+        if (json instanceof Error) {
+            return json;
+        }
         const relayConfig = new RelayConfig();
         relayConfig.merge(secp256k1.utils.hexToBytes(json.data));
         return relayConfig;

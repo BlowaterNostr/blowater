@@ -1,4 +1,5 @@
 import { ConversationLists } from "./UI/conversation-list.ts";
+import { parseJSON } from "./features/profile.ts";
 import { prepareEncryptedNostrEvent } from "./lib/nostr-ts/event.ts";
 import { PrivateKey, PublicKey } from "./lib/nostr-ts/key.ts";
 import { InMemoryAccountContext, NostrAccountContext, NostrEvent, NostrKind } from "./lib/nostr-ts/nostr.ts";
@@ -6,6 +7,11 @@ import { InMemoryAccountContext, NostrAccountContext, NostrEvent, NostrKind } fr
 export type GroupChatCreation = {
     cipherKey: InMemoryAccountContext;
     groupKey: InMemoryAccountContext;
+};
+
+type GroupChatCreationEventContent = {
+    cipherKey: string;
+    groupKey: string;
 };
 
 export class GroupChatController {
@@ -44,9 +50,9 @@ export class GroupChatController {
             console.error(decryptedContent);
             return;
         }
-        const content = JSON.parse(decryptedContent);
-        if (content.length == 0) {
-            return;
+        const content = parseJSON<GroupChatCreationEventContent>(decryptedContent);
+        if (content instanceof Error) {
+            return content;
         }
         const groupKey = PrivateKey.FromString(content.groupKey);
         if (groupKey instanceof Error) {
