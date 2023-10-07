@@ -54,35 +54,11 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
         });
         console.log("DirectMessageContainer:convoMsgs", Date.now() - t);
 
-        const focusedContent = (() => {
-            let _ = getFocusedContent(
-                props.focusedContent.get(props.currentSelectedContact.hex),
-                props.conversationLists.convoSummaries,
-                convoMsgs,
-            );
-            // if (_?.type == "MessageThread") {
-            //     let editor = props.editors.get(_.data.root.event.id);
-            //     if (editor == undefined) {
-            //         editor = {
-            //             id: _.data.root.event.id,
-            //             files: [],
-            //             text: "",
-            //             tags: [
-            //                 ["e", _.data.root.event.id],
-            //             ],
-            //             target: {
-            //                 receiver: currentEditorModel.target.receiver,
-            //             },
-            //         };
-            //         props.editors.set(editor.id, editor);
-            //     }
-            //     return {
-            //         ..._,
-            //         editor,
-            //     };
-            // }
-            return _;
-        })();
+        const focusedContent = getFocusedContent(
+            props.focusedContent.get(props.currentSelectedContact.hex),
+            props.conversationLists.convoSummaries,
+            convoMsgs,
+        );
         messagePanel = new MessagePanel({
             myPublicKey: props.ctx.publicKey,
             messages: convoMsgs,
