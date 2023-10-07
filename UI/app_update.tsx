@@ -387,7 +387,7 @@ export async function* UI_Interaction_Update(args: {
             app.popOverInputChan.put({ children: undefined });
         } else if (event.type == "StartInvite") {
             app.popOverInputChan.put({
-                children: <div></div>
+                children: <div></div>,
             });
         } else if (event.type == "RelayConfigChange") {
             const e = await app.relayConfig.toNostrEvent(app.ctx);

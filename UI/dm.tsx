@@ -47,7 +47,7 @@ export type MessageThread = {
 export type StartInvite = {
     type: "StartInvite";
     publicKey: PublicKey;
-}
+};
 
 export function DirectMessageContainer(props: DirectMessageContainerProps) {
     const t = Date.now();
@@ -83,15 +83,15 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
     const canEditGroupProfile = props.currentSelectedContact && props.isGroupMessage &&
         props.groupChatController.getGroupAdminCtx(props.currentSelectedContact);
     const actions = canEditGroupProfile
-        ? (   
-           <ButtonGroup>
+        ? (
+            <ButtonGroup>
                 <button
                     class={tw`w-8 h-8 ${CenterClass}`}
                     onClick={() => {
                         props.bus.emit({
                             type: "StartInvite",
                             // @ts-ignore
-                            publicKey: props.currentConversation
+                            publicKey: props.currentConversation,
                         });
                     }}
                 >
@@ -114,7 +114,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                         style={{ fill: "none" }}
                     />
                 </button>
-           </ButtonGroup>
+            </ButtonGroup>
         )
         : undefined;
     const vDom = (
@@ -157,11 +157,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                                         props.currentSelectedContact.bech32()}
                                 </span>
                             </div>
-                            {
-                                props.isGroupMessage
-                                ? actions
-                                : undefined
-                            }
+                            {props.isGroupMessage ? actions : undefined}
                         </div>
                         <div class={tw`flex-1 overflow-x-auto`}>
                             {messagePanel}
