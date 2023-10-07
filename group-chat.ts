@@ -25,7 +25,7 @@ export class GroupChatController implements GroupMessageGetter {
     ) {}
 
     getGroupMessages(publicKey: string): GroupMessage[] {
-        return []   // todo
+        return []; // todo
     }
 
     async encodeCreationToNostrEvent(groupCreation: GroupChatCreation) {
@@ -53,14 +53,14 @@ export class GroupChatController implements GroupMessageGetter {
 
     async addEvent(event: NostrEvent<NostrKind.Group_Message>) {
         let decryptionPubkey = event.pubkey;
-        if(getTags(event).p.length > 0 && getTags(event).p[0]) {
-            decryptionPubkey = getTags(event).p[0]
+        if (getTags(event).p.length > 0 && getTags(event).p[0]) {
+            decryptionPubkey = getTags(event).p[0];
         }
         const decryptedContent = await this.ctx.decrypt(decryptionPubkey, event.content);
         if (decryptedContent instanceof Error) {
             return decryptedContent;
         }
-        console.log(decryptedContent)
+        console.log(decryptedContent);
 
         const json = parseJSON<unknown>(decryptedContent);
         if (json instanceof Error) {
@@ -72,11 +72,11 @@ export class GroupChatController implements GroupMessageGetter {
                 type: z.string(),
             });
             const content = schema.parse(json);
-            if(content.type == "gm_creation") {
+            if (content.type == "gm_creation") {
                 const schema = z.object({
                     type: z.string(),
                     cipherKey: z.string(),
-                    groupKey: z.string()
+                    groupKey: z.string(),
                 });
                 const content = schema.parse(json);
                 const groupKey = PrivateKey.FromString(content.groupKey);
@@ -96,9 +96,8 @@ export class GroupChatController implements GroupMessageGetter {
 
                 this.conversationLists.addGroupCreation(groupChatCreation);
             } else if (content.type == "gm_message") {
-                console.log(content)
+                console.log(content);
             }
-
         } catch (e) {
             return e as Error;
         }

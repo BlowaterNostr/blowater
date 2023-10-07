@@ -663,7 +663,7 @@ export async function handle_SendMessage(
         const nostrEvent = await prepareEncryptedNostrEvent(ctx, {
             content: JSON.stringify({
                 type: "gm_message",
-                text: event.text
+                text: event.text,
             }),
             kind: NostrKind.Group_Message,
             tags: [],
