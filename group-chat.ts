@@ -4,6 +4,10 @@ import { prepareEncryptedNostrEvent } from "./lib/nostr-ts/event.ts";
 import { PrivateKey, PublicKey } from "./lib/nostr-ts/key.ts";
 import { InMemoryAccountContext, NostrAccountContext, NostrEvent, NostrKind } from "./lib/nostr-ts/nostr.ts";
 
+export type GroupMessage = {
+    event: NostrEvent<NostrKind.Group_Message>;
+};
+
 export type GroupChatCreation = {
     cipherKey: InMemoryAccountContext;
     groupKey: InMemoryAccountContext;
@@ -77,7 +81,7 @@ export class GroupChatController {
         if (invitation == undefined) {
             return;
         }
-        return invitation.groupKey
+        return invitation.groupKey;
     }
 
     getGroupAdminCtx(group_addr: PublicKey): InMemoryAccountContext | undefined {

@@ -35,7 +35,7 @@ import {
     Text_Note_Event,
     UnpinConversation,
 } from "../nostr.ts";
-import { MessageThread, StartInvite } from "./dm.tsx";
+import { StartInvite } from "./dm.tsx";
 import { DexieDatabase } from "./dexie-db.ts";
 import { RelayConfigChange } from "./setting.tsx";
 import { PopOverInputChannel } from "./components/popover.tsx";
@@ -49,7 +49,8 @@ import { InMemoryAccountContext, NostrAccountContext, NostrEvent, NostrKind } fr
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { OtherConfig } from "./config-other.ts";
 import { EditGroup, EditGroupChatProfile, StartEditGroupChatProfile } from "./edit-group.tsx";
-import { GroupChatController } from "../group-chat.ts";
+import { GroupChatController, GroupMessage } from "../group-chat.ts";
+import { ChatMessage } from "./message.ts";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -213,7 +214,7 @@ export async function* UI_Interaction_Update(args: {
                 pool,
                 app.model.editors,
                 app.database,
-                app.groupChatController
+                app.groupChatController,
             );
             if (err instanceof Error) {
                 console.error("update:SendMessage", err);
@@ -459,10 +460,15 @@ export type DirectMessageGetter = {
     getDirectMessages(publicKey: string): DirectedMessage_Event[];
 };
 
+export type GroupMessageGetter = {
+    getGroupMessages(publicKey: string): GroupMessage[];
+};
+
 export function getConversationMessages(args: {
     targetPubkey: string;
+    isGroupChat: boolean;
     dmGetter: DirectMessageGetter;
-}): MessageThread[] {
+}): ChatMessage[] {
     const { targetPubkey } = args;
     let t = Date.now();
 
@@ -471,27 +477,18 @@ export function getConversationMessages(args: {
         events = [];
     }
 
-    const threads = computeThreads(Array.from(events));
     console.log("getConversationMessages:compute threads", Date.now() - t);
-    const msgs: MessageThread[] = [];
-    for (const thread of threads) {
-        const messages = convertEventsToChatMessages(thread);
-        if (messages.length > 0) {
-            messages.sort((m1, m2) => {
-                if (m1.lamport && m2.lamport && m1.lamport != m2.lamport) {
-                    return m1.lamport - m2.lamport;
-                }
-                return m1.created_at.getTime() - m2.created_at.getTime();
-            });
-            msgs.push({
-                root: messages[0],
-                replies: messages.slice(1),
-                // replies: [],
-            });
-        }
+
+    const messages = convertEventsToChatMessages(events);
+    if (messages.length > 0) {
+        messages.sort((m1, m2) => {
+            if (m1.lamport && m2.lamport && m1.lamport != m2.lamport) {
+                return m1.lamport - m2.lamport;
+            }
+            return m1.created_at.getTime() - m2.created_at.getTime();
+        });
     }
-    console.log("getConversationMessages:convert", Date.now() - t);
-    return msgs;
+    return messages;
 }
 
 export function updateConversation(
@@ -656,25 +653,25 @@ export async function handle_SendMessage(
     pool: ConnectionPool,
     dmEditors: Map<string, EditorModel>,
     db: Database_Contextual_View,
-    groupControl: GroupChatController
+    groupControl: GroupChatController,
 ) {
-    if(event.isGroupChat) {
-        const groupCtx = groupControl.getGroupChatCtx(event.pubkey)
-        if(groupCtx == undefined) {
-            return new Error(`group ctx for ${event.pubkey.bech32()} is empty`)
+    if (event.isGroupChat) {
+        const groupCtx = groupControl.getGroupChatCtx(event.pubkey);
+        if (groupCtx == undefined) {
+            return new Error(`group ctx for ${event.pubkey.bech32()} is empty`);
         }
         const nostrEvent = await prepareEncryptedNostrEvent(ctx, {
             content: event.text,
             kind: NostrKind.Group_Message,
             tags: [],
-            encryptKey: groupCtx.publicKey
-        })
-        if(nostrEvent instanceof Error) {
-            return nostrEvent
+            encryptKey: groupCtx.publicKey,
+        });
+        if (nostrEvent instanceof Error) {
+            return nostrEvent;
         }
-        const err  = await pool.sendEvent(nostrEvent);
-        if(err instanceof Error) {
-            return err
+        const err = await pool.sendEvent(nostrEvent);
+        if (err instanceof Error) {
+            return err;
         }
         const err2 = await db.addEvent(nostrEvent);
         if (err2 instanceof Error) {
