@@ -176,7 +176,6 @@ interface MessageListProps {
     emit: emitFunc<DirectMessagePanelUpdate>;
     profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
-    // allUserInfo: Map<string, ConversationSummary>;
     profileGetter: ProfileGetter;
 }
 
