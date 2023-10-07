@@ -139,6 +139,7 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
                         isGroupChat={props.isGroupChat}
                         targetNpub={props.editorModel.pubkey}
                         text={props.editorModel.text}
+                        files={props.editorModel.files}
                         placeholder=""
                     />
                 </div>

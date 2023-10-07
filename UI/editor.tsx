@@ -6,10 +6,11 @@ import { emitFunc } from "../event-bus.ts";
 
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { ImageIcon } from "./icons2/image-icon.tsx";
-import { DividerBackgroundColor, PrimaryTextColor } from "./style/colors.ts";
+import { DividerBackgroundColor, PrimaryBackgroundColor, PrimaryTextColor } from "./style/colors.ts";
 import { SendIcon } from "./icons2/send-icon.tsx";
 import { Component } from "https://esm.sh/preact@10.17.1";
 import { Model } from "./app_model.ts";
+import { RemoveIcon } from "./icons2/remove-icon.tsx";
 
 export type EditorModel = {
     readonly id: string;
@@ -61,6 +62,7 @@ type EditorProps = {
     // Logic
     readonly targetNpub: PublicKey;
     readonly text: string;
+    files: Blob[];
     //
     readonly emit: emitFunc<EditorEvent>;
     readonly isGroupChat: boolean;
@@ -72,15 +74,14 @@ export class Editor extends Component<EditorProps> {
         const uploadFileInput = createRef();
 
         const removeFile = (index: number) => {
-            // todo
-            // props.emit({
-            //     type: "UpdateMessageFiles",
-            //     id: props.id,
-            //     target: props.model.target,
-            //     files: props.model.files.slice(0, index).concat(
-            //         props.model.files.slice(index + 1),
-            //     ),
-            // });
+            props.emit({
+                type: "UpdateMessageFiles",
+                id: props.targetNpub.hex,
+                files: props.files.slice(0, index).concat(
+                    props.files.slice(index + 1),
+                ),
+                pubkey: props.targetNpub,
+            });
         };
 
         const sendMessage = async () => {
@@ -121,39 +122,36 @@ export class Editor extends Component<EditorProps> {
                     accept="image/*"
                     multiple
                     onChange={async (e) => {
-                        // todo
-                        // let propsfiles = props.model.files;
-                        // const files = e.currentTarget.files;
-                        // if (!files) {
-                        //     return;
-                        // }
-                        // for (let i = 0; i < files.length; i++) {
-                        //     const file = files.item(i);
-                        //     if (!file) {
-                        //         continue;
-                        //     }
-                        //     propsfiles = propsfiles.concat([file]);
-                        // }
-                        // props.emit({
-                        //     type: "UpdateMessageFiles",
-                        //     id: props.model.id,
-                        //     target: props.model.target,
-                        //     files: propsfiles,
-                        // });
+                        let propsfiles = props.files;
+                        const files = e.currentTarget.files;
+                        if (!files) {
+                            return;
+                        }
+                        for (let i = 0; i < files.length; i++) {
+                            const file = files.item(i);
+                            if (!file) {
+                                continue;
+                            }
+                            propsfiles = propsfiles.concat([file]);
+                        }
+                        props.emit({
+                            type: "UpdateMessageFiles",
+                            id: props.targetNpub.hex,
+                            files: propsfiles,
+                            pubkey: props.targetNpub,
+                        });
                     }}
                     class={tw`hidden`}
                 />
                 <div
                     class={tw`mx-2 p-[0.75rem] bg-[${DividerBackgroundColor}] rounded-lg flex flex-col flex-1 overflow-hidden`}
                 >
-                    {/* todo */}
-                    {
-                        /* {props.model.files.length > 0
+                    {props.files.length > 0
                         ? (
                             <ul
                                 class={tw`flex overflow-auto list-none py-2 w-full border-b border-[#52525B] mb-[1rem]`}
                             >
-                                {props.model.files.map((file, index) => {
+                                {props.files.map((file, index) => {
                                     return (
                                         <li
                                             class={tw`relative mx-2 min-w-[10rem] w-[10rem]  h-[10rem] p-2 bg-[${PrimaryBackgroundColor}] rounded ${CenterClass}`}
@@ -182,8 +180,8 @@ export class Editor extends Component<EditorProps> {
                                 })}
                             </ul>
                         )
-                        : undefined} */
-                    }
+                        : undefined}
+
                     <textarea
                         ref={textareaElement}
                         style={{
