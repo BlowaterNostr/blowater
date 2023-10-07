@@ -347,7 +347,7 @@ export function AppComponent(props: {
                         pinListGetter: app.otherConfig,
                         groupChatController: app.groupChatController,
                         newMessageChecker: app.conversationLists,
-                        gmGetter: app.database,
+                        gmGetter: app.groupChatController,
                     })}
                 </div>
             );

@@ -661,7 +661,10 @@ export async function handle_SendMessage(
             return new Error(`group ctx for ${event.pubkey.bech32()} is empty`);
         }
         const nostrEvent = await prepareEncryptedNostrEvent(ctx, {
-            content: event.text,
+            content: JSON.stringify({
+                type: "gm_message",
+                text: event.text
+            }),
             kind: NostrKind.Group_Message,
             tags: [],
             encryptKey: groupCtx.publicKey,

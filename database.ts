@@ -20,9 +20,8 @@ import {
 } from "./lib/nostr-ts/nostr.ts";
 import { PublicKey } from "./lib/nostr-ts/key.ts";
 import { NoteID } from "./lib/nostr-ts/nip19.ts";
-import { DirectMessageGetter, GroupMessageGetter } from "./UI/app_update.tsx";
+import { DirectMessageGetter } from "./UI/app_update.tsx";
 import { ProfileGetter } from "./UI/search.tsx";
-import { GroupMessage } from "./group-chat.ts";
 
 export const NotFound = Symbol("Not Found");
 const buffer_size = 2000;
@@ -53,7 +52,7 @@ export interface EventPutter {
 export type EventsAdapter = EventsFilter & EventRemover & EventGetter & EventPutter;
 
 type Accepted_Event = Text_Note_Event | Encrypted_Event | Profile_Nostr_Event;
-export class Database_Contextual_View implements DirectMessageGetter, GroupMessageGetter, ProfileGetter {
+export class Database_Contextual_View implements DirectMessageGetter, ProfileGetter {
     private readonly sourceOfChange = csp.chan<Accepted_Event | null>(buffer_size);
     private readonly caster = csp.multi<Accepted_Event | null>(this.sourceOfChange);
     public readonly directed_messages = new Map<string, DirectedMessage_Event>();
@@ -64,11 +63,6 @@ export class Database_Contextual_View implements DirectMessageGetter, GroupMessa
             (Text_Note_Event | NostrEvent<NostrKind.DIRECT_MESSAGE> | Profile_Nostr_Event)[],
         private readonly ctx: NostrAccountContext,
     ) {}
-
-    getGroupMessages(publicKey: string): GroupMessage[] {
-        // todo: implement GroupMessageGetter
-        return [];
-    }
 
     getProfilesByText(name: string): Profile_Nostr_Event[] {
         const events: Profile_Nostr_Event[] = [];
