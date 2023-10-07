@@ -1,4 +1,3 @@
-import { DM_EditorModel } from "./editor.tsx";
 import { NavigationModel } from "./nav.tsx";
 import { SearchInitModel, SearchModel } from "./search_model.ts";
 import { ProfileData } from "../features/profile.ts";
@@ -6,12 +5,15 @@ import { RightPanelModel } from "./message-panel.tsx";
 import { DM_Model } from "./dm.ts";
 import { App } from "./app.tsx";
 import { SignInModel } from "./signIn.tsx";
+import { EditorModel } from "./editor.tsx";
 
 export type Model = {
     app: App | undefined; // app is only available after sign-in
     dm: DM_Model;
     search: SearchModel;
-    editors: Map<string, DM_EditorModel>;
+
+    editors: Map<string, EditorModel>;
+    gmEditors: Map<string, EditorModel>;
 
     // profile
     myProfile: ProfileData | undefined;
@@ -29,7 +31,7 @@ export type Model = {
 };
 
 export function initialModel(): Model {
-    const editors: Map<string, DM_EditorModel> = new Map();
+    const editors: Map<string, EditorModel> = new Map();
     return {
         app: undefined,
         search: SearchInitModel(),
@@ -39,8 +41,8 @@ export function initialModel(): Model {
             currentSelectedContact: undefined,
             isGroupMessage: false,
         },
-        // allUsersInfo: new Map(),
         editors: editors,
+        gmEditors: new Map(),
         newProfileField: {
             key: "",
             value: "",

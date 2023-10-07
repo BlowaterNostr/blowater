@@ -52,6 +52,7 @@ const view = () => {
             rightPanelModel={{
                 show: true,
             }}
+            isGroupChat={false}
         />
     );
 };
@@ -73,7 +74,7 @@ for await (const e of testEventBus.onChange()) {
             console.error("update:SendMessage", err);
             continue; // todo: global error toast
         }
-    } else if (e.type == "UpdateMessageText") {
+    } else if (e.type == "UpdateEditorText") {
     }
     render(view(), document.body);
 }

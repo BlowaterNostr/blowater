@@ -9,7 +9,7 @@ import { EventBus } from "../event-bus.ts";
 import { Setting } from "./setting.tsx";
 import { Database_Contextual_View } from "../database.ts";
 import { ConversationLists, ConversationSummary } from "./conversation-list.ts";
-import { new_DM_EditorModel } from "./editor.tsx";
+import { getCurrentEditorModel, new_DM_EditorModel } from "./editor.tsx";
 import { initialModel, Model } from "./app_model.ts";
 import { AppEventBus, Database_Update, UI_Interaction_Event, UI_Interaction_Update } from "./app_update.tsx";
 import * as time from "../time.ts";
@@ -217,11 +217,9 @@ export class App {
                 }
                 this.model.editors.set(
                     contact.pubkey.hex,
-                    new_DM_EditorModel({
+                    new_DM_EditorModel(
                         pubkey,
-                        name: contact.profile?.profile.name,
-                        picture: contact.profile?.profile.picture,
-                    }),
+                    ),
                 );
             }
         }
@@ -335,7 +333,6 @@ export function AppComponent(props: {
                     class={tw`flex-1 overflow-hidden`}
                 >
                     {DirectMessageContainer({
-                        editors: model.editors,
                         ...model.dm,
                         rightPanelModel: model.rightPanelModel,
                         bus: app.eventBus,
@@ -348,6 +345,7 @@ export function AppComponent(props: {
                         eventSyncer: app.eventSyncer,
                         pinListGetter: app.otherConfig,
                         groupChatController: app.groupChatController,
+                        editorModel: getCurrentEditorModel(model),
                     })}
                 </div>
             );
@@ -438,14 +436,5 @@ export function getFocusedContent(
             data: profileData,
             pubkey: focusedContent,
         };
-    } else {
-        for (const thread of threads) {
-            if (thread.root.event.id == focusedContent.id) {
-                return {
-                    type: "MessageThread" as "MessageThread",
-                    data: thread,
-                };
-            }
-        }
     }
 }

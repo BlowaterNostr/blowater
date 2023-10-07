@@ -23,14 +23,13 @@ import {
 import { ProfileData, ProfileSyncer } from "../features/profile.ts";
 import { MessageThread } from "./dm.tsx";
 import { UserDetail } from "./user-detail.tsx";
-import { MessageThreadPanel } from "./message-thread-panel.tsx";
-import { Database_Contextual_View } from "../database.ts";
+
 import { LinkColor, PrimaryTextColor } from "./style/colors.ts";
-import { ConversationSummary, getConversationSummaryFromPublicKey } from "./conversation-list.ts";
 import { EventSyncer } from "./event_syncer.ts";
 import { ButtonGroup } from "./components/button-group.tsx";
 import { ProfileCard } from "./profile-card.tsx";
 import { NoteCard } from "./note-card.tsx";
+import { ProfileGetter } from "./search.tsx";
 
 export type RightPanelModel = {
     show: boolean;
@@ -66,14 +65,12 @@ export type ViewUserDetail = {
 
 interface DirectMessagePanelProps {
     myPublicKey: PublicKey;
+
+    isGroupChat: boolean;
     editorModel: EditorModel;
 
     messages: MessageThread[];
     focusedContent: {
-        type: "MessageThread";
-        data: MessageThread;
-        editor: EditorModel;
-    } | {
         type: "ProfileData";
         data?: ProfileData;
         pubkey: PublicKey;
@@ -86,37 +83,19 @@ interface DirectMessagePanelProps {
     >;
     profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
-    allUserInfo: Map<string, ConversationSummary>;
+    profileGetter: ProfileGetter;
 }
 
 export class MessagePanel extends Component<DirectMessagePanelProps> {
     render() {
         const props = this.props;
         const t = Date.now();
-        let placeholder = "Post your thoughts";
-        if (props.editorModel.target.kind == NostrKind.DIRECT_MESSAGE) {
-            placeholder = `Message @${
-                props.editorModel.target.receiver.name || props.editorModel.target.receiver.pubkey.bech32()
-            }`;
-        }
 
         let rightPanel;
         if (props.rightPanelModel.show) {
             let rightPanelChildren: h.JSX.Element | undefined;
             if (props.focusedContent) {
-                if (props.focusedContent.type == "MessageThread") {
-                    rightPanelChildren = (
-                        <MessageThreadPanel
-                            emit={props.emit}
-                            messages={[props.focusedContent.data.root, ...props.focusedContent.data.replies]}
-                            myPublicKey={props.myPublicKey}
-                            editorModel={props.focusedContent.editor}
-                            profilesSyncer={props.profilesSyncer}
-                            eventSyncer={props.eventSyncer}
-                            allUserInfo={props.allUserInfo}
-                        />
-                    );
-                } else if (props.focusedContent.type == "ProfileData") {
+                if (props.focusedContent.type == "ProfileData") {
                     rightPanelChildren = (
                         <UserDetail
                             targetUserProfile={{
@@ -144,24 +123,24 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
             <div class={tw`flex h-full w-full relative bg-[#36393F]`}>
                 <div class={tw`flex flex-col h-full flex-1 overflow-hidden`}>
                     <div class={tw`flex-1`}></div>
-                    {
-                        <MessageList
-                            myPublicKey={props.myPublicKey}
-                            threads={props.messages}
-                            emit={props.emit}
-                            profilesSyncer={props.profilesSyncer}
-                            eventSyncer={props.eventSyncer}
-                            allUserInfo={props.allUserInfo}
-                        />
-                    }
-                    {
-                        <Editor
-                            model={props.editorModel}
-                            placeholder={placeholder}
-                            maxHeight="30vh"
-                            emit={props.emit}
-                        />
-                    }
+
+                    <MessageList
+                        myPublicKey={props.myPublicKey}
+                        threads={props.messages}
+                        emit={props.emit}
+                        profilesSyncer={props.profilesSyncer}
+                        eventSyncer={props.eventSyncer}
+                        profileGetter={props.profileGetter}
+                    />
+
+                    <Editor
+                        maxHeight="30vh"
+                        emit={props.emit}
+                        isGroupChat={props.isGroupChat}
+                        targetNpub={props.editorModel.pubkey}
+                        text={props.editorModel.text}
+                        placeholder=""
+                    />
                 </div>
                 {!props.rightPanelModel.show
                     ? (
@@ -188,7 +167,6 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
                 {rightPanel}
             </div>
         );
-        console.log("DirectMessagePanel:end", Date.now() - t);
         return vnode;
     }
 }
@@ -198,7 +176,8 @@ interface MessageListProps {
     emit: emitFunc<DirectMessagePanelUpdate>;
     profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
-    allUserInfo: Map<string, ConversationSummary>;
+    // allUserInfo: Map<string, ConversationSummary>;
+    profileGetter: ProfileGetter;
 }
 
 interface MessageListState {
@@ -256,7 +235,6 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
                 Math.abs(cur.root.created_at.getTime() - pre.root.created_at.getTime()) < 1000 * 60;
             return sameAuthor && _66sec;
         });
-        console.log("MessageList:groupContinuousMessages", Date.now() - t);
         const messageBoxGroups = [];
         let i = 0;
         for (const threads of groups) {
@@ -273,7 +251,7 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
                     emit: this.props.emit,
                     profilesSyncer: this.props.profilesSyncer,
                     eventSyncer: this.props.eventSyncer,
-                    allUserInfo: this.props.allUserInfo,
+                    profileGetter: this.props.profileGetter,
                 }),
             );
         }
@@ -325,9 +303,9 @@ function MessageBoxGroup(props: {
         replyCount: number;
     }[];
     myPublicKey: PublicKey;
-    allUserInfo: Map<string, ConversationSummary>;
     emit: emitFunc<DirectMessagePanelUpdate | ViewUserDetail>;
     profilesSyncer: ProfileSyncer;
+    profileGetter: ProfileGetter;
     eventSyncer: EventSyncer;
 }) {
     // const t = Date.now();
@@ -345,11 +323,8 @@ function MessageBoxGroup(props: {
             {MessageActions(first_group.msg.event, props.emit)}
             <Avatar
                 class={tw`h-8 w-8 mt-[0.45rem] mr-2`}
-                picture={getConversationSummaryFromPublicKey(
-                    first_group.msg.event.publicKey,
-                    props.allUserInfo,
-                )
-                    ?.profile?.profile.picture}
+                picture={props.profileGetter.getProfilesByPublicKey(first_group.msg.event.publicKey)?.profile
+                    .picture}
                 onClick={() => {
                     props.emit({
                         type: "ViewUserDetail",
@@ -366,8 +341,8 @@ function MessageBoxGroup(props: {
             >
                 {NameAndTime(
                     first_group.msg.event.publicKey,
-                    getConversationSummaryFromPublicKey(first_group.msg.event.publicKey, props.allUserInfo)
-                        ?.profile?.profile,
+                    props.profileGetter.getProfilesByPublicKey(first_group.msg.event.publicKey)
+                        ?.profile,
                     props.myPublicKey,
                     first_group.msg.created_at,
                 )}
@@ -376,8 +351,8 @@ function MessageBoxGroup(props: {
                 >
                                 {ParseMessageContent(
                                     first_group.msg,
-                                    props.allUserInfo,
                                     props.profilesSyncer,
+                                    props.profileGetter,
                                     props.eventSyncer,
                                     props.emit,
                                     )}
@@ -422,8 +397,8 @@ function MessageBoxGroup(props: {
                     >
                     {ParseMessageContent(
                         msg.msg,
-                        props.allUserInfo,
                         props.profilesSyncer,
+                        props.profileGetter,
                         props.eventSyncer,
                         props.emit,
                         )}
@@ -547,8 +522,8 @@ export function NameAndTime(
 
 export function ParseMessageContent(
     message: ChatMessage,
-    allUserInfo: Map<string, ConversationSummary>,
     profilesSyncer: ProfileSyncer,
+    profileGetter: ProfileGetter,
     eventSyncer: EventSyncer,
     emit: emitFunc<ViewUserDetail | ViewThread | ViewNoteThread>,
 ) {
@@ -577,13 +552,13 @@ export function ParseMessageContent(
                 break;
             case "npub":
                 {
-                    const userInfo = allUserInfo.get(item.pubkey.hex);
+                    const userInfo = profileGetter.getProfilesByPublicKey(item.pubkey);
                     if (userInfo) {
                         const profile = userInfo.profile;
                         if (profile) {
                             vnode.push(
                                 <ProfileCard
-                                    profileData={profile.profile}
+                                    profileData={profile}
                                     publicKey={item.pubkey}
                                     emit={emit}
                                 />,
@@ -609,7 +584,7 @@ export function ParseMessageContent(
                         vnode.push(itemStr);
                         break;
                     }
-                    vnode.push(Card(event, emit, allUserInfo));
+                    vnode.push(Card(event, emit, profileGetter));
                 }
                 break;
             case "tag":
@@ -627,13 +602,15 @@ export function ParseMessageContent(
 function Card(
     event: Profile_Nostr_Event | Text_Note_Event,
     emit: emitFunc<ViewThread | ViewUserDetail | ViewNoteThread>,
-    allUserInfo: Map<string, ConversationSummary>,
+    profileGetter: ProfileGetter,
 ) {
     switch (event.kind) {
         case NostrKind.META_DATA:
             return <ProfileCard emit={emit} publicKey={event.publicKey} profileData={event.profile} />;
         case NostrKind.TEXT_NOTE:
-            const profile = allUserInfo.get(event.pubkey)?.profile?.profile;
+            const pubkey = PublicKey.FromHex(event.pubkey);
+            // @ts-ignore
+            const profile = profileGetter.getProfilesByPublicKey(pubkey)?.profile;
             return <NoteCard emit={emit} event={event} profileData={profile} />;
     }
 }

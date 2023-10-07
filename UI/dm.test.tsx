@@ -16,6 +16,8 @@ import { relays } from "../lib/nostr-ts/relay-list.test.ts";
 import { DirectMessageContainer } from "./dm.tsx";
 import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { NewIndexedDB } from "./dexie-db.ts";
+import { GroupChatController } from "../group-chat.ts";
+import { OtherConfig } from "./config-other.ts";
 
 const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
 const indexedDB = NewIndexedDB();
@@ -40,7 +42,7 @@ if (!e || e instanceof Error) {
     fail();
 }
 
-const allUserInfo = new ConversationLists(ctx);
+const allUserInfo = new ConversationLists(ctx, new ProfileSyncer(database, new ConnectionPool()));
 allUserInfo.addEvents([e]);
 allUserInfo.addEvents(database.events);
 console.log(database.events);
@@ -66,10 +68,9 @@ const view = () => {
     return (
         <DirectMessageContainer
             conversationLists={allUserInfo}
-            db={database}
             eventSyncer={new EventSyncer(pool, database)}
             profilesSyncer={new ProfileSyncer(database, pool)}
-            bus={testEventBus.emit}
+            bus={testEventBus}
             rightPanelModel={{
                 show: true,
             }}
@@ -79,7 +80,11 @@ const view = () => {
             hasNewMessages={model.dm.hasNewMessages}
             ctx={ctx}
             pool={pool}
-            selectedContactGroup={model.dm.selectedContactGroup}
+            dmGetter={database}
+            groupChatController={new GroupChatController(ctx, allUserInfo)}
+            isGroupMessage={false}
+            pinListGetter={new OtherConfig()}
+            profileGetter={database}
         />
     );
 };
@@ -104,15 +109,13 @@ for await (const e of testEventBus.onChange()) {
             lamport,
             pool,
             model.editors,
-            model.social.editor,
-            model.social.replyEditors,
             database,
         );
         if (err instanceof Error) {
             console.error("update:SendMessage", err);
             continue; // todo: global error toast
         }
-    } else if (e.type == "UpdateMessageText") {
+    } else if (e.type == "UpdateEditorText") {
         const event = e;
         if (event.target.kind == NostrKind.DIRECT_MESSAGE) {
             const editor = model.editors.get(event.id);
@@ -121,17 +124,6 @@ for await (const e of testEventBus.onChange()) {
             } else {
                 console.log(event.target.receiver, event.id);
                 throw new Error("impossible state");
-            }
-        } else {
-            if (event.id == "social") {
-                model.social.editor.text = event.text;
-            } else {
-                const editor = model.social.replyEditors.get(event.id);
-                if (editor) {
-                    editor.text = event.text;
-                } else {
-                    throw new Error("impossible state");
-                }
             }
         }
     }
