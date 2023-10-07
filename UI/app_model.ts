@@ -37,8 +37,7 @@ export function initialModel(): Model {
         search: SearchInitModel(),
         dm: {
             focusedContent: new Map(),
-            hasNewMessages: new Set(),
-            currentSelectedContact: undefined,
+            currentEditor: undefined,
             isGroupMessage: false,
         },
         editors: editors,

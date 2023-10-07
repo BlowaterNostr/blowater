@@ -7,18 +7,16 @@ import {
 } from "../nostr.ts";
 import { ChatMessage } from "./message.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
-import { ConversationSummary } from "./conversation-list.ts";
+import { EditorModel } from "./editor.tsx";
 
 export type DM_Model = {
-    currentSelectedContact: PublicKey | undefined;
+    currentEditor: EditorModel | undefined;
     focusedContent: Map<string, NostrEvent /* thread root event */ | PublicKey /* selected user profile */>;
-    hasNewMessages: Set<string>;
     isGroupMessage: boolean;
 };
 
 export function convertEventsToChatMessages(
     events: Iterable<DirectedMessage_Event>,
-    userProfiles: Map<string, ConversationSummary>,
 ): ChatMessage[] {
     const messages: ChatMessage[] = [];
     const groups = groupImageEvents(events);
@@ -52,7 +50,6 @@ export function convertEventsToChatMessages(
             console.info(imageBase64.message);
             continue;
         }
-        const author = userProfiles.get(imageEvents[0].pubkey);
         const pubkey = PublicKey.FromHex(imageEvents[0].pubkey);
         if (pubkey instanceof Error) {
             throw new Error(imageEvents[0].pubkey);

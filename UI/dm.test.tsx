@@ -48,7 +48,7 @@ allUserInfo.addEvents(database.events);
 console.log(database.events);
 const pool = new ConnectionPool();
 const model = initialModel();
-model.dm.currentSelectedContact = ctx.publicKey;
+model.dm.currentEditor = ctx.publicKey;
 model.editors.set(ctx.publicKey.hex, {
     files: [],
     id: ctx.publicKey.hex,
@@ -75,7 +75,7 @@ const view = () => {
                 show: true,
             }}
             editors={model.editors}
-            currentSelectedContact={model.dm.currentSelectedContact}
+            currentEditor={model.dm.currentEditor}
             focusedContent={model.dm.focusedContent}
             hasNewMessages={model.dm.hasNewMessages}
             ctx={ctx}

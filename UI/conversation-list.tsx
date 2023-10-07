@@ -37,12 +37,16 @@ export type ContactUpdate =
     | UnpinConversation
     | StartCreateGroupChat;
 
+export interface NewMessageChecker {
+    has(hex: string, isGourpChat: boolean): boolean;
+}
+
 type Props = {
     emit: emitFunc<ContactUpdate | SearchUpdate>;
     eventBus: EventSubscriber<UI_Interaction_Event>;
     convoListRetriever: ConversationListRetriever;
+    hasNewMessages: NewMessageChecker;
     pinListGetter: PinListGetter;
-    hasNewMessages: Set<string>;
 };
 
 type State = {
@@ -94,7 +98,7 @@ export class ConversationList extends Component<Props, State> {
         for (const conversationSummary of listToRender) {
             convoListToRender.push({
                 conversation: conversationSummary,
-                isMarked: props.hasNewMessages.has(conversationSummary.pubkey.hex),
+                isMarked: props.hasNewMessages.has(conversationSummary.pubkey.hex, listToRender == groups),
             });
         }
 

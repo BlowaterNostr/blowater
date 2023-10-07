@@ -1,15 +1,15 @@
 /** @jsx h */
 import { h, render } from "https://esm.sh/preact@10.17.1";
 import * as dm from "../features/dm.ts";
-import { DirectMessageContainer, MessageThread } from "./dm.tsx";
+import { DirectMessageContainer } from "./dm.tsx";
 import { tw } from "https://esm.sh/twind@0.16.16";
 import { EditProfile } from "./edit-profile.tsx";
 import * as nav from "./nav.tsx";
 import { EventBus } from "../event-bus.ts";
 import { Setting } from "./setting.tsx";
 import { Database_Contextual_View } from "../database.ts";
-import { ConversationLists, ConversationSummary } from "./conversation-list.ts";
-import { getCurrentEditorModel, new_DM_EditorModel } from "./editor.tsx";
+import { ConversationLists } from "./conversation-list.ts";
+import { new_DM_EditorModel } from "./editor.tsx";
 import { initialModel, Model } from "./app_model.ts";
 import { AppEventBus, Database_Update, UI_Interaction_Event, UI_Interaction_Update } from "./app_update.tsx";
 import * as time from "../time.ts";
@@ -28,6 +28,7 @@ import { Popover, PopOverInputChannel } from "./components/popover.tsx";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { GroupChatController } from "../group-chat.ts";
 import { OtherConfig } from "./config-other.ts";
+import { ProfileGetter } from "./search.tsx";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
@@ -345,7 +346,7 @@ export function AppComponent(props: {
                         eventSyncer: app.eventSyncer,
                         pinListGetter: app.otherConfig,
                         groupChatController: app.groupChatController,
-                        editorModel: getCurrentEditorModel(model),
+                        newMessageChecker: app.conversationLists,
                     })}
                 </div>
             );
@@ -423,14 +424,13 @@ export function AppComponent(props: {
 // todo: move to somewhere else
 export function getFocusedContent(
     focusedContent: PublicKey | NostrEvent | undefined,
-    allUserInfo: Map<string, ConversationSummary>,
-    threads: MessageThread[],
+    profileGetter: ProfileGetter,
 ) {
     if (focusedContent == undefined) {
         return;
     }
     if (focusedContent instanceof PublicKey) {
-        const profileData = allUserInfo.get(focusedContent.hex)?.profile?.profile;
+        const profileData = profileGetter.getProfilesByPublicKey(focusedContent)?.profile;
         return {
             type: "ProfileData" as "ProfileData",
             data: profileData,
