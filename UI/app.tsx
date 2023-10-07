@@ -235,12 +235,6 @@ export class App {
         );
         console.log("user set", this.profileSyncer.userSet);
 
-        const ps = Array.from(this.conversationLists.convoSummaries.values()).map((u) => u.pubkey.hex);
-        this.eventSyncer.syncEvents({
-            kinds: [NostrKind.TEXT_NOTE],
-            authors: ps,
-        });
-
         // Database
         (async () => {
             let i = 0;

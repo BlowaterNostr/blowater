@@ -29,18 +29,4 @@ export class EventSyncer {
             }
         })();
     }
-
-    async syncEvents(filter: NostrFilters) {
-        await this.pool.closeSub(EventSyncer.name);
-        let events = await this.pool.newSub(EventSyncer.name, filter);
-        if (events instanceof Error) {
-            return events;
-        }
-        for await (const { res, url } of events.chan) {
-            if (res.type != "EVENT") {
-                continue;
-            }
-            await this.db.addEvent(res.event);
-        }
-    }
 }
