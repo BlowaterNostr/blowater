@@ -1,4 +1,9 @@
-import { ConversationListRetriever, ConversationType, GroupChatListGetter } from "./conversation-list.tsx";
+import {
+    ConversationListRetriever,
+    ConversationType,
+    GroupChatListGetter,
+    NewMessageChecker,
+} from "./conversation-list.tsx";
 import { PrivateKey, PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { getTags, Profile_Nostr_Event, Text_Note_Event } from "../nostr.ts";
@@ -16,7 +21,7 @@ export function getConversationSummaryFromPublicKey(k: PublicKey, users: Map<str
     return users.get(k.hex);
 }
 
-export class ConversationLists implements ConversationListRetriever, GroupChatListGetter {
+export class ConversationLists implements ConversationListRetriever, GroupChatListGetter, NewMessageChecker {
     readonly convoSummaries = new Map<string, ConversationSummary>();
     readonly groupChatSummaries = new Map<string, ConversationSummary>();
     private readonly profile = new Map<string, Profile_Nostr_Event>();
@@ -25,6 +30,11 @@ export class ConversationLists implements ConversationListRetriever, GroupChatLi
         public readonly ctx: NostrAccountContext,
         private readonly profileSyncer: ProfileSyncer,
     ) {}
+
+    has(hex: string, isGourpChat: boolean): boolean {
+        // todo: implement NewMessageChecker
+        return false;
+    }
 
     *getStrangers() {
         for (const convoSummary of this.convoSummaries.values()) {

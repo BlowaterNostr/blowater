@@ -346,6 +346,7 @@ export function AppComponent(props: {
                         eventSyncer: app.eventSyncer,
                         pinListGetter: app.otherConfig,
                         groupChatController: app.groupChatController,
+                        newMessageChecker: app.conversationLists,
                     })}
                 </div>
             );

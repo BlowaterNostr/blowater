@@ -36,6 +36,7 @@ type DirectMessageContainerProps = {
     eventSyncer: EventSyncer;
     pinListGetter: cl.PinListGetter;
     groupChatController: GroupChatController;
+    newMessageChecker: cl.NewMessageChecker;
 } & DM_Model;
 
 export type MessageThread = {
@@ -124,6 +125,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                     eventBus={props.bus}
                     emit={props.bus.emit}
                     convoListRetriever={props.conversationLists}
+                    hasNewMessages={props.newMessageChecker}
                     {...props}
                 />
             </div>

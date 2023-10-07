@@ -12,7 +12,6 @@ import { EditorModel } from "./editor.tsx";
 export type DM_Model = {
     currentEditor: EditorModel | undefined;
     focusedContent: Map<string, NostrEvent /* thread root event */ | PublicKey /* selected user profile */>;
-    hasNewMessages: Set<string>;
     isGroupMessage: boolean;
 };
 

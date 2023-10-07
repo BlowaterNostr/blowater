@@ -497,7 +497,6 @@ export function updateConversation(
     targetPublicKey: PublicKey,
     isGroupChat: boolean,
 ) {
-    model.dm.hasNewMessages.delete(targetPublicKey.hex);
     let editor = model.editors.get(targetPublicKey.hex);
     // If this conversation is new
     if (editor == undefined) {
@@ -597,11 +596,6 @@ export async function* Database_Update(
                     if (pubkey instanceof Error) {
                         console.error(pubkey);
                         continue;
-                    }
-                    if (e.pubkey != ctx.publicKey.hex) {
-                        if (model.dm.currentEditor?.pubkey.hex != e.pubkey) {
-                            model.dm.hasNewMessages.add(e.pubkey);
-                        }
                     }
                 }
             } else if (e.kind == NostrKind.TEXT_NOTE) {

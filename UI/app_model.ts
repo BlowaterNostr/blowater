@@ -37,7 +37,6 @@ export function initialModel(): Model {
         search: SearchInitModel(),
         dm: {
             focusedContent: new Map(),
-            hasNewMessages: new Set(),
             currentEditor: undefined,
             isGroupMessage: false,
         },
