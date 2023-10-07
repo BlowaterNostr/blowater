@@ -4,6 +4,7 @@ import { NostrAccountContext, NostrEvent, NostrKind, verifyEvent } from "../lib/
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { PinListGetter } from "./conversation-list.tsx";
 import * as secp256k1 from "../lib/nostr-ts/vendor/secp256k1.js";
+import { parseJSON } from "../features/profile.ts";
 
 export class OtherConfig implements PinListGetter {
     static Empty() {
@@ -15,7 +16,11 @@ export class OtherConfig implements PinListGetter {
         if (item == null) {
             return OtherConfig.Empty();
         }
-        const event: NostrEvent = JSON.parse(item);
+        const event = parseJSON<NostrEvent>(item);
+        if (event instanceof Error) {
+            console.error(event);
+            return OtherConfig.Empty();
+        }
         const ok = await verifyEvent(event);
         if (!ok) {
             return OtherConfig.Empty();

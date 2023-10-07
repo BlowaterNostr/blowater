@@ -2,7 +2,7 @@
 import { Fragment, h, render } from "https://esm.sh/preact@10.17.1";
 import { PrivateKey } from "../lib/nostr-ts/key.ts";
 import { InMemoryAccountContext, NostrKind } from "../lib/nostr-ts/nostr.ts";
-import { parseProfileData } from "../features/profile.ts";
+import { parseJSON } from "../features/profile.ts";
 import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { ProfileCard } from "./profile-card.tsx";
 import { prepareNormalNostrEvent } from "../lib/nostr-ts/event.ts";
@@ -16,7 +16,7 @@ const profileEvent = await prepareNormalNostrEvent(
     `{"name":"mike", "about": "a test man"}`,
 );
 
-const profileData = parseProfileData(profileEvent.content);
+const profileData = parseJSON(profileEvent.content);
 if (profileData instanceof Error) {
     fail(profileData.message);
 }

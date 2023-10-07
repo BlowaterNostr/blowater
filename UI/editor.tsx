@@ -2,272 +2,279 @@
 import { createRef, h } from "https://esm.sh/preact@10.17.1";
 import { tw } from "https://esm.sh/twind@0.16.16";
 import { CenterClass, LinearGradientsClass, NoOutlineClass } from "./components/tw.ts";
-import { emitFunc, EventEmitter } from "../event-bus.ts";
+import { emitFunc } from "../event-bus.ts";
 
-import { NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
-import { Tag } from "../nostr.ts";
 import { ImageIcon } from "./icons2/image-icon.tsx";
 import { DividerBackgroundColor, PrimaryBackgroundColor, PrimaryTextColor } from "./style/colors.ts";
 import { SendIcon } from "./icons2/send-icon.tsx";
+import { Component } from "https://esm.sh/preact@10.17.1";
+import { Model } from "./app_model.ts";
 import { RemoveIcon } from "./icons2/remove-icon.tsx";
 
-export type EditorModel = DM_EditorModel;
-
-export type DM_EditorModel = {
-    id: string;
+export type EditorModel = {
+    readonly id: string;
+    readonly pubkey: PublicKey;
     text: string;
     files: Blob[];
-    tags: Tag[];
-    readonly target: DM_Target;
 };
 
-export type EditorSubmissionTarget = DM_Target;
-
-export type DM_Target = {
-    kind: NostrKind.DIRECT_MESSAGE;
-    receiver: {
-        pubkey: PublicKey;
-        name?: string;
-        picture?: string;
-    };
-};
-
-export function new_DM_EditorModel(receiver: {
-    pubkey: PublicKey;
-    name?: string;
-    picture?: string;
-}): DM_EditorModel {
+export function new_DM_EditorModel(
+    pubkey: PublicKey,
+): EditorModel {
     return {
-        id: receiver.pubkey.hex,
+        id: pubkey.hex,
         text: "",
         files: [],
-        tags: [],
-        target: {
-            kind: NostrKind.DIRECT_MESSAGE,
-            receiver,
-        },
+        pubkey: pubkey,
     };
 }
 
-export type EditorEvent = SendMessage | UpdateMessageText | UpdateMessageFiles;
+export type EditorEvent = SendMessage | UpdateEditorText | UpdateMessageFiles;
 
 export type SendMessage = {
     readonly type: "SendMessage";
     readonly id: string;
-    readonly target: EditorSubmissionTarget;
+    readonly pubkey: PublicKey;
     text: string;
     files: Blob[];
-    tags: Tag[];
+    isGroupChat: boolean;
 };
 
-export type UpdateMessageText = {
-    readonly type: "UpdateMessageText";
+export type UpdateEditorText = {
+    readonly type: "UpdateEditorText";
     readonly id: string;
-    readonly target: EditorSubmissionTarget;
+    readonly isGroupChat: boolean;
+    readonly pubkey: PublicKey;
     readonly text: string;
 };
 export type UpdateMessageFiles = {
     readonly type: "UpdateMessageFiles";
     readonly id: string;
-    readonly target: EditorSubmissionTarget;
+    readonly pubkey: PublicKey;
     readonly files: Blob[];
 };
 
-export function Editor(props: {
+type EditorProps = {
     // UI
     readonly placeholder: string;
     readonly maxHeight: string;
     // Logic
-    readonly model: EditorModel;
+    readonly targetNpub: PublicKey;
+    readonly text: string;
+    files: Blob[];
     //
     readonly emit: emitFunc<EditorEvent>;
-}) {
-    const textareaElement = createRef();
-    const uploadFileInput = createRef();
+    readonly isGroupChat: boolean;
+};
 
-    const removeFile = (index: number) => {
-        props.emit({
-            type: "UpdateMessageFiles",
-            id: props.model.id,
-            target: props.model.target,
-            files: props.model.files.slice(0, index).concat(
-                props.model.files.slice(index + 1),
-            ),
-        });
-    };
+export class Editor extends Component<EditorProps> {
+    render(props: EditorProps) {
+        const textareaElement = createRef();
+        const uploadFileInput = createRef();
 
-    const sendMessage = async () => {
-        props.emit({
-            type: "SendMessage",
-            id: props.model.id,
-            tags: props.model.tags,
-            target: props.model.target,
-            files: props.model.files,
-            text: props.model.text,
-        });
-        textareaElement.current.setAttribute(
-            "rows",
-            "1",
-        );
-    };
+        const removeFile = (index: number) => {
+            props.emit({
+                type: "UpdateMessageFiles",
+                id: props.targetNpub.hex,
+                files: props.files.slice(0, index).concat(
+                    props.files.slice(index + 1),
+                ),
+                pubkey: props.targetNpub,
+            });
+        };
 
-    return (
-        <div class={tw`flex mb-4 mx-5 items-end`}>
-            <button
-                class={tw`min-w-[3rem] w-[3rem] h-[3rem] hover:bg-[${DividerBackgroundColor}] group ${CenterClass} rounded-[50%] ${NoOutlineClass}`}
-                onClick={() => {
-                    if (uploadFileInput.current) {
-                        uploadFileInput.current.click();
-                    }
-                }}
-            >
-                <ImageIcon
-                    class={tw`h-[2rem] w-[2rem] stroke-current text-[${PrimaryTextColor}4D] group-hover:text-[${PrimaryTextColor}]`}
-                    style={{
-                        fill: "none",
-                    }}
-                />
-            </button>
-            <input
-                ref={uploadFileInput}
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={async (e) => {
-                    let propsfiles = props.model.files;
-                    const files = e.currentTarget.files;
-                    if (!files) {
-                        return;
-                    }
-                    for (let i = 0; i < files.length; i++) {
-                        const file = files.item(i);
-                        if (!file) {
-                            continue;
-                        }
-                        propsfiles = propsfiles.concat([file]);
-                    }
-                    props.emit({
-                        type: "UpdateMessageFiles",
-                        id: props.model.id,
-                        target: props.model.target,
-                        files: propsfiles,
-                    });
-                }}
-                class={tw`hidden`}
-            />
-            <div
-                class={tw`mx-2 p-[0.75rem] bg-[${DividerBackgroundColor}] rounded-lg flex flex-col flex-1 overflow-hidden`}
-            >
-                {props.model.files.length > 0
-                    ? (
-                        <ul
-                            class={tw`flex overflow-auto list-none py-2 w-full border-b border-[#52525B] mb-[1rem]`}
-                        >
-                            {props.model.files.map((file, index) => {
-                                return (
-                                    <li
-                                        class={tw`relative mx-2 min-w-[10rem] w-[10rem]  h-[10rem] p-2 bg-[${PrimaryBackgroundColor}] rounded ${CenterClass}`}
-                                    >
-                                        <button
-                                            class={tw`w-[2rem] h-[2rem] absolute top-1 right-1 rounded-[50%] hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
-                                            onClick={() => {
-                                                removeFile(index);
-                                            }}
-                                        >
-                                            <RemoveIcon
-                                                class={tw`w-[1.3rem] h-[1.3rem]`}
-                                                style={{
-                                                    fill: "none",
-                                                    stroke: PrimaryTextColor,
-                                                }}
-                                            />
-                                        </button>
-                                        <img
-                                            class={tw`max-w-full max-h-full`}
-                                            src={URL.createObjectURL(file)}
-                                            alt=""
-                                        />
-                                    </li>
-                                );
-                            })}
-                        </ul>
-                    )
-                    : undefined}
-                <textarea
-                    ref={textareaElement}
-                    style={{
-                        maxHeight: props.maxHeight,
-                    }}
-                    value={props.model.text}
-                    rows={1}
-                    class={tw`flex-1 bg-transparent focus-visible:outline-none placeholder-[${PrimaryTextColor}4D] text-[0.8rem] text-[#D2D3D5] whitespace-nowrap resize-none overflow-x-hidden overflow-y-auto`}
-                    placeholder={props.placeholder}
-                    onInput={(e) => {
-                        props.emit({
-                            type: "UpdateMessageText",
-                            id: props.model.id,
-                            target: props.model.target,
-                            text: e.currentTarget.value,
-                        });
-                        const lines = e.currentTarget.value.split("\n");
-                        e.currentTarget.setAttribute(
-                            "rows",
-                            `${lines.length}`,
-                        );
-                    }}
-                    onKeyDown={async (e) => {
-                        if (e.code === "Enter" && e.ctrlKey) {
-                            await sendMessage();
-                        }
-                    }}
-                    onPaste={async (_) => {
-                        let clipboardData: ClipboardItems = [];
-                        try {
-                            clipboardData = await window.navigator.clipboard.read();
-                        } catch (e) {
-                            console.log(e.message);
-                            // todo: global error toast
-                            return;
-                        }
-                        for (const item of clipboardData) {
-                            try {
-                                const image = await item.getType(
-                                    "image/png",
-                                );
-                                props.emit({
-                                    type: "UpdateMessageFiles",
-                                    id: props.model.id,
-                                    target: props.model.target,
-                                    files: props.model.files.concat([image]),
-                                });
-                            } catch (e) {
-                                console.error(e);
-                            }
-                        }
-                    }}
-                >
-                </textarea>
-            </div>
+        const sendMessage = async () => {
+            props.emit({
+                type: "SendMessage",
+                id: props.targetNpub.hex,
+                files: [], // todo
+                text: props.text,
+                isGroupChat: props.isGroupChat,
+                pubkey: props.targetNpub,
+            });
+            textareaElement.current.setAttribute(
+                "rows",
+                "1",
+            );
+        };
 
-            <div class={tw`w-[5rem] h-[2.5rem] rounded-lg ${LinearGradientsClass} ${CenterClass}`}>
+        return (
+            <div class={tw`flex mb-4 mx-5 items-end`}>
                 <button
-                    class={tw`w-[4.8rem] h-[2.3rem] text-[${PrimaryTextColor}] rounded-lg ${CenterClass} bg-[#36393F] hover:bg-transparent font-bold`}
-                    onClick={async () => {
-                        await sendMessage();
-                        textareaElement.current?.focus();
+                    class={tw`min-w-[3rem] w-[3rem] h-[3rem] hover:bg-[${DividerBackgroundColor}] group ${CenterClass} rounded-[50%] ${NoOutlineClass}`}
+                    onClick={() => {
+                        if (uploadFileInput.current) {
+                            uploadFileInput.current.click();
+                        }
                     }}
                 >
-                    <SendIcon
-                        class={tw`h-[1.25rem] w-[1.25rem] mr-[0.1rem]`}
+                    <ImageIcon
+                        class={tw`h-[2rem] w-[2rem] stroke-current text-[${PrimaryTextColor}4D] group-hover:text-[${PrimaryTextColor}]`}
                         style={{
-                            stroke: PrimaryTextColor,
                             fill: "none",
                         }}
                     />
-                    Send
                 </button>
+                <input
+                    ref={uploadFileInput}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={async (e) => {
+                        let propsfiles = props.files;
+                        const files = e.currentTarget.files;
+                        if (!files) {
+                            return;
+                        }
+                        for (let i = 0; i < files.length; i++) {
+                            const file = files.item(i);
+                            if (!file) {
+                                continue;
+                            }
+                            propsfiles = propsfiles.concat([file]);
+                        }
+                        props.emit({
+                            type: "UpdateMessageFiles",
+                            id: props.targetNpub.hex,
+                            files: propsfiles,
+                            pubkey: props.targetNpub,
+                        });
+                    }}
+                    class={tw`hidden`}
+                />
+                <div
+                    class={tw`mx-2 p-[0.75rem] bg-[${DividerBackgroundColor}] rounded-lg flex flex-col flex-1 overflow-hidden`}
+                >
+                    {props.files.length > 0
+                        ? (
+                            <ul
+                                class={tw`flex overflow-auto list-none py-2 w-full border-b border-[#52525B] mb-[1rem]`}
+                            >
+                                {props.files.map((file, index) => {
+                                    return (
+                                        <li
+                                            class={tw`relative mx-2 min-w-[10rem] w-[10rem]  h-[10rem] p-2 bg-[${PrimaryBackgroundColor}] rounded ${CenterClass}`}
+                                        >
+                                            <button
+                                                class={tw`w-[2rem] h-[2rem] absolute top-1 right-1 rounded-[50%] hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
+                                                onClick={() => {
+                                                    removeFile(index);
+                                                }}
+                                            >
+                                                <RemoveIcon
+                                                    class={tw`w-[1.3rem] h-[1.3rem]`}
+                                                    style={{
+                                                        fill: "none",
+                                                        stroke: PrimaryTextColor,
+                                                    }}
+                                                />
+                                            </button>
+                                            <img
+                                                class={tw`max-w-full max-h-full`}
+                                                src={URL.createObjectURL(file)}
+                                                alt=""
+                                            />
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        )
+                        : undefined}
+
+                    <textarea
+                        ref={textareaElement}
+                        style={{
+                            maxHeight: props.maxHeight,
+                        }}
+                        value={props.text}
+                        rows={1}
+                        class={tw`flex-1 bg-transparent focus-visible:outline-none placeholder-[${PrimaryTextColor}4D] text-[0.8rem] text-[#D2D3D5] whitespace-nowrap resize-none overflow-x-hidden overflow-y-auto`}
+                        placeholder={props.placeholder}
+                        onInput={(e) => {
+                            props.emit({
+                                type: "UpdateEditorText",
+                                id: props.targetNpub.hex,
+                                pubkey: props.targetNpub,
+                                text: e.currentTarget.value,
+                                isGroupChat: props.isGroupChat,
+                            });
+                            const lines = e.currentTarget.value.split("\n");
+                            e.currentTarget.setAttribute(
+                                "rows",
+                                `${lines.length}`,
+                            );
+                        }}
+                        onKeyDown={async (e) => {
+                            if (e.code === "Enter" && e.ctrlKey) {
+                                await sendMessage();
+                            }
+                        }}
+                        onPaste={async (_) => {
+                            let clipboardData: ClipboardItems = [];
+                            try {
+                                clipboardData = await window.navigator.clipboard.read();
+                            } catch (e) {
+                                console.log(e.message);
+                                // todo: global error toast
+                                return;
+                            }
+                            for (const item of clipboardData) {
+                                try {
+                                    const image = await item.getType(
+                                        "image/png",
+                                    );
+                                    // todo
+                                    // props.emit({
+                                    //     type: "UpdateMessageFiles",
+                                    //     id: props.targetNpub.hex,
+                                    //     target: {
+                                    //         receiver: {
+                                    //             pubkey: props.targetNpub
+                                    //         }
+                                    //     },
+                                    //     files: props.model.files.concat([image]),
+                                    // });
+                                } catch (e) {
+                                    console.error(e);
+                                }
+                            }
+                        }}
+                    >
+                    </textarea>
+                </div>
+
+                <div class={tw`w-[5rem] h-[2.5rem] rounded-lg ${LinearGradientsClass} ${CenterClass}`}>
+                    <button
+                        class={tw`w-[4.8rem] h-[2.3rem] text-[${PrimaryTextColor}] rounded-lg ${CenterClass} bg-[#36393F] hover:bg-transparent font-bold`}
+                        onClick={async () => {
+                            await sendMessage();
+                            textareaElement.current?.focus();
+                        }}
+                    >
+                        <SendIcon
+                            class={tw`h-[1.25rem] w-[1.25rem] mr-[0.1rem]`}
+                            style={{
+                                stroke: PrimaryTextColor,
+                                fill: "none",
+                            }}
+                        />
+                        Send
+                    </button>
+                </div>
             </div>
-        </div>
-    );
+        );
+    }
+}
+
+export function getCurrentEditorModel(model: Model) {
+    let editorMap = model.editors;
+    if (model.dm.isGroupMessage) {
+        editorMap = model.gmEditors;
+    }
+    if (model.dm.currentSelectedContact == undefined) {
+        return undefined;
+    }
+    const editorModel = editorMap.get(model.dm.currentSelectedContact.hex);
+    return editorModel;
 }

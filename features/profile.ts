@@ -70,7 +70,7 @@ export interface ProfileData {
 export function ProfileFromNostrEvent(
     event: Parsed_Event<NostrKind.META_DATA>,
 ) {
-    const profileData = parseProfileData(event.content);
+    const profileData = parseJSON<ProfileData>(event.content);
     if (profileData instanceof Error) {
         return profileData;
     }
@@ -89,9 +89,9 @@ export function ProfileFromNostrEvent(
     return e;
 }
 
-export function parseProfileData(content: string) {
+export function parseJSON<T>(content: string): T | Error {
     try {
-        return JSON.parse(content) as ProfileData;
+        return JSON.parse(content) as T;
     } catch (e) {
         return e as Error;
     }

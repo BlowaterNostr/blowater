@@ -4,7 +4,7 @@ import { NoteCard } from "./note-card.tsx";
 import { prepareEncryptedNostrEvent, prepareNormalNostrEvent } from "../lib/nostr-ts/event.ts";
 import { PrivateKey } from "../lib/nostr-ts/key.ts";
 import { InMemoryAccountContext, NostrKind } from "../lib/nostr-ts/nostr.ts";
-import { parseProfileData } from "../features/profile.ts";
+import { parseJSON } from "../features/profile.ts";
 import { testEventBus, testEventsAdapter } from "./_setup.test.ts";
 import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { originalEventToEncryptedEvent, originalEventToUnencryptedEvent } from "../database.ts";
@@ -50,7 +50,7 @@ if (decryptDMEvent == false) fail();
 const parsedSocialEvent = originalEventToUnencryptedEvent(socialEvent, getTags(socialEvent), ctx.publicKey);
 if (parsedSocialEvent instanceof Error) fail(parsedSocialEvent.message);
 
-const profileData = parseProfileData(profileEvent.content);
+const profileData = parseJSON(profileEvent.content);
 if (profileData instanceof Error) fail(profileData.message);
 
 render(

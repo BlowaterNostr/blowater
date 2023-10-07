@@ -2,14 +2,12 @@
 import { h, VNode } from "https://esm.sh/preact@10.17.1";
 import { tw } from "https://esm.sh/twind@0.16.16";
 import * as cl from "./conversation-list.tsx";
-import { Database_Contextual_View } from "../database.ts";
 import { MessagePanel, RightPanelModel } from "./message-panel.tsx";
 import { EventBus } from "../event-bus.ts";
 import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
 import { CenterClass, IconButtonClass } from "./components/tw.ts";
-import { DM_EditorModel } from "./editor.tsx";
 import { DirectMessageGetter, getConversationMessages, UI_Interaction_Event } from "./app_update.tsx";
-import { NostrAccountContext, NostrKind } from "../lib/nostr-ts/nostr.ts";
+import { NostrAccountContext } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { ProfileSyncer } from "../features/profile.ts";
 import { ChatMessage } from "./message.ts";
@@ -22,9 +20,9 @@ import { PrimaryTextColor } from "./style/colors.ts";
 import { SettingIcon } from "./icons2/setting-icon.tsx";
 import { GroupChatController } from "../group-chat.ts";
 import { ProfileGetter } from "./search.tsx";
+import { EditorModel } from "./editor.tsx";
 
 type DirectMessageContainerProps = {
-    editors: Map<string, DM_EditorModel>;
     rightPanelModel: RightPanelModel;
     ctx: NostrAccountContext;
     pool: ConnectionPool;
@@ -36,6 +34,7 @@ type DirectMessageContainerProps = {
     eventSyncer: EventSyncer;
     pinListGetter: cl.PinListGetter;
     groupChatController: GroupChatController;
+    editorModel: EditorModel | undefined;
 } & DM_Model;
 
 export type MessageThread = {
@@ -45,84 +44,42 @@ export type MessageThread = {
 
 export function DirectMessageContainer(props: DirectMessageContainerProps) {
     const t = Date.now();
-    const currentConversation = props.currentSelectedContact;
-    let currentEditorModel: DM_EditorModel | undefined;
-    if (currentConversation) {
-        for (const [v, editor] of props.editors.entries()) {
-            if (v == currentConversation.hex) {
-                currentEditorModel = editor;
-                const profile = props.profileGetter.getProfilesByPublicKey(currentConversation);
-                currentEditorModel.target.receiver = {
-                    pubkey: currentConversation,
-                    name: profile?.profile.name,
-                    picture: profile?.profile.picture,
-                };
-            }
-        }
-        if (currentEditorModel == undefined) {
-            throw new Error("impossible state");
-        }
-    }
 
     let messagePanel: VNode | undefined;
-    if (currentEditorModel) {
+    if (props.currentSelectedContact && props.editorModel) {
         const convoMsgs = getConversationMessages({
-            targetPubkey: currentEditorModel.target.receiver.pubkey.hex,
+            targetPubkey: props.currentSelectedContact.hex,
             allUserInfo: props.conversationLists.convoSummaries,
             dmGetter: props.dmGetter,
         });
         console.log("DirectMessageContainer:convoMsgs", Date.now() - t);
 
-        const focusedContent = (() => {
-            let _ = getFocusedContent(
-                props.focusedContent.get(currentEditorModel.target.receiver.pubkey.hex),
-                props.conversationLists.convoSummaries,
-                convoMsgs,
-            );
-            if (_?.type == "MessageThread") {
-                let editor = props.editors.get(_.data.root.event.id);
-                if (editor == undefined) {
-                    editor = {
-                        id: _.data.root.event.id,
-                        files: [],
-                        text: "",
-                        tags: [
-                            ["e", _.data.root.event.id],
-                        ],
-                        target: {
-                            kind: NostrKind.DIRECT_MESSAGE,
-                            receiver: currentEditorModel.target.receiver,
-                        },
-                    };
-                    props.editors.set(editor.id, editor);
-                }
-                return {
-                    ..._,
-                    editor,
-                };
-            }
-            return _;
-        })();
+        const focusedContent = getFocusedContent(
+            props.focusedContent.get(props.currentSelectedContact.hex),
+            props.conversationLists.convoSummaries,
+            convoMsgs,
+        );
         messagePanel = new MessagePanel({
             myPublicKey: props.ctx.publicKey,
             messages: convoMsgs,
             rightPanelModel: props.rightPanelModel,
             emit: props.bus.emit,
-            editorModel: currentEditorModel,
             focusedContent: focusedContent,
             profilesSyncer: props.profilesSyncer,
             eventSyncer: props.eventSyncer,
-            allUserInfo: props.conversationLists.convoSummaries,
+            isGroupChat: props.isGroupMessage,
+            profileGetter: props.profileGetter,
+            editorModel: props.editorModel,
         }).render();
     }
-    const canEditGroupProfile = currentConversation && props.isGroupMessage &&
-        props.groupChatController.getGroupAdminCtx(currentConversation);
+    const canEditGroupProfile = props.currentSelectedContact && props.isGroupMessage &&
+        props.groupChatController.getGroupAdminCtx(props.currentSelectedContact);
 
     const vDom = (
         <div
             class={tw`h-full w-full flex bg-[#36393F] overflow-hidden`}
         >
-            <div class={tw`${currentConversation ? "mobile:hidden" : "mobile:w-full"}`}>
+            <div class={tw`${props.currentSelectedContact ? "mobile:hidden" : "mobile:w-full"}`}>
                 <cl.ConversationList
                     eventBus={props.bus}
                     emit={props.bus.emit}
@@ -130,7 +87,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                     {...props}
                 />
             </div>
-            {currentConversation
+            {props.currentSelectedContact
                 ? (
                     <div class={tw`flex-1 overflow-hidden flex-col flex`}>
                         <div
@@ -153,8 +110,9 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                                     />
                                 </button>
                                 <span class={tw`text-[#F3F4EA] text-[1.2rem] whitespace-nowrap truncate`}>
-                                    {currentEditorModel?.target.receiver.name ||
-                                        currentConversation.bech32()}
+                                    {props.profileGetter.getProfilesByPublicKey(props.currentSelectedContact)
+                                        ?.profile.name ||
+                                        props.currentSelectedContact.bech32()}
                                 </span>
                             </div>
                             {canEditGroupProfile
@@ -165,7 +123,8 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                                             onClick={() => {
                                                 props.bus.emit({
                                                     type: "StartEditGroupChatProfile",
-                                                    publicKey: currentConversation,
+                                                    // @ts-ignore
+                                                    publicKey: props.currentSelectedContact,
                                                 });
                                             }}
                                         >

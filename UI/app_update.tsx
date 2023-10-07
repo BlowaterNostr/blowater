@@ -18,7 +18,7 @@ import { notify } from "./notification.ts";
 import { emitFunc, EventBus } from "../event-bus.ts";
 import { ContactUpdate } from "./conversation-list.tsx";
 import { MyProfileUpdate } from "./edit-profile.tsx";
-import { DM_EditorModel, EditorEvent, new_DM_EditorModel, SendMessage } from "./editor.tsx";
+import { EditorEvent, EditorModel, new_DM_EditorModel, SendMessage } from "./editor.tsx";
 import { DirectMessagePanelUpdate } from "./message-panel.tsx";
 import { NavigationUpdate } from "./nav.tsx";
 import { Model } from "./app_model.ts";
@@ -217,24 +217,25 @@ export async function* UI_Interaction_Update(args: {
                 continue; // todo: global error toast
             }
         } else if (event.type == "UpdateMessageFiles") {
-            if (event.target.kind == NostrKind.DIRECT_MESSAGE) {
-                const editor = model.editors.get(event.id);
-                if (editor) {
-                    editor.files = event.files;
-                } else {
-                    console.log(event.target.receiver, event.id);
-                    throw new Error("impossible state");
-                }
+            const editor = model.editors.get(event.id);
+            if (editor) {
+                editor.files = event.files;
+            } else {
+                console.log(event);
+                throw new Error("impossible state");
             }
-        } else if (event.type == "UpdateMessageText") {
-            if (event.target.kind == NostrKind.DIRECT_MESSAGE) {
-                const editor = model.editors.get(event.id);
-                if (editor) {
-                    editor.text = event.text;
-                } else {
-                    console.log(event.target.receiver, event.id);
-                    throw new Error("impossible state");
-                }
+        } else if (event.type == "UpdateEditorText") {
+            const editorMap = event.isGroupChat ? model.gmEditors : model.editors;
+            const editor = editorMap.get(event.id);
+            if (editor) {
+                editor.text = event.text;
+            } else {
+                editorMap.set(event.id, {
+                    id: event.id,
+                    files: [],
+                    text: event.text,
+                    pubkey: event.pubkey,
+                });
             }
         } //
         //
@@ -329,8 +330,8 @@ export async function* UI_Interaction_Update(args: {
         } else if (event.type == "CreateGroupChat") {
             const profileData = event.profileData;
 
-            const groupCtx = app.groupChatController.createGroupChat();
-            const creationEvent = await app.groupChatController.encodeCreationsToNostrEvent(groupCtx);
+            const groupCreation = app.groupChatController.createGroupChat();
+            const creationEvent = await app.groupChatController.encodeCreationToNostrEvent(groupCreation);
             if (creationEvent instanceof Error) {
                 console.error(creationEvent);
                 continue;
@@ -341,7 +342,7 @@ export async function* UI_Interaction_Update(args: {
                 continue;
             }
             const profileEvent = await prepareNormalNostrEvent(
-                groupCtx,
+                groupCreation.groupKey,
                 NostrKind.META_DATA,
                 [],
                 JSON.stringify(profileData),
@@ -352,7 +353,7 @@ export async function* UI_Interaction_Update(args: {
                 continue;
             }
             app.popOverInputChan.put({ children: undefined });
-            app.profileSyncer.add(groupCtx.publicKey.hex);
+            app.profileSyncer.add(groupCreation.groupKey.publicKey.hex);
         } else if (event.type == "StartEditGroupChatProfile") {
             app.popOverInputChan.put({
                 children: (
@@ -497,13 +498,8 @@ export function updateConversation(
             id: targetPublicKey.hex,
             files: [],
             text: "",
-            tags: [],
-            target: {
-                kind: NostrKind.DIRECT_MESSAGE,
-                receiver: {
-                    pubkey: targetPublicKey,
-                },
-            },
+
+            pubkey: targetPublicKey,
         });
     }
     model.dm.currentSelectedContact = targetPublicKey;
@@ -560,9 +556,9 @@ export async function* Database_Update(
                         }
                         model.editors.set(
                             contact.pubkey.hex,
-                            new_DM_EditorModel({
+                            new_DM_EditorModel(
                                 pubkey,
-                            }),
+                            ),
                         );
                     }
                 }
@@ -649,33 +645,31 @@ export async function handle_SendMessage(
     ctx: NostrAccountContext,
     lamport: LamportTime,
     pool: ConnectionPool,
-    dmEditors: Map<string, DM_EditorModel>,
+    dmEditors: Map<string, EditorModel>,
     db: Database_Contextual_View,
 ) {
-    if (event.target.kind == NostrKind.DIRECT_MESSAGE) {
-        const events = await sendDMandImages({
-            sender: ctx,
-            receiverPublicKey: event.target.receiver.pubkey,
-            message: event.text,
-            files: event.files,
-            kind: event.target.kind,
-            lamport_timestamp: lamport.now(),
-            pool,
-            tags: event.tags,
-        });
-        if (events instanceof Error) {
-            return events;
+    const events = await sendDMandImages({
+        sender: ctx,
+        receiverPublicKey: event.pubkey,
+        message: event.text,
+        files: event.files,
+        kind: event.isGroupChat ? NostrKind.Group_Message : NostrKind.DIRECT_MESSAGE,
+        lamport_timestamp: lamport.now(),
+        pool,
+        tags: [],
+    });
+    if (events instanceof Error) {
+        return events;
+    }
+    for (const eventSent of events) {
+        const err = await db.addEvent(eventSent);
+        if (err instanceof Error) {
+            console.error(err);
         }
-        for (const eventSent of events) {
-            const err = await db.addEvent(eventSent);
-            if (err instanceof Error) {
-                console.error(err);
-            }
-        }
-        const editor = dmEditors.get(event.id);
-        if (editor) {
-            editor.files = [];
-            editor.text = "";
-        }
+    }
+    const editor = dmEditors.get(event.id);
+    if (editor) {
+        editor.files = [];
+        editor.text = "";
     }
 }

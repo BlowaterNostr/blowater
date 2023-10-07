@@ -118,9 +118,9 @@ export class ConversationList extends Component<Props, State> {
                             />
                             New Chat
                         </button>
-                        {/* <div class={tw`h-4 w-1 bg-[${PrimaryTextColor}] !p-0`}></div> */}
                         {
-                            /* <button
+                            /* <div class={tw`h-4 w-1 bg-[${PrimaryTextColor}] !p-0`}></div>
+                        <button
                             onClick={async () => {
                                 props.emit({
                                     type: "StartCreateGroupChat",
