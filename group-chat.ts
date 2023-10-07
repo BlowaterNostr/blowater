@@ -72,13 +72,13 @@ export class GroupChatController {
         this.conversationLists.addGroupCreation(groupChatCreation);
     }
 
-    // getGroupChatCtx(group_addr: PublicKey): InMemoryAccountContext | undefined {
-    //     const invitation = this.invitations.get(group_addr.hex);
-    //     if (invitation == undefined) {
-    //         return;
-    //     }
-    //     return InMemoryAccountContext.New(invitation.cipher_key);
-    // }
+    getGroupChatCtx(group_addr: PublicKey): InMemoryAccountContext | undefined {
+        const invitation = this.created_groups.get(group_addr.bech32());
+        if (invitation == undefined) {
+            return;
+        }
+        return invitation.groupKey
+    }
 
     getGroupAdminCtx(group_addr: PublicKey): InMemoryAccountContext | undefined {
         const creation = this.created_groups.get(group_addr.bech32());

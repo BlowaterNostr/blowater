@@ -18,12 +18,11 @@ export async function sendDMandImages(args: {
     receiverPublicKey: PublicKey;
     message: string;
     files: Blob[];
-    kind: NostrKind;
     lamport_timestamp: number;
     pool: ConnectionPool;
     tags: Tag[];
 }) {
-    const { tags, sender, receiverPublicKey, message, files, kind, lamport_timestamp, pool } = args;
+    const { tags, sender, receiverPublicKey, message, files, lamport_timestamp, pool } = args;
     console.log("sendDMandImages", message, files);
     const eventsToSend: NostrEvent[] = [];
     if (message.trim().length !== 0) {
@@ -32,7 +31,7 @@ export async function sendDMandImages(args: {
             sender,
             {
                 encryptKey: receiverPublicKey,
-                kind,
+                kind: NostrKind.DIRECT_MESSAGE,
                 tags: [
                     ["p", receiverPublicKey.hex],
                     ["lamport", String(lamport_timestamp)],
@@ -51,7 +50,7 @@ export async function sendDMandImages(args: {
             sender,
             receiverPublicKey,
             blob,
-            kind,
+            NostrKind.DIRECT_MESSAGE,
             tags,
         );
         if (imgEvent instanceof Error) {

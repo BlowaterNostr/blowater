@@ -304,7 +304,7 @@ export async function originalEventToParsedEvent(
             publicKey,
         );
         // return false
-    } else if (event.kind == NostrKind.META_DATA || event.kind == NostrKind.TEXT_NOTE) {
+    } else if (event.kind == NostrKind.META_DATA || event.kind == NostrKind.TEXT_NOTE || event.kind == NostrKind.Group_Message) {
         return originalEventToUnencryptedEvent(
             // @ts-ignore
             event,

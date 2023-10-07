@@ -43,12 +43,13 @@ import { Search } from "./search.tsx";
 import { NoteID } from "../lib/nostr-ts/nip19.ts";
 import { EventDetail, EventDetailItem } from "./event-detail.tsx";
 import { CreateGroup, CreateGroupChat, StartCreateGroupChat } from "./create-group.tsx";
-import { prepareNormalNostrEvent } from "../lib/nostr-ts/event.ts";
+import { prepareEncryptedNostrEvent, prepareNormalNostrEvent } from "../lib/nostr-ts/event.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { InMemoryAccountContext, NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { OtherConfig } from "./config-other.ts";
 import { EditGroup, EditGroupChatProfile, StartEditGroupChatProfile } from "./edit-group.tsx";
+import { GroupChatController } from "../group-chat.ts";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -212,6 +213,7 @@ export async function* UI_Interaction_Update(args: {
                 pool,
                 app.model.editors,
                 app.database,
+                app.groupChatController
             );
             if (err instanceof Error) {
                 console.error("update:SendMessage", err);
@@ -654,26 +656,51 @@ export async function handle_SendMessage(
     pool: ConnectionPool,
     dmEditors: Map<string, EditorModel>,
     db: Database_Contextual_View,
+    groupControl: GroupChatController
 ) {
-    const events = await sendDMandImages({
-        sender: ctx,
-        receiverPublicKey: event.pubkey,
-        message: event.text,
-        files: event.files,
-        kind: event.isGroupChat ? NostrKind.Group_Message : NostrKind.DIRECT_MESSAGE,
-        lamport_timestamp: lamport.now(),
-        pool,
-        tags: [],
-    });
-    if (events instanceof Error) {
-        return events;
-    }
-    for (const eventSent of events) {
-        const err = await db.addEvent(eventSent);
-        if (err instanceof Error) {
+    if(event.isGroupChat) {
+        const groupCtx = groupControl.getGroupChatCtx(event.pubkey)
+        if(groupCtx == undefined) {
+            return new Error(`group ctx for ${event.pubkey.bech32()} is empty`)
+        }
+        const nostrEvent = await prepareEncryptedNostrEvent(ctx, {
+            content: event.text,
+            kind: NostrKind.Group_Message,
+            tags: [],
+            encryptKey: groupCtx.publicKey
+        })
+        if(nostrEvent instanceof Error) {
+            return nostrEvent
+        }
+        const err  = await pool.sendEvent(nostrEvent);
+        if(err instanceof Error) {
+            return err
+        }
+        const err2 = await db.addEvent(nostrEvent);
+        if (err2 instanceof Error) {
             console.error(err);
         }
+    } else {
+        const events = await sendDMandImages({
+            sender: ctx,
+            receiverPublicKey: event.pubkey,
+            message: event.text,
+            files: event.files,
+            lamport_timestamp: lamport.now(),
+            pool,
+            tags: [],
+        });
+        if (events instanceof Error) {
+            return events;
+        }
+        for (const eventSent of events) {
+            const err = await db.addEvent(eventSent);
+            if (err instanceof Error) {
+                console.error(err);
+            }
+        }
     }
+    // clear the editor model
     const editor = dmEditors.get(event.id);
     if (editor) {
         editor.files = [];
