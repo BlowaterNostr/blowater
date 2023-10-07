@@ -27,26 +27,17 @@ const convoLists = new ConversationLists(ctx, new ProfileSyncer(database, new Co
 convoLists.addEvents(database.events);
 
 const model = initialModel();
-model.dm.currentEditor = ctx.publicKey;
 
 const view = () =>
     render(
         <ConversationList
             convoListRetriever={convoLists}
-            currentSelected={model.dm.currentEditor}
             hasNewMessages={new Set()}
             pinListGetter={OtherConfig.Empty()}
-            // common dependencies
+            eventBus={testEventBus}
             emit={testEventBus.emit}
         />,
         document.body,
     );
 
 view();
-for await (const e of testEventBus.onChange()) {
-    console.log(e);
-    if (e.type == "SelectConversation") {
-        model.dm.currentEditor = e.pubkey;
-    }
-    view();
-}

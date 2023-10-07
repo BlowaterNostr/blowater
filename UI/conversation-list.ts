@@ -1,10 +1,5 @@
-import {
-    ConversationListRetriever,
-    ConversationType,
-    GroupChatListGetter,
-    NewMessageChecker,
-} from "./conversation-list.tsx";
-import { PrivateKey, PublicKey } from "../lib/nostr-ts/key.ts";
+import { ConversationListRetriever, GroupChatListGetter, NewMessageChecker } from "./conversation-list.tsx";
+import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { getTags, Profile_Nostr_Event, Text_Note_Event } from "../nostr.ts";
 import { ProfileSyncer } from "../features/profile.ts";
