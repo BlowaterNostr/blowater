@@ -181,10 +181,10 @@ export class App {
                     kind: NostrKind.Group_Message,
                 });
                 if (res instanceof Error) {
-                    if(res instanceof ZodError) {
-                        continue
+                    if (res instanceof ZodError) {
+                        continue;
                     }
-                    console.error(msg.res.event)
+                    console.error(msg.res.event);
                     console.error(res);
                 }
             }

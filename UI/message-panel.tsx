@@ -45,7 +45,7 @@ export type DirectMessagePanelUpdate =
     | ViewNoteThread
     | {
         type: "ViewEventDetail";
-        message: ChatMessage
+        message: ChatMessage;
     };
 
 export type ViewNoteThread = {
@@ -468,8 +468,8 @@ export function ParseMessageContent(
         return <img src={message.content} />;
     }
 
-    if(message.event.kind == NostrKind.Group_Message) {
-        return <p>{message.content}</p>
+    if (message.event.kind == NostrKind.Group_Message) {
+        return <p>{message.content}</p>;
     }
 
     const vnode = [];

@@ -19,7 +19,7 @@ export type GroupChatCreation = {
 
 export class GroupChatController implements GroupMessageGetter {
     created_groups = new Map<string, GroupChatCreation>();
-    messages = new Map<string, ChatMessage[]>
+    messages = new Map<string, ChatMessage[]>();
 
     constructor(
         private readonly ctx: NostrAccountContext,
@@ -27,8 +27,8 @@ export class GroupChatController implements GroupMessageGetter {
     ) {}
 
     getGroupMessages(publicKey: string): ChatMessage[] {
-        const msgs = this.messages.get(publicKey)
-        return msgs? msgs : []
+        const msgs = this.messages.get(publicKey);
+        return msgs ? msgs : [];
     }
 
     async encodeCreationToNostrEvent(groupCreation: GroupChatCreation) {
@@ -55,17 +55,17 @@ export class GroupChatController implements GroupMessageGetter {
     }
 
     async addEvent(event: NostrEvent<NostrKind.Group_Message>) {
-        if(isCreation(event)) {
-            return await this.handleCreation(event)
-        } else if(isMessage(event)) {
-            return await this.handleMessage(event)
+        if (isCreation(event)) {
+            return await this.handleCreation(event);
+        } else if (isMessage(event)) {
+            return await this.handleMessage(event);
         } else {
-            console.log(GroupChatController.name, "ignore", event)
+            console.log(GroupChatController.name, "ignore", event);
         }
     }
 
     async handleMessage(event: NostrEvent<NostrKind.Group_Message>) {
-        const groupAddr = getTags(event).p[0]
+        const groupAddr = getTags(event).p[0];
         const decryptedContent = await this.ctx.decrypt(groupAddr, event.content);
         if (decryptedContent instanceof Error) {
             return decryptedContent;
@@ -77,8 +77,8 @@ export class GroupChatController implements GroupMessageGetter {
         }
 
         const author = PublicKey.FromHex(event.pubkey);
-        if(author instanceof Error) {
-            return author
+        if (author instanceof Error) {
+            return author;
         }
         const message = z.object({
             type: z.string(),
@@ -90,14 +90,14 @@ export class GroupChatController implements GroupMessageGetter {
             content: message.text,
             created_at: new Date(event.created_at * 1000),
             lamport: getTags(event).lamport_timestamp,
-            type: "text"
-        }
+            type: "text",
+        };
 
-        const messages = this.messages.get(groupAddr)
-        if(messages) {
-            messages.push(chatMessage)
+        const messages = this.messages.get(groupAddr);
+        if (messages) {
+            messages.push(chatMessage);
         } else {
-            this.messages.set(groupAddr, [chatMessage])
+            this.messages.set(groupAddr, [chatMessage]);
         }
     }
 
@@ -166,10 +166,9 @@ export class GroupChatController implements GroupMessageGetter {
 }
 
 function isCreation(event: NostrEvent<NostrKind.Group_Message>) {
-    return event.tags.length == 0
+    return event.tags.length == 0;
 }
 
 function isMessage(event: NostrEvent<NostrKind.Group_Message>) {
-    return event.tags.length != 0
+    return event.tags.length != 0;
 }
-

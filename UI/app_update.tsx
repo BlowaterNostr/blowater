@@ -221,7 +221,7 @@ export async function* UI_Interaction_Update(args: {
                 continue; // todo: global error toast
             }
         } else if (event.type == "UpdateMessageFiles") {
-            const editor = model.editors.get(event.id);
+            const editor = model.editors.get(event.pubkey.hex);
             if (editor) {
                 editor.files = event.files;
             } else {
@@ -230,12 +230,12 @@ export async function* UI_Interaction_Update(args: {
             }
         } else if (event.type == "UpdateEditorText") {
             const editorMap = event.isGroupChat ? model.gmEditors : model.editors;
-            const editor = editorMap.get(event.id);
+            console.log(editorMap);
+            const editor = editorMap.get(event.pubkey.hex);
             if (editor) {
                 editor.text = event.text;
             } else {
-                editorMap.set(event.id, {
-                    id: event.id,
+                editorMap.set(event.pubkey.hex, {
                     files: [],
                     text: event.text,
                     pubkey: event.pubkey,
@@ -404,7 +404,7 @@ export async function* UI_Interaction_Update(args: {
             const nostrEvent = event.message.event;
             const eventID = nostrEvent.id;
             const eventIDBech32 = NoteID.FromString(nostrEvent.id).bech32();
-            const authorPubkey = event.message.author
+            const authorPubkey = event.message.author;
 
             const content = nostrEvent.content;
             const originalEventRaw = JSON.stringify(
@@ -468,18 +468,17 @@ export function getConversationMessages(args: {
     targetPubkey: string;
     isGroupChat: boolean;
     dmGetter: DirectMessageGetter;
-    gmGetter: GroupMessageGetter
+    gmGetter: GroupMessageGetter;
 }): ChatMessage[] {
     const { targetPubkey } = args;
-    if(args.isGroupChat) {
-        return args.gmGetter.getGroupMessages(args.targetPubkey)
+    if (args.isGroupChat) {
+        return args.gmGetter.getGroupMessages(args.targetPubkey);
     }
 
     let events = args.dmGetter.getDirectMessages(targetPubkey);
     if (events == undefined) {
         events = [];
     }
-
 
     const messages = convertEventsToChatMessages(events);
     if (messages.length > 0) {
@@ -498,21 +497,16 @@ export function updateConversation(
     targetPublicKey: PublicKey,
     isGroupChat: boolean,
 ) {
-    let editor = model.editors.get(targetPublicKey.hex);
+    const editorMap = isGroupChat ? model.gmEditors : model.editors;
+    let editor = editorMap.get(targetPublicKey.hex);
     // If this conversation is new
     if (editor == undefined) {
         editor = {
-            id: targetPublicKey.hex,
+            pubkey: targetPublicKey,
             files: [],
             text: "",
-
-            pubkey: targetPublicKey,
         };
-        if (isGroupChat) {
-            model.gmEditors.set(targetPublicKey.hex, editor);
-        } else {
-            model.editors.set(targetPublicKey.hex, editor);
-        }
+        editorMap.set(targetPublicKey.hex, editor);
     }
     model.dm.currentEditor = editor;
 }
@@ -669,7 +663,7 @@ export async function handle_SendMessage(
             }),
             kind: NostrKind.Group_Message,
             tags: [
-                ["p",groupCtx.publicKey.hex]
+                ["p", groupCtx.publicKey.hex],
             ],
             encryptKey: groupCtx.publicKey,
         });

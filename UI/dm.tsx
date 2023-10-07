@@ -50,7 +50,7 @@ export type StartInvite = {
 
 export function DirectMessageContainer(props: DirectMessageContainerProps) {
     const t = Date.now();
-    console.log("DirectMessageContainer", props);
+    console.log("DirectMessageContainer", props.currentEditor);
 
     let messagePanel: VNode | undefined;
     if (props.currentEditor && props.currentEditor) {
@@ -58,7 +58,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
             targetPubkey: props.currentEditor.pubkey.hex,
             isGroupChat: props.isGroupMessage,
             dmGetter: props.dmGetter,
-            gmGetter: props.gmGetter
+            gmGetter: props.gmGetter,
         });
         console.log("DirectMessageContainer:convoMsgs", Date.now() - t);
 

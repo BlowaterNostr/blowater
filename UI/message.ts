@@ -166,7 +166,7 @@ export type ContentItem = {
 // Think of ChatMessage as an materialized view of NostrEvent
 export interface ChatMessage {
     readonly event: DirectedMessage_Event | NostrEvent<NostrKind.Group_Message>;
-    readonly author: PublicKey
+    readonly author: PublicKey;
     readonly type: "image" | "text";
     readonly created_at: Date;
     readonly lamport: number | undefined;
