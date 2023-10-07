@@ -17,6 +17,8 @@ import { GroupIcon } from "./icons2/group-icon.tsx";
 import { Component } from "https://esm.sh/preact@10.17.1";
 import { UI_Interaction_Event } from "./app_update.tsx";
 
+const IsGruopChatSupported = false;
+
 export interface ConversationListRetriever extends GroupChatListGetter {
     getContacts: () => Iterable<ConversationSummary>;
     getStrangers: () => Iterable<ConversationSummary>;
@@ -118,22 +120,26 @@ export class ConversationList extends Component<Props, State> {
                             />
                             New Chat
                         </button>
-                        {
-                            /* <div class={tw`h-4 w-1 bg-[${PrimaryTextColor}] !p-0`}></div>
-                        <button
-                            onClick={async () => {
-                                props.emit({
-                                    type: "StartCreateGroupChat",
-                                });
-                            }}
-                            class={tw`w-full h-10 ${CenterClass} text-sm text-[${PrimaryTextColor}] !hover:bg-transparent hover:font-bold group`}
-                        >
-                            <GroupIcon
-                                class={tw`w-4 h-4 mr-1 text-[${PrimaryTextColor}] fill-current`}
-                            />
-                            New Group
-                        </button> */
-                        }
+                        {IsGruopChatSupported
+                            ? (
+                                <Fragment>
+                                    <div class={tw`h-4 w-1 bg-[${PrimaryTextColor}] !p-0`}></div>
+                                    <button
+                                        onClick={async () => {
+                                            props.emit({
+                                                type: "StartCreateGroupChat",
+                                            });
+                                        }}
+                                        class={tw`w-full h-10 ${CenterClass} text-sm text-[${PrimaryTextColor}] !hover:bg-transparent hover:font-bold group`}
+                                    >
+                                        <GroupIcon
+                                            class={tw`w-4 h-4 mr-1 text-[${PrimaryTextColor}] fill-current`}
+                                        />
+                                        New Group
+                                    </button>
+                                </Fragment>
+                            )
+                            : undefined}
                     </ButtonGroup>
                 </div>
 
@@ -164,22 +170,24 @@ export class ConversationList extends Component<Props, State> {
                         Strangers: {strangers.length}
                     </li>
 
-                    {
-                        /* <li
-                        class={tw`h-full flex-1 cursor-pointer hover:text-[#F7F7F7] text-[#96989D] bg-[#2F3136] hover:bg-[#42464D] ${CenterClass} ${
-                            this.state.selectedContactGroup == "Group"
-                                ? "border-b-2 border-[#54D48C] bg-[#42464D] text-[#F7F7F7]"
-                                : ""
-                        }`}
-                        onClick={() => {
-                            this.setState({
-                                selectedContactGroup: "Group",
-                            });
-                        }}
-                    >
-                        Group: {groups.length}
-                    </li> */
-                    }
+                    {IsGruopChatSupported
+                        ? (
+                            <li
+                                class={tw`h-full flex-1 cursor-pointer hover:text-[#F7F7F7] text-[#96989D] bg-[#2F3136] hover:bg-[#42464D] ${CenterClass} ${
+                                    this.state.selectedContactGroup == "Group"
+                                        ? "border-b-2 border-[#54D48C] bg-[#42464D] text-[#F7F7F7]"
+                                        : ""
+                                }`}
+                                onClick={() => {
+                                    this.setState({
+                                        selectedContactGroup: "Group",
+                                    });
+                                }}
+                            >
+                                Group: {groups.length}
+                            </li>
+                        )
+                        : undefined}
                 </ul>
 
                 <ContactGroup
