@@ -21,7 +21,7 @@ import {
     UnpinConversation,
 } from "../nostr.ts";
 import { ProfileData, ProfileSyncer } from "../features/profile.ts";
-import { MessageThread } from "./dm.tsx";
+
 import { UserDetail } from "./user-detail.tsx";
 
 import { LinkColor, PrimaryTextColor } from "./style/colors.ts";
@@ -45,7 +45,7 @@ export type DirectMessagePanelUpdate =
     | ViewNoteThread
     | {
         type: "ViewEventDetail";
-        event: Text_Note_Event | DirectedMessage_Event;
+        message: ChatMessage;
     };
 
 export type ViewNoteThread = {
@@ -69,7 +69,7 @@ interface DirectMessagePanelProps {
     isGroupChat: boolean;
     editorModel: EditorModel;
 
-    messages: MessageThread[];
+    messages: ChatMessage[];
     focusedContent: {
         type: "ProfileData";
         data?: ProfileData;
@@ -173,7 +173,7 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
 }
 interface MessageListProps {
     myPublicKey: PublicKey;
-    threads: MessageThread[];
+    threads: ChatMessage[];
     emit: emitFunc<DirectMessagePanelUpdate>;
     profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
@@ -230,23 +230,16 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
     render() {
         const t = Date.now();
         const groups = groupContinuousMessages(this.sortAndSliceMessage(), (pre, cur) => {
-            const sameAuthor = pre.root.event.pubkey == cur.root.event.pubkey;
-            const _66sec =
-                Math.abs(cur.root.created_at.getTime() - pre.root.created_at.getTime()) < 1000 * 60;
+            const sameAuthor = pre.event.pubkey == cur.event.pubkey;
+            const _66sec = Math.abs(cur.created_at.getTime() - pre.created_at.getTime()) < 1000 * 60;
             return sameAuthor && _66sec;
         });
         const messageBoxGroups = [];
         let i = 0;
-        for (const threads of groups) {
+        for (const messages of groups) {
             messageBoxGroups.push(
                 MessageBoxGroup({
-                    messageGroup: threads.map((thread) => {
-                        i++;
-                        return {
-                            msg: thread.root,
-                            replyCount: thread.replies.length,
-                        };
-                    }),
+                    messages: messages,
                     myPublicKey: this.props.myPublicKey,
                     emit: this.props.emit,
                     profilesSyncer: this.props.profilesSyncer,
@@ -298,19 +291,14 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
 }
 
 function MessageBoxGroup(props: {
-    messageGroup: {
-        msg: ChatMessage;
-        replyCount: number;
-    }[];
+    messages: ChatMessage[];
     myPublicKey: PublicKey;
     emit: emitFunc<DirectMessagePanelUpdate | ViewUserDetail>;
     profilesSyncer: ProfileSyncer;
     profileGetter: ProfileGetter;
     eventSyncer: EventSyncer;
 }) {
-    // const t = Date.now();
-
-    const messageGroups = props.messageGroup.reverse();
+    const messageGroups = props.messages.reverse();
     if (messageGroups.length == 0) {
         return;
     }
@@ -320,15 +308,15 @@ function MessageBoxGroup(props: {
         <li
             class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 group relative`}
         >
-            {MessageActions(first_group.msg.event, props.emit)}
+            {MessageActions(first_group, props.emit)}
             <Avatar
                 class={tw`h-8 w-8 mt-[0.45rem] mr-2`}
-                picture={props.profileGetter.getProfilesByPublicKey(first_group.msg.event.publicKey)?.profile
+                picture={props.profileGetter.getProfilesByPublicKey(first_group.author)?.profile
                     .picture}
                 onClick={() => {
                     props.emit({
                         type: "ViewUserDetail",
-                        pubkey: first_group.msg.event.publicKey,
+                        pubkey: first_group.author,
                     });
                 }}
             />
@@ -340,40 +328,23 @@ function MessageBoxGroup(props: {
                 }}
             >
                 {NameAndTime(
-                    first_group.msg.event.publicKey,
-                    props.profileGetter.getProfilesByPublicKey(first_group.msg.event.publicKey)
+                    first_group.author,
+                    props.profileGetter.getProfilesByPublicKey(first_group.author)
                         ?.profile,
                     props.myPublicKey,
-                    first_group.msg.created_at,
+                    first_group.created_at,
                 )}
                 <pre
                     class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto`}
                 >
                                 {ParseMessageContent(
-                                    first_group.msg,
+                                    first_group,
                                     props.profilesSyncer,
                                     props.profileGetter,
                                     props.eventSyncer,
                                     props.emit,
                                     )}
                 </pre>
-                {first_group.replyCount > 0
-                    ? (
-                        <div class={tw`flex items-center mb-[0.45rem] ml-[1rem]`}>
-                            <span
-                                class={tw`text-[#A6A8AA] font-bold hover:underline cursor-pointer text-[0.8rem]`}
-                                onClick={() => {
-                                    props.emit({
-                                        type: "ViewThread",
-                                        root: first_group.msg.event,
-                                    });
-                                }}
-                            >
-                                {first_group.replyCount} replies
-                            </span>
-                        </div>
-                    )
-                    : undefined}
             </div>
         </li>,
     );
@@ -384,8 +355,8 @@ function MessageBoxGroup(props: {
             <li
                 class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 group relative`}
             >
-                {MessageActions(msg.msg.event, props.emit)}
-                {Time(msg.msg.created_at)}
+                {MessageActions(msg, props.emit)}
+                {Time(msg.created_at)}
                 <div
                     class={tw`flex-1`}
                     style={{
@@ -396,30 +367,13 @@ function MessageBoxGroup(props: {
                         class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto`}
                     >
                     {ParseMessageContent(
-                        msg.msg,
+                        msg,
                         props.profilesSyncer,
                         props.profileGetter,
                         props.eventSyncer,
                         props.emit,
                         )}
                     </pre>
-                    {msg.replyCount > 0
-                        ? (
-                            <div class={tw`flex items-center mb-[0.45rem] ml-[1rem]`}>
-                                <span
-                                    class={tw`text-[#A6A8AA] font-bold hover:underline cursor-pointer text-[0.8rem]`}
-                                    onClick={() => {
-                                        props.emit({
-                                            type: "ViewThread",
-                                            root: msg.msg.event,
-                                        });
-                                    }}
-                                >
-                                    {msg.replyCount} replies
-                                </span>
-                            </div>
-                        )
-                        : undefined}
                 </div>
             </li>,
         );
@@ -436,7 +390,7 @@ function MessageBoxGroup(props: {
 }
 
 function MessageActions(
-    event: Text_Note_Event | DirectedMessage_Event,
+    message: ChatMessage,
     emit: emitFunc<ViewThread | DirectMessagePanelUpdate>,
 ) {
     return (
@@ -451,7 +405,7 @@ function MessageActions(
                 onClick={async () => {
                     emit({
                         type: "ViewEventDetail",
-                        event: event,
+                        message: message,
                     });
                 }}
             >
@@ -512,6 +466,10 @@ export function ParseMessageContent(
 ) {
     if (message.type == "image") {
         return <img src={message.content} />;
+    }
+
+    if (message.event.kind == NostrKind.Group_Message) {
+        return <p>{message.content}</p>;
     }
 
     const vnode = [];

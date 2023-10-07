@@ -6,21 +6,23 @@ import { MessagePanel, RightPanelModel } from "./message-panel.tsx";
 import { EventBus } from "../event-bus.ts";
 import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
 import { CenterClass, IconButtonClass } from "./components/tw.ts";
-import { DirectMessageGetter, getConversationMessages, UI_Interaction_Event } from "./app_update.tsx";
+import {
+    DirectMessageGetter,
+    getConversationMessages,
+    GroupMessageGetter,
+    UI_Interaction_Event,
+} from "./app_update.tsx";
 import { NostrAccountContext } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { ProfileSyncer } from "../features/profile.ts";
-import { ChatMessage } from "./message.ts";
 import { DM_Model } from "./dm.ts";
 import { getFocusedContent } from "./app.tsx";
 import { EventSyncer } from "./event_syncer.ts";
-import { ConversationLists } from "./conversation-list.ts";
 import { ButtonGroup } from "./components/button-group.tsx";
 import { PrimaryTextColor } from "./style/colors.ts";
 import { SettingIcon } from "./icons2/setting-icon.tsx";
 import { GroupChatController } from "../group-chat.ts";
 import { ProfileGetter } from "./search.tsx";
-import { EditorModel } from "./editor.tsx";
 import { InviteIcon } from "./icons2/invite-icon.tsx";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 
@@ -29,20 +31,17 @@ type DirectMessageContainerProps = {
     ctx: NostrAccountContext;
     pool: ConnectionPool;
     bus: EventBus<UI_Interaction_Event>;
-    profileGetter: ProfileGetter;
-    dmGetter: DirectMessageGetter;
-    conversationLists: cl.ConversationListRetriever;
     profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
-    pinListGetter: cl.PinListGetter;
     groupChatController: GroupChatController;
+    // getters
+    profileGetter: ProfileGetter;
+    dmGetter: DirectMessageGetter;
+    gmGetter: GroupMessageGetter;
+    pinListGetter: cl.PinListGetter;
+    conversationLists: cl.ConversationListRetriever;
     newMessageChecker: cl.NewMessageChecker;
 } & DM_Model;
-
-export type MessageThread = {
-    root: ChatMessage;
-    replies: ChatMessage[];
-};
 
 export type StartInvite = {
     type: "StartInvite";
@@ -51,13 +50,15 @@ export type StartInvite = {
 
 export function DirectMessageContainer(props: DirectMessageContainerProps) {
     const t = Date.now();
-    console.log("DirectMessageContainer", props);
+    console.log("DirectMessageContainer", props.currentEditor);
 
     let messagePanel: VNode | undefined;
     if (props.currentEditor && props.currentEditor) {
         const convoMsgs = getConversationMessages({
             targetPubkey: props.currentEditor.pubkey.hex,
+            isGroupChat: props.isGroupMessage,
             dmGetter: props.dmGetter,
+            gmGetter: props.gmGetter,
         });
         console.log("DirectMessageContainer:convoMsgs", Date.now() - t);
 

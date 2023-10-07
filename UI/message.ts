@@ -1,7 +1,7 @@
 import { PublicKey } from "../lib/nostr-ts/key.ts";
-import { MessageThread } from "./dm.tsx";
-import { DirectedMessage_Event, Text_Note_Event } from "../nostr.ts";
+import { DirectedMessage_Event } from "../nostr.ts";
 import { Nevent, NostrAddress, NostrProfile, NoteID } from "../lib/nostr-ts/nip19.ts";
+import { NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 
 export function* parseContent(content: string) {
     // URLs
@@ -165,7 +165,8 @@ export type ContentItem = {
 
 // Think of ChatMessage as an materialized view of NostrEvent
 export interface ChatMessage {
-    readonly event: DirectedMessage_Event | Text_Note_Event;
+    readonly event: DirectedMessage_Event | NostrEvent<NostrKind.Group_Message>;
+    readonly author: PublicKey;
     readonly type: "image" | "text";
     readonly created_at: Date;
     readonly lamport: number | undefined;
@@ -196,16 +197,16 @@ export function* groupContinuousMessages<T>(
     yield group;
 }
 
-export function sortMessage(messages: MessageThread[]) {
+export function sortMessage(messages: ChatMessage[]) {
     return messages
         .sort((m1, m2) => {
-            if (m1.root.lamport && m2.root.lamport) {
-                if (m1.root.lamport == m2.root.lamport) {
-                    return m2.root.created_at.getTime() - m1.root.created_at.getTime();
+            if (m1.lamport && m2.lamport) {
+                if (m1.lamport == m2.lamport) {
+                    return m2.created_at.getTime() - m1.created_at.getTime();
                 } else {
-                    return m2.root.lamport - m1.root.lamport;
+                    return m2.lamport - m1.lamport;
                 }
             }
-            return m2.root.created_at.getTime() - m1.root.created_at.getTime();
+            return m2.created_at.getTime() - m1.created_at.getTime();
         });
 }

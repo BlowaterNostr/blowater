@@ -37,6 +37,7 @@ export function convertEventsToChatMessages(
         }
         messages.push({
             event: textEvents[i],
+            author: pubkey,
             content: textEvents[i].decryptedContent,
             type: "text",
             created_at: new Date(textEvents[i].created_at * 1000),
@@ -56,6 +57,7 @@ export function convertEventsToChatMessages(
         }
         messages.push({
             event: imageEvents[0],
+            author: pubkey,
             content: imageBase64,
             type: "image",
             created_at: new Date(imageEvents[0].created_at * 1000),

@@ -29,6 +29,7 @@ import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/mas
 import { GroupChatController } from "../group-chat.ts";
 import { OtherConfig } from "./config-other.ts";
 import { ProfileGetter } from "./search.tsx";
+import { ZodError } from "https://esm.sh/zod@3.22.4";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
@@ -180,6 +181,10 @@ export class App {
                     kind: NostrKind.Group_Message,
                 });
                 if (res instanceof Error) {
+                    if (res instanceof ZodError) {
+                        continue;
+                    }
+                    console.error(msg.res.event);
                     console.error(res);
                 }
             }
@@ -347,6 +352,7 @@ export function AppComponent(props: {
                         pinListGetter: app.otherConfig,
                         groupChatController: app.groupChatController,
                         newMessageChecker: app.conversationLists,
+                        gmGetter: app.groupChatController,
                     })}
                 </div>
             );

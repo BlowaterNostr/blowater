@@ -13,7 +13,6 @@ import { Model } from "./app_model.ts";
 import { RemoveIcon } from "./icons2/remove-icon.tsx";
 
 export type EditorModel = {
-    readonly id: string;
     readonly pubkey: PublicKey;
     text: string;
     files: Blob[];
@@ -23,10 +22,9 @@ export function new_DM_EditorModel(
     pubkey: PublicKey,
 ): EditorModel {
     return {
-        id: pubkey.hex,
+        pubkey: pubkey,
         text: "",
         files: [],
-        pubkey: pubkey,
     };
 }
 
@@ -43,15 +41,14 @@ export type SendMessage = {
 
 export type UpdateEditorText = {
     readonly type: "UpdateEditorText";
-    readonly id: string;
-    readonly isGroupChat: boolean;
     readonly pubkey: PublicKey;
+    readonly isGroupChat: boolean;
     readonly text: string;
 };
 export type UpdateMessageFiles = {
     readonly type: "UpdateMessageFiles";
-    readonly id: string;
     readonly pubkey: PublicKey;
+    readonly isGroupChat: boolean;
     readonly files: Blob[];
 };
 
@@ -76,11 +73,11 @@ export class Editor extends Component<EditorProps> {
         const removeFile = (index: number) => {
             props.emit({
                 type: "UpdateMessageFiles",
-                id: props.targetNpub.hex,
                 files: props.files.slice(0, index).concat(
                     props.files.slice(index + 1),
                 ),
                 pubkey: props.targetNpub,
+                isGroupChat: props.isGroupChat,
             });
         };
 
@@ -136,9 +133,9 @@ export class Editor extends Component<EditorProps> {
                         }
                         props.emit({
                             type: "UpdateMessageFiles",
-                            id: props.targetNpub.hex,
                             files: propsfiles,
                             pubkey: props.targetNpub,
+                            isGroupChat: props.isGroupChat,
                         });
                     }}
                     class={tw`hidden`}
@@ -194,7 +191,6 @@ export class Editor extends Component<EditorProps> {
                         onInput={(e) => {
                             props.emit({
                                 type: "UpdateEditorText",
-                                id: props.targetNpub.hex,
                                 pubkey: props.targetNpub,
                                 text: e.currentTarget.value,
                                 isGroupChat: props.isGroupChat,

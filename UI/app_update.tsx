@@ -35,7 +35,7 @@ import {
     Text_Note_Event,
     UnpinConversation,
 } from "../nostr.ts";
-import { MessageThread, StartInvite } from "./dm.tsx";
+import { StartInvite } from "./dm.tsx";
 import { DexieDatabase } from "./dexie-db.ts";
 import { RelayConfigChange } from "./setting.tsx";
 import { PopOverInputChannel } from "./components/popover.tsx";
@@ -43,12 +43,14 @@ import { Search } from "./search.tsx";
 import { NoteID } from "../lib/nostr-ts/nip19.ts";
 import { EventDetail, EventDetailItem } from "./event-detail.tsx";
 import { CreateGroup, CreateGroupChat, StartCreateGroupChat } from "./create-group.tsx";
-import { prepareNormalNostrEvent } from "../lib/nostr-ts/event.ts";
+import { prepareEncryptedNostrEvent, prepareNormalNostrEvent } from "../lib/nostr-ts/event.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { InMemoryAccountContext, NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { OtherConfig } from "./config-other.ts";
 import { EditGroup, EditGroupChatProfile, StartEditGroupChatProfile } from "./edit-group.tsx";
+import { GroupChatController, GroupMessage } from "../group-chat.ts";
+import { ChatMessage } from "./message.ts";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -212,13 +214,14 @@ export async function* UI_Interaction_Update(args: {
                 pool,
                 app.model.editors,
                 app.database,
+                app.groupChatController,
             );
             if (err instanceof Error) {
                 console.error("update:SendMessage", err);
                 continue; // todo: global error toast
             }
         } else if (event.type == "UpdateMessageFiles") {
-            const editor = model.editors.get(event.id);
+            const editor = model.editors.get(event.pubkey.hex);
             if (editor) {
                 editor.files = event.files;
             } else {
@@ -227,12 +230,12 @@ export async function* UI_Interaction_Update(args: {
             }
         } else if (event.type == "UpdateEditorText") {
             const editorMap = event.isGroupChat ? model.gmEditors : model.editors;
-            const editor = editorMap.get(event.id);
+            console.log(editorMap);
+            const editor = editorMap.get(event.pubkey.hex);
             if (editor) {
                 editor.text = event.text;
             } else {
-                editorMap.set(event.id, {
-                    id: event.id,
+                editorMap.set(event.pubkey.hex, {
                     files: [],
                     text: event.text,
                     pubkey: event.pubkey,
@@ -398,11 +401,11 @@ export async function* UI_Interaction_Update(args: {
             pool.sendEvent(e);
             app.relayConfig.saveToLocalStorage(app.ctx);
         } else if (event.type == "ViewEventDetail") {
-            const nostrEvent = event.event;
+            const nostrEvent = event.message.event;
             const eventID = nostrEvent.id;
             const eventIDBech32 = NoteID.FromString(nostrEvent.id).bech32();
-            const authorPubkey = nostrEvent.publicKey.hex;
-            const authorPubkeyBech32 = nostrEvent.publicKey.bech32();
+            const authorPubkey = event.message.author;
+
             const content = nostrEvent.content;
             const originalEventRaw = JSON.stringify(
                 {
@@ -429,8 +432,8 @@ export async function* UI_Interaction_Update(args: {
                 {
                     title: "Author",
                     fields: [
-                        authorPubkey,
-                        authorPubkeyBech32,
+                        authorPubkey.hex,
+                        authorPubkey.bech32(),
                     ],
                 },
                 {
@@ -457,39 +460,36 @@ export type DirectMessageGetter = {
     getDirectMessages(publicKey: string): DirectedMessage_Event[];
 };
 
+export type GroupMessageGetter = {
+    getGroupMessages(publicKey: string): ChatMessage[];
+};
+
 export function getConversationMessages(args: {
     targetPubkey: string;
+    isGroupChat: boolean;
     dmGetter: DirectMessageGetter;
-}): MessageThread[] {
+    gmGetter: GroupMessageGetter;
+}): ChatMessage[] {
     const { targetPubkey } = args;
-    let t = Date.now();
+    if (args.isGroupChat) {
+        return args.gmGetter.getGroupMessages(args.targetPubkey);
+    }
 
     let events = args.dmGetter.getDirectMessages(targetPubkey);
     if (events == undefined) {
         events = [];
     }
 
-    const threads = computeThreads(Array.from(events));
-    console.log("getConversationMessages:compute threads", Date.now() - t);
-    const msgs: MessageThread[] = [];
-    for (const thread of threads) {
-        const messages = convertEventsToChatMessages(thread);
-        if (messages.length > 0) {
-            messages.sort((m1, m2) => {
-                if (m1.lamport && m2.lamport && m1.lamport != m2.lamport) {
-                    return m1.lamport - m2.lamport;
-                }
-                return m1.created_at.getTime() - m2.created_at.getTime();
-            });
-            msgs.push({
-                root: messages[0],
-                replies: messages.slice(1),
-                // replies: [],
-            });
-        }
+    const messages = convertEventsToChatMessages(events);
+    if (messages.length > 0) {
+        messages.sort((m1, m2) => {
+            if (m1.lamport && m2.lamport && m1.lamport != m2.lamport) {
+                return m1.lamport - m2.lamport;
+            }
+            return m1.created_at.getTime() - m2.created_at.getTime();
+        });
     }
-    console.log("getConversationMessages:convert", Date.now() - t);
-    return msgs;
+    return messages;
 }
 
 export function updateConversation(
@@ -497,21 +497,16 @@ export function updateConversation(
     targetPublicKey: PublicKey,
     isGroupChat: boolean,
 ) {
-    let editor = model.editors.get(targetPublicKey.hex);
+    const editorMap = isGroupChat ? model.gmEditors : model.editors;
+    let editor = editorMap.get(targetPublicKey.hex);
     // If this conversation is new
     if (editor == undefined) {
         editor = {
-            id: targetPublicKey.hex,
+            pubkey: targetPublicKey,
             files: [],
             text: "",
-
-            pubkey: targetPublicKey,
         };
-        if (isGroupChat) {
-            model.gmEditors.set(targetPublicKey.hex, editor);
-        } else {
-            model.editors.set(targetPublicKey.hex, editor);
-        }
+        editorMap.set(targetPublicKey.hex, editor);
     }
     model.dm.currentEditor = editor;
 }
@@ -654,26 +649,56 @@ export async function handle_SendMessage(
     pool: ConnectionPool,
     dmEditors: Map<string, EditorModel>,
     db: Database_Contextual_View,
+    groupControl: GroupChatController,
 ) {
-    const events = await sendDMandImages({
-        sender: ctx,
-        receiverPublicKey: event.pubkey,
-        message: event.text,
-        files: event.files,
-        kind: event.isGroupChat ? NostrKind.Group_Message : NostrKind.DIRECT_MESSAGE,
-        lamport_timestamp: lamport.now(),
-        pool,
-        tags: [],
-    });
-    if (events instanceof Error) {
-        return events;
-    }
-    for (const eventSent of events) {
-        const err = await db.addEvent(eventSent);
+    if (event.isGroupChat) {
+        const groupCtx = groupControl.getGroupChatCtx(event.pubkey);
+        if (groupCtx == undefined) {
+            return new Error(`group ctx for ${event.pubkey.bech32()} is empty`);
+        }
+        const nostrEvent = await prepareEncryptedNostrEvent(ctx, {
+            content: JSON.stringify({
+                type: "gm_message",
+                text: event.text,
+            }),
+            kind: NostrKind.Group_Message,
+            tags: [
+                ["p", groupCtx.publicKey.hex],
+            ],
+            encryptKey: groupCtx.publicKey,
+        });
+        if (nostrEvent instanceof Error) {
+            return nostrEvent;
+        }
+        const err = await pool.sendEvent(nostrEvent);
         if (err instanceof Error) {
+            return err;
+        }
+        const err2 = await db.addEvent(nostrEvent);
+        if (err2 instanceof Error) {
             console.error(err);
         }
+    } else {
+        const events = await sendDMandImages({
+            sender: ctx,
+            receiverPublicKey: event.pubkey,
+            message: event.text,
+            files: event.files,
+            lamport_timestamp: lamport.now(),
+            pool,
+            tags: [],
+        });
+        if (events instanceof Error) {
+            return events;
+        }
+        for (const eventSent of events) {
+            const err = await db.addEvent(eventSent);
+            if (err instanceof Error) {
+                console.error(err);
+            }
+        }
     }
+    // clear the editor model
     const editor = dmEditors.get(event.id);
     if (editor) {
         editor.files = [];
