@@ -238,7 +238,7 @@ export async function* UI_Interaction_Update(args: {
                     pubkey: event.pubkey,
                 });
             }
-            console.log(editor)
+            console.log(editor);
         } //
         //
         // MyProfile
@@ -495,21 +495,21 @@ export function getConversationMessages(args: {
 export function updateConversation(
     model: Model,
     targetPublicKey: PublicKey,
-    isGroupChat: boolean
+    isGroupChat: boolean,
 ) {
     model.dm.hasNewMessages.delete(targetPublicKey.hex);
-    let editor = model.editors.get(targetPublicKey.hex)
+    let editor = model.editors.get(targetPublicKey.hex);
     // If this conversation is new
-    if(editor == undefined) {
+    if (editor == undefined) {
         editor = {
             id: targetPublicKey.hex,
             files: [],
             text: "",
 
             pubkey: targetPublicKey,
-        }
-        if(isGroupChat) {
-            model.gmEditors.set(targetPublicKey.hex, editor)
+        };
+        if (isGroupChat) {
+            model.gmEditors.set(targetPublicKey.hex, editor);
         } else {
             model.editors.set(targetPublicKey.hex, editor);
         }
@@ -579,7 +579,7 @@ export async function* Database_Update(
                     updateConversation(
                         model,
                         model.dm.currentEditor.pubkey,
-                        false
+                        false,
                     );
                 }
 
