@@ -241,7 +241,7 @@ Deno.test("message group", () => {
                 content: "",
                 created_at: 1,
                 id: "",
-                kind: 1,
+                kind: NostrKind.DIRECT_MESSAGE,
                 pubkey: "",
                 sig: "",
                 tags: [],
@@ -251,6 +251,7 @@ Deno.test("message group", () => {
                     p: [],
                 },
                 publicKey: PrivateKey.Generate().toPublicKey(),
+                decryptedContent: ""
             },
             "content": "sendDirectMessage",
             "type": "text",
