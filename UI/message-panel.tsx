@@ -448,23 +448,6 @@ function MessageActions(
         >
             <button
                 class={tw`w-6 h-6 flex items-center justify-center`}
-                onClick={() => {
-                    emit({
-                        type: "ViewThread",
-                        root: event,
-                    });
-                }}
-            >
-                <ReplyIcon
-                    class={tw`w-4 h-4 scale-150`}
-                    style={{
-                        fill: PrimaryTextColor,
-                    }}
-                />
-            </button>
-
-            <button
-                class={tw`w-6 h-6 flex items-center justify-center`}
                 onClick={async () => {
                     emit({
                         type: "ViewEventDetail",
