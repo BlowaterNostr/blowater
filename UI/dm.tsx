@@ -31,12 +31,11 @@ type DirectMessageContainerProps = {
     bus: EventBus<UI_Interaction_Event>;
     profileGetter: ProfileGetter;
     dmGetter: DirectMessageGetter;
-    conversationLists: ConversationLists;
+    conversationLists: cl.ConversationListRetriever;
     profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
     pinListGetter: cl.PinListGetter;
     groupChatController: GroupChatController;
-    editorModel: EditorModel | undefined;
 } & DM_Model;
 
 export type MessageThread = {
@@ -51,20 +50,19 @@ export type StartInvite = {
 
 export function DirectMessageContainer(props: DirectMessageContainerProps) {
     const t = Date.now();
+    console.log("DirectMessageContainer", props);
 
     let messagePanel: VNode | undefined;
-    if (props.currentSelectedContact && props.editorModel) {
+    if (props.currentEditor && props.currentEditor) {
         const convoMsgs = getConversationMessages({
-            targetPubkey: props.currentSelectedContact.hex,
-            allUserInfo: props.conversationLists.convoSummaries,
+            targetPubkey: props.currentEditor.pubkey.hex,
             dmGetter: props.dmGetter,
         });
         console.log("DirectMessageContainer:convoMsgs", Date.now() - t);
 
         const focusedContent = getFocusedContent(
-            props.focusedContent.get(props.currentSelectedContact.hex),
-            props.conversationLists.convoSummaries,
-            convoMsgs,
+            props.focusedContent.get(props.currentEditor.pubkey.hex),
+            props.profileGetter,
         );
         messagePanel = new MessagePanel({
             myPublicKey: props.ctx.publicKey,
@@ -76,12 +74,12 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
             eventSyncer: props.eventSyncer,
             isGroupChat: props.isGroupMessage,
             profileGetter: props.profileGetter,
-            editorModel: props.editorModel,
+            editorModel: props.currentEditor,
         }).render();
     }
 
-    const canEditGroupProfile = props.currentSelectedContact && props.isGroupMessage &&
-        props.groupChatController.getGroupAdminCtx(props.currentSelectedContact);
+    const canEditGroupProfile = props.currentEditor && props.isGroupMessage &&
+        props.groupChatController.getGroupAdminCtx(props.currentEditor.pubkey);
     const actions = canEditGroupProfile
         ? (
             <ButtonGroup>
@@ -121,7 +119,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
         <div
             class={tw`h-full w-full flex bg-[#36393F] overflow-hidden`}
         >
-            <div class={tw`${props.currentSelectedContact ? "mobile:hidden" : "mobile:w-full"}`}>
+            <div class={tw`${props.currentEditor ? "mobile:hidden" : "mobile:w-full"}`}>
                 <cl.ConversationList
                     eventBus={props.bus}
                     emit={props.bus.emit}
@@ -129,7 +127,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                     {...props}
                 />
             </div>
-            {props.currentSelectedContact
+            {props.currentEditor
                 ? (
                     <div class={tw`flex-1 overflow-hidden flex-col flex`}>
                         <div
@@ -152,9 +150,9 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                                     />
                                 </button>
                                 <span class={tw`text-[#F3F4EA] text-[1.2rem] whitespace-nowrap truncate`}>
-                                    {props.profileGetter.getProfilesByPublicKey(props.currentSelectedContact)
+                                    {props.profileGetter.getProfilesByPublicKey(props.currentEditor.pubkey)
                                         ?.profile.name ||
-                                        props.currentSelectedContact.bech32()}
+                                        props.currentEditor.pubkey.bech32()}
                                 </span>
                             </div>
                             {props.isGroupMessage ? actions : undefined}

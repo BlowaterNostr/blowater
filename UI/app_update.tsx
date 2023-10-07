@@ -167,7 +167,7 @@ export async function* UI_Interaction_Update(args: {
             model.rightPanelModel = {
                 show: false,
             };
-            updateConversation(app.model, event.pubkey);
+            updateConversation(app.model, event.pubkey, event.isGroupChat);
 
             if (!model.dm.focusedContent.get(event.pubkey.hex)) {
                 model.dm.focusedContent.set(event.pubkey.hex, event.pubkey);
@@ -175,7 +175,7 @@ export async function* UI_Interaction_Update(args: {
             app.popOverInputChan.put({ children: undefined });
             app.model.dm.isGroupMessage = event.isGroupChat;
         } else if (event.type == "BackToContactList") {
-            model.dm.currentSelectedContact = undefined;
+            model.dm.currentEditor = undefined;
         } else if (event.type == "PinConversation") {
             app.otherConfig.addPin(event.pubkey);
             let err = await app.otherConfig.saveToLocalStorage(app.ctx);
@@ -238,6 +238,7 @@ export async function* UI_Interaction_Update(args: {
                     pubkey: event.pubkey,
                 });
             }
+            console.log(editor)
         } //
         //
         // MyProfile
@@ -274,9 +275,9 @@ export async function* UI_Interaction_Update(args: {
             model.rightPanelModel.show = event.show;
         } else if (event.type == "ViewThread") {
             if (model.navigationModel.activeNav == "DM") {
-                if (model.dm.currentSelectedContact) {
+                if (model.dm.currentEditor) {
                     model.dm.focusedContent.set(
-                        model.dm.currentSelectedContact.hex,
+                        model.dm.currentEditor.pubkey.hex,
                         event.root,
                     );
                 }
@@ -286,9 +287,9 @@ export async function* UI_Interaction_Update(args: {
             if (
                 model.navigationModel.activeNav == "DM"
             ) {
-                if (model.dm.currentSelectedContact) {
+                if (model.dm.currentEditor) {
                     model.dm.focusedContent.set(
-                        model.dm.currentSelectedContact.hex,
+                        model.dm.currentEditor.pubkey.hex,
                         event.pubkey,
                     );
                 }
@@ -315,10 +316,10 @@ export async function* UI_Interaction_Update(args: {
                 if (root.pubkey != myPubkey && !getTags(root).p.includes(myPubkey)) {
                     continue; // if no conversation
                 }
-                updateConversation(model, PublicKey.FromHex(root.pubkey) as PublicKey);
-                if (model.dm.currentSelectedContact) {
+                updateConversation(model, PublicKey.FromHex(root.pubkey) as PublicKey, false);
+                if (model.dm.currentEditor) {
                     model.dm.focusedContent.set(
-                        model.dm.currentSelectedContact.hex,
+                        model.dm.currentEditor.pubkey.hex,
                         root,
                     );
                 }
@@ -356,15 +357,15 @@ export async function* UI_Interaction_Update(args: {
             app.popOverInputChan.put({ children: undefined });
             app.profileSyncer.add(groupCreation.groupKey.publicKey.hex);
         } else if (event.type == "StartEditGroupChatProfile") {
-            app.popOverInputChan.put({
-                children: (
-                    <EditGroup
-                        emit={eventBus.emit}
-                        publicKey={event.publicKey}
-                        conversationLists={app.conversationLists}
-                    />
-                ),
-            });
+            // app.popOverInputChan.put({
+            //     children: (
+            //         <EditGroup
+            //             emit={eventBus.emit}
+            //             publicKey={event.publicKey}
+            //             conversationLists={app.conversationLists}
+            //         />
+            //     ),
+            // });
         } else if (event.type == "EditGroupChatProfile") {
             const profileData = event.profileData;
             const publicKey = event.publicKey;
@@ -458,10 +459,9 @@ export type DirectMessageGetter = {
 
 export function getConversationMessages(args: {
     targetPubkey: string;
-    allUserInfo: Map<string, ConversationSummary>;
     dmGetter: DirectMessageGetter;
 }): MessageThread[] {
-    const { targetPubkey, allUserInfo } = args;
+    const { targetPubkey } = args;
     let t = Date.now();
 
     let events = args.dmGetter.getDirectMessages(targetPubkey);
@@ -473,7 +473,7 @@ export function getConversationMessages(args: {
     console.log("getConversationMessages:compute threads", Date.now() - t);
     const msgs: MessageThread[] = [];
     for (const thread of threads) {
-        const messages = convertEventsToChatMessages(thread, allUserInfo);
+        const messages = convertEventsToChatMessages(thread);
         if (messages.length > 0) {
             messages.sort((m1, m2) => {
                 if (m1.lamport && m2.lamport && m1.lamport != m2.lamport) {
@@ -495,19 +495,26 @@ export function getConversationMessages(args: {
 export function updateConversation(
     model: Model,
     targetPublicKey: PublicKey,
+    isGroupChat: boolean
 ) {
     model.dm.hasNewMessages.delete(targetPublicKey.hex);
+    let editor = model.editors.get(targetPublicKey.hex)
     // If this conversation is new
-    if (!model.editors.has(targetPublicKey.hex)) {
-        model.editors.set(targetPublicKey.hex, {
+    if(editor == undefined) {
+        editor = {
             id: targetPublicKey.hex,
             files: [],
             text: "",
 
             pubkey: targetPublicKey,
-        });
+        }
+        if(isGroupChat) {
+            model.gmEditors.set(targetPublicKey.hex, editor)
+        } else {
+            model.editors.set(targetPublicKey.hex, editor);
+        }
     }
-    model.dm.currentSelectedContact = targetPublicKey;
+    model.dm.currentEditor = editor;
 }
 
 //////////////
@@ -568,10 +575,11 @@ export async function* Database_Update(
                     }
                 }
 
-                if (model.dm.currentSelectedContact) {
+                if (model.dm.currentEditor) {
                     updateConversation(
                         model,
-                        model.dm.currentSelectedContact,
+                        model.dm.currentEditor.pubkey,
+                        false
                     );
                 }
 
@@ -591,7 +599,7 @@ export async function* Database_Update(
                         continue;
                     }
                     if (e.pubkey != ctx.publicKey.hex) {
-                        if (model.dm.currentSelectedContact?.hex != e.pubkey) {
+                        if (model.dm.currentEditor?.pubkey.hex != e.pubkey) {
                             model.dm.hasNewMessages.add(e.pubkey);
                         }
                     }

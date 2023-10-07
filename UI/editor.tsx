@@ -266,15 +266,3 @@ export class Editor extends Component<EditorProps> {
         );
     }
 }
-
-export function getCurrentEditorModel(model: Model) {
-    let editorMap = model.editors;
-    if (model.dm.isGroupMessage) {
-        editorMap = model.gmEditors;
-    }
-    if (model.dm.currentSelectedContact == undefined) {
-        return undefined;
-    }
-    const editorModel = editorMap.get(model.dm.currentSelectedContact.hex);
-    return editorModel;
-}
