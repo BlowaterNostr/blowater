@@ -253,6 +253,7 @@ Deno.test("message group", () => {
                 publicKey: PrivateKey.Generate().toPublicKey(),
                 decryptedContent: "",
             },
+            author: PrivateKey.Generate().toPublicKey(),
             "content": "sendDirectMessage",
             "type": "text",
             "created_at": new Date("2023-03-11T09:50:47.000Z"),
