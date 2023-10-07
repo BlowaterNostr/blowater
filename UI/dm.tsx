@@ -58,6 +58,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
             targetPubkey: props.currentEditor.pubkey.hex,
             isGroupChat: props.isGroupMessage,
             dmGetter: props.dmGetter,
+            gmGetter: props.gmGetter
         });
         console.log("DirectMessageContainer:convoMsgs", Date.now() - t);
 

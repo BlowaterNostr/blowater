@@ -1,6 +1,7 @@
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { DirectedMessage_Event } from "../nostr.ts";
 import { Nevent, NostrAddress, NostrProfile, NoteID } from "../lib/nostr-ts/nip19.ts";
+import { NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 
 export function* parseContent(content: string) {
     // URLs
@@ -164,7 +165,8 @@ export type ContentItem = {
 
 // Think of ChatMessage as an materialized view of NostrEvent
 export interface ChatMessage {
-    readonly event: DirectedMessage_Event;
+    readonly event: DirectedMessage_Event | NostrEvent<NostrKind.Group_Message>;
+    readonly author: PublicKey
     readonly type: "image" | "text";
     readonly created_at: Date;
     readonly lamport: number | undefined;

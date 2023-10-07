@@ -45,7 +45,7 @@ export type DirectMessagePanelUpdate =
     | ViewNoteThread
     | {
         type: "ViewEventDetail";
-        event: Text_Note_Event | DirectedMessage_Event;
+        message: ChatMessage
     };
 
 export type ViewNoteThread = {
@@ -308,15 +308,15 @@ function MessageBoxGroup(props: {
         <li
             class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 group relative`}
         >
-            {MessageActions(first_group.event, props.emit)}
+            {MessageActions(first_group, props.emit)}
             <Avatar
                 class={tw`h-8 w-8 mt-[0.45rem] mr-2`}
-                picture={props.profileGetter.getProfilesByPublicKey(first_group.event.publicKey)?.profile
+                picture={props.profileGetter.getProfilesByPublicKey(first_group.author)?.profile
                     .picture}
                 onClick={() => {
                     props.emit({
                         type: "ViewUserDetail",
-                        pubkey: first_group.event.publicKey,
+                        pubkey: first_group.author,
                     });
                 }}
             />
@@ -328,8 +328,8 @@ function MessageBoxGroup(props: {
                 }}
             >
                 {NameAndTime(
-                    first_group.event.publicKey,
-                    props.profileGetter.getProfilesByPublicKey(first_group.event.publicKey)
+                    first_group.author,
+                    props.profileGetter.getProfilesByPublicKey(first_group.author)
                         ?.profile,
                     props.myPublicKey,
                     first_group.created_at,
@@ -355,7 +355,7 @@ function MessageBoxGroup(props: {
             <li
                 class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 group relative`}
             >
-                {MessageActions(msg.event, props.emit)}
+                {MessageActions(msg, props.emit)}
                 {Time(msg.created_at)}
                 <div
                     class={tw`flex-1`}
@@ -390,7 +390,7 @@ function MessageBoxGroup(props: {
 }
 
 function MessageActions(
-    event: Text_Note_Event | DirectedMessage_Event,
+    message: ChatMessage,
     emit: emitFunc<ViewThread | DirectMessagePanelUpdate>,
 ) {
     return (
@@ -405,7 +405,7 @@ function MessageActions(
                 onClick={async () => {
                     emit({
                         type: "ViewEventDetail",
-                        event: event,
+                        message: message,
                     });
                 }}
             >
@@ -466,6 +466,10 @@ export function ParseMessageContent(
 ) {
     if (message.type == "image") {
         return <img src={message.content} />;
+    }
+
+    if(message.event.kind == NostrKind.Group_Message) {
+        return <p>{message.content}</p>
     }
 
     const vnode = [];

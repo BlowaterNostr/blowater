@@ -401,11 +401,11 @@ export async function* UI_Interaction_Update(args: {
             pool.sendEvent(e);
             app.relayConfig.saveToLocalStorage(app.ctx);
         } else if (event.type == "ViewEventDetail") {
-            const nostrEvent = event.event;
+            const nostrEvent = event.message.event;
             const eventID = nostrEvent.id;
             const eventIDBech32 = NoteID.FromString(nostrEvent.id).bech32();
-            const authorPubkey = nostrEvent.publicKey.hex;
-            const authorPubkeyBech32 = nostrEvent.publicKey.bech32();
+            const authorPubkey = event.message.author
+
             const content = nostrEvent.content;
             const originalEventRaw = JSON.stringify(
                 {
@@ -432,8 +432,8 @@ export async function* UI_Interaction_Update(args: {
                 {
                     title: "Author",
                     fields: [
-                        authorPubkey,
-                        authorPubkeyBech32,
+                        authorPubkey.hex,
+                        authorPubkey.bech32(),
                     ],
                 },
                 {
@@ -461,23 +461,25 @@ export type DirectMessageGetter = {
 };
 
 export type GroupMessageGetter = {
-    getGroupMessages(publicKey: string): GroupMessage[];
+    getGroupMessages(publicKey: string): ChatMessage[];
 };
 
 export function getConversationMessages(args: {
     targetPubkey: string;
     isGroupChat: boolean;
     dmGetter: DirectMessageGetter;
+    gmGetter: GroupMessageGetter
 }): ChatMessage[] {
     const { targetPubkey } = args;
-    let t = Date.now();
+    if(args.isGroupChat) {
+        return args.gmGetter.getGroupMessages(args.targetPubkey)
+    }
 
     let events = args.dmGetter.getDirectMessages(targetPubkey);
     if (events == undefined) {
         events = [];
     }
 
-    console.log("getConversationMessages:compute threads", Date.now() - t);
 
     const messages = convertEventsToChatMessages(events);
     if (messages.length > 0) {
@@ -666,7 +668,9 @@ export async function handle_SendMessage(
                 text: event.text,
             }),
             kind: NostrKind.Group_Message,
-            tags: [],
+            tags: [
+                ["p",groupCtx.publicKey.hex]
+            ],
             encryptKey: groupCtx.publicKey,
         });
         if (nostrEvent instanceof Error) {

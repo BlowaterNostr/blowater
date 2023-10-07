@@ -6,6 +6,7 @@ import { PrivateKey, PublicKey } from "./lib/nostr-ts/key.ts";
 import { InMemoryAccountContext, NostrAccountContext, NostrEvent, NostrKind } from "./lib/nostr-ts/nostr.ts";
 import { GroupMessageGetter } from "./UI/app_update.tsx";
 import { getTags } from "./nostr.ts";
+import { ChatMessage } from "./UI/message.ts";
 
 export type GroupMessage = {
     event: NostrEvent<NostrKind.Group_Message>;
@@ -18,14 +19,16 @@ export type GroupChatCreation = {
 
 export class GroupChatController implements GroupMessageGetter {
     created_groups = new Map<string, GroupChatCreation>();
+    messages = new Map<string, ChatMessage[]>
 
     constructor(
         private readonly ctx: NostrAccountContext,
         private readonly conversationLists: ConversationLists,
     ) {}
 
-    getGroupMessages(publicKey: string): GroupMessage[] {
-        return []; // todo
+    getGroupMessages(publicKey: string): ChatMessage[] {
+        const msgs = this.messages.get(publicKey)
+        return msgs? msgs : []
     }
 
     async encodeCreationToNostrEvent(groupCreation: GroupChatCreation) {
@@ -52,15 +55,57 @@ export class GroupChatController implements GroupMessageGetter {
     }
 
     async addEvent(event: NostrEvent<NostrKind.Group_Message>) {
-        let decryptionPubkey = event.pubkey;
-        if (getTags(event).p.length > 0 && getTags(event).p[0]) {
-            decryptionPubkey = getTags(event).p[0];
+        if(isCreation(event)) {
+            return await this.handleCreation(event)
+        } else if(isMessage(event)) {
+            return await this.handleMessage(event)
+        } else {
+            console.log(GroupChatController.name, "ignore", event)
         }
-        const decryptedContent = await this.ctx.decrypt(decryptionPubkey, event.content);
+    }
+
+    async handleMessage(event: NostrEvent<NostrKind.Group_Message>) {
+        const groupAddr = getTags(event).p[0]
+        const decryptedContent = await this.ctx.decrypt(groupAddr, event.content);
         if (decryptedContent instanceof Error) {
             return decryptedContent;
         }
-        console.log(decryptedContent);
+
+        const json = parseJSON<unknown>(decryptedContent);
+        if (json instanceof Error) {
+            return json;
+        }
+
+        const author = PublicKey.FromHex(event.pubkey);
+        if(author instanceof Error) {
+            return author
+        }
+        const message = z.object({
+            type: z.string(),
+            text: z.string(),
+        }).parse(json);
+        const chatMessage: ChatMessage = {
+            event: event,
+            author: author,
+            content: message.text,
+            created_at: new Date(event.created_at * 1000),
+            lamport: getTags(event).lamport_timestamp,
+            type: "text"
+        }
+
+        const messages = this.messages.get(groupAddr)
+        if(messages) {
+            messages.push(chatMessage)
+        } else {
+            this.messages.set(groupAddr, [chatMessage])
+        }
+    }
+
+    async handleCreation(event: NostrEvent<NostrKind.Group_Message>) {
+        const decryptedContent = await this.ctx.decrypt(event.pubkey, event.content);
+        if (decryptedContent instanceof Error) {
+            return decryptedContent;
+        }
 
         const json = parseJSON<unknown>(decryptedContent);
         if (json instanceof Error) {
@@ -119,3 +164,12 @@ export class GroupChatController implements GroupMessageGetter {
         return creation.groupKey;
     }
 }
+
+function isCreation(event: NostrEvent<NostrKind.Group_Message>) {
+    return event.tags.length == 0
+}
+
+function isMessage(event: NostrEvent<NostrKind.Group_Message>) {
+    return event.tags.length != 0
+}
+
