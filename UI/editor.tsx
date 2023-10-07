@@ -5,7 +5,6 @@ import { CenterClass, LinearGradientsClass, NoOutlineClass } from "./components/
 import { emitFunc } from "../event-bus.ts";
 
 import { PublicKey } from "../lib/nostr-ts/key.ts";
-import { Tag } from "../nostr.ts";
 import { ImageIcon } from "./icons2/image-icon.tsx";
 import { DividerBackgroundColor, PrimaryTextColor } from "./style/colors.ts";
 import { SendIcon } from "./icons2/send-icon.tsx";
@@ -91,7 +90,7 @@ export class Editor extends Component<EditorProps> {
                 files: [], // todo
                 text: props.text,
                 isGroupChat: props.isGroupChat,
-                pubkey: props.targetNpub
+                pubkey: props.targetNpub,
             });
             textareaElement.current.setAttribute(
                 "rows",
