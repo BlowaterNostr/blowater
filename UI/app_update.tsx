@@ -357,15 +357,15 @@ export async function* UI_Interaction_Update(args: {
             app.popOverInputChan.put({ children: undefined });
             app.profileSyncer.add(groupCreation.groupKey.publicKey.hex);
         } else if (event.type == "StartEditGroupChatProfile") {
-            // app.popOverInputChan.put({
-            //     children: (
-            //         <EditGroup
-            //             emit={eventBus.emit}
-            //             publicKey={event.publicKey}
-            //             conversationLists={app.conversationLists}
-            //         />
-            //     ),
-            // });
+            app.popOverInputChan.put({
+                children: (
+                    <EditGroup
+                        emit={eventBus.emit}
+                        publicKey={event.publicKey}
+                        conversationLists={app.conversationLists}
+                    />
+                ),
+            });
         } else if (event.type == "EditGroupChatProfile") {
             const profileData = event.profileData;
             const publicKey = event.publicKey;
