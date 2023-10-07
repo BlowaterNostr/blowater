@@ -35,7 +35,7 @@ import {
     Text_Note_Event,
     UnpinConversation,
 } from "../nostr.ts";
-import { MessageThread } from "./dm.tsx";
+import { MessageThread, StartInvite } from "./dm.tsx";
 import { DexieDatabase } from "./dexie-db.ts";
 import { RelayConfigChange } from "./setting.tsx";
 import { PopOverInputChannel } from "./components/popover.tsx";
@@ -65,7 +65,8 @@ export type UI_Interaction_Event =
     | CreateGroupChat
     | StartCreateGroupChat
     | EditGroupChatProfile
-    | StartEditGroupChatProfile;
+    | StartEditGroupChatProfile
+    | StartInvite;
 
 type BackToContactList = {
     type: "BackToContactList";
@@ -384,6 +385,10 @@ export async function* UI_Interaction_Update(args: {
                 continue;
             }
             app.popOverInputChan.put({ children: undefined });
+        } else if (event.type == "StartInvite") {
+            app.popOverInputChan.put({
+                children: <div></div>
+            });
         } else if (event.type == "RelayConfigChange") {
             const e = await app.relayConfig.toNostrEvent(app.ctx);
             if (e instanceof Error) {

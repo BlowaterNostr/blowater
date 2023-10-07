@@ -21,6 +21,8 @@ import { SettingIcon } from "./icons2/setting-icon.tsx";
 import { GroupChatController } from "../group-chat.ts";
 import { ProfileGetter } from "./search.tsx";
 import { EditorModel } from "./editor.tsx";
+import { InviteIcon } from "./icons2/invite-icon.tsx";
+import { PublicKey } from "../lib/nostr-ts/key.ts";
 
 type DirectMessageContainerProps = {
     rightPanelModel: RightPanelModel;
@@ -41,6 +43,11 @@ export type MessageThread = {
     root: ChatMessage;
     replies: ChatMessage[];
 };
+
+export type StartInvite = {
+    type: "StartInvite";
+    publicKey: PublicKey;
+}
 
 export function DirectMessageContainer(props: DirectMessageContainerProps) {
     const t = Date.now();
@@ -72,9 +79,44 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
             editorModel: props.editorModel,
         }).render();
     }
+
     const canEditGroupProfile = props.currentSelectedContact && props.isGroupMessage &&
         props.groupChatController.getGroupAdminCtx(props.currentSelectedContact);
-
+    const actions = canEditGroupProfile
+        ? (   
+           <ButtonGroup>
+                <button
+                    class={tw`w-8 h-8 ${CenterClass}`}
+                    onClick={() => {
+                        props.bus.emit({
+                            type: "StartInvite",
+                            // @ts-ignore
+                            publicKey: props.currentConversation
+                        });
+                    }}
+                >
+                    <InviteIcon
+                        class={tw`w-6 h-6 text-[${PrimaryTextColor}] fill-current`}
+                    />
+                </button>
+                <button
+                    class={tw`w-8 h-8 ${CenterClass}`}
+                    onClick={() => {
+                        props.bus.emit({
+                            type: "StartEditGroupChatProfile",
+                            //@ts-ignore
+                            publicKey: props.currentConversation,
+                        });
+                    }}
+                >
+                    <SettingIcon
+                        class={tw`w-6 h-6 text-[${PrimaryTextColor}] stroke-current`}
+                        style={{ fill: "none" }}
+                    />
+                </button>
+           </ButtonGroup>
+        )
+        : undefined;
     const vDom = (
         <div
             class={tw`h-full w-full flex bg-[#36393F] overflow-hidden`}
@@ -115,27 +157,11 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                                         props.currentSelectedContact.bech32()}
                                 </span>
                             </div>
-                            {canEditGroupProfile
-                                ? (
-                                    <ButtonGroup>
-                                        <button
-                                            class={tw`w-8 h-8 ${CenterClass}`}
-                                            onClick={() => {
-                                                props.bus.emit({
-                                                    type: "StartEditGroupChatProfile",
-                                                    // @ts-ignore
-                                                    publicKey: props.currentSelectedContact,
-                                                });
-                                            }}
-                                        >
-                                            <SettingIcon
-                                                class={tw`w-6 h-6 text-[${PrimaryTextColor}] stroke-current`}
-                                                style={{ fill: "none" }}
-                                            />
-                                        </button>
-                                    </ButtonGroup>
-                                )
-                                : undefined}
+                            {
+                                props.isGroupMessage
+                                ? actions
+                                : undefined
+                            }
                         </div>
                         <div class={tw`flex-1 overflow-x-auto`}>
                             {messagePanel}
