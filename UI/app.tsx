@@ -29,7 +29,6 @@ import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/mas
 import { GroupChatController, GroupChatSyncer } from "../group-chat.ts";
 import { OtherConfig } from "./config-other.ts";
 import { ProfileGetter } from "./search.tsx";
-import { ZodError } from "https://esm.sh/zod@3.22.4";
 import { fromEvents } from "../time.ts";
 
 export async function Start(database: DexieDatabase) {

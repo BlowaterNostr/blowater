@@ -259,6 +259,8 @@ export class GroupChatController implements GroupMessageGetter, GroupChatListGet
                     cipherKey: InMemoryAccountContext.New(cipherKey),
                 };
                 this.created_groups.set(groupKey.toPublicKey().bech32(), groupChatCreation);
+                this.groupSyncer.add(groupKey.toPublicKey().hex)
+                this.profileSyncer.add(groupKey.toPublicKey().hex)
 
                 this.conversationLists.addGroupCreation(groupChatCreation);
             } else if (content.type == "gm_message") {
