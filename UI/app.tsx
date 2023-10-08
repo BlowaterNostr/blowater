@@ -123,6 +123,14 @@ export class App {
         this.conversationLists.addEvents(database.events);
 
         this.groupChatController = new GroupChatController(ctx, this.conversationLists);
+        for (const e of database.events) {
+            if (e.kind == NostrKind.Group_Message) {
+                this.groupChatController.addEvent({
+                    ...e,
+                    kind: e.kind,
+                });
+            }
+        }
     }
 
     initApp = async () => {
@@ -149,7 +157,6 @@ export class App {
                 if (msg.res.type == "EOSE") {
                     continue;
                 }
-                console.log(msg.res);
                 RelayConfig.FromNostrEvent(msg.res.event, this.ctx);
                 const _relayConfig = await RelayConfig.FromNostrEvent(
                     msg.res.event,

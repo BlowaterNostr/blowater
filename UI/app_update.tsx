@@ -589,8 +589,10 @@ export async function* Database_Update(
                     }
                 }
             } else if (e.kind == NostrKind.Group_Message) {
-                // @ts-ignore
-                const err = await groupController.addEvent(e);
+                const err = await groupController.addEvent({
+                    ...e,
+                    kind: e.kind,
+                });
                 if (err instanceof Error) {
                     console.error(err);
                 }
