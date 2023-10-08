@@ -319,29 +319,5 @@ async function eventType(
     if (receiver == ctx.publicKey.hex) {
         return "gm_invitation"; // received by me
     }
-    return "gm_message"; // note: chould be invitation I sent to others as well, change later
-    // if gm_message
-
-    // if gm_invitation
-
-    // const decryptedContent = await ctx.decrypt(event.pubkey, event.content);
-    // if (decryptedContent instanceof Error) {
-    //     return decryptedContent;
-    // }
-
-    // const json = parseJSON<unknown>(decryptedContent);
-    // if (json instanceof Error) {
-    //     return json;
-    // }
-    // let message: {
-    //     type: string;
-    // }
-    // try {
-    //     message = z.object({
-    //         type: z.string()
-    //     }).parse(json);
-    // } catch (e) {
-    //    return e as Error;
-    // }
-    // return message.type as GM_Types
+    return "gm_message";
 }
