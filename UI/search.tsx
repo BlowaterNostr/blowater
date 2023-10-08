@@ -23,6 +23,12 @@ type SearchResult = {
     id: string;
 };
 
+export type ProfileController = ProfileSetter & ProfileGetter;
+
+export interface ProfileSetter {
+    setProfile(profileEvent: Profile_Nostr_Event): void;
+}
+
 export interface ProfileGetter {
     getProfilesByText(input: string): Profile_Nostr_Event[];
     getProfilesByPublicKey(pubkey: PublicKey): Profile_Nostr_Event | undefined;
