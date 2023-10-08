@@ -11,15 +11,15 @@ import { convertEventsToChatMessages } from "./dm.ts";
 
 import { sendDMandImages } from "../features/dm.ts";
 import { notify } from "./notification.ts";
-import { emitFunc, EventBus } from "../event-bus.ts";
+import { EventBus } from "../event-bus.ts";
 import { ContactUpdate } from "./conversation-list.tsx";
 import { MyProfileUpdate } from "./edit-profile.tsx";
 import { EditorEvent, EditorModel, new_DM_EditorModel, SendMessage } from "./editor.tsx";
 import { DirectMessagePanelUpdate } from "./message-panel.tsx";
 import { NavigationUpdate } from "./nav.tsx";
 import { Model } from "./app_model.ts";
-import { SearchUpdate, SelectConversation } from "./search_model.ts";
-import { fromEvents, LamportTime } from "../time.ts";
+import { SearchUpdate } from "./search_model.ts";
+import { LamportTime } from "../time.ts";
 import { SignInEvent, signInWithExtension, signInWithPrivateKey } from "./signIn.tsx";
 import {
     DirectedMessage_Event,
@@ -39,11 +39,11 @@ import { EventDetail, EventDetailItem } from "./event-detail.tsx";
 import { CreateGroup, CreateGroupChat, StartCreateGroupChat } from "./create-group.tsx";
 import { prepareEncryptedNostrEvent, prepareNormalNostrEvent } from "../lib/nostr-ts/event.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
-import { InMemoryAccountContext, NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
+import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { OtherConfig } from "./config-other.ts";
 import { EditGroup, EditGroupChatProfile, StartEditGroupChatProfile } from "./edit-group.tsx";
-import { GroupChatController, GroupMessage } from "../group-chat.ts";
+import { GroupChat_Syncer_Controller } from "../group-chat.ts";
 import { ChatMessage } from "./message.ts";
 
 export type UI_Interaction_Event =
@@ -521,7 +521,7 @@ export async function* Database_Update(
     profileSyncer: ProfileSyncer,
     lamport: LamportTime,
     convoLists: ConversationLists,
-    groupController: GroupChatController,
+    groupController: GroupChat_Syncer_Controller,
 ) {
     const changes = database.subscribe();
     while (true) {
@@ -656,7 +656,7 @@ export async function handle_SendMessage(
     dmEditors: Map<string, EditorModel>,
     gmEditors: Map<string, EditorModel>,
     db: Database_Contextual_View,
-    groupControl: GroupChatController,
+    groupControl: GroupChat_Syncer_Controller,
 ) {
     if (event.isGroupChat) {
         const groupCtx = groupControl.getGroupChatCtx(event.pubkey);

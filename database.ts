@@ -22,7 +22,7 @@ import { PublicKey } from "./lib/nostr-ts/key.ts";
 import { NoteID } from "./lib/nostr-ts/nip19.ts";
 import { DirectMessageGetter } from "./UI/app_update.tsx";
 import { ProfileController, ProfileGetter } from "./UI/search.tsx";
-import { GroupChatController } from "./group-chat.ts";
+import { GroupChat_Syncer_Controller } from "./group-chat.ts";
 
 export const NotFound = Symbol("Not Found");
 const buffer_size = 2000;

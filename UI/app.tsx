@@ -26,7 +26,7 @@ import { About } from "./about.tsx";
 import { ProfileSyncer } from "../features/profile.ts";
 import { Popover, PopOverInputChannel } from "./components/popover.tsx";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { GroupChatController } from "../group-chat.ts";
+import { GroupChat_Syncer_Controller } from "../group-chat.ts";
 import { OtherConfig } from "./config-other.ts";
 import { ProfileGetter } from "./search.tsx";
 import { ZodError } from "https://esm.sh/zod@3.22.4";
@@ -111,7 +111,7 @@ export class App {
         public readonly eventSyncer: EventSyncer,
         public readonly conversationLists: ConversationLists,
         public readonly relayConfig: RelayConfig,
-        public readonly groupChatController: GroupChatController,
+        public readonly groupChatController: GroupChat_Syncer_Controller,
         public readonly lamport: time.LamportTime,
     ) {}
 
@@ -138,7 +138,7 @@ export class App {
         const conversationLists = new ConversationLists(args.ctx, profileSyncer);
         conversationLists.addEvents(args.database.events);
 
-        const groupChatController = new GroupChatController(args.ctx, conversationLists);
+        const groupChatController = new GroupChat_Syncer_Controller(args.ctx, conversationLists);
         for (const e of args.database.events) {
             if (e.kind == NostrKind.Group_Message) {
                 const err = await groupChatController.addEvent({

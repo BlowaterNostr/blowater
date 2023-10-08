@@ -16,7 +16,7 @@ import { relays } from "../lib/nostr-ts/relay-list.test.ts";
 import { DirectMessageContainer } from "./dm.tsx";
 import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { NewIndexedDB } from "./dexie-db.ts";
-import { GroupChatController } from "../group-chat.ts";
+import { GroupChat_Syncer_Controller } from "../group-chat.ts";
 import { OtherConfig } from "./config-other.ts";
 
 const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
@@ -81,7 +81,7 @@ const view = () => {
             ctx={ctx}
             pool={pool}
             dmGetter={database}
-            groupChatController={new GroupChatController(ctx, allUserInfo)}
+            groupChatController={new GroupChat_Syncer_Controller(ctx, allUserInfo)}
             isGroupMessage={false}
             pinListGetter={new OtherConfig()}
             profileGetter={database}

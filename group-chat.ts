@@ -25,7 +25,7 @@ export type GroupChatInvitation = {
     groupAddr: PublicKey;
 };
 
-export class GroupChatController implements GroupMessageGetter, GroupChatListGetter {
+export class GroupChat_Syncer_Controller implements GroupMessageGetter, GroupChatListGetter {
     created_groups = new Map<string, GroupChatCreation>();
     invitations = new Map<string, GroupChatInvitation>();
     messages = new Map<string, ChatMessage[]>();
@@ -95,7 +95,7 @@ export class GroupChatController implements GroupMessageGetter, GroupChatListGet
         } else if (type == "gm_invitation") { // I received
             return await this.handleInvitation(event);
         } else {
-            console.log(GroupChatController.name, "ignore", event, "type", type);
+            console.log(GroupChat_Syncer_Controller.name, "ignore", event, "type", type);
         }
     }
 
