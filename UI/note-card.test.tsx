@@ -7,7 +7,7 @@ import { InMemoryAccountContext, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { parseJSON } from "../features/profile.ts";
 import { testEventBus, testEventsAdapter } from "./_setup.test.ts";
 import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
-import { originalEventToEncryptedEvent, originalEventToUnencryptedEvent } from "../database.ts";
+import { originalEventToUnencryptedEvent, parseDM } from "../database.ts";
 import { getTags } from "../nostr.ts";
 
 const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
@@ -37,7 +37,7 @@ const DMEvent = await prepareEncryptedNostrEvent(
 );
 if (DMEvent instanceof Error) fail(DMEvent.message);
 
-const decryptDMEvent = await originalEventToEncryptedEvent(
+const decryptDMEvent = await parseDM(
     DMEvent,
     ctx,
     getTags(DMEvent),

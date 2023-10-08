@@ -154,7 +154,7 @@ export class Database_Contextual_View implements DirectMessageGetter, ProfileGet
                 if (event.kind != NostrKind.DIRECT_MESSAGE) {
                     continue;
                 }
-                const dmEvent = await originalEventToEncryptedEvent(
+                const dmEvent = await parseDM(
                     // @ts-ignore
                     event,
                     ctx,
@@ -200,22 +200,26 @@ export class Database_Contextual_View implements DirectMessageGetter, ProfileGet
         }
 
         // parse the event to desired format
-        const parsedEvent = await originalEventToParsedEvent(event, this.ctx);
-        if (parsedEvent instanceof Error) {
-            return parsedEvent;
-        }
-        if (parsedEvent == false) {
-            await this.eventsAdapter.put(event);
-            this.sourceOfChange.put(event);
-            return;
-        }
+        const parsedEvent: Parsed_Event = {
+            ...event,
+            parsedTags: getTags(event),
+            publicKey: PublicKey.FromHex(event.pubkey) as PublicKey,
+        };
 
         // add event to database and notify subscribers
         console.log("Database.addEvent", NoteID.FromHex(event.id).bech32());
+
         this.events.push(parsedEvent);
+
         if (parsedEvent.kind == NostrKind.DIRECT_MESSAGE) {
-            this.directed_messages.set(parsedEvent.id, parsedEvent);
+            // @ts-ignore
+            const dmEvent = await parseDM(parsedEvent, this.ctx, parsedEvent.parsedTags, parsedEvent.pubkey);
+            if (dmEvent instanceof Error) {
+                return dmEvent;
+            }
+            this.directed_messages.set(parsedEvent.id, dmEvent);
         }
+
         await this.eventsAdapter.put(event);
         /* not await */ this.sourceOfChange.put(parsedEvent);
         return parsedEvent;
@@ -286,38 +290,6 @@ export function whoIamTalkingTo(event: NostrEvent, myPublicKey: PublicKey) {
     return whoIAmTalkingTo;
 }
 
-export async function originalEventToParsedEvent(
-    event: NostrEvent,
-    ctx: NostrAccountContext,
-) {
-    const publicKey = PublicKey.FromHex(event.pubkey);
-    if (publicKey instanceof Error) {
-        return publicKey;
-    }
-    const parsedTags = getTags(event);
-    if (event.kind == NostrKind.DIRECT_MESSAGE) {
-        return originalEventToEncryptedEvent(
-            // @ts-ignore
-            event,
-            ctx,
-            parsedTags,
-            publicKey,
-        );
-        // return false
-    } else if (
-        event.kind == NostrKind.META_DATA
-    ) {
-        return parseProfileEvent(
-            // @ts-ignore
-            event,
-        );
-    } else if (event.kind == NostrKind.Group_Message) {
-        return false;
-    } else {
-        return new Error(`currently not accepting kind ${event.kind}`);
-    }
-}
-
 export function parseProfileEvent(
     event: NostrEvent<NostrKind.META_DATA>,
 ): Profile_Nostr_Event | Error {
@@ -338,7 +310,7 @@ export function parseProfileEvent(
     };
 }
 
-export async function originalEventToEncryptedEvent(
+export async function parseDM(
     event: NostrEvent<NostrKind.DIRECT_MESSAGE>,
     ctx: NostrAccountContext,
     parsedTags: Tags,
