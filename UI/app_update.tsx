@@ -670,7 +670,7 @@ export async function handle_SendMessage(
             }),
             kind: NostrKind.Group_Message,
             tags: [
-                ["p", groupCtx.publicKey.hex],
+                ["p", event.pubkey.hex],
             ],
             encryptKey: groupCtx.publicKey,
         });

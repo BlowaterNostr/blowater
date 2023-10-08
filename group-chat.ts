@@ -157,7 +157,17 @@ export class GroupChatController implements GroupMessageGetter, GroupChatListGet
 
     async handleMessage(event: NostrEvent<NostrKind.Group_Message>) {
         const groupAddr = getTags(event).p[0];
-        const decryptedContent = await this.ctx.decrypt(groupAddr, event.content);
+        const groupAddrPubkey = PublicKey.FromHex(groupAddr);
+        if (groupAddrPubkey instanceof Error) {
+            return groupAddrPubkey;
+        }
+        const groupChatCtx = this.getGroupChatCtx(groupAddrPubkey);
+        if (groupChatCtx == undefined) {
+            console.log(groupAddrPubkey);
+            console.log(this.created_groups);
+            return new Error(`group ${groupAddr} does not have me in it`);
+        }
+        const decryptedContent = await groupChatCtx.decrypt(event.pubkey, event.content);
         if (decryptedContent instanceof Error) {
             return decryptedContent;
         }
@@ -250,11 +260,15 @@ export class GroupChatController implements GroupMessageGetter, GroupChatListGet
     }
 
     getGroupChatCtx(group_addr: PublicKey): InMemoryAccountContext | undefined {
-        const invitation = this.created_groups.get(group_addr.bech32());
-        if (invitation == undefined) {
-            return;
+        const creation = this.created_groups.get(group_addr.bech32());
+        if (creation == undefined) {
+            const invitation = this.invitations.get(group_addr.bech32());
+            if (invitation == undefined) {
+                return undefined;
+            }
+            return invitation.cipherKey;
         }
-        return invitation.groupKey;
+        return creation.cipherKey;
     }
 
     getGroupAdminCtx(group_addr: PublicKey): InMemoryAccountContext | undefined {
