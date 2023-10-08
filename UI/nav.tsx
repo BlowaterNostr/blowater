@@ -68,15 +68,6 @@ const tabs = {
             }}
         />
     ),
-    "Social": (active: boolean) => (
-        <SocialIcon
-            class={tw`w-[2rem] h-[2rem]`}
-            style={{
-                stroke: active ? PrimaryTextColor : SecondaryTextColor,
-                fill: "none",
-            }}
-        />
-    ),
     "AppList": (active: boolean) => (
         <AppListIcon
             class={tw`w-[2rem] h-[2rem]`}

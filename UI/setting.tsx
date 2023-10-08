@@ -1,7 +1,7 @@
 /** @jsx h */
 import { Component, Fragment, h } from "https://esm.sh/preact@10.17.1";
 import { tw } from "https://esm.sh/twind@0.16.16";
-import { computed, signal } from "https://esm.sh/@preact/signals@1.2.1";
+
 import {
     CenterClass,
     inputBorderClass,
@@ -195,52 +195,50 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
                     : undefined}
 
                 <ul class={tw`mt-[1.5rem] text-[${PrimaryTextColor}]`}>
-                    {computed(() => {
-                        return relayStatus.map((r) => {
-                            return (
-                                <li
-                                    class={tw`w-full px-[1rem] py-[0.75rem] rounded-lg bg-[${DividerBackgroundColor}80] mb-[0.5rem]  flex items-center justify-between`}
-                                >
-                                    <div class={tw`flex items-center flex-1 overflow-hidden`}>
-                                        <span
-                                            class={tw`bg-[${
-                                                colors[r.status]
-                                            }] text-center block py-1 px-2 rounded text-[0.8rem] mr-2 font-bold`}
-                                        >
-                                            {r.status}
-                                        </span>
-                                        <span class={tw`truncate`}>{r.url}</span>
-                                    </div>
-
-                                    <button
-                                        class={tw`w-[2rem] h-[2rem] rounded-lg bg-transparent hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
-                                        onClick={async () => {
-                                            props.relayConfig.remove(r.url);
-                                            this.setState({
-                                                relayStatus: this.computeRelayStatus(props),
-                                            });
-                                            const err = await props.relayConfig.syncWithPool(props.relayPool);
-                                            if (err != undefined) {
-                                                this.setState({
-                                                    error: err.map((e) => e.message).join("\n"),
-                                                });
-                                            }
-                                            this.setState({
-                                                relayStatus: this.computeRelayStatus(props),
-                                            });
-                                            props.emit({ type: "RelayConfigChange" });
-                                        }}
+                    {relayStatus.map((r) => {
+                        return (
+                            <li
+                                class={tw`w-full px-[1rem] py-[0.75rem] rounded-lg bg-[${DividerBackgroundColor}80] mb-[0.5rem]  flex items-center justify-between`}
+                            >
+                                <div class={tw`flex items-center flex-1 overflow-hidden`}>
+                                    <span
+                                        class={tw`bg-[${
+                                            colors[r.status]
+                                        }] text-center block py-1 px-2 rounded text-[0.8rem] mr-2 font-bold`}
                                     >
-                                        <DeleteIcon
-                                            class={tw`w-[1rem] h-[1rem]`}
-                                            style={{
-                                                stroke: ErrorColor,
-                                            }}
-                                        />
-                                    </button>
-                                </li>
-                            );
-                        });
+                                        {r.status}
+                                    </span>
+                                    <span class={tw`truncate`}>{r.url}</span>
+                                </div>
+
+                                <button
+                                    class={tw`w-[2rem] h-[2rem] rounded-lg bg-transparent hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
+                                    onClick={async () => {
+                                        props.relayConfig.remove(r.url);
+                                        this.setState({
+                                            relayStatus: this.computeRelayStatus(props),
+                                        });
+                                        const err = await props.relayConfig.syncWithPool(props.relayPool);
+                                        if (err != undefined) {
+                                            this.setState({
+                                                error: err.map((e) => e.message).join("\n"),
+                                            });
+                                        }
+                                        this.setState({
+                                            relayStatus: this.computeRelayStatus(props),
+                                        });
+                                        props.emit({ type: "RelayConfigChange" });
+                                    }}
+                                >
+                                    <DeleteIcon
+                                        class={tw`w-[1rem] h-[1rem]`}
+                                        style={{
+                                            stroke: ErrorColor,
+                                        }}
+                                    />
+                                </button>
+                            </li>
+                        );
                     })}
                 </ul>
             </Fragment>
