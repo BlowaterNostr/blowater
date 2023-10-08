@@ -230,6 +230,7 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
         const messageBoxGroups = [];
         let i = 0;
         for (const messages of groups) {
+            const profileEvent = this.props.profileGetter.getProfilesByPublicKey(messages[0].author);
             messageBoxGroups.push(
                 MessageBoxGroup({
                     messages: messages,
@@ -237,7 +238,7 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
                     emit: this.props.emit,
                     profilesSyncer: this.props.profilesSyncer,
                     eventSyncer: this.props.eventSyncer,
-                    profileGetter: this.props.profileGetter,
+                    authorProfile: profileEvent ? profileEvent.profile : undefined,
                 }),
             );
         }
@@ -284,11 +285,11 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
 }
 
 function MessageBoxGroup(props: {
+    authorProfile: ProfileData | undefined;
     messages: ChatMessage[];
     myPublicKey: PublicKey;
     emit: emitFunc<DirectMessagePanelUpdate | ViewUserDetail>;
     profilesSyncer: ProfileSyncer;
-    profileGetter: ProfileGetter;
     eventSyncer: EventSyncer;
 }) {
     const messageGroups = props.messages.reverse();
@@ -304,8 +305,7 @@ function MessageBoxGroup(props: {
             {MessageActions(first_group, props.emit)}
             <Avatar
                 class={tw`h-8 w-8 mt-[0.45rem] mr-2`}
-                picture={props.profileGetter.getProfilesByPublicKey(first_group.author)?.profile
-                    .picture}
+                picture={props.authorProfile?.picture}
                 onClick={() => {
                     props.emit({
                         type: "ViewUserDetail",
@@ -322,8 +322,7 @@ function MessageBoxGroup(props: {
             >
                 {NameAndTime(
                     first_group.author,
-                    props.profileGetter.getProfilesByPublicKey(first_group.author)
-                        ?.profile,
+                    props.authorProfile,
                     props.myPublicKey,
                     first_group.created_at,
                 )}
@@ -332,8 +331,8 @@ function MessageBoxGroup(props: {
                 >
                                 {ParseMessageContent(
                                     first_group,
+                                    props.authorProfile,
                                     props.profilesSyncer,
-                                    props.profileGetter,
                                     props.eventSyncer,
                                     props.emit,
                                     )}
@@ -361,8 +360,8 @@ function MessageBoxGroup(props: {
                     >
                     {ParseMessageContent(
                         msg,
+                        props.authorProfile,
                         props.profilesSyncer,
-                        props.profileGetter,
                         props.eventSyncer,
                         props.emit,
                         )}
@@ -452,8 +451,8 @@ export function NameAndTime(
 
 export function ParseMessageContent(
     message: ChatMessage,
+    authorProfile: ProfileData | undefined,
     profilesSyncer: ProfileSyncer,
-    profileGetter: ProfileGetter,
     eventSyncer: EventSyncer,
     emit: emitFunc<ViewUserDetail | ViewThread | ViewNoteThread>,
 ) {
@@ -486,21 +485,15 @@ export function ParseMessageContent(
                 break;
             case "npub":
                 {
-                    const userInfo = profileGetter.getProfilesByPublicKey(item.pubkey);
-                    if (userInfo) {
-                        const profile = userInfo.profile;
-                        if (profile) {
-                            vnode.push(
-                                <ProfileCard
-                                    profileData={profile}
-                                    publicKey={item.pubkey}
-                                    emit={emit}
-                                />,
-                            );
-                            break;
-                        } else {
-                            profilesSyncer.add(item.pubkey.hex);
-                        }
+                    if (authorProfile) {
+                        vnode.push(
+                            <ProfileCard
+                                profileData={authorProfile}
+                                publicKey={item.pubkey}
+                                emit={emit}
+                            />,
+                        );
+                        break;
                     } else {
                         profilesSyncer.add(item.pubkey.hex);
                     }
@@ -518,7 +511,7 @@ export function ParseMessageContent(
                         vnode.push(itemStr);
                         break;
                     }
-                    vnode.push(Card(event, emit, profileGetter));
+                    vnode.push(Card(event, authorProfile, emit));
                 }
                 break;
             case "tag":
@@ -535,16 +528,15 @@ export function ParseMessageContent(
 
 function Card(
     event: NostrEvent,
+    authorProfile: ProfileData | undefined,
     emit: emitFunc<ViewThread | ViewUserDetail | ViewNoteThread>,
-    profileGetter: ProfileGetter,
 ) {
     const pubkey = PublicKey.FromHex(event.pubkey) as PublicKey;
-    const profile = profileGetter.getProfilesByPublicKey(pubkey)?.profile;
     switch (event.kind) {
         case NostrKind.META_DATA:
-            return <ProfileCard emit={emit} publicKey={pubkey} profileData={profile} />;
+            return <ProfileCard emit={emit} publicKey={pubkey} profileData={authorProfile} />;
         case NostrKind.TEXT_NOTE:
-            return <NoteCard emit={emit} event={event} profileData={profile} />;
+            return <NoteCard emit={emit} event={event} profileData={authorProfile} />;
     }
 }
 

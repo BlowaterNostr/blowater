@@ -21,7 +21,7 @@ import {
 import { PublicKey } from "./lib/nostr-ts/key.ts";
 import { NoteID } from "./lib/nostr-ts/nip19.ts";
 import { DirectMessageGetter } from "./UI/app_update.tsx";
-import { ProfileGetter } from "./UI/search.tsx";
+import { ProfileController, ProfileGetter } from "./UI/search.tsx";
 import { GroupChatController } from "./group-chat.ts";
 
 export const NotFound = Symbol("Not Found");
@@ -53,10 +53,11 @@ export interface EventPutter {
 export type EventsAdapter = EventsFilter & EventRemover & EventGetter & EventPutter;
 
 type Accepted_Event = Encrypted_Event | Profile_Nostr_Event | NostrEvent;
-export class Database_Contextual_View implements DirectMessageGetter, ProfileGetter, EventGetter {
+export class Database_Contextual_View implements DirectMessageGetter, ProfileController, EventGetter {
     private readonly sourceOfChange = csp.chan<Accepted_Event | null>(buffer_size);
     private readonly caster = csp.multi<Accepted_Event | null>(this.sourceOfChange);
     public readonly directed_messages = new Map<string, DirectedMessage_Event>();
+    public readonly profiles = new Map<string, Profile_Nostr_Event>();
 
     private constructor(
         private readonly eventsAdapter: EventsAdapter,
@@ -105,23 +106,18 @@ export class Database_Contextual_View implements DirectMessageGetter, ProfileGet
     }
 
     getProfilesByPublicKey(pubkey: PublicKey): Profile_Nostr_Event | undefined {
-        const events: NostrEvent<NostrKind.META_DATA>[] = [];
-        for (const e of this.events) {
-            if (e.kind === NostrKind.META_DATA && e.pubkey === pubkey.hex) {
-                // @ts-ignore
-                events.push(e);
+        return this.profiles.get(pubkey.hex);
+    }
+
+    setProfile(profileEvent: Profile_Nostr_Event): void {
+        const profile = this.profiles.get(profileEvent.pubkey);
+        if (profile) {
+            if (profileEvent.created_at > profile.created_at) {
+                this.profiles.set(profileEvent.pubkey, profileEvent);
             }
+        } else {
+            this.profiles.set(profileEvent.pubkey, profileEvent);
         }
-        if (events.length == 0) {
-            return undefined;
-        }
-        events.sort((e1, e2) => e2.created_at - e1.created_at);
-        const newest = events[0];
-        const profileEvent = parseProfileEvent(newest);
-        if (profileEvent instanceof Error) {
-            throw profileEvent; // todo: fix later
-        }
-        return profileEvent;
     }
 
     static async New(eventsAdapter: EventsAdapter, ctx: NostrAccountContext) {
@@ -147,6 +143,16 @@ export class Database_Contextual_View implements DirectMessageGetter, ProfileGet
             ctx,
         );
         console.log("Database_Contextual_View:New time spent", Date.now() - t);
+        for (const e of db.events) {
+            if (e.kind == NostrKind.META_DATA) {
+                // @ts-ignore
+                const pEvent = parseProfileEvent(e);
+                if (pEvent instanceof Error) {
+                    return pEvent;
+                }
+                db.setProfile(pEvent);
+            }
+        }
 
         // load decrypted DMs
         (async () => {
@@ -218,6 +224,13 @@ export class Database_Contextual_View implements DirectMessageGetter, ProfileGet
                 return dmEvent;
             }
             this.directed_messages.set(parsedEvent.id, dmEvent);
+        } else if (parsedEvent.kind == NostrKind.META_DATA) {
+            // @ts-ignore
+            const pEvent = parseProfileEvent(parsedEvent);
+            if (pEvent instanceof Error) {
+                return pEvent;
+            }
+            this.setProfile(pEvent);
         }
 
         await this.eventsAdapter.put(event);
