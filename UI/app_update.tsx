@@ -692,19 +692,19 @@ export async function handle_SendMessage(
         }
     } else {
         // todo: hack, change later
-        const invitation = isInvitation(event.text);
-        if (invitation) {
-            const invitationEvent = await groupControl.createInvitation(invitation, event.pubkey);
-            if (invitationEvent instanceof Error) {
-                return invitationEvent;
-            }
-            console.log(invitationEvent);
-            const err = await pool.sendEvent(invitationEvent);
-            if (err instanceof Error) {
-                return err;
-            }
-            return;
-        }
+        // const invitation = isInvitation(event.text);
+        // if (invitation) {
+        //     const invitationEvent = await groupControl.createInvitation(invitation, event.pubkey);
+        //     if (invitationEvent instanceof Error) {
+        //         return invitationEvent;
+        //     }
+        //     console.log(invitationEvent);
+        //     const err = await pool.sendEvent(invitationEvent);
+        //     if (err instanceof Error) {
+        //         return err;
+        //     }
+        //     return;
+        // }
         const events = await sendDMandImages({
             sender: ctx,
             receiverPublicKey: event.pubkey,
