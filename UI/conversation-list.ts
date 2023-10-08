@@ -1,4 +1,4 @@
-import { ConversationListRetriever, GroupChatListGetter, NewMessageChecker } from "./conversation-list.tsx";
+import { ConversationListRetriever, NewMessageChecker } from "./conversation-list.tsx";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { getTags, Parsed_Event, Profile_Nostr_Event } from "../nostr.ts";
@@ -11,7 +11,7 @@ export interface ConversationSummary {
     newestEventReceivedByMe: NostrEvent | undefined;
 }
 
-export class ConversationLists implements ConversationListRetriever, GroupChatListGetter, NewMessageChecker {
+export class ConversationLists implements ConversationListRetriever, NewMessageChecker {
     readonly convoSummaries = new Map<string, ConversationSummary>();
     readonly groupChatSummaries = new Map<string, ConversationSummary>();
     // private readonly profile = new Map<string, Profile_Nostr_Event>();

@@ -123,6 +123,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                     eventBus={props.bus}
                     emit={props.bus.emit}
                     convoListRetriever={props.conversationLists}
+                    groupChatListGetter={props.groupChatController}
                     hasNewMessages={props.newMessageChecker}
                     {...props}
                 />

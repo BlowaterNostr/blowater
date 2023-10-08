@@ -21,7 +21,7 @@ import { ProfileGetter } from "./search.tsx";
 
 const IsGruopChatSupported = true;
 
-export interface ConversationListRetriever extends GroupChatListGetter {
+export interface ConversationListRetriever {
     getContacts: () => Iterable<ConversationSummary>;
     getStrangers: () => Iterable<ConversationSummary>;
     getConversationType(pubkey: PublicKey, isGourpChat: boolean): "Contacts" | "Strangers" | "Group";
@@ -47,6 +47,7 @@ type Props = {
     emit: emitFunc<ContactUpdate | SearchUpdate>;
     eventBus: EventSubscriber<UI_Interaction_Event>;
     convoListRetriever: ConversationListRetriever;
+    groupChatListGetter: GroupChatListGetter;
     hasNewMessages: NewMessageChecker;
     pinListGetter: PinListGetter;
     profileGetter: ProfileGetter;
@@ -85,7 +86,7 @@ export class ConversationList extends Component<Props, State> {
         let listToRender: ConversationSummary[];
         const contacts = Array.from(props.convoListRetriever.getContacts());
         const strangers = Array.from(props.convoListRetriever.getStrangers());
-        const groups = Array.from(props.convoListRetriever.getGroupChat());
+        const groups = Array.from(props.groupChatListGetter.getGroupChat());
         switch (this.state.selectedContactGroup) {
             case "Contacts":
                 listToRender = contacts;

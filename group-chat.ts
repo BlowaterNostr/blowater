@@ -1,5 +1,5 @@
 import { z } from "https://esm.sh/zod@3.22.4";
-import { ConversationLists } from "./UI/conversation-list.ts";
+import { ConversationLists, ConversationSummary } from "./UI/conversation-list.ts";
 import { parseJSON } from "./features/profile.ts";
 import { prepareEncryptedNostrEvent } from "./lib/nostr-ts/event.ts";
 import { PrivateKey, PublicKey } from "./lib/nostr-ts/key.ts";
@@ -7,6 +7,9 @@ import { InMemoryAccountContext, NostrAccountContext, NostrEvent, NostrKind } fr
 import { GroupMessageGetter } from "./UI/app_update.tsx";
 import { getTags } from "./nostr.ts";
 import { ChatMessage } from "./UI/message.ts";
+import { GroupChatListGetter } from "./UI/conversation-list.tsx";
+
+export type GM_Types = "gm_creation" | "gm_message" | "gm_invitation"
 
 export type GroupMessage = {
     event: NostrEvent<NostrKind.Group_Message>;
@@ -17,14 +20,39 @@ export type GroupChatCreation = {
     groupKey: InMemoryAccountContext;
 };
 
-export class GroupChatController implements GroupMessageGetter {
+export type GroupChatInvitation = {
+    cipherKey: InMemoryAccountContext
+    groupAddr: PublicKey
+}
+
+export class GroupChatController implements GroupMessageGetter, GroupChatListGetter{
     created_groups = new Map<string, GroupChatCreation>();
+    invitations = new Map<string, GroupChatInvitation>();
     messages = new Map<string, ChatMessage[]>();
 
     constructor(
         private readonly ctx: NostrAccountContext,
         private readonly conversationLists: ConversationLists,
     ) {}
+
+    getGroupChat() {
+        const conversations: ConversationSummary[] = [];
+        for(const v of this.created_groups.values()) {
+            conversations.push({
+                pubkey: v.groupKey.publicKey,
+                newestEventReceivedByMe: undefined,
+                newestEventSendByMe: undefined  // todo
+            })
+        }
+        for(const v of this.invitations.values()) {
+            conversations.push({
+                pubkey: v.groupAddr,
+                newestEventReceivedByMe: undefined,
+                newestEventSendByMe: undefined  // todo
+            })
+        }
+        return conversations
+    }
 
     getGroupMessages(publicKey: string): ChatMessage[] {
         const msgs = this.messages.get(publicKey);
@@ -55,12 +83,19 @@ export class GroupChatController implements GroupMessageGetter {
     }
 
     async addEvent(event: NostrEvent<NostrKind.Group_Message>) {
-        if (isCreation(event)) {
+        const type = await eventType(this.ctx, event);
+        if(type instanceof Error) {
+            return type
+        }
+
+        if (type == "gm_creation") {
             return await this.handleCreation(event);
-        } else if (isMessage(event)) {
+        } else if (type == "gm_message") {
             return await this.handleMessage(event);
+        } else if (type == "gm_invitation") {   // I received
+            return await this.handleInvitation(event);
         } else {
-            console.log(GroupChatController.name, "ignore", event);
+            console.log(GroupChatController.name, "ignore", event, "type", type);
         }
     }
 
@@ -71,6 +106,54 @@ export class GroupChatController implements GroupMessageGetter {
                 return err;
             }
         }
+    }
+
+    async handleInvitation(event: NostrEvent<NostrKind.Group_Message>) {
+
+        const decryptedContent = await this.ctx.decrypt(event.pubkey, event.content);
+        if (decryptedContent instanceof Error) {
+            return decryptedContent;
+        }
+
+        const json = parseJSON<unknown>(decryptedContent);
+        if (json instanceof Error) {
+            return json;
+        }
+
+        const author = PublicKey.FromHex(event.pubkey);
+        if (author instanceof Error) {
+            return author;
+        }
+
+        let message: {
+            type: string;
+            cipherKey: string;
+            groupAddr: string;
+        }
+        try {
+            message = z.object({
+                type: z.string(),
+                cipherKey: z.string(),
+                groupAddr: z.string()
+            }).parse(json);
+        } catch (e) {
+            return e as Error
+        }
+
+        // add invitations
+        const cipherKey = PrivateKey.FromBech32(message.cipherKey);
+        if(cipherKey instanceof Error) {
+            return cipherKey
+        }
+        const groupAddr = PublicKey.FromBech32(message.groupAddr)
+        if(groupAddr instanceof Error) {
+            return groupAddr
+        }
+        const invitation: GroupChatInvitation = {
+            cipherKey: InMemoryAccountContext.New(cipherKey),
+            groupAddr
+        }
+        this.invitations.set(groupAddr.bech32(), invitation);
     }
 
     async handleMessage(event: NostrEvent<NostrKind.Group_Message>) {
@@ -192,7 +275,8 @@ export class GroupChatController implements GroupMessageGetter {
         // create the invitation event
         const invitation = {
             type: "gm_invitation",
-            cipherKey: group.cipherKey.privateKey.bech32
+            cipherKey: group.cipherKey.privateKey.bech32,
+            groupAddr: group.groupKey.publicKey.bech32(),
         }
         const event = await prepareEncryptedNostrEvent(this.ctx, {
             encryptKey: invitee,
@@ -210,6 +294,39 @@ function isCreation(event: NostrEvent<NostrKind.Group_Message>) {
     return event.tags.length == 0;
 }
 
-function isMessage(event: NostrEvent<NostrKind.Group_Message>) {
-    return event.tags.length != 0;
+async function eventType(ctx: NostrAccountContext, event: NostrEvent<NostrKind.Group_Message>):Promise<GM_Types | Error> {
+    if(isCreation(event)) {
+        return "gm_creation"
+    }
+
+    const receiver = getTags(event).p[0];
+    if(receiver == ctx.publicKey.hex) {
+        return "gm_invitation"  // received by me
+    }
+    return "gm_message" // note: chould be invitation I sent to others as well, change later
+    // if gm_message
+
+
+    // if gm_invitation
+
+    // const decryptedContent = await ctx.decrypt(event.pubkey, event.content);
+    // if (decryptedContent instanceof Error) {
+    //     return decryptedContent;
+    // }
+
+    // const json = parseJSON<unknown>(decryptedContent);
+    // if (json instanceof Error) {
+    //     return json;
+    // }
+    // let message: {
+    //     type: string;
+    // }
+    // try {
+    //     message = z.object({
+    //         type: z.string()
+    //     }).parse(json);
+    // } catch (e) {
+    //    return e as Error;
+    // }
+    // return message.type as GM_Types
 }
