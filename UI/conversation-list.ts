@@ -1,7 +1,7 @@
 import { ConversationListRetriever, GroupChatListGetter, NewMessageChecker } from "./conversation-list.tsx";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
-import { getTags, Profile_Nostr_Event, Text_Note_Event } from "../nostr.ts";
+import { getTags, Profile_Nostr_Event } from "../nostr.ts";
 import { ProfileSyncer } from "../features/profile.ts";
 import { GroupChatCreation } from "../group-chat.ts";
 
@@ -10,10 +10,6 @@ export interface ConversationSummary {
     profile: Profile_Nostr_Event | undefined;
     newestEventSendByMe: NostrEvent | undefined;
     newestEventReceivedByMe: NostrEvent | undefined;
-}
-
-export function getConversationSummaryFromPublicKey(k: PublicKey, users: Map<string, ConversationSummary>) {
-    return users.get(k.hex);
 }
 
 export class ConversationLists implements ConversationListRetriever, GroupChatListGetter, NewMessageChecker {
@@ -96,8 +92,7 @@ export class ConversationLists implements ConversationListRetriever, GroupChatLi
     addEvents(
         events: (
             | Profile_Nostr_Event
-            | Text_Note_Event
-            | NostrEvent<NostrKind.DIRECT_MESSAGE>
+            | NostrEvent<NostrKind.DIRECT_MESSAGE | NostrKind.Group_Message>
         )[],
     ) {
         // const t = Date.now();

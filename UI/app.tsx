@@ -30,6 +30,7 @@ import { GroupChatController } from "../group-chat.ts";
 import { OtherConfig } from "./config-other.ts";
 import { ProfileGetter } from "./search.tsx";
 import { ZodError } from "https://esm.sh/zod@3.22.4";
+import { data } from "./_setup.test.ts";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
@@ -118,8 +119,9 @@ export class App {
         this.profileSyncer.add(ctx.publicKey.hex);
 
         this.conversationLists = new ConversationLists(ctx, this.profileSyncer);
-        this.groupChatController = new GroupChatController(ctx, this.conversationLists);
         this.conversationLists.addEvents(database.events);
+
+        this.groupChatController = new GroupChatController(ctx, this.conversationLists);
     }
 
     initApp = async () => {
@@ -163,29 +165,26 @@ export class App {
 
         this.otherConfig.syncFromRelay(this.pool, this.ctx);
 
-        // create group synchronization
+        // group chat synchronization
         (async () => {
-            const stream = await this.pool.newSub("group creations", {
+            const stream = await this.pool.newSub("group chat", {
                 authors: [this.ctx.publicKey.hex],
                 kinds: [NostrKind.Group_Message],
             });
             if (stream instanceof Error) {
-                throw stream; // crash to app
+                throw stream; // crash the app
             }
             for await (const msg of stream.chan) {
                 if (msg.res.type == "EOSE") {
                     continue;
                 }
-                const res = await this.groupChatController.addEvent({
-                    ...msg.res.event,
-                    kind: NostrKind.Group_Message,
-                });
-                if (res instanceof Error) {
-                    if (res instanceof ZodError) {
+                const ok = await this.database.addEvent(msg.res.event);
+                if (ok instanceof Error) {
+                    if (ok instanceof ZodError) {
                         continue;
                     }
                     console.error(msg.res.event);
-                    console.error(res);
+                    console.error(ok);
                 }
             }
         })();
@@ -246,7 +245,7 @@ export class App {
                     this.profileSyncer,
                     this.lamport,
                     this.conversationLists,
-                    this.eventBus.emit,
+                    this.groupChatController,
                 )
             ) {
                 const t = Date.now();

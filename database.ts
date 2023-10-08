@@ -3,9 +3,9 @@ import {
     DirectedMessage_Event,
     Encrypted_Event,
     getTags,
+    Parsed_Event,
     Profile_Nostr_Event,
     Tag,
-    Text_Note_Event,
 } from "./nostr.ts";
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { parseJSON, ProfileData } from "./features/profile.ts";
@@ -51,7 +51,7 @@ export interface EventPutter {
 
 export type EventsAdapter = EventsFilter & EventRemover & EventGetter & EventPutter;
 
-type Accepted_Event = Text_Note_Event | Encrypted_Event | Profile_Nostr_Event;
+type Accepted_Event = Encrypted_Event | Profile_Nostr_Event | NostrEvent;
 export class Database_Contextual_View implements DirectMessageGetter, ProfileGetter {
     private readonly sourceOfChange = csp.chan<Accepted_Event | null>(buffer_size);
     private readonly caster = csp.multi<Accepted_Event | null>(this.sourceOfChange);
@@ -59,8 +59,11 @@ export class Database_Contextual_View implements DirectMessageGetter, ProfileGet
 
     private constructor(
         private readonly eventsAdapter: EventsAdapter,
-        public readonly events:
-            (Text_Note_Event | NostrEvent<NostrKind.DIRECT_MESSAGE> | Profile_Nostr_Event)[],
+        public readonly events: (
+            | NostrEvent<NostrKind.DIRECT_MESSAGE | NostrKind.Group_Message>
+            | NostrEvent<NostrKind.DIRECT_MESSAGE>
+            | Profile_Nostr_Event
+        )[],
         private readonly ctx: NostrAccountContext,
     ) {}
 
@@ -108,9 +111,8 @@ export class Database_Contextual_View implements DirectMessageGetter, ProfileGet
         console.log("Database_Contextual_View:onload", Date.now() - t, allEvents.length);
 
         // Load Non Encrypted Data
-        const initialEvents:
-            (Text_Note_Event | NostrEvent<NostrKind.DIRECT_MESSAGE> | Profile_Nostr_Event)[] =
-                await loadInitialData(allEvents, eventsAdapter);
+        const initialEvents: (NostrEvent<NostrKind.DIRECT_MESSAGE> | Profile_Nostr_Event)[] =
+            await loadInitialData(allEvents, eventsAdapter);
         console.log("Database_Contextual_View:parsed", Date.now() - t);
 
         // Load DMs
@@ -186,6 +188,11 @@ export class Database_Contextual_View implements DirectMessageGetter, ProfileGet
         const parsedEvent = await originalEventToParsedEvent(event, this.ctx);
         if (parsedEvent instanceof Error) {
             return parsedEvent;
+        }
+        if (parsedEvent == false) {
+            await this.eventsAdapter.put(event);
+            this.sourceOfChange.put(event);
+            return;
         }
 
         // add event to database and notify subscribers
@@ -267,10 +274,10 @@ export function whoIamTalkingTo(event: NostrEvent, myPublicKey: PublicKey) {
 async function loadInitialData(events: NostrEvent[], eventsRemover: EventRemover) {
     const initialEvents = [];
     for await (const event of events) {
-        if (event.kind != NostrKind.META_DATA && event.kind != NostrKind.TEXT_NOTE) {
+        if (event.kind != NostrKind.META_DATA) {
             continue;
         }
-        const parsedEvent = originalEventToUnencryptedEvent(
+        const parsedEvent = parseProfileEvent(
             // @ts-ignore
             event,
         );
@@ -305,46 +312,37 @@ export async function originalEventToParsedEvent(
         );
         // return false
     } else if (
-        event.kind == NostrKind.META_DATA || event.kind == NostrKind.TEXT_NOTE ||
-        event.kind == NostrKind.Group_Message
+        event.kind == NostrKind.META_DATA
     ) {
-        return originalEventToUnencryptedEvent(
+        return parseProfileEvent(
             // @ts-ignore
             event,
         );
+    } else if (event.kind == NostrKind.Group_Message) {
+        return false;
     } else {
         return new Error(`currently not accepting kind ${event.kind}`);
     }
 }
 
-export function originalEventToUnencryptedEvent<Kind extends NostrKind.META_DATA | NostrKind.TEXT_NOTE>(
-    event: NostrEvent<Kind>,
-): Text_Note_Event | Profile_Nostr_Event | Error {
+export function parseProfileEvent(
+    event: NostrEvent<NostrKind.META_DATA>,
+): Profile_Nostr_Event | Error {
     const parsedTags = getTags(event);
     const publicKey = PublicKey.FromHex(event.pubkey);
     if (publicKey instanceof Error) return publicKey;
 
-    if (event.kind == NostrKind.META_DATA) {
-        const profileData = parseJSON<ProfileData>(event.content);
-        if (profileData instanceof Error) {
-            return profileData;
-        }
-        return {
-            ...event,
-            kind: event.kind,
-            profile: profileData,
-            parsedTags,
-            publicKey,
-        };
-    } else {
-        return {
-            ...event,
-            kind: event.kind,
-            parsedTags,
-            publicKey,
-            parsedContentItems: Array.from(parseContent(event.content)),
-        };
+    const profileData = parseJSON<ProfileData>(event.content);
+    if (profileData instanceof Error) {
+        return profileData;
     }
+    return {
+        ...event,
+        kind: event.kind,
+        profile: profileData,
+        parsedTags,
+        publicKey,
+    };
 }
 
 export async function originalEventToEncryptedEvent(

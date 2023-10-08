@@ -64,6 +64,15 @@ export class GroupChatController implements GroupMessageGetter {
         }
     }
 
+    async addEvents(...events: NostrEvent<NostrKind.Group_Message>[]) {
+        for (const e of events) {
+            const err = await this.addEvent(e);
+            if (err instanceof Error) {
+                return err;
+            }
+        }
+    }
+
     async handleMessage(event: NostrEvent<NostrKind.Group_Message>) {
         const groupAddr = getTags(event).p[0];
         const decryptedContent = await this.ctx.decrypt(groupAddr, event.content);

@@ -41,10 +41,6 @@ export type Parsed_Event<Kind extends NostrKind = NostrKind> = parsedTagsEvent<K
 export type Encrypted_Kind = NostrKind.DIRECT_MESSAGE;
 export type Non_Plain_Text_Kind = Encrypted_Kind | NostrKind.META_DATA;
 
-export type Text_Note_Event<Kind extends NostrKind.TEXT_NOTE = NostrKind.TEXT_NOTE> = Parsed_Event<Kind> & {
-    parsedContentItems: ContentItem[];
-};
-
 export type Profile_Nostr_Event = Parsed_Event<NostrKind.META_DATA> & {
     profile: ProfileData;
 };
@@ -256,61 +252,4 @@ export function compare(a: parsedTagsEvent, b: parsedTagsEvent) {
         return a.parsedTags.lamport_timestamp - b.parsedTags.lamport_timestamp;
     }
     return a.created_at - b.created_at;
-}
-
-export function computeThreads<T extends parsedTagsEvent>(events: T[]) {
-    events.sort(compare);
-    const idsMap = new Map<string, T>();
-    for (const event of events) {
-        if (!idsMap.has(event.id)) {
-            idsMap.set(event.id, event);
-        }
-        const tags = event.parsedTags;
-        if (tags.image && tags.image[2] == "0" && !idsMap.has(tags.image[0])) {
-            idsMap.set(tags.image[0], event);
-        }
-    }
-
-    const relationsMap = new Map<T, T | string>();
-    for (const event of events) {
-        let id = event.id;
-        const replyTags = event.parsedTags.root || event.parsedTags.reply || event.parsedTags.e;
-        const imageTags = event.parsedTags.image;
-        if (replyTags && replyTags.length > 0) {
-            id = replyTags[0];
-        } else if (imageTags && imageTags.length > 0) {
-            id = imageTags[0];
-        }
-
-        const idsEvent = idsMap.get(id);
-        if (idsEvent) {
-            const relationEvent = relationsMap.get(idsEvent);
-            if (!relationEvent) {
-                relationsMap.set(event, idsEvent);
-            } else {
-                relationsMap.set(event, relationEvent);
-            }
-        } else {
-            relationsMap.set(event, id);
-        }
-    }
-
-    const resMap = new Map<string, T[]>();
-    for (const event of events) {
-        const relationEvent = relationsMap.get(event);
-        if (!relationEvent) {
-            throw Error("Impossible");
-        }
-
-        const id = typeof relationEvent == "string" ? relationEvent : relationEvent.id;
-        const res = resMap.get(id);
-
-        if (res) {
-            res.push(event);
-        } else {
-            resMap.set(id, [event]);
-        }
-    }
-
-    return Array.from(resMap.values());
 }
