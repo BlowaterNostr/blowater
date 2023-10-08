@@ -194,7 +194,9 @@ export function* groupContinuousMessages<T>(
         }
         previousItem = currentItem;
     }
-    yield group;
+    if (group.length > 0) {
+        yield group;
+    }
 }
 
 export function sortMessage(messages: ChatMessage[]) {

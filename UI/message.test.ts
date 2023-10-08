@@ -269,3 +269,9 @@ Deno.test("message group", () => {
     assertEquals(groups.length, 1);
     assertEquals(groups[0].length, 1);
 });
+
+Deno.test("if there is no message, should not yield any group", () => {
+    const group = groupContinuousMessages([], () => true).next();
+    assertEquals(group.value, undefined);
+    assertEquals(group.done, true);
+});
