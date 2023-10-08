@@ -21,7 +21,7 @@ import { EventSyncer } from "./event_syncer.ts";
 import { ButtonGroup } from "./components/button-group.tsx";
 import { PrimaryTextColor } from "./style/colors.ts";
 import { SettingIcon } from "./icons2/setting-icon.tsx";
-import { GroupChat_Syncer_Controller } from "../group-chat.ts";
+import { GroupChatController } from "../group-chat.ts";
 import { ProfileGetter } from "./search.tsx";
 import { InviteIcon } from "./icons2/invite-icon.tsx";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
@@ -33,7 +33,7 @@ type DirectMessageContainerProps = {
     bus: EventBus<UI_Interaction_Event>;
     profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
-    groupChatController: GroupChat_Syncer_Controller;
+    groupChatController: GroupChatController;
     // getters
     profileGetter: ProfileGetter;
     dmGetter: DirectMessageGetter;

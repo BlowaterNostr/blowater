@@ -1,6 +1,6 @@
 import { z } from "https://esm.sh/zod@3.22.4";
 import { ConversationLists, ConversationSummary } from "./UI/conversation-list.ts";
-import { parseJSON } from "./features/profile.ts";
+import { ProfileSyncer, parseJSON } from "./features/profile.ts";
 import { prepareEncryptedNostrEvent } from "./lib/nostr-ts/event.ts";
 import { PrivateKey, PublicKey } from "./lib/nostr-ts/key.ts";
 import { InMemoryAccountContext, NostrAccountContext, NostrEvent, NostrKind } from "./lib/nostr-ts/nostr.ts";
@@ -8,6 +8,9 @@ import { GroupMessageGetter } from "./UI/app_update.tsx";
 import { getTags } from "./nostr.ts";
 import { ChatMessage } from "./UI/message.ts";
 import { GroupChatListGetter } from "./UI/conversation-list.tsx";
+import { Channel, semaphore } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { ConnectionPool } from "./lib/nostr-ts/relay.ts";
+import { Database_Contextual_View } from "./database.ts";
 
 export type GM_Types = "gm_creation" | "gm_message" | "gm_invitation";
 
@@ -25,14 +28,17 @@ export type GroupChatInvitation = {
     groupAddr: PublicKey;
 };
 
-export class GroupChat_Syncer_Controller implements GroupMessageGetter, GroupChatListGetter {
+export class GroupChatController implements GroupMessageGetter, GroupChatListGetter {
     created_groups = new Map<string, GroupChatCreation>();
     invitations = new Map<string, GroupChatInvitation>();
     messages = new Map<string, ChatMessage[]>();
+    resync_chan = new Channel<null>();
 
     constructor(
         private readonly ctx: NostrAccountContext,
         private readonly conversationLists: ConversationLists,
+        private readonly groupSyncer: GroupChatSyncer,
+        private readonly profileSyncer: ProfileSyncer
     ) {}
 
     getGroupChat() {
@@ -79,6 +85,8 @@ export class GroupChat_Syncer_Controller implements GroupMessageGetter, GroupCha
             groupKey: InMemoryAccountContext.New(PrivateKey.Generate()),
         };
         this.created_groups.set(groupChatCreation.groupKey.publicKey.bech32(), groupChatCreation);
+        this.groupSyncer.add(groupChatCreation.groupKey.publicKey.hex)
+        this.profileSyncer.add(groupChatCreation.groupKey.publicKey.hex)
         return groupChatCreation;
     }
 
@@ -95,7 +103,7 @@ export class GroupChat_Syncer_Controller implements GroupMessageGetter, GroupCha
         } else if (type == "gm_invitation") { // I received
             return await this.handleInvitation(event);
         } else {
-            console.log(GroupChat_Syncer_Controller.name, "ignore", event, "type", type);
+            console.log(GroupChatController.name, "ignore", event, "type", type);
         }
     }
 
@@ -153,6 +161,8 @@ export class GroupChat_Syncer_Controller implements GroupMessageGetter, GroupCha
             groupAddr,
         };
         this.invitations.set(groupAddr.bech32(), invitation);
+        this.groupSyncer.add(groupAddr.hex)
+        this.profileSyncer.add(groupAddr.hex)
     }
 
     async handleMessage(event: NostrEvent<NostrKind.Group_Message>) {
@@ -320,4 +330,42 @@ async function eventType(
         return "gm_invitation"; // received by me
     }
     return "gm_message";
+}
+
+export class GroupChatSyncer {
+    readonly groupAddrSet = new Set<string>();
+    private readonly lock = semaphore(1);
+
+    constructor(
+        private readonly database: Database_Contextual_View,
+        private readonly pool: ConnectionPool,
+    ) {
+    }
+
+    async add(...groupAddresses: string[]) {
+        const size = this.groupAddrSet.size;
+        for (const groupAddr of groupAddresses) {
+            this.groupAddrSet.add(groupAddr);
+        }
+        if (this.groupAddrSet.size == size) {
+            return;
+        }
+        const resp = await this.lock(async () => {
+            await this.pool.closeSub(GroupChatSyncer.name);
+            const resp = await this.pool.newSub(GroupChatSyncer.name, {
+                "#p": Array.from(this.groupAddrSet),
+                kinds: [NostrKind.Group_Message],
+            });
+            return resp;
+        });
+        if (resp instanceof Error) {
+            console.log(resp);
+            return;
+        }
+        for await (let { res: nostrMessage, url: relayUrl } of resp.chan) {
+            if (nostrMessage.type === "EVENT" && nostrMessage.event.content) {
+                this.database.addEvent(nostrMessage.event);
+            }
+        }
+    }
 }
