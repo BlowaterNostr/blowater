@@ -91,7 +91,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                         props.bus.emit({
                             type: "StartInvite",
                             // @ts-ignore
-                            publicKey: props.currentConversation,
+                            publicKey: props.currentEditor?.pubkey,
                         });
                     }}
                 >
