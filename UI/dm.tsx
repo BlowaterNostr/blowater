@@ -80,8 +80,9 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
         }).render();
     }
 
-    const canEditGroupProfile = props.currentEditor && props.isGroupMessage &&
-        props.groupChatController.getGroupAdminCtx(props.currentEditor.pubkey);
+    const currentEditor = props.currentEditor;
+    const canEditGroupProfile = currentEditor && props.isGroupMessage &&
+        props.groupChatController.getGroupAdminCtx(currentEditor.pubkey);
     const actions = canEditGroupProfile
         ? (
             <ButtonGroup>
@@ -90,8 +91,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                     onClick={() => {
                         props.bus.emit({
                             type: "StartInvite",
-                            // @ts-ignore
-                            publicKey: props.currentEditor?.pubkey,
+                            publicKey: currentEditor.pubkey,
                         });
                     }}
                 >
@@ -104,8 +104,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                     onClick={() => {
                         props.bus.emit({
                             type: "StartEditGroupChatProfile",
-                            //@ts-ignore
-                            publicKey: props.currentConversation,
+                            publicKey: currentEditor.pubkey,
                         });
                     }}
                 >

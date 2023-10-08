@@ -142,8 +142,12 @@ export class ConversationLists implements ConversationListRetriever, GroupChatLi
                                 }
                             }
                         } else {
+                            const pubkey = PublicKey.FromHex(whoAm_I_TalkingTo);
+                            if (pubkey instanceof Error) {
+                                return pubkey;
+                            }
                             const newUserInfo: ConversationSummary = {
-                                pubkey: PublicKey.FromHex(whoAm_I_TalkingTo) as PublicKey,
+                                pubkey,
                                 newestEventReceivedByMe: undefined,
                                 newestEventSendByMe: undefined,
                             };

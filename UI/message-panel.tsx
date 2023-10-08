@@ -527,14 +527,13 @@ export function ParseMessageContent(
 }
 
 function Card(
-    event: NostrEvent,
+    event: Parsed_Event,
     authorProfile: ProfileData | undefined,
     emit: emitFunc<ViewThread | ViewUserDetail | ViewNoteThread>,
 ) {
-    const pubkey = PublicKey.FromHex(event.pubkey) as PublicKey;
     switch (event.kind) {
         case NostrKind.META_DATA:
-            return <ProfileCard emit={emit} publicKey={pubkey} profileData={authorProfile} />;
+            return <ProfileCard emit={emit} publicKey={event.publicKey} profileData={authorProfile} />;
         case NostrKind.TEXT_NOTE:
             return <NoteCard emit={emit} event={event} profileData={authorProfile} />;
     }

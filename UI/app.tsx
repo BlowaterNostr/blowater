@@ -30,7 +30,6 @@ import { GroupChatController } from "../group-chat.ts";
 import { OtherConfig } from "./config-other.ts";
 import { ProfileGetter } from "./search.tsx";
 import { ZodError } from "https://esm.sh/zod@3.22.4";
-import { data } from "./_setup.test.ts";
 import { fromEvents } from "../time.ts";
 
 export async function Start(database: DexieDatabase) {
@@ -51,7 +50,15 @@ export async function Start(database: DexieDatabase) {
             throw dbView;
         }
         const otherConfig = await OtherConfig.FromLocalStorage(ctx);
-        const app = new App(dbView, model, ctx, eventBus, pool, popOverInputChan, otherConfig);
+        const app = await App.Start({
+            database: dbView,
+            model,
+            ctx,
+            eventBus,
+            pool,
+            popOverInputChan,
+            otherConfig,
+        });
         await app.initApp();
         model.app = app;
     }
@@ -92,14 +99,7 @@ export async function Start(database: DexieDatabase) {
 }
 
 export class App {
-    readonly profileSyncer: ProfileSyncer;
-    readonly eventSyncer: EventSyncer;
-    public readonly conversationLists: ConversationLists;
-    public readonly relayConfig: RelayConfig;
-    public readonly groupChatController: GroupChatController;
-    public readonly lamport: time.LamportTime;
-
-    constructor(
+    private constructor(
         public readonly database: Database_Contextual_View,
         public readonly model: Model,
         public readonly ctx: NostrAccountContext,
@@ -107,30 +107,65 @@ export class App {
         public readonly pool: ConnectionPool,
         public readonly popOverInputChan: PopOverInputChannel,
         public readonly otherConfig: OtherConfig,
-    ) {
-        this.lamport = fromEvents(database.events);
-        this.eventSyncer = new EventSyncer(pool, this.database);
-        this.relayConfig = RelayConfig.FromLocalStorage(ctx);
-        if (this.relayConfig.getRelayURLs().size == 0) {
+        public readonly profileSyncer: ProfileSyncer,
+        public readonly eventSyncer: EventSyncer,
+        public readonly conversationLists: ConversationLists,
+        public readonly relayConfig: RelayConfig,
+        public readonly groupChatController: GroupChatController,
+        public readonly lamport: time.LamportTime,
+    ) {}
+
+    static async Start(args: {
+        database: Database_Contextual_View;
+        model: Model;
+        ctx: NostrAccountContext;
+        eventBus: EventBus<UI_Interaction_Event>;
+        pool: ConnectionPool;
+        popOverInputChan: PopOverInputChannel;
+        otherConfig: OtherConfig;
+    }) {
+        const lamport = fromEvents(args.database.events);
+        const eventSyncer = new EventSyncer(args.pool, args.database);
+        const relayConfig = RelayConfig.FromLocalStorage(args.ctx);
+        if (relayConfig.getRelayURLs().size == 0) {
             for (const url of defaultRelays) {
-                this.relayConfig.add(url);
+                relayConfig.add(url);
             }
         }
-        this.profileSyncer = new ProfileSyncer(this.database, pool);
-        this.profileSyncer.add(ctx.publicKey.hex);
+        const profileSyncer = new ProfileSyncer(args.database, args.pool);
+        profileSyncer.add(args.ctx.publicKey.hex);
 
-        this.conversationLists = new ConversationLists(ctx, this.profileSyncer);
-        this.conversationLists.addEvents(database.events);
+        const conversationLists = new ConversationLists(args.ctx, profileSyncer);
+        conversationLists.addEvents(args.database.events);
 
-        this.groupChatController = new GroupChatController(ctx, this.conversationLists);
-        for (const e of database.events) {
+        const groupChatController = new GroupChatController(args.ctx, conversationLists);
+        for (const e of args.database.events) {
             if (e.kind == NostrKind.Group_Message) {
-                this.groupChatController.addEvent({
+                const err = await groupChatController.addEvent({
                     ...e,
                     kind: e.kind,
                 });
+                if (err instanceof Error) {
+                    console.error(err.message);
+                }
             }
         }
+
+        return new App(
+            args.database,
+            args.model,
+            args.ctx,
+            args.eventBus,
+            args.pool,
+            args.popOverInputChan,
+            args.otherConfig,
+            profileSyncer,
+            eventSyncer,
+            conversationLists,
+            relayConfig,
+            groupChatController,
+            lamport,
+        );
     }
 
     initApp = async () => {
