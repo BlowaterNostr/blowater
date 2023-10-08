@@ -17,7 +17,7 @@ import { GroupIcon } from "./icons2/group-icon.tsx";
 import { Component } from "https://esm.sh/preact@10.17.1";
 import { UI_Interaction_Event } from "./app_update.tsx";
 
-const IsGruopChatSupported = true;
+const IsGruopChatSupported = false;
 
 export interface ConversationListRetriever extends GroupChatListGetter {
     getContacts: () => Iterable<ConversationSummary>;
