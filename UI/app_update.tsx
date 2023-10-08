@@ -112,15 +112,15 @@ export async function* UI_Interaction_Update(args: {
                     }
 
                     const otherConfig = await OtherConfig.FromLocalStorage(ctx);
-                    const app = new App(
-                        dbView,
+                    const app = await App.Start({
+                        database: dbView,
                         model,
                         ctx,
                         eventBus,
                         pool,
-                        args.popOver,
+                        popOverInputChan: args.popOver,
                         otherConfig,
-                    );
+                    });
                     await app.initApp();
                     model.app = app;
                 } else {
@@ -314,7 +314,12 @@ export async function* UI_Interaction_Update(args: {
                 if (root.pubkey != myPubkey && !getTags(root).p.includes(myPubkey)) {
                     continue; // if no conversation
                 }
-                updateConversation(model, PublicKey.FromHex(root.pubkey) as PublicKey, false);
+                const pubkey = PublicKey.FromHex(root.pubkey);
+                if (pubkey instanceof Error) {
+                    console.error(pubkey.message);
+                    continue;
+                }
+                updateConversation(model, pubkey, false);
                 if (model.dm.currentEditor) {
                     model.dm.focusedContent.set(
                         model.dm.currentEditor.pubkey.hex,
@@ -368,7 +373,7 @@ export async function* UI_Interaction_Update(args: {
             const profileData = event.profileData;
             const publicKey = event.publicKey;
             const groupCtx = app.groupChatController.getGroupAdminCtx(publicKey);
-            if (!groupCtx) {
+            if (groupCtx == undefined) {
                 console.error(`No permission to modify gorup ${publicKey}'s profile`);
                 continue;
             }
@@ -589,8 +594,10 @@ export async function* Database_Update(
                     }
                 }
             } else if (e.kind == NostrKind.Group_Message) {
-                // @ts-ignore
-                const err = await groupController.addEvent(e);
+                const err = await groupController.addEvent({
+                    ...e,
+                    kind: e.kind,
+                });
                 if (err instanceof Error) {
                     console.error(err);
                 }

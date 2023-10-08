@@ -89,10 +89,20 @@ export class GroupChatController implements GroupMessageGetter {
         if (author instanceof Error) {
             return author;
         }
-        const message = z.object({
-            type: z.string(),
-            text: z.string(),
-        }).parse(json);
+
+        let message;
+        try {
+            message = z.object({
+                type: z.string(),
+                text: z.string(),
+            }).parse(json);
+        } catch (e) {
+            message = e as Error;
+        }
+        if (message instanceof Error) {
+            return message;
+        }
+
         const chatMessage: ChatMessage = {
             event: event,
             author: author,

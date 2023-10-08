@@ -65,7 +65,7 @@ export class Database_Contextual_View implements DirectMessageGetter, ProfileCon
         private readonly ctx: NostrAccountContext,
     ) {}
 
-    get(keys: Indices): NostrEvent | undefined {
+    get(keys: Indices): Parsed_Event | undefined {
         for (const e of this.events) {
             if (e.id == keys.id) {
                 return e;
@@ -125,15 +125,22 @@ export class Database_Contextual_View implements DirectMessageGetter, ProfileCon
         const allEvents = await eventsAdapter.filter();
         console.log("Database_Contextual_View:onload", Date.now() - t, allEvents.length);
 
-        // Load Non Encrypted Data
-        const initialEvents: Parsed_Event[] = allEvents.map((e) => {
+        const initialEvents = [];
+        for (const e of allEvents) {
+            const pubkey = PublicKey.FromHex(e.pubkey);
+            if (pubkey instanceof Error) {
+                console.error("impossible state");
+                await eventsAdapter.remove(e.id);
+                continue;
+            }
             const p: Parsed_Event = {
                 ...e,
                 parsedTags: getTags(e),
-                publicKey: PublicKey.FromHex(e.pubkey) as PublicKey,
+                publicKey: pubkey,
             };
-            return p;
-        });
+            initialEvents.push(p);
+        }
+
         console.log("Database_Contextual_View:parsed", Date.now() - t);
 
         // Construct the View
@@ -206,10 +213,15 @@ export class Database_Contextual_View implements DirectMessageGetter, ProfileCon
         }
 
         // parse the event to desired format
+        const pubkey = PublicKey.FromHex(event.pubkey);
+        if (pubkey instanceof Error) {
+            console.error("impossible state");
+            return pubkey;
+        }
         const parsedEvent: Parsed_Event = {
             ...event,
             parsedTags: getTags(event),
-            publicKey: PublicKey.FromHex(event.pubkey) as PublicKey,
+            publicKey: pubkey,
         };
 
         // add event to database and notify subscribers
