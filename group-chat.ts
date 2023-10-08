@@ -9,7 +9,7 @@ import { getTags } from "./nostr.ts";
 import { ChatMessage } from "./UI/message.ts";
 import { GroupChatListGetter } from "./UI/conversation-list.tsx";
 
-export type GM_Types = "gm_creation" | "gm_message" | "gm_invitation"
+export type GM_Types = "gm_creation" | "gm_message" | "gm_invitation";
 
 export type GroupMessage = {
     event: NostrEvent<NostrKind.Group_Message>;
@@ -21,11 +21,11 @@ export type GroupChatCreation = {
 };
 
 export type GroupChatInvitation = {
-    cipherKey: InMemoryAccountContext
-    groupAddr: PublicKey
-}
+    cipherKey: InMemoryAccountContext;
+    groupAddr: PublicKey;
+};
 
-export class GroupChatController implements GroupMessageGetter, GroupChatListGetter{
+export class GroupChatController implements GroupMessageGetter, GroupChatListGetter {
     created_groups = new Map<string, GroupChatCreation>();
     invitations = new Map<string, GroupChatInvitation>();
     messages = new Map<string, ChatMessage[]>();
@@ -37,21 +37,21 @@ export class GroupChatController implements GroupMessageGetter, GroupChatListGet
 
     getGroupChat() {
         const conversations: ConversationSummary[] = [];
-        for(const v of this.created_groups.values()) {
+        for (const v of this.created_groups.values()) {
             conversations.push({
                 pubkey: v.groupKey.publicKey,
                 newestEventReceivedByMe: undefined,
-                newestEventSendByMe: undefined  // todo
-            })
+                newestEventSendByMe: undefined, // todo
+            });
         }
-        for(const v of this.invitations.values()) {
+        for (const v of this.invitations.values()) {
             conversations.push({
                 pubkey: v.groupAddr,
                 newestEventReceivedByMe: undefined,
-                newestEventSendByMe: undefined  // todo
-            })
+                newestEventSendByMe: undefined, // todo
+            });
         }
-        return conversations
+        return conversations;
     }
 
     getGroupMessages(publicKey: string): ChatMessage[] {
@@ -84,15 +84,15 @@ export class GroupChatController implements GroupMessageGetter, GroupChatListGet
 
     async addEvent(event: NostrEvent<NostrKind.Group_Message>) {
         const type = await eventType(this.ctx, event);
-        if(type instanceof Error) {
-            return type
+        if (type instanceof Error) {
+            return type;
         }
 
         if (type == "gm_creation") {
             return await this.handleCreation(event);
         } else if (type == "gm_message") {
             return await this.handleMessage(event);
-        } else if (type == "gm_invitation") {   // I received
+        } else if (type == "gm_invitation") { // I received
             return await this.handleInvitation(event);
         } else {
             console.log(GroupChatController.name, "ignore", event, "type", type);
@@ -109,7 +109,6 @@ export class GroupChatController implements GroupMessageGetter, GroupChatListGet
     }
 
     async handleInvitation(event: NostrEvent<NostrKind.Group_Message>) {
-
         const decryptedContent = await this.ctx.decrypt(event.pubkey, event.content);
         if (decryptedContent instanceof Error) {
             return decryptedContent;
@@ -129,30 +128,30 @@ export class GroupChatController implements GroupMessageGetter, GroupChatListGet
             type: string;
             cipherKey: string;
             groupAddr: string;
-        }
+        };
         try {
             message = z.object({
                 type: z.string(),
                 cipherKey: z.string(),
-                groupAddr: z.string()
+                groupAddr: z.string(),
             }).parse(json);
         } catch (e) {
-            return e as Error
+            return e as Error;
         }
 
         // add invitations
         const cipherKey = PrivateKey.FromBech32(message.cipherKey);
-        if(cipherKey instanceof Error) {
-            return cipherKey
+        if (cipherKey instanceof Error) {
+            return cipherKey;
         }
-        const groupAddr = PublicKey.FromBech32(message.groupAddr)
-        if(groupAddr instanceof Error) {
-            return groupAddr
+        const groupAddr = PublicKey.FromBech32(message.groupAddr);
+        if (groupAddr instanceof Error) {
+            return groupAddr;
         }
         const invitation: GroupChatInvitation = {
             cipherKey: InMemoryAccountContext.New(cipherKey),
-            groupAddr
-        }
+            groupAddr,
+        };
         this.invitations.set(groupAddr.bech32(), invitation);
     }
 
@@ -268,25 +267,25 @@ export class GroupChatController implements GroupMessageGetter, GroupChatListGet
 
     async createInvitation(groupAddr: PublicKey, invitee: PublicKey) {
         // It has to be a group that I created
-        const group = this.created_groups.get(groupAddr.bech32())
-        if(group == undefined) {
-            return new Error(`You are not the admin of ${groupAddr.bech32()}`)
+        const group = this.created_groups.get(groupAddr.bech32());
+        if (group == undefined) {
+            return new Error(`You are not the admin of ${groupAddr.bech32()}`);
         }
         // create the invitation event
         const invitation = {
             type: "gm_invitation",
             cipherKey: group.cipherKey.privateKey.bech32,
             groupAddr: group.groupKey.publicKey.bech32(),
-        }
+        };
         const event = await prepareEncryptedNostrEvent(this.ctx, {
             encryptKey: invitee,
             kind: NostrKind.Group_Message,
             content: JSON.stringify(invitation),
             tags: [
-                ["p", invitee.hex]
-            ]
+                ["p", invitee.hex],
+            ],
         });
-        return event
+        return event;
     }
 }
 
@@ -294,18 +293,20 @@ function isCreation(event: NostrEvent<NostrKind.Group_Message>) {
     return event.tags.length == 0;
 }
 
-async function eventType(ctx: NostrAccountContext, event: NostrEvent<NostrKind.Group_Message>):Promise<GM_Types | Error> {
-    if(isCreation(event)) {
-        return "gm_creation"
+async function eventType(
+    ctx: NostrAccountContext,
+    event: NostrEvent<NostrKind.Group_Message>,
+): Promise<GM_Types | Error> {
+    if (isCreation(event)) {
+        return "gm_creation";
     }
 
     const receiver = getTags(event).p[0];
-    if(receiver == ctx.publicKey.hex) {
-        return "gm_invitation"  // received by me
+    if (receiver == ctx.publicKey.hex) {
+        return "gm_invitation"; // received by me
     }
-    return "gm_message" // note: chould be invitation I sent to others as well, change later
+    return "gm_message"; // note: chould be invitation I sent to others as well, change later
     // if gm_message
-
 
     // if gm_invitation
 
