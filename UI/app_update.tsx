@@ -670,7 +670,7 @@ export async function handle_SendMessage(
             }),
             kind: NostrKind.Group_Message,
             tags: [
-                ["p", groupCtx.publicKey.hex],
+                ["p", event.pubkey.hex],
             ],
             encryptKey: groupCtx.publicKey,
         });
@@ -691,6 +691,20 @@ export async function handle_SendMessage(
             editor.text = "";
         }
     } else {
+        // todo: hack, change later
+        const invitation = isInvitation(event.text);
+        if (invitation) {
+            const invitationEvent = await groupControl.createInvitation(invitation, event.pubkey);
+            if (invitationEvent instanceof Error) {
+                return invitationEvent;
+            }
+            console.log(invitationEvent);
+            const err = await pool.sendEvent(invitationEvent);
+            if (err instanceof Error) {
+                return err;
+            }
+            return;
+        }
         const events = await sendDMandImages({
             sender: ctx,
             receiverPublicKey: event.pubkey,
@@ -715,4 +729,15 @@ export async function handle_SendMessage(
             editor.text = "";
         }
     }
+}
+
+function isInvitation(text: string): PublicKey | false {
+    if (text.length == 70 && text.slice(0, 7) == "invite:") {
+        const pubkey = PublicKey.FromBech32(text.slice(7));
+        if (pubkey instanceof Error) {
+            return false;
+        }
+        return pubkey;
+    }
+    return false;
 }

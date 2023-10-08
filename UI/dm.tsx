@@ -50,7 +50,6 @@ export type StartInvite = {
 
 export function DirectMessageContainer(props: DirectMessageContainerProps) {
     const t = Date.now();
-    console.log("DirectMessageContainer", props.currentEditor);
 
     let messagePanel: VNode | undefined;
     if (props.currentEditor && props.currentEditor) {
@@ -60,7 +59,6 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
             dmGetter: props.dmGetter,
             gmGetter: props.gmGetter,
         });
-        console.log("DirectMessageContainer:convoMsgs", Date.now() - t);
 
         const focusedContent = getFocusedContent(
             props.focusedContent.get(props.currentEditor.pubkey.hex),
@@ -125,6 +123,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                     eventBus={props.bus}
                     emit={props.bus.emit}
                     convoListRetriever={props.conversationLists}
+                    groupChatListGetter={props.groupChatController}
                     hasNewMessages={props.newMessageChecker}
                     {...props}
                 />
