@@ -12,14 +12,7 @@ import { emitFunc } from "../event-bus.ts";
 import { ChatMessage, groupContinuousMessages, sortMessage, urlIsImage } from "./message.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
-import {
-    DirectedMessage_Event,
-    Parsed_Event,
-    PinConversation,
-    Profile_Nostr_Event,
-    Text_Note_Event,
-    UnpinConversation,
-} from "../nostr.ts";
+import { Parsed_Event, PinConversation, Profile_Nostr_Event, UnpinConversation } from "../nostr.ts";
 import { ProfileData, ProfileSyncer } from "../features/profile.ts";
 
 import { UserDetail } from "./user-detail.tsx";
@@ -50,7 +43,7 @@ export type DirectMessagePanelUpdate =
 
 export type ViewNoteThread = {
     type: "ViewNoteThread";
-    event: Parsed_Event;
+    event: NostrEvent;
 };
 
 export type ViewThread = {
@@ -541,17 +534,16 @@ export function ParseMessageContent(
 }
 
 function Card(
-    event: Profile_Nostr_Event | Text_Note_Event,
+    event: NostrEvent,
     emit: emitFunc<ViewThread | ViewUserDetail | ViewNoteThread>,
     profileGetter: ProfileGetter,
 ) {
+    const pubkey = PublicKey.FromHex(event.pubkey) as PublicKey;
+    const profile = profileGetter.getProfilesByPublicKey(pubkey)?.profile;
     switch (event.kind) {
         case NostrKind.META_DATA:
-            return <ProfileCard emit={emit} publicKey={event.publicKey} profileData={event.profile} />;
+            return <ProfileCard emit={emit} publicKey={pubkey} profileData={profile} />;
         case NostrKind.TEXT_NOTE:
-            const pubkey = PublicKey.FromHex(event.pubkey);
-            // @ts-ignore
-            const profile = profileGetter.getProfilesByPublicKey(pubkey)?.profile;
             return <NoteCard emit={emit} event={event} profileData={profile} />;
     }
 }

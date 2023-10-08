@@ -3,11 +3,7 @@ import { h } from "https://esm.sh/preact@10.17.1";
 import { ProfileSyncer, saveProfile } from "../features/profile.ts";
 
 import { App } from "./app.tsx";
-import {
-    ConversationLists,
-    ConversationSummary,
-    getConversationSummaryFromPublicKey,
-} from "./conversation-list.ts";
+import { ConversationLists } from "./conversation-list.ts";
 
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { Database_Contextual_View } from "../database.ts";
@@ -26,13 +22,11 @@ import { SearchUpdate, SelectConversation } from "./search_model.ts";
 import { fromEvents, LamportTime } from "../time.ts";
 import { SignInEvent, signInWithExtension, signInWithPrivateKey } from "./signIn.tsx";
 import {
-    computeThreads,
     DirectedMessage_Event,
     Encrypted_Event,
     getTags,
     PinConversation,
     Profile_Nostr_Event,
-    Text_Note_Event,
     UnpinConversation,
 } from "../nostr.ts";
 import { StartInvite } from "./dm.tsx";
@@ -116,11 +110,10 @@ export async function* UI_Interaction_Update(args: {
                     if (dbView instanceof Error) {
                         throw dbView;
                     }
-                    const lamport = fromEvents(dbView.events);
+
                     const otherConfig = await OtherConfig.FromLocalStorage(ctx);
                     const app = new App(
                         dbView,
-                        lamport,
                         model,
                         ctx,
                         eventBus,
@@ -213,6 +206,7 @@ export async function* UI_Interaction_Update(args: {
                 app.lamport,
                 pool,
                 app.model.editors,
+                app.model.gmEditors,
                 app.database,
                 app.groupChatController,
             );
@@ -300,14 +294,15 @@ export async function* UI_Interaction_Update(args: {
             model.rightPanelModel.show = true;
         } else if (event.type == "ViewNoteThread") {
             let root: NostrEvent = event.event;
-            if (event.event.parsedTags.root && event.event.parsedTags.root) {
-                const res = app.eventSyncer.syncEvent(NoteID.FromHex(event.event.parsedTags.root[0]));
+            const tags = getTags(event.event);
+            if (tags.root && tags.root[0]) {
+                const res = app.eventSyncer.syncEvent(NoteID.FromHex(tags.root[0]));
                 if (res instanceof Promise) {
                     continue;
                 }
                 root = res;
-            } else if (event.event.parsedTags.e && event.event.parsedTags.e.length) {
-                const res = app.eventSyncer.syncEvent(NoteID.FromHex(event.event.parsedTags.e[0]));
+            } else if (tags.e && tags.e.length) {
+                const res = app.eventSyncer.syncEvent(NoteID.FromHex(tags.e[0]));
                 if (res instanceof Promise) {
                     continue;
                 }
@@ -521,14 +516,14 @@ export async function* Database_Update(
     profileSyncer: ProfileSyncer,
     lamport: LamportTime,
     convoLists: ConversationLists,
-    emit: emitFunc<SelectConversation>,
+    groupController: GroupChatController,
 ) {
     const changes = database.subscribe();
     while (true) {
         await csp.sleep(333);
         await changes.ready();
         const t = Date.now();
-        const changes_events: (Text_Note_Event | Encrypted_Event | Profile_Nostr_Event)[] = [];
+        const changes_events: (Encrypted_Event | Profile_Nostr_Event | NostrEvent)[] = [];
         while (true) {
             if (!changes.isReadyToPop()) {
                 break;
@@ -544,8 +539,8 @@ export async function* Database_Update(
             changes_events.push(e);
         }
 
-        let hasKind_1 = false;
         profileSyncer.add(...changes_events.map((e) => e.pubkey));
+        // @ts-ignore
         convoLists.addEvents(changes_events);
         for (let e of changes_events) {
             const t = getTags(e).lamport_timestamp;
@@ -593,34 +588,38 @@ export async function* Database_Update(
                         continue;
                     }
                 }
-            } else if (e.kind == NostrKind.TEXT_NOTE) {
-                hasKind_1 = true;
+            } else if (e.kind == NostrKind.Group_Message) {
+                // @ts-ignore
+                const err = await groupController.addEvent(e);
+                if (err instanceof Error) {
+                    console.error(err);
+                }
             }
 
             // notification
-            {
-                const author = getConversationSummaryFromPublicKey(e.publicKey, convoLists.convoSummaries)
-                    ?.profile;
-                if (e.pubkey != ctx.publicKey.hex && e.parsedTags.p.includes(ctx.publicKey.hex)) {
-                    notify(
-                        author?.profile.name ? author.profile.name : "",
-                        "new message",
-                        author?.profile.picture ? author.profile.picture : "",
-                        () => {
-                            const k = PublicKey.FromHex(e.pubkey);
-                            if (k instanceof Error) {
-                                console.error(k);
-                                return;
-                            }
-                            emit({
-                                type: "SelectConversation",
-                                pubkey: k,
-                                isGroupChat: false, // todo
-                            });
-                        },
-                    );
-                }
-            }
+            // {
+            //     const author = getConversationSummaryFromPublicKey(e.publicKey, convoLists.convoSummaries)
+            //         ?.profile;
+            //     if (e.pubkey != ctx.publicKey.hex && e.parsedTags.p.includes(ctx.publicKey.hex)) {
+            //         notify(
+            //             author?.profile.name ? author.profile.name : "",
+            //             "new message",
+            //             author?.profile.picture ? author.profile.picture : "",
+            //             () => {
+            //                 const k = PublicKey.FromHex(e.pubkey);
+            //                 if (k instanceof Error) {
+            //                     console.error(k);
+            //                     return;
+            //                 }
+            //                 emit({
+            //                     type: "SelectConversation",
+            //                     pubkey: k,
+            //                     isGroupChat: false, // todo
+            //                 });
+            //             },
+            //         );
+            //     }
+            // }
         }
         // if (hasKind_1) {
         //     console.log("Database_Update: getSocialPosts");
@@ -648,6 +647,7 @@ export async function handle_SendMessage(
     lamport: LamportTime,
     pool: ConnectionPool,
     dmEditors: Map<string, EditorModel>,
+    gmEditors: Map<string, EditorModel>,
     db: Database_Contextual_View,
     groupControl: GroupChatController,
 ) {
@@ -678,6 +678,11 @@ export async function handle_SendMessage(
         if (err2 instanceof Error) {
             console.error(err);
         }
+        const editor = gmEditors.get(event.pubkey.hex);
+        if (editor) {
+            editor.files = [];
+            editor.text = "";
+        }
     } else {
         const events = await sendDMandImages({
             sender: ctx,
@@ -697,11 +702,10 @@ export async function handle_SendMessage(
                 console.error(err);
             }
         }
-    }
-    // clear the editor model
-    const editor = dmEditors.get(event.id);
-    if (editor) {
-        editor.files = [];
-        editor.text = "";
+        const editor = dmEditors.get(event.pubkey.hex);
+        if (editor) {
+            editor.files = [];
+            editor.text = "";
+        }
     }
 }

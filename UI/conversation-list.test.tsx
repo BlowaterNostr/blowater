@@ -36,6 +36,7 @@ const view = () =>
             pinListGetter={OtherConfig.Empty()}
             eventBus={testEventBus}
             emit={testEventBus.emit}
+            profileGetter={database}
         />,
         document.body,
     );

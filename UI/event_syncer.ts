@@ -9,10 +9,9 @@ export class EventSyncer {
 
     syncEvent(id: NoteID) {
         const subID = EventSyncer.name + ":syncEvent";
-        for (const e of this.db.events) {
-            if (e.id == id.hex) {
-                return e;
-            }
+        const e = this.db.get({ id: id.hex });
+        if (e) {
+            return e;
         }
         return (async () => {
             await this.pool.closeSub(subID);
@@ -28,19 +27,5 @@ export class EventSyncer {
                 return; // just need to read from 1 relay
             }
         })();
-    }
-
-    async syncEvents(filter: NostrFilters) {
-        await this.pool.closeSub(EventSyncer.name);
-        let events = await this.pool.newSub(EventSyncer.name, filter);
-        if (events instanceof Error) {
-            return events;
-        }
-        for await (const { res, url } of events.chan) {
-            if (res.type != "EVENT") {
-                continue;
-            }
-            await this.db.addEvent(res.event);
-        }
     }
 }

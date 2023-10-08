@@ -32,7 +32,6 @@ export type EditorEvent = SendMessage | UpdateEditorText | UpdateMessageFiles;
 
 export type SendMessage = {
     readonly type: "SendMessage";
-    readonly id: string;
     readonly pubkey: PublicKey;
     text: string;
     files: Blob[];
@@ -84,11 +83,10 @@ export class Editor extends Component<EditorProps> {
         const sendMessage = async () => {
             props.emit({
                 type: "SendMessage",
-                id: props.targetNpub.hex,
+                pubkey: props.targetNpub,
                 files: [], // todo
                 text: props.text,
                 isGroupChat: props.isGroupChat,
-                pubkey: props.targetNpub,
             });
             textareaElement.current.setAttribute(
                 "rows",
