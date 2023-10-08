@@ -110,11 +110,10 @@ export async function* UI_Interaction_Update(args: {
                     if (dbView instanceof Error) {
                         throw dbView;
                     }
-                    const lamport = fromEvents(dbView.events);
+
                     const otherConfig = await OtherConfig.FromLocalStorage(ctx);
                     const app = new App(
                         dbView,
-                        lamport,
                         model,
                         ctx,
                         eventBus,

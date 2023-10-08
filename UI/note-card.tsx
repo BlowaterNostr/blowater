@@ -11,7 +11,7 @@ import { PublicKey } from "../lib/nostr-ts/key.ts";
 
 export function NoteCard(props: {
     profileData?: ProfileData;
-    event: NostrEvent<Exclude<NostrKind, NostrKind.META_DATA>>;
+    event: NostrEvent;
     emit: emitFunc<ViewNoteThread>;
 }) {
     const { profileData, event, emit } = props;

@@ -16,6 +16,8 @@ import { StartCreateGroupChat } from "./create-group.tsx";
 import { GroupIcon } from "./icons2/group-icon.tsx";
 import { Component } from "https://esm.sh/preact@10.17.1";
 import { UI_Interaction_Event } from "./app_update.tsx";
+import { ProfileData } from "../features/profile.ts";
+import { ProfileGetter } from "./search.tsx";
 
 const IsGruopChatSupported = false;
 
@@ -47,6 +49,7 @@ type Props = {
     convoListRetriever: ConversationListRetriever;
     hasNewMessages: NewMessageChecker;
     pinListGetter: PinListGetter;
+    profileGetter: ProfileGetter;
 };
 
 type State = {
@@ -200,6 +203,7 @@ export class ConversationList extends Component<Props, State> {
                     pinListGetter={props.pinListGetter}
                     isGroupChat={listToRender === groups}
                     emit={props.emit}
+                    profileGetter={props.profileGetter}
                 />
             </div>
         );
@@ -216,6 +220,7 @@ type ConversationListProps = {
     pinListGetter: PinListGetter;
     isGroupChat: boolean;
     emit: emitFunc<ContactUpdate>;
+    profileGetter: ProfileGetter;
 };
 
 function ContactGroup(props: ConversationListProps) {
@@ -236,6 +241,11 @@ function ContactGroup(props: ConversationListProps) {
     return (
         <ul class={tw`overflow-auto flex-1 p-2 text-[#96989D]`}>
             {pinned.map((contact) => {
+                let profile;
+                const profileEvent = props.profileGetter.getProfilesByPublicKey(contact.conversation.pubkey);
+                if (profileEvent) {
+                    profile = profileEvent.profile;
+                }
                 return (
                     <li
                         class={tw`${
@@ -255,6 +265,7 @@ function ContactGroup(props: ConversationListProps) {
                             conversation={contact.conversation}
                             isMarked={contact.isMarked}
                             isPinned={true}
+                            profile={profile}
                         />
 
                         <button
@@ -282,6 +293,11 @@ function ContactGroup(props: ConversationListProps) {
             })}
 
             {unpinned.map((contact) => {
+                let profile;
+                const profileEvent = props.profileGetter.getProfilesByPublicKey(contact.conversation.pubkey);
+                if (profileEvent) {
+                    profile = profileEvent.profile;
+                }
                 return (
                     <li
                         class={tw`${
@@ -301,6 +317,7 @@ function ContactGroup(props: ConversationListProps) {
                             conversation={contact.conversation}
                             isMarked={contact.isMarked}
                             isPinned={false}
+                            profile={profile}
                         />
 
                         <button
@@ -336,6 +353,7 @@ type ListItemProps = {
     conversation: ConversationSummary;
     isMarked: boolean;
     isPinned: boolean;
+    profile: ProfileData | undefined;
 };
 
 function ConversationListItem(props: ListItemProps) {
@@ -343,13 +361,13 @@ function ConversationListItem(props: ListItemProps) {
         <Fragment>
             <Avatar
                 class={tw`w-8 h-8 mr-2`}
-                picture={props.conversation.profile?.profile.picture}
+                picture={props.profile?.picture}
             />
             <div
                 class={tw`flex-1 overflow-hidden relative`}
             >
                 <p class={tw`truncate w-full`}>
-                    {props.conversation.profile?.profile.name || props.conversation.pubkey.bech32()}
+                    {props.profile?.name || props.conversation.pubkey.bech32()}
                 </p>
                 {props.conversation.newestEventReceivedByMe !== undefined
                     ? (

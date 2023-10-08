@@ -1,13 +1,12 @@
 import { ConversationListRetriever, GroupChatListGetter, NewMessageChecker } from "./conversation-list.tsx";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
-import { getTags, Profile_Nostr_Event } from "../nostr.ts";
+import { getTags, Parsed_Event, Profile_Nostr_Event } from "../nostr.ts";
 import { ProfileSyncer } from "../features/profile.ts";
 import { GroupChatCreation } from "../group-chat.ts";
 
 export interface ConversationSummary {
     pubkey: PublicKey;
-    profile: Profile_Nostr_Event | undefined;
     newestEventSendByMe: NostrEvent | undefined;
     newestEventReceivedByMe: NostrEvent | undefined;
 }
@@ -15,7 +14,7 @@ export interface ConversationSummary {
 export class ConversationLists implements ConversationListRetriever, GroupChatListGetter, NewMessageChecker {
     readonly convoSummaries = new Map<string, ConversationSummary>();
     readonly groupChatSummaries = new Map<string, ConversationSummary>();
-    private readonly profile = new Map<string, Profile_Nostr_Event>();
+    // private readonly profile = new Map<string, Profile_Nostr_Event>();
 
     constructor(
         public readonly ctx: NostrAccountContext,
@@ -84,54 +83,16 @@ export class ConversationLists implements ConversationListRetriever, GroupChatLi
             pubkey: publicKey,
             newestEventReceivedByMe: undefined,
             newestEventSendByMe: undefined,
-            profile: this.profile.get(publicKey.hex),
         });
         this.profileSyncer.add(publicKey.hex);
     }
 
     addEvents(
-        events: (
-            | Profile_Nostr_Event
-            | NostrEvent<NostrKind.DIRECT_MESSAGE | NostrKind.Group_Message>
-        )[],
+        events: Parsed_Event[],
     ) {
         // const t = Date.now();
         for (const event of events) {
             switch (event.kind) {
-                case NostrKind.META_DATA:
-                    {
-                        const profile = this.profile.get(event.publicKey.hex);
-                        if (profile) {
-                            if (profile.created_at < event.created_at) {
-                                this.profile.set(event.publicKey.hex, event);
-                            }
-                        } else {
-                            this.profile.set(event.publicKey.hex, event);
-                        }
-                        const convoSummary = this.convoSummaries.get(event.pubkey);
-                        const groupChatSummary = this.groupChatSummaries.get(event.pubkey);
-
-                        if (convoSummary) {
-                            if (convoSummary.profile) {
-                                if (event.created_at > convoSummary.profile?.created_at) {
-                                    convoSummary.profile = event;
-                                }
-                            } else {
-                                convoSummary.profile = event;
-                            }
-                        }
-
-                        if (groupChatSummary) {
-                            if (groupChatSummary.profile) {
-                                if (event.created_at > groupChatSummary.profile?.created_at) {
-                                    groupChatSummary.profile = event;
-                                }
-                            } else {
-                                groupChatSummary.profile = event;
-                            }
-                        }
-                    }
-                    break;
                 case NostrKind.DIRECT_MESSAGE:
                     {
                         let whoAm_I_TalkingTo = "";
@@ -185,7 +146,6 @@ export class ConversationLists implements ConversationListRetriever, GroupChatLi
                                 pubkey: PublicKey.FromHex(whoAm_I_TalkingTo) as PublicKey,
                                 newestEventReceivedByMe: undefined,
                                 newestEventSendByMe: undefined,
-                                profile: this.profile.get(whoAm_I_TalkingTo),
                             };
                             if (whoAm_I_TalkingTo == this.ctx.publicKey.hex) {
                                 // talking to myself

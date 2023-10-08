@@ -31,6 +31,7 @@ import { OtherConfig } from "./config-other.ts";
 import { ProfileGetter } from "./search.tsx";
 import { ZodError } from "https://esm.sh/zod@3.22.4";
 import { data } from "./_setup.test.ts";
+import { fromEvents } from "../time.ts";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
@@ -49,9 +50,8 @@ export async function Start(database: DexieDatabase) {
         if (dbView instanceof Error) {
             throw dbView;
         }
-        const lamport = time.fromEvents(dbView.events);
         const otherConfig = await OtherConfig.FromLocalStorage(ctx);
-        const app = new App(dbView, lamport, model, ctx, eventBus, pool, popOverInputChan, otherConfig);
+        const app = new App(dbView, model, ctx, eventBus, pool, popOverInputChan, otherConfig);
         await app.initApp();
         model.app = app;
     }
@@ -97,10 +97,10 @@ export class App {
     public readonly conversationLists: ConversationLists;
     public readonly relayConfig: RelayConfig;
     public readonly groupChatController: GroupChatController;
+    public readonly lamport: time.LamportTime;
 
     constructor(
         public readonly database: Database_Contextual_View,
-        public readonly lamport: time.LamportTime,
         public readonly model: Model,
         public readonly ctx: NostrAccountContext,
         public readonly eventBus: EventBus<UI_Interaction_Event>,
@@ -108,6 +108,7 @@ export class App {
         public readonly popOverInputChan: PopOverInputChannel,
         public readonly otherConfig: OtherConfig,
     ) {
+        this.lamport = fromEvents(database.events);
         this.eventSyncer = new EventSyncer(pool, this.database);
         this.relayConfig = RelayConfig.FromLocalStorage(ctx);
         if (this.relayConfig.getRelayURLs().size == 0) {
@@ -209,8 +210,10 @@ export class App {
         })(this.database, this.ctx, this.pool);
 
         /* my profile */
-        this.model.myProfile = this.conversationLists.convoSummaries.get(this.ctx.publicKey.hex)?.profile
-            ?.profile;
+        const myProfileEvent = this.database.getProfilesByPublicKey(this.ctx.publicKey);
+        if (myProfileEvent != undefined) {
+            this.model.myProfile = myProfileEvent.profile;
+        }
 
         /* contacts */
         for (const contact of this.conversationLists.convoSummaries.values()) {

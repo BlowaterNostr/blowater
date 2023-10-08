@@ -35,11 +35,9 @@ type State = {
 };
 
 export class EditGroup extends Component<Props, State> {
-    group = this.props.conversationLists.groupChatSummaries.get(this.props.publicKey.hex);
-
     state = {
-        name: this.group?.profile?.profile?.name || "",
-        picture: this.group?.profile?.profile?.picture || "",
+        name: "",
+        picture: "",
         error: "",
     };
     styles = {

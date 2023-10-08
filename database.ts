@@ -5,7 +5,6 @@ import {
     getTags,
     Parsed_Event,
     Profile_Nostr_Event,
-    Tag,
 } from "./nostr.ts";
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { parseJSON, ProfileData } from "./features/profile.ts";
@@ -15,6 +14,7 @@ import {
     NostrAccountContext,
     NostrEvent,
     NostrKind,
+    Tag,
     Tags,
     verifyEvent,
 } from "./lib/nostr-ts/nostr.ts";
@@ -22,6 +22,7 @@ import { PublicKey } from "./lib/nostr-ts/key.ts";
 import { NoteID } from "./lib/nostr-ts/nip19.ts";
 import { DirectMessageGetter } from "./UI/app_update.tsx";
 import { ProfileGetter } from "./UI/search.tsx";
+import { GroupChatController } from "./group-chat.ts";
 
 export const NotFound = Symbol("Not Found");
 const buffer_size = 2000;
@@ -42,7 +43,7 @@ export interface EventRemover {
 }
 
 export interface EventGetter {
-    get(keys: Indices): Promise<NostrEvent | undefined>;
+    get(keys: Indices): Promise<NostrEvent | undefined> | NostrEvent | undefined;
 }
 
 export interface EventPutter {
@@ -52,48 +53,62 @@ export interface EventPutter {
 export type EventsAdapter = EventsFilter & EventRemover & EventGetter & EventPutter;
 
 type Accepted_Event = Encrypted_Event | Profile_Nostr_Event | NostrEvent;
-export class Database_Contextual_View implements DirectMessageGetter, ProfileGetter {
+export class Database_Contextual_View implements DirectMessageGetter, ProfileGetter, EventGetter {
     private readonly sourceOfChange = csp.chan<Accepted_Event | null>(buffer_size);
     private readonly caster = csp.multi<Accepted_Event | null>(this.sourceOfChange);
     public readonly directed_messages = new Map<string, DirectedMessage_Event>();
 
     private constructor(
         private readonly eventsAdapter: EventsAdapter,
-        public readonly events: (
-            | NostrEvent<NostrKind.DIRECT_MESSAGE | NostrKind.Group_Message>
-            | NostrEvent<NostrKind.DIRECT_MESSAGE>
-            | Profile_Nostr_Event
-        )[],
+        public readonly events: Parsed_Event[],
         private readonly ctx: NostrAccountContext,
     ) {}
 
-    getProfilesByText(name: string): Profile_Nostr_Event[] {
-        const events: Profile_Nostr_Event[] = [];
+    get(keys: Indices): NostrEvent | undefined {
         for (const e of this.events) {
-            if (e.kind === NostrKind.META_DATA) {
-                events.push(e);
+            if (e.id == keys.id) {
+                return e;
             }
         }
-        if (events.length == 0) {
+        return undefined;
+    }
+
+    getProfilesByText(name: string): Profile_Nostr_Event[] {
+        const profileEvents: NostrEvent<NostrKind.META_DATA>[] = [];
+        for (const e of this.events) {
+            if (e.kind === NostrKind.META_DATA) {
+                // @ts-ignore
+                profileEvents.push(e);
+            }
+        }
+        if (profileEvents.length == 0) {
             return [];
         }
-        const profilesPerUser = groupBy(events, (e) => e.pubkey);
+        const profilesPerUser = groupBy(profileEvents, (e) => e.pubkey);
 
         const result = [];
         for (const events of profilesPerUser.values()) {
             events.sort((e1, e2) => e2.created_at - e1.created_at);
             const p = events[0];
-            if (p.profile.name && p.profile.name?.toLocaleLowerCase().indexOf(name.toLowerCase()) != -1) {
-                result.push(p);
+            const profileEvent = parseProfileEvent(p);
+            if (profileEvent instanceof Error) {
+                throw profileEvent; // todo: fix later
+            }
+            if (
+                profileEvent.profile.name &&
+                profileEvent.profile.name?.toLocaleLowerCase().indexOf(name.toLowerCase()) != -1
+            ) {
+                result.push(profileEvent);
             }
         }
         return result;
     }
 
     getProfilesByPublicKey(pubkey: PublicKey): Profile_Nostr_Event | undefined {
-        const events: Profile_Nostr_Event[] = [];
+        const events: NostrEvent<NostrKind.META_DATA>[] = [];
         for (const e of this.events) {
             if (e.kind === NostrKind.META_DATA && e.pubkey === pubkey.hex) {
+                // @ts-ignore
                 events.push(e);
             }
         }
@@ -102,7 +117,11 @@ export class Database_Contextual_View implements DirectMessageGetter, ProfileGet
         }
         events.sort((e1, e2) => e2.created_at - e1.created_at);
         const newest = events[0];
-        return newest;
+        const profileEvent = parseProfileEvent(newest);
+        if (profileEvent instanceof Error) {
+            throw profileEvent; // todo: fix later
+        }
+        return profileEvent;
     }
 
     static async New(eventsAdapter: EventsAdapter, ctx: NostrAccountContext) {
@@ -111,19 +130,15 @@ export class Database_Contextual_View implements DirectMessageGetter, ProfileGet
         console.log("Database_Contextual_View:onload", Date.now() - t, allEvents.length);
 
         // Load Non Encrypted Data
-        const initialEvents: (NostrEvent<NostrKind.DIRECT_MESSAGE> | Profile_Nostr_Event)[] =
-            await loadInitialData(allEvents, eventsAdapter);
+        const initialEvents: Parsed_Event[] = allEvents.map((e) => {
+            const p: Parsed_Event = {
+                ...e,
+                parsedTags: getTags(e),
+                publicKey: PublicKey.FromHex(e.pubkey) as PublicKey,
+            };
+            return p;
+        });
         console.log("Database_Contextual_View:parsed", Date.now() - t);
-
-        // Load DMs
-        for (const event of allEvents) {
-            if (event.kind == NostrKind.DIRECT_MESSAGE) {
-                initialEvents.push({
-                    ...event,
-                    kind: event.kind,
-                });
-            }
-        }
 
         // Construct the View
         const db = new Database_Contextual_View(
@@ -269,28 +284,6 @@ export function whoIamTalkingTo(event: NostrEvent, myPublicKey: PublicKey) {
     }
     // I am the receiver
     return whoIAmTalkingTo;
-}
-
-async function loadInitialData(events: NostrEvent[], eventsRemover: EventRemover) {
-    const initialEvents = [];
-    for await (const event of events) {
-        if (event.kind != NostrKind.META_DATA) {
-            continue;
-        }
-        const parsedEvent = parseProfileEvent(
-            // @ts-ignore
-            event,
-        );
-
-        if (parsedEvent instanceof Error) {
-            console.error(parsedEvent.message);
-            await eventsRemover.remove(event.id);
-            continue;
-        }
-
-        initialEvents.push(parsedEvent);
-    }
-    return initialEvents;
 }
 
 export async function originalEventToParsedEvent(

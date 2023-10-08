@@ -43,7 +43,7 @@ export type DirectMessagePanelUpdate =
 
 export type ViewNoteThread = {
     type: "ViewNoteThread";
-    event: NostrEvent<Exclude<NostrKind, NostrKind.META_DATA>>;
+    event: NostrEvent;
 };
 
 export type ViewThread = {
@@ -534,17 +534,16 @@ export function ParseMessageContent(
 }
 
 function Card(
-    event: Profile_Nostr_Event | NostrEvent<Exclude<NostrKind, NostrKind.META_DATA>>,
+    event: NostrEvent,
     emit: emitFunc<ViewThread | ViewUserDetail | ViewNoteThread>,
     profileGetter: ProfileGetter,
 ) {
+    const pubkey = PublicKey.FromHex(event.pubkey) as PublicKey;
+    const profile = profileGetter.getProfilesByPublicKey(pubkey)?.profile;
     switch (event.kind) {
         case NostrKind.META_DATA:
-            return <ProfileCard emit={emit} publicKey={event.publicKey} profileData={event.profile} />;
+            return <ProfileCard emit={emit} publicKey={pubkey} profileData={profile} />;
         case NostrKind.TEXT_NOTE:
-            const pubkey = PublicKey.FromHex(event.pubkey);
-            // @ts-ignore
-            const profile = profileGetter.getProfilesByPublicKey(pubkey)?.profile;
             return <NoteCard emit={emit} event={event} profileData={profile} />;
     }
 }

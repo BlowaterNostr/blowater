@@ -9,10 +9,9 @@ export class EventSyncer {
 
     syncEvent(id: NoteID) {
         const subID = EventSyncer.name + ":syncEvent";
-        for (const e of this.db.events) {
-            if (e.id == id.hex) {
-                return e;
-            }
+        const e = this.db.get({ id: id.hex });
+        if (e) {
+            return e;
         }
         return (async () => {
             await this.pool.closeSub(subID);
