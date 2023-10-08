@@ -182,6 +182,28 @@ export class GroupChatController implements GroupMessageGetter {
         }
         return creation.groupKey;
     }
+
+    async createInvitation(groupAddr: PublicKey, invitee: PublicKey) {
+        // It has to be a group that I created
+        const group = this.created_groups.get(groupAddr.bech32())
+        if(group == undefined) {
+            return new Error(`You are not the admin of ${groupAddr.bech32()}`)
+        }
+        // create the invitation event
+        const invitation = {
+            type: "gm_invitation",
+            cipherKey: group.cipherKey.privateKey.bech32
+        }
+        const event = await prepareEncryptedNostrEvent(this.ctx, {
+            encryptKey: invitee,
+            kind: NostrKind.Group_Message,
+            content: JSON.stringify(invitation),
+            tags: [
+                ["p", invitee.hex]
+            ]
+        });
+        return event
+    }
 }
 
 function isCreation(event: NostrEvent<NostrKind.Group_Message>) {
