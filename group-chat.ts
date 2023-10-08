@@ -1,6 +1,6 @@
 import { z } from "https://esm.sh/zod@3.22.4";
 import { ConversationLists, ConversationSummary } from "./UI/conversation-list.ts";
-import { ProfileSyncer, parseJSON } from "./features/profile.ts";
+import { parseJSON, ProfileSyncer } from "./features/profile.ts";
 import { prepareEncryptedNostrEvent } from "./lib/nostr-ts/event.ts";
 import { PrivateKey, PublicKey } from "./lib/nostr-ts/key.ts";
 import { InMemoryAccountContext, NostrAccountContext, NostrEvent, NostrKind } from "./lib/nostr-ts/nostr.ts";
@@ -38,7 +38,7 @@ export class GroupChatController implements GroupMessageGetter, GroupChatListGet
         private readonly ctx: NostrAccountContext,
         private readonly conversationLists: ConversationLists,
         private readonly groupSyncer: GroupChatSyncer,
-        private readonly profileSyncer: ProfileSyncer
+        private readonly profileSyncer: ProfileSyncer,
     ) {}
 
     getGroupChat() {
@@ -85,8 +85,8 @@ export class GroupChatController implements GroupMessageGetter, GroupChatListGet
             groupKey: InMemoryAccountContext.New(PrivateKey.Generate()),
         };
         this.created_groups.set(groupChatCreation.groupKey.publicKey.bech32(), groupChatCreation);
-        this.groupSyncer.add(groupChatCreation.groupKey.publicKey.hex)
-        this.profileSyncer.add(groupChatCreation.groupKey.publicKey.hex)
+        this.groupSyncer.add(groupChatCreation.groupKey.publicKey.hex);
+        this.profileSyncer.add(groupChatCreation.groupKey.publicKey.hex);
         return groupChatCreation;
     }
 
@@ -161,8 +161,8 @@ export class GroupChatController implements GroupMessageGetter, GroupChatListGet
             groupAddr,
         };
         this.invitations.set(groupAddr.bech32(), invitation);
-        this.groupSyncer.add(groupAddr.hex)
-        this.profileSyncer.add(groupAddr.hex)
+        this.groupSyncer.add(groupAddr.hex);
+        this.profileSyncer.add(groupAddr.hex);
     }
 
     async handleMessage(event: NostrEvent<NostrKind.Group_Message>) {
@@ -259,8 +259,8 @@ export class GroupChatController implements GroupMessageGetter, GroupChatListGet
                     cipherKey: InMemoryAccountContext.New(cipherKey),
                 };
                 this.created_groups.set(groupKey.toPublicKey().bech32(), groupChatCreation);
-                this.groupSyncer.add(groupKey.toPublicKey().hex)
-                this.profileSyncer.add(groupKey.toPublicKey().hex)
+                this.groupSyncer.add(groupKey.toPublicKey().hex);
+                this.profileSyncer.add(groupKey.toPublicKey().hex);
 
                 this.conversationLists.addGroupCreation(groupChatCreation);
             } else if (content.type == "gm_message") {

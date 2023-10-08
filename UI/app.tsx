@@ -138,7 +138,12 @@ export class App {
         conversationLists.addEvents(args.database.events);
 
         const groupSyncer = new GroupChatSyncer(args.database, args.pool);
-        const groupChatController = new GroupChatController(args.ctx, conversationLists, groupSyncer, profileSyncer);
+        const groupChatController = new GroupChatController(
+            args.ctx,
+            conversationLists,
+            groupSyncer,
+            profileSyncer,
+        );
         for (const e of args.database.events) {
             if (e.kind == NostrKind.Group_Message) {
                 const err = await groupChatController.addEvent({
