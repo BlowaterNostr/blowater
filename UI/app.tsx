@@ -26,10 +26,11 @@ import { About } from "./about.tsx";
 import { ProfileSyncer } from "../features/profile.ts";
 import { Popover, PopOverInputChannel } from "./components/popover.tsx";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { GroupChatController, GroupChatSyncer } from "../group-chat.ts";
+import { GroupChatSyncer, GroupMessageController } from "../features/gm.ts";
 import { OtherConfig } from "./config-other.ts";
 import { ProfileGetter } from "./search.tsx";
 import { fromEvents } from "../time.ts";
+import { DirectedMessageController } from "../features/dm.ts";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
@@ -110,8 +111,9 @@ export class App {
         public readonly eventSyncer: EventSyncer,
         public readonly conversationLists: ConversationLists,
         public readonly relayConfig: RelayConfig,
-        public readonly groupChatController: GroupChatController,
+        public readonly groupChatController: GroupMessageController,
         public readonly lamport: time.LamportTime,
+        public readonly dmController: DirectedMessageController,
     ) {}
 
     static async Start(args: {
@@ -137,24 +139,42 @@ export class App {
         const conversationLists = new ConversationLists(args.ctx, profileSyncer);
         conversationLists.addEvents(args.database.events);
 
+        const dmControl = new DirectedMessageController(args.ctx);
+
         const groupSyncer = new GroupChatSyncer(args.database, args.pool);
-        const groupChatController = new GroupChatController(
+        const groupChatController = new GroupMessageController(
             args.ctx,
             conversationLists,
             groupSyncer,
             profileSyncer,
         );
-        for (const e of args.database.events) {
-            if (e.kind == NostrKind.Group_Message) {
-                const err = await groupChatController.addEvent({
-                    ...e,
-                    kind: e.kind,
-                });
-                if (err instanceof Error) {
-                    console.error(err.message);
+
+        (async () => {
+            for (const e of args.database.events) {
+                if (e.kind == NostrKind.Group_Message) {
+                    const err = await groupChatController.addEvent({
+                        ...e,
+                        kind: e.kind,
+                    });
+                    if (err instanceof Error) {
+                        console.error(err.message);
+                    }
+                } else if (e.kind == NostrKind.DIRECT_MESSAGE) {
+                    const error = await dmControl.addEvent({
+                        ...e,
+                        kind: e.kind,
+                    });
+                    if (error instanceof Error) {
+                        console.error(error.message); // should delete the event
+                    }
+                } else {
+                    continue;
                 }
+                // notify update loop to render
+                // todo: directly call render instead of go through database update loop
+                args.database.sourceOfChange.put(null);
             }
-        }
+        })();
 
         return new App(
             args.database,
@@ -170,6 +190,7 @@ export class App {
             relayConfig,
             groupChatController,
             lamport,
+            dmControl,
         );
     }
 
@@ -313,6 +334,7 @@ export class App {
                     this.lamport,
                     this.conversationLists,
                     this.groupChatController,
+                    this.dmController,
                 )
             ) {
                 const t = Date.now();
@@ -403,7 +425,7 @@ export function AppComponent(props: {
                         rightPanelModel: model.rightPanelModel,
                         bus: app.eventBus,
                         ctx: myAccountCtx,
-                        dmGetter: app.database,
+                        dmGetter: app.dmController,
                         profileGetter: app.database,
                         pool: props.pool,
                         conversationLists: app.conversationLists,

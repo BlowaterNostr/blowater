@@ -1,9 +1,18 @@
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
-import { prepareNostrImageEvent, Tag } from "../nostr.ts";
+import {
+    compare,
+    DirectedMessage_Event,
+    getTags,
+    Parsed_Event,
+    prepareNostrImageEvent,
+    Tag,
+} from "../nostr.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
-import { prepareEncryptedNostrEvent, prepareNormalNostrEvent } from "../lib/nostr-ts/event.ts";
+import { prepareEncryptedNostrEvent } from "../lib/nostr-ts/event.ts";
+import { DirectMessageGetter } from "../UI/app_update.tsx";
+import { parseDM } from "../database.ts";
 
 export async function sendDMandImages(args: {
     sender: NostrAccountContext;
@@ -61,26 +70,6 @@ export async function sendDMandImages(args: {
         }
     }
     return eventsToSend;
-}
-
-export async function sendSocialPost(args: {
-    sender: NostrAccountContext;
-    message: string;
-    lamport_timestamp: number;
-    pool: ConnectionPool;
-    tags: Tag[];
-}) {
-    const { sender, message, lamport_timestamp, pool, tags } = args;
-    console.log("sendSocialPost", message);
-    const event = await prepareNormalNostrEvent(sender, NostrKind.TEXT_NOTE, [
-        ["lamport", String(lamport_timestamp)],
-        ...tags,
-    ], message);
-    const err = await pool.sendEvent(event);
-    if (err instanceof Error) {
-        return err;
-    }
-    return event;
 }
 
 export function getAllEncryptedMessagesOf(
@@ -163,4 +152,46 @@ function merge<T>(...iters: AsyncIterable<T>[]) {
         coroutine(iter, merged);
     }
     return merged;
+}
+
+export class DirectedMessageController implements DirectMessageGetter {
+    constructor(
+        public readonly ctx: NostrAccountContext,
+    ) {}
+
+    public readonly directed_messages = new Map<string, DirectedMessage_Event>();
+
+    // get the direct messages between me and this pubkey
+    public getDirectMessages(pubkey: string) {
+        const events = [];
+        for (const event of this.directed_messages.values()) {
+            if (is_DM_between(event, this.ctx.publicKey.hex, pubkey)) {
+                events.push(event);
+            }
+        }
+        return events.sort(compare);
+    }
+
+    async addEvent(event: Parsed_Event<NostrKind.DIRECT_MESSAGE>) {
+        const dmEvent = await parseDM(
+            event,
+            this.ctx,
+            event.parsedTags,
+            event.publicKey,
+        );
+        if (dmEvent instanceof Error) {
+            return dmEvent;
+        }
+        this.directed_messages.set(event.id, dmEvent);
+    }
+}
+
+function is_DM_between(event: NostrEvent, myPubkey: string, theirPubKey: string) {
+    if (event.pubkey == myPubkey) {
+        return getTags(event).p[0] == theirPubKey;
+    } else if (event.pubkey == theirPubKey) {
+        return getTags(event).p[0] == myPubkey;
+    } else {
+        return false;
+    }
 }

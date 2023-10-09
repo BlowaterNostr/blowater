@@ -1,16 +1,16 @@
 import { z } from "https://esm.sh/zod@3.22.4";
-import { ConversationLists, ConversationSummary } from "./UI/conversation-list.ts";
-import { parseJSON, ProfileSyncer } from "./features/profile.ts";
-import { prepareEncryptedNostrEvent } from "./lib/nostr-ts/event.ts";
-import { PrivateKey, PublicKey } from "./lib/nostr-ts/key.ts";
-import { InMemoryAccountContext, NostrAccountContext, NostrEvent, NostrKind } from "./lib/nostr-ts/nostr.ts";
-import { GroupMessageGetter } from "./UI/app_update.tsx";
-import { getTags } from "./nostr.ts";
-import { ChatMessage } from "./UI/message.ts";
-import { GroupChatListGetter } from "./UI/conversation-list.tsx";
 import { Channel, semaphore } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { ConnectionPool } from "./lib/nostr-ts/relay.ts";
-import { Database_Contextual_View } from "./database.ts";
+import { GroupMessageGetter } from "../UI/app_update.tsx";
+import { ConversationLists, ConversationSummary } from "../UI/conversation-list.ts";
+import { GroupMessageListGetter } from "../UI/conversation-list.tsx";
+import { ChatMessage } from "../UI/message.ts";
+import { Database_Contextual_View } from "../database.ts";
+import { prepareEncryptedNostrEvent } from "../lib/nostr-ts/event.ts";
+import { PrivateKey, PublicKey } from "../lib/nostr-ts/key.ts";
+import { InMemoryAccountContext, NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
+import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
+import { getTags } from "../nostr.ts";
+import { parseJSON, ProfileSyncer } from "./profile.ts";
 
 export type GM_Types = "gm_creation" | "gm_message" | "gm_invitation";
 
@@ -28,7 +28,7 @@ export type GroupChatInvitation = {
     groupAddr: PublicKey;
 };
 
-export class GroupChatController implements GroupMessageGetter, GroupChatListGetter {
+export class GroupMessageController implements GroupMessageGetter, GroupMessageListGetter {
     created_groups = new Map<string, GroupChatCreation>();
     invitations = new Map<string, GroupChatInvitation>();
     messages = new Map<string, ChatMessage[]>();
@@ -41,7 +41,7 @@ export class GroupChatController implements GroupMessageGetter, GroupChatListGet
         private readonly profileSyncer: ProfileSyncer,
     ) {}
 
-    getGroupChat() {
+    getConversationList() {
         const conversations: ConversationSummary[] = [];
         for (const v of this.created_groups.values()) {
             conversations.push({
@@ -103,7 +103,7 @@ export class GroupChatController implements GroupMessageGetter, GroupChatListGet
         } else if (type == "gm_invitation") { // I received
             return await this.handleInvitation(event);
         } else {
-            console.log(GroupChatController.name, "ignore", event, "type", type);
+            console.log(GroupMessageController.name, "ignore", event, "type", type);
         }
     }
 

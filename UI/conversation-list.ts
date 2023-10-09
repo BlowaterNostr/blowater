@@ -1,9 +1,9 @@
 import { ConversationListRetriever, NewMessageChecker } from "./conversation-list.tsx";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
-import { getTags, Parsed_Event, Profile_Nostr_Event } from "../nostr.ts";
+import { getTags, Parsed_Event } from "../nostr.ts";
 import { ProfileSyncer } from "../features/profile.ts";
-import { GroupChatCreation } from "../group-chat.ts";
+import { GroupChatCreation } from "../features/gm.ts";
 
 export interface ConversationSummary {
     pubkey: PublicKey;

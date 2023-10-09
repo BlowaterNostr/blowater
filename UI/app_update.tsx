@@ -9,7 +9,7 @@ import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master
 import { Database_Contextual_View } from "../database.ts";
 import { convertEventsToChatMessages } from "./dm.ts";
 
-import { sendDMandImages } from "../features/dm.ts";
+import { DirectedMessageController, sendDMandImages } from "../features/dm.ts";
 import { notify } from "./notification.ts";
 import { EventBus } from "../event-bus.ts";
 import { ContactUpdate } from "./conversation-list.tsx";
@@ -25,6 +25,7 @@ import {
     DirectedMessage_Event,
     Encrypted_Event,
     getTags,
+    Parsed_Event,
     PinConversation,
     Profile_Nostr_Event,
     UnpinConversation,
@@ -43,7 +44,7 @@ import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nost
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { OtherConfig } from "./config-other.ts";
 import { EditGroup, EditGroupChatProfile, StartEditGroupChatProfile } from "./edit-group.tsx";
-import { GroupChatController } from "../group-chat.ts";
+import { GroupMessageController } from "../features/gm.ts";
 import { ChatMessage } from "./message.ts";
 
 export type UI_Interaction_Event =
@@ -481,14 +482,6 @@ export function getConversationMessages(args: {
     }
 
     const messages = convertEventsToChatMessages(events);
-    if (messages.length > 0) {
-        messages.sort((m1, m2) => {
-            if (m1.lamport && m2.lamport && m1.lamport != m2.lamport) {
-                return m1.lamport - m2.lamport;
-            }
-            return m1.created_at.getTime() - m2.created_at.getTime();
-        });
-    }
     return messages;
 }
 
@@ -521,14 +514,15 @@ export async function* Database_Update(
     profileSyncer: ProfileSyncer,
     lamport: LamportTime,
     convoLists: ConversationLists,
-    groupController: GroupChatController,
+    groupController: GroupMessageController,
+    dmController: DirectedMessageController,
 ) {
     const changes = database.subscribe();
     while (true) {
         await csp.sleep(333);
         await changes.ready();
         const t = Date.now();
-        const changes_events: (Encrypted_Event | Profile_Nostr_Event | NostrEvent)[] = [];
+        const changes_events: (Encrypted_Event | Profile_Nostr_Event | Parsed_Event)[] = [];
         while (true) {
             if (!changes.isReadyToPop()) {
                 break;
@@ -587,10 +581,12 @@ export async function* Database_Update(
                         model.myProfile = newProfile.profile;
                     }
                 } else if (e.kind == NostrKind.DIRECT_MESSAGE) {
-                    const pubkey = PublicKey.FromHex(e.pubkey);
-                    if (pubkey instanceof Error) {
-                        console.error(pubkey);
-                        continue;
+                    const err = await dmController.addEvent({
+                        ...e,
+                        kind: e.kind,
+                    });
+                    if (err instanceof Error) {
+                        console.error(err);
                     }
                 }
             } else if (e.kind == NostrKind.Group_Message) {
@@ -628,10 +624,6 @@ export async function* Database_Update(
             //     }
             // }
         }
-        // if (hasKind_1) {
-        //     console.log("Database_Update: getSocialPosts");
-        //     model.social.threads = getSocialPosts(database, convoLists.convoSummaries);
-        // }
         yield model;
     }
 }
@@ -656,7 +648,7 @@ export async function handle_SendMessage(
     dmEditors: Map<string, EditorModel>,
     gmEditors: Map<string, EditorModel>,
     db: Database_Contextual_View,
-    groupControl: GroupChatController,
+    groupControl: GroupMessageController,
 ) {
     if (event.isGroupChat) {
         const groupCtx = groupControl.getGroupChatCtx(event.pubkey);

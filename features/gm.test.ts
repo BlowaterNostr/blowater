@@ -1,11 +1,11 @@
 import { assertEquals, fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
-import { prepareEncryptedNostrEvent } from "./lib/nostr-ts/event.ts";
-import { PrivateKey } from "./lib/nostr-ts/key.ts";
-import { InMemoryAccountContext, RelayResponse_REQ_Message } from "./lib/nostr-ts/nostr.ts";
 import { Channel, closed } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { ConnectionPool } from "./lib/nostr-ts/relay.ts";
-import { relays } from "./lib/nostr-ts/relay-list.test.ts";
-import { parseJSON } from "./features/profile.ts";
+import { prepareEncryptedNostrEvent } from "../lib/nostr-ts/event.ts";
+import { PrivateKey } from "../lib/nostr-ts/key.ts";
+import { InMemoryAccountContext, RelayResponse_REQ_Message } from "../lib/nostr-ts/nostr.ts";
+import { relays } from "../lib/nostr-ts/relay-list.test.ts";
+import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
+import { parseJSON } from "./profile.ts";
 
 Deno.test("group chat", async () => {
     const pool = new ConnectionPool();
