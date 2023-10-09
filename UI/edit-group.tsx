@@ -59,7 +59,7 @@ export class EditGroup extends Component<Props, State> {
 
         this.setState({
             name: profile?.profile.name || "",
-            picture: profile?.profile.picture ||  ""
+            picture: profile?.profile.picture || "",
         });
     }
 
