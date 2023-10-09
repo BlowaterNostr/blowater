@@ -3,7 +3,7 @@ import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nost
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { prepareNostrImageEvent, Tag } from "../nostr.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
-import { prepareEncryptedNostrEvent, prepareNormalNostrEvent } from "../lib/nostr-ts/event.ts";
+import { prepareEncryptedNostrEvent } from "../lib/nostr-ts/event.ts";
 
 export async function sendDMandImages(args: {
     sender: NostrAccountContext;
@@ -61,26 +61,6 @@ export async function sendDMandImages(args: {
         }
     }
     return eventsToSend;
-}
-
-export async function sendSocialPost(args: {
-    sender: NostrAccountContext;
-    message: string;
-    lamport_timestamp: number;
-    pool: ConnectionPool;
-    tags: Tag[];
-}) {
-    const { sender, message, lamport_timestamp, pool, tags } = args;
-    console.log("sendSocialPost", message);
-    const event = await prepareNormalNostrEvent(sender, NostrKind.TEXT_NOTE, [
-        ["lamport", String(lamport_timestamp)],
-        ...tags,
-    ], message);
-    const err = await pool.sendEvent(event);
-    if (err instanceof Error) {
-        return err;
-    }
-    return event;
 }
 
 export function getAllEncryptedMessagesOf(
