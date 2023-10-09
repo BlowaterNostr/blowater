@@ -9,7 +9,7 @@ import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master
 import { Database_Contextual_View } from "../database.ts";
 import { convertEventsToChatMessages } from "./dm.ts";
 
-import { sendDMandImages } from "../features/dm.ts";
+import { DirectedMessageController, sendDMandImages } from "../features/dm.ts";
 import { notify } from "./notification.ts";
 import { EventBus } from "../event-bus.ts";
 import { ContactUpdate } from "./conversation-list.tsx";
@@ -25,6 +25,7 @@ import {
     DirectedMessage_Event,
     Encrypted_Event,
     getTags,
+    Parsed_Event,
     PinConversation,
     Profile_Nostr_Event,
     UnpinConversation,
@@ -514,13 +515,14 @@ export async function* Database_Update(
     lamport: LamportTime,
     convoLists: ConversationLists,
     groupController: GroupMessageController,
+    dmController: DirectedMessageController,
 ) {
     const changes = database.subscribe();
     while (true) {
         await csp.sleep(333);
         await changes.ready();
         const t = Date.now();
-        const changes_events: (Encrypted_Event | Profile_Nostr_Event | NostrEvent)[] = [];
+        const changes_events: (Encrypted_Event | Profile_Nostr_Event | Parsed_Event)[] = [];
         while (true) {
             if (!changes.isReadyToPop()) {
                 break;
@@ -579,10 +581,12 @@ export async function* Database_Update(
                         model.myProfile = newProfile.profile;
                     }
                 } else if (e.kind == NostrKind.DIRECT_MESSAGE) {
-                    const pubkey = PublicKey.FromHex(e.pubkey);
-                    if (pubkey instanceof Error) {
-                        console.error(pubkey);
-                        continue;
+                    const err = await dmController.addEvent({
+                        ...e,
+                        kind: e.kind,
+                    });
+                    if (err instanceof Error) {
+                        console.error(err);
                     }
                 }
             } else if (e.kind == NostrKind.Group_Message) {
@@ -620,10 +624,6 @@ export async function* Database_Update(
             //     }
             // }
         }
-        // if (hasKind_1) {
-        //     console.log("Database_Update: getSocialPosts");
-        //     model.social.threads = getSocialPosts(database, convoLists.convoSummaries);
-        // }
         yield model;
     }
 }

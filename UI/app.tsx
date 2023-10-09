@@ -334,6 +334,7 @@ export class App {
                     this.lamport,
                     this.conversationLists,
                     this.groupChatController,
+                    this.dmController,
                 )
             ) {
                 const t = Date.now();

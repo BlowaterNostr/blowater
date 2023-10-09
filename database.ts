@@ -1,9 +1,4 @@
-import {
-    Encrypted_Event,
-    getTags,
-    Parsed_Event,
-    Profile_Nostr_Event,
-} from "./nostr.ts";
+import { Encrypted_Event, getTags, Parsed_Event, Profile_Nostr_Event } from "./nostr.ts";
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { parseJSON, ProfileData } from "./features/profile.ts";
 import { parseContent } from "./UI/message.ts";
@@ -47,10 +42,9 @@ export interface EventPutter {
 
 export type EventsAdapter = EventsFilter & EventRemover & EventGetter & EventPutter;
 
-type Accepted_Event = Encrypted_Event | Profile_Nostr_Event | NostrEvent;
 export class Database_Contextual_View implements ProfileController, EventGetter {
-    public readonly sourceOfChange = csp.chan<Accepted_Event | null>(buffer_size);
-    private readonly caster = csp.multi<Accepted_Event | null>(this.sourceOfChange);
+    public readonly sourceOfChange = csp.chan<Parsed_Event | null>(buffer_size);
+    private readonly caster = csp.multi<Parsed_Event | null>(this.sourceOfChange);
     public readonly profiles = new Map<string, Profile_Nostr_Event>();
 
     private constructor(
@@ -210,7 +204,7 @@ export class Database_Contextual_View implements ProfileController, EventGetter 
     //////////////////
     subscribe() {
         const c = this.caster.copy();
-        const res = csp.chan<Accepted_Event | null>(buffer_size);
+        const res = csp.chan<Parsed_Event | null>(buffer_size);
         (async () => {
             for await (const newE of c) {
                 const err = await res.put(newE);
