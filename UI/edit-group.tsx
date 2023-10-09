@@ -8,8 +8,8 @@ import { ButtonClass, InputClass, LinearGradientsClass } from "./components/tw.t
 import { Avatar } from "./components/avatar.tsx";
 import { ProfileData } from "../features/profile.ts";
 import { emitFunc } from "../event-bus.ts";
-import { PrivateKey, PublicKey } from "../lib/nostr-ts/key.ts";
-import { ConversationLists } from "./conversation-list.ts";
+import { PublicKey } from "../lib/nostr-ts/key.ts";
+import { ProfileGetter } from "./search.tsx";
 
 export type StartEditGroupChatProfile = {
     type: "StartEditGroupChatProfile";
@@ -25,7 +25,7 @@ export type EditGroupChatProfile = {
 type Props = {
     emit: emitFunc<EditGroupChatProfile>;
     publicKey: PublicKey;
-    conversationLists: ConversationLists;
+    profileGetter: ProfileGetter;
 };
 
 type State = {
@@ -53,6 +53,15 @@ export class EditGroup extends Component<Props, State> {
         submit:
             tw`w-full mt-4 ${ButtonClass} ${LinearGradientsClass} hover:bg-gradient-to-l disabled:opacity-50`,
     };
+
+    componentDidMount() {
+        const profile = this.props.profileGetter.getProfilesByPublicKey(this.props.publicKey);
+
+        this.setState({
+            name: profile?.profile.name || "",
+            picture: profile?.profile.picture || "",
+        });
+    }
 
     onNameInput = (name: string) => {
         this.setState({

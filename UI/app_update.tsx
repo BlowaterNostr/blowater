@@ -365,7 +365,7 @@ export async function* UI_Interaction_Update(args: {
                     <EditGroup
                         emit={eventBus.emit}
                         publicKey={event.publicKey}
-                        conversationLists={app.conversationLists}
+                        profileGetter={app.database}
                     />
                 ),
             });
