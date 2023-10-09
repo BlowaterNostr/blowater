@@ -21,10 +21,8 @@ import {
 import { PublicKey } from "./lib/nostr-ts/key.ts";
 import { NoteID } from "./lib/nostr-ts/nip19.ts";
 import { DirectMessageGetter } from "./UI/app_update.tsx";
-import { ProfileController, ProfileGetter } from "./UI/search.tsx";
-import { GroupChatController } from "./group-chat.ts";
+import { ProfileController } from "./UI/search.tsx";
 
-export const NotFound = Symbol("Not Found");
 const buffer_size = 2000;
 export interface Indices {
     readonly id?: string;

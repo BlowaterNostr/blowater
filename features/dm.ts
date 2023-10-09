@@ -1,13 +1,5 @@
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { Database_Contextual_View, NotFound, whoIamTalkingTo } from "../database.ts";
-import {
-    DecryptionFailure,
-    decryptNostrEvent,
-    NostrAccountContext,
-    NostrEvent,
-    NostrKind,
-    RelayResponse_Event,
-} from "../lib/nostr-ts/nostr.ts";
+import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { prepareNostrImageEvent, Tag } from "../nostr.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
@@ -144,14 +136,6 @@ async function* getAllEncryptedMessagesReceivedBy(
     }
 }
 
-async function decryptMessage(
-    relayResponse: RelayResponse_Event,
-    ctx: NostrAccountContext,
-    publicKey: string,
-): Promise<NostrEvent | DecryptionFailure> {
-    return decryptNostrEvent(relayResponse.event, ctx, publicKey);
-}
-
 function merge<T>(...iters: AsyncIterable<T>[]) {
     let merged = csp.chan<T>();
     async function coroutine<T>(
@@ -179,76 +163,4 @@ function merge<T>(...iters: AsyncIterable<T>[]) {
         coroutine(iter, merged);
     }
     return merged;
-}
-
-//////////////////
-// Read from DB //
-//////////////////
-
-// get the messages send by and received by pubkey
-export function getDirectMessageEventsOf(db: Database_Contextual_View, pubkey: PublicKey) {
-    return db.filterEvents(filterDMof(pubkey));
-}
-
-export function getContactPubkeysOf(db: Database_Contextual_View, pubkey: PublicKey): Set<string> | Error {
-    const msgs = getDirectMessageEventsOf(db, pubkey);
-    const contactList = new Set<string>();
-    for (const event of msgs) {
-        const whoIAmTalkingTo = whoIamTalkingTo(event, pubkey);
-        if (whoIAmTalkingTo instanceof Error) {
-            return whoIAmTalkingTo;
-        }
-        contactList.add(whoIAmTalkingTo);
-    }
-    return contactList;
-}
-
-export function getNewestEventOf(
-    db: Database_Contextual_View,
-    pubkey: PublicKey,
-): NostrEvent | typeof NotFound {
-    const events = Array.from(getDirectMessageEventsOf(db, pubkey));
-    if (events.length === 0) {
-        return NotFound;
-    }
-    let newest = events[0];
-    for (let event of events.slice(1)) {
-        if (event.created_at > newest.created_at) {
-            newest = event;
-        }
-    }
-    return newest;
-}
-
-export function get_Kind4_Events_Between(
-    db: Database_Contextual_View,
-    myPubKey: string,
-    contactPubkey: string,
-) {
-    const events = db.filterEvents(
-        filterDMBetween(myPubKey, contactPubkey),
-    );
-    return events;
-}
-
-function filterDMof(pubkey: PublicKey) {
-    return (e: NostrEvent) => {
-        const isAuthor = e.pubkey === pubkey.hex;
-        const isReceiver = e.tags.filter((t) => t[0] === "p" && t[1] === pubkey.hex).length === 1;
-        const isDM = e.kind === NostrKind.DIRECT_MESSAGE;
-        return isDM && (isAuthor || isReceiver);
-    };
-}
-
-function filterDMBetween(myPubKey: string, contactPubKey: string) {
-    return (e: NostrEvent) => {
-        const isDM = e.kind === NostrKind.DIRECT_MESSAGE;
-        const iAmAuthor = e.pubkey === myPubKey;
-        const otherIsReceiver = e.tags.filter((t) => t[0] === "p" && t[1] === contactPubKey)
-            .length > 0;
-        const otherIsAuthor = e.pubkey === contactPubKey;
-        const iAmReceiver = e.tags.filter((t) => t[0] === "p" && t[1] === myPubKey).length > 0;
-        return isDM &&
-            ((iAmAuthor && otherIsReceiver) || (otherIsAuthor && iAmReceiver));
-    };
 }
