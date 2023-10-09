@@ -1,6 +1,4 @@
 import {
-    compare,
-    DirectedMessage_Event,
     Encrypted_Event,
     getTags,
     Parsed_Event,
@@ -20,7 +18,6 @@ import {
 } from "./lib/nostr-ts/nostr.ts";
 import { PublicKey } from "./lib/nostr-ts/key.ts";
 import { NoteID } from "./lib/nostr-ts/nip19.ts";
-import { DirectMessageGetter } from "./UI/app_update.tsx";
 import { ProfileController } from "./UI/search.tsx";
 
 const buffer_size = 2000;
