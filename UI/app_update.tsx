@@ -481,14 +481,6 @@ export function getConversationMessages(args: {
     }
 
     const messages = convertEventsToChatMessages(events);
-    if (messages.length > 0) {
-        messages.sort((m1, m2) => {
-            if (m1.lamport && m2.lamport && m1.lamport != m2.lamport) {
-                return m1.lamport - m2.lamport;
-            }
-            return m1.created_at.getTime() - m2.created_at.getTime();
-        });
-    }
     return messages;
 }
 
