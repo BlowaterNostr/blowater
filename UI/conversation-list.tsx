@@ -27,8 +27,8 @@ export interface ConversationListRetriever {
     getConversationType(pubkey: PublicKey, isGourpChat: boolean): "Contacts" | "Strangers" | "Group";
 }
 
-export interface GroupChatListGetter {
-    getGroupChat: () => Iterable<ConversationSummary>;
+export interface GroupMessageListGetter {
+    getConversationList: () => Iterable<ConversationSummary>;
 }
 
 export type ConversationType = "Contacts" | "Strangers" | "Group";
@@ -47,7 +47,7 @@ type Props = {
     emit: emitFunc<ContactUpdate | SearchUpdate>;
     eventBus: EventSubscriber<UI_Interaction_Event>;
     convoListRetriever: ConversationListRetriever;
-    groupChatListGetter: GroupChatListGetter;
+    groupChatListGetter: GroupMessageListGetter;
     hasNewMessages: NewMessageChecker;
     pinListGetter: PinListGetter;
     profileGetter: ProfileGetter;
@@ -86,7 +86,7 @@ export class ConversationList extends Component<Props, State> {
         let listToRender: ConversationSummary[];
         const contacts = Array.from(props.convoListRetriever.getContacts());
         const strangers = Array.from(props.convoListRetriever.getStrangers());
-        const groups = Array.from(props.groupChatListGetter.getGroupChat());
+        const groups = Array.from(props.groupChatListGetter.getConversationList());
         switch (this.state.selectedContactGroup) {
             case "Contacts":
                 listToRender = contacts;

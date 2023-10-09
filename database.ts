@@ -51,10 +51,9 @@ export interface EventPutter {
 export type EventsAdapter = EventsFilter & EventRemover & EventGetter & EventPutter;
 
 type Accepted_Event = Encrypted_Event | Profile_Nostr_Event | NostrEvent;
-export class Database_Contextual_View implements DirectMessageGetter, ProfileController, EventGetter {
-    private readonly sourceOfChange = csp.chan<Accepted_Event | null>(buffer_size);
+export class Database_Contextual_View implements ProfileController, EventGetter {
+    public readonly sourceOfChange = csp.chan<Accepted_Event | null>(buffer_size);
     private readonly caster = csp.multi<Accepted_Event | null>(this.sourceOfChange);
-    public readonly directed_messages = new Map<string, DirectedMessage_Event>();
     public readonly profiles = new Map<string, Profile_Nostr_Event>();
 
     private constructor(
@@ -62,6 +61,50 @@ export class Database_Contextual_View implements DirectMessageGetter, ProfileCon
         public readonly events: Parsed_Event[],
         private readonly ctx: NostrAccountContext,
     ) {}
+
+    static async New(eventsAdapter: EventsAdapter, ctx: NostrAccountContext) {
+        const t = Date.now();
+        const allEvents = await eventsAdapter.filter();
+        console.log("Database_Contextual_View:onload", Date.now() - t, allEvents.length);
+
+        const initialEvents = [];
+        for (const e of allEvents) {
+            const pubkey = PublicKey.FromHex(e.pubkey);
+            if (pubkey instanceof Error) {
+                console.error("impossible state");
+                await eventsAdapter.remove(e.id);
+                continue;
+            }
+            const p: Parsed_Event = {
+                ...e,
+                parsedTags: getTags(e),
+                publicKey: pubkey,
+            };
+            initialEvents.push(p);
+        }
+
+        console.log("Database_Contextual_View:parsed", Date.now() - t);
+
+        // Construct the View
+        const db = new Database_Contextual_View(
+            eventsAdapter,
+            initialEvents,
+            ctx,
+        );
+        console.log("Database_Contextual_View:New time spent", Date.now() - t);
+        for (const e of db.events) {
+            if (e.kind == NostrKind.META_DATA) {
+                // @ts-ignore
+                const pEvent = parseProfileEvent(e);
+                if (pEvent instanceof Error) {
+                    return pEvent;
+                }
+                db.setProfile(pEvent);
+            }
+        }
+
+        return db;
+    }
 
     get(keys: Indices): Parsed_Event | undefined {
         for (const e of this.events) {
@@ -118,85 +161,9 @@ export class Database_Contextual_View implements DirectMessageGetter, ProfileCon
         }
     }
 
-    static async New(eventsAdapter: EventsAdapter, ctx: NostrAccountContext) {
-        const t = Date.now();
-        const allEvents = await eventsAdapter.filter();
-        console.log("Database_Contextual_View:onload", Date.now() - t, allEvents.length);
-
-        const initialEvents = [];
-        for (const e of allEvents) {
-            const pubkey = PublicKey.FromHex(e.pubkey);
-            if (pubkey instanceof Error) {
-                console.error("impossible state");
-                await eventsAdapter.remove(e.id);
-                continue;
-            }
-            const p: Parsed_Event = {
-                ...e,
-                parsedTags: getTags(e),
-                publicKey: pubkey,
-            };
-            initialEvents.push(p);
-        }
-
-        console.log("Database_Contextual_View:parsed", Date.now() - t);
-
-        // Construct the View
-        const db = new Database_Contextual_View(
-            eventsAdapter,
-            initialEvents,
-            ctx,
-        );
-        console.log("Database_Contextual_View:New time spent", Date.now() - t);
-        for (const e of db.events) {
-            if (e.kind == NostrKind.META_DATA) {
-                // @ts-ignore
-                const pEvent = parseProfileEvent(e);
-                if (pEvent instanceof Error) {
-                    return pEvent;
-                }
-                db.setProfile(pEvent);
-            }
-        }
-
-        // load decrypted DMs
-        (async () => {
-            for (const event of allEvents) {
-                if (event.kind != NostrKind.DIRECT_MESSAGE) {
-                    continue;
-                }
-                const dmEvent = await parseDM(
-                    // @ts-ignore
-                    event,
-                    ctx,
-                    getTags(event),
-                    PublicKey.FromHex(event.pubkey),
-                );
-                if (dmEvent instanceof Error) {
-                    await eventsAdapter.remove(event.id);
-                    continue;
-                }
-                db.directed_messages.set(event.id, dmEvent);
-                db.sourceOfChange.put(null); // to render once
-            }
-        })();
-        return db;
-    }
-
     public readonly filterEvents = (filter: (e: NostrEvent) => boolean) => {
         return this.events.filter(filter);
     };
-
-    // get the direct messages between me and this pubkey
-    public getDirectMessages(pubkey: string) {
-        const events = [];
-        for (const event of this.directed_messages.values()) {
-            if (is_DM_between(event, this.ctx.publicKey.hex, pubkey)) {
-                events.push(event);
-            }
-        }
-        return events.sort(compare);
-    }
 
     async addEvent(event: NostrEvent) {
         // check if the event exists
@@ -227,14 +194,7 @@ export class Database_Contextual_View implements DirectMessageGetter, ProfileCon
 
         this.events.push(parsedEvent);
 
-        if (parsedEvent.kind == NostrKind.DIRECT_MESSAGE) {
-            // @ts-ignore
-            const dmEvent = await parseDM(parsedEvent, this.ctx, parsedEvent.parsedTags, parsedEvent.pubkey);
-            if (dmEvent instanceof Error) {
-                return dmEvent;
-            }
-            this.directed_messages.set(parsedEvent.id, dmEvent);
-        } else if (parsedEvent.kind == NostrKind.META_DATA) {
+        if (parsedEvent.kind == NostrKind.META_DATA) {
             // @ts-ignore
             const pEvent = parseProfileEvent(parsedEvent);
             if (pEvent instanceof Error) {
@@ -355,14 +315,4 @@ export async function parseDM(
         decryptedContent: decrypted,
         parsedContentItems: Array.from(parseContent(decrypted)),
     };
-}
-
-function is_DM_between(event: NostrEvent, myPubkey: string, theirPubKey: string) {
-    if (event.pubkey == myPubkey) {
-        return getTags(event).p[0] == theirPubKey;
-    } else if (event.pubkey == theirPubKey) {
-        return getTags(event).p[0] == myPubkey;
-    } else {
-        return false;
-    }
 }

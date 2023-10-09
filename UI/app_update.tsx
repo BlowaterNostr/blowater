@@ -43,7 +43,7 @@ import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nost
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { OtherConfig } from "./config-other.ts";
 import { EditGroup, EditGroupChatProfile, StartEditGroupChatProfile } from "./edit-group.tsx";
-import { GroupChatController } from "../group-chat.ts";
+import { GroupMessageController } from "../features/gm.ts";
 import { ChatMessage } from "./message.ts";
 
 export type UI_Interaction_Event =
@@ -513,7 +513,7 @@ export async function* Database_Update(
     profileSyncer: ProfileSyncer,
     lamport: LamportTime,
     convoLists: ConversationLists,
-    groupController: GroupChatController,
+    groupController: GroupMessageController,
 ) {
     const changes = database.subscribe();
     while (true) {
@@ -648,7 +648,7 @@ export async function handle_SendMessage(
     dmEditors: Map<string, EditorModel>,
     gmEditors: Map<string, EditorModel>,
     db: Database_Contextual_View,
-    groupControl: GroupChatController,
+    groupControl: GroupMessageController,
 ) {
     if (event.isGroupChat) {
         const groupCtx = groupControl.getGroupChatCtx(event.pubkey);
