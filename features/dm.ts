@@ -16,6 +16,7 @@ import { prepareEncryptedNostrEvent } from "../lib/nostr-ts/event.ts";
 import { DirectMessageGetter } from "../UI/app_update.tsx";
 import { parseDM } from "../database.ts";
 import { ChatMessage } from "../UI/message.ts";
+import { decodeInvitation, gmEventType } from "./gm.ts";
 
 export async function sendDMandImages(args: {
     sender: NostrAccountContext;
@@ -176,17 +177,35 @@ export class DirectedMessageController implements DirectMessageGetter {
         return messages;
     }
 
-    async addEvent(event: Parsed_Event<NostrKind.DIRECT_MESSAGE>) {
-        const dmEvent = await parseDM(
-            event,
-            this.ctx,
-            event.parsedTags,
-            event.publicKey,
-        );
-        if (dmEvent instanceof Error) {
-            return dmEvent;
+    async addEvent(event: Parsed_Event<NostrKind.DIRECT_MESSAGE | NostrKind.Group_Message>) {
+        const kind = event.kind;
+        if (kind == NostrKind.Group_Message) {
+            const gmEvent = { ...event, kind };
+            const type = gmEventType(this.ctx, gmEvent);
+            if (type == "gm_invitation") {
+                const invitation = await decodeInvitation(this.ctx, gmEvent);
+                if (invitation instanceof Error) {
+                    return invitation;
+                }
+                // todo: add this invitation to the set
+                // need to refactor how getters are implemented
+            }
+            // else ignore
+        } else {
+            const dmEvent = await parseDM(
+                {
+                    ...event,
+                    kind,
+                },
+                this.ctx,
+                event.parsedTags,
+                event.publicKey,
+            );
+            if (dmEvent instanceof Error) {
+                return dmEvent;
+            }
+            this.directed_messages.set(event.id, dmEvent);
         }
-        this.directed_messages.set(event.id, dmEvent);
     }
 }
 

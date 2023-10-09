@@ -9,7 +9,7 @@ import { prepareEncryptedNostrEvent } from "../lib/nostr-ts/event.ts";
 import { PrivateKey, PublicKey } from "../lib/nostr-ts/key.ts";
 import { InMemoryAccountContext, NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
-import { getTags } from "../nostr.ts";
+import { getTags, Parsed_Event } from "../nostr.ts";
 import { parseJSON, ProfileSyncer } from "./profile.ts";
 
 export type GM_Types = "gm_creation" | "gm_message" | "gm_invitation";
@@ -91,11 +91,7 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
     }
 
     async addEvent(event: NostrEvent<NostrKind.Group_Message>) {
-        const type = await eventType(this.ctx, event);
-        if (type instanceof Error) {
-            return type;
-        }
-
+        const type = gmEventType(this.ctx, event);
         if (type == "gm_creation") {
             return await this.handleCreation(event);
         } else if (type == "gm_message") {
@@ -117,52 +113,13 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
     }
 
     async handleInvitation(event: NostrEvent<NostrKind.Group_Message>) {
-        const decryptedContent = await this.ctx.decrypt(event.pubkey, event.content);
-        if (decryptedContent instanceof Error) {
-            return decryptedContent;
+        const invitation = await decodeInvitation(this.ctx, event);
+        if (invitation instanceof Error) {
+            return invitation;
         }
-
-        const json = parseJSON<unknown>(decryptedContent);
-        if (json instanceof Error) {
-            return json;
-        }
-
-        const author = PublicKey.FromHex(event.pubkey);
-        if (author instanceof Error) {
-            return author;
-        }
-
-        let message: {
-            type: string;
-            cipherKey: string;
-            groupAddr: string;
-        };
-        try {
-            message = z.object({
-                type: z.string(),
-                cipherKey: z.string(),
-                groupAddr: z.string(),
-            }).parse(json);
-        } catch (e) {
-            return e as Error;
-        }
-
-        // add invitations
-        const cipherKey = PrivateKey.FromBech32(message.cipherKey);
-        if (cipherKey instanceof Error) {
-            return cipherKey;
-        }
-        const groupAddr = PublicKey.FromBech32(message.groupAddr);
-        if (groupAddr instanceof Error) {
-            return groupAddr;
-        }
-        const invitation: GroupChatInvitation = {
-            cipherKey: InMemoryAccountContext.New(cipherKey),
-            groupAddr,
-        };
-        this.invitations.set(groupAddr.bech32(), invitation);
-        this.groupSyncer.add(groupAddr.hex);
-        this.profileSyncer.add(groupAddr.hex);
+        this.invitations.set(invitation.groupAddr.bech32(), invitation);
+        this.groupSyncer.add(invitation.groupAddr.hex);
+        this.profileSyncer.add(invitation.groupAddr.hex);
     }
 
     async handleMessage(event: NostrEvent<NostrKind.Group_Message>) {
@@ -319,10 +276,10 @@ function isCreation(event: NostrEvent<NostrKind.Group_Message>) {
     return event.tags.length == 0;
 }
 
-async function eventType(
+export function gmEventType(
     ctx: NostrAccountContext,
     event: NostrEvent<NostrKind.Group_Message>,
-): Promise<GM_Types | Error> {
+): GM_Types {
     if (isCreation(event)) {
         return "gm_creation";
     }
@@ -370,4 +327,51 @@ export class GroupChatSyncer {
             }
         }
     }
+}
+
+export async function decodeInvitation(ctx: NostrAccountContext, event: NostrEvent<NostrKind.Group_Message>) {
+    const decryptedContent = await ctx.decrypt(event.pubkey, event.content);
+    if (decryptedContent instanceof Error) {
+        return decryptedContent;
+    }
+
+    const json = parseJSON<unknown>(decryptedContent);
+    if (json instanceof Error) {
+        return json;
+    }
+
+    const author = PublicKey.FromHex(event.pubkey);
+    if (author instanceof Error) {
+        return author;
+    }
+
+    let message: {
+        type: string;
+        cipherKey: string;
+        groupAddr: string;
+    };
+    try {
+        message = z.object({
+            type: z.string(),
+            cipherKey: z.string(),
+            groupAddr: z.string(),
+        }).parse(json);
+    } catch (e) {
+        return e as Error;
+    }
+
+    // add invitations
+    const cipherKey = PrivateKey.FromBech32(message.cipherKey);
+    if (cipherKey instanceof Error) {
+        return cipherKey;
+    }
+    const groupAddr = PublicKey.FromBech32(message.groupAddr);
+    if (groupAddr instanceof Error) {
+        return groupAddr;
+    }
+    const invitation: GroupChatInvitation = {
+        cipherKey: InMemoryAccountContext.New(cipherKey),
+        groupAddr,
+    };
+    return invitation;
 }
