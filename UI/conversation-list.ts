@@ -3,7 +3,7 @@ import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { getTags, Parsed_Event } from "../nostr.ts";
 import { ProfileSyncer } from "../features/profile.ts";
-import { GroupChatCreation } from "../features/gm.ts";
+import { gm_Creation } from "../features/gm.ts";
 
 export interface ConversationSummary {
     pubkey: PublicKey;
@@ -77,7 +77,7 @@ export class ConversationLists implements ConversationListRetriever, NewMessageC
         }
     }
 
-    addGroupCreation(groupChatCreation: GroupChatCreation) {
+    addGroupCreation(groupChatCreation: gm_Creation) {
         const publicKey = groupChatCreation.groupKey.publicKey;
         this.groupChatSummaries.set(publicKey.hex, {
             pubkey: publicKey,

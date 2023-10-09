@@ -166,7 +166,7 @@ export class DirectedMessageController implements DirectMessageGetter {
     public readonly directed_messages = new Map<string, DirectedMessage_Event>();
 
     // get the direct messages between me and this pubkey
-    public getDirectMessages(pubkey: string) {
+    public getDirectMessages(pubkey: string): ChatMessage[] {
         const events = [];
         for (const event of this.directed_messages.values()) {
             if (is_DM_between(event, this.ctx.publicKey.hex, pubkey)) {

@@ -18,19 +18,19 @@ export type GroupMessage = {
     event: NostrEvent<NostrKind.Group_Message>;
 };
 
-export type GroupChatCreation = {
+export type gm_Creation = {
     cipherKey: InMemoryAccountContext;
     groupKey: InMemoryAccountContext;
 };
 
-export type GroupChatInvitation = {
+export type gm_Invitation = {
     cipherKey: InMemoryAccountContext;
     groupAddr: PublicKey;
 };
 
 export class GroupMessageController implements GroupMessageGetter, GroupMessageListGetter {
-    created_groups = new Map<string, GroupChatCreation>();
-    invitations = new Map<string, GroupChatInvitation>();
+    created_groups = new Map<string, gm_Creation>();
+    invitations = new Map<string, gm_Invitation>();
     messages = new Map<string, ChatMessage[]>();
     resync_chan = new Channel<null>();
 
@@ -65,7 +65,7 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
         return msgs ? msgs : [];
     }
 
-    async encodeCreationToNostrEvent(groupCreation: GroupChatCreation) {
+    async encodeCreationToNostrEvent(groupCreation: gm_Creation) {
         const event = prepareEncryptedNostrEvent(this.ctx, {
             encryptKey: this.ctx.publicKey,
             kind: NostrKind.Group_Message,
@@ -80,7 +80,7 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
     }
 
     createGroupChat() {
-        const groupChatCreation: GroupChatCreation = {
+        const groupChatCreation: gm_Creation = {
             cipherKey: InMemoryAccountContext.New(PrivateKey.Generate()),
             groupKey: InMemoryAccountContext.New(PrivateKey.Generate()),
         };
@@ -369,7 +369,7 @@ export async function decodeInvitation(ctx: NostrAccountContext, event: NostrEve
     if (groupAddr instanceof Error) {
         return groupAddr;
     }
-    const invitation: GroupChatInvitation = {
+    const invitation: gm_Invitation = {
         cipherKey: InMemoryAccountContext.New(cipherKey),
         groupAddr,
     };
