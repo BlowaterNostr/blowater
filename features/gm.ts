@@ -90,7 +90,7 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
         return groupChatCreation;
     }
 
-    async addEvent(event: NostrEvent<NostrKind.Group_Message>) {
+    async addEvent(event: Parsed_Event<NostrKind.Group_Message>) {
         const type = gmEventType(this.ctx, event);
         if (type == "gm_creation") {
             return await this.handleCreation(event);
@@ -103,7 +103,7 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
         }
     }
 
-    async addEvents(...events: NostrEvent<NostrKind.Group_Message>[]) {
+    async addEvents(...events: Parsed_Event<NostrKind.Group_Message>[]) {
         for (const e of events) {
             const err = await this.addEvent(e);
             if (err instanceof Error) {
@@ -122,7 +122,7 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
         this.profileSyncer.add(invitation.groupAddr.hex);
     }
 
-    async handleMessage(event: NostrEvent<NostrKind.Group_Message>) {
+    async handleMessage(event: Parsed_Event<NostrKind.Group_Message>) {
         const groupAddr = getTags(event).p[0];
         const groupAddrPubkey = PublicKey.FromHex(groupAddr);
         if (groupAddrPubkey instanceof Error) {
@@ -163,12 +163,12 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
         }
 
         const chatMessage: ChatMessage = {
+            type: "text",
             event: event,
             author: author,
             content: message.text,
             created_at: new Date(event.created_at * 1000),
-            lamport: getTags(event).lamport_timestamp,
-            type: "text",
+            lamport: event.parsedTags.lamport_timestamp,
         };
 
         const messages = this.messages.get(groupAddr);

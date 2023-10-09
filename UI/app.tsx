@@ -139,7 +139,7 @@ export class App {
         const conversationLists = new ConversationLists(args.ctx, profileSyncer);
         conversationLists.addEvents(args.database.events);
 
-        const dmControl = new DirectedMessageController(args.ctx);
+        const dmController = new DirectedMessageController(args.ctx);
 
         const groupSyncer = new GroupChatSyncer(args.database, args.pool);
         const groupChatController = new GroupMessageController(
@@ -152,15 +152,22 @@ export class App {
         (async () => {
             for (const e of args.database.events) {
                 if (e.kind == NostrKind.Group_Message) {
-                    const err = await groupChatController.addEvent({
+                    let err = await groupChatController.addEvent({
                         ...e,
                         kind: e.kind,
                     });
                     if (err instanceof Error) {
                         console.error(err.message);
                     }
+                    err = await dmController.addEvent({
+                        ...e,
+                        kind: e.kind,
+                    });
+                    if (err instanceof Error) {
+                        console.error(err);
+                    }
                 } else if (e.kind == NostrKind.DIRECT_MESSAGE) {
-                    const error = await dmControl.addEvent({
+                    const error = await dmController.addEvent({
                         ...e,
                         kind: e.kind,
                     });
@@ -190,7 +197,7 @@ export class App {
             relayConfig,
             groupChatController,
             lamport,
-            dmControl,
+            dmController,
         );
     }
 

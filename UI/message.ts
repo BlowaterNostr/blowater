@@ -1,5 +1,5 @@
 import { PublicKey } from "../lib/nostr-ts/key.ts";
-import { DirectedMessage_Event } from "../nostr.ts";
+import { DirectedMessage_Event, Parsed_Event } from "../nostr.ts";
 import { Nevent, NostrAddress, NostrProfile, NoteID } from "../lib/nostr-ts/nip19.ts";
 import { NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { gm_Invitation } from "../features/gm.ts";
@@ -167,14 +167,14 @@ export type ContentItem = {
 // Think of ChatMessage as an materialized view of NostrEvent
 export type ChatMessage = {
     readonly type: "image" | "text";
-    readonly event: DirectedMessage_Event | NostrEvent<NostrKind.Group_Message>;
+    readonly event: DirectedMessage_Event | Parsed_Event<NostrKind.Group_Message>;
     readonly author: PublicKey;
     readonly created_at: Date;
     readonly lamport: number | undefined;
     readonly content: string;
 } | {
     readonly type: "gm_invitation";
-    readonly event: NostrEvent<NostrKind.Group_Message>;
+    readonly event: Parsed_Event<NostrKind.Group_Message>;
     readonly invitation: gm_Invitation;
     readonly author: PublicKey;
     readonly created_at: Date;

@@ -119,7 +119,7 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
 
                     <MessageList
                         myPublicKey={props.myPublicKey}
-                        threads={props.messages}
+                        messages={props.messages}
                         emit={props.emit}
                         profilesSyncer={props.profilesSyncer}
                         eventSyncer={props.eventSyncer}
@@ -166,7 +166,7 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
 }
 interface MessageListProps {
     myPublicKey: PublicKey;
-    threads: ChatMessage[];
+    messages: ChatMessage[];
     emit: emitFunc<DirectMessagePanelUpdate>;
     profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
@@ -200,20 +200,20 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
                     e.currentTarget.scrollTop < 1000
         ) {
             const ok = await this.jitter.shouldExecute();
-            if (!ok || this.state.currentRenderCount >= this.props.threads.length) {
+            if (!ok || this.state.currentRenderCount >= this.props.messages.length) {
                 return;
             }
             this.setState({
                 currentRenderCount: Math.min(
                     this.state.currentRenderCount + ItemsOfPerPage,
-                    this.props.threads.length,
+                    this.props.messages.length,
                 ),
             });
         }
     };
 
     sortAndSliceMessage = () => {
-        return sortMessage(this.props.threads)
+        return sortMessage(this.props.messages)
             .slice(
                 0,
                 this.state.currentRenderCount,

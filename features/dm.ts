@@ -163,23 +163,27 @@ export class DirectedMessageController implements DirectMessageGetter {
         public readonly ctx: NostrAccountContext,
     ) {}
 
-    public readonly directed_messages = new Map<string, DirectedMessage_Event>();
+    public readonly directed_messages = new Map<string, ChatMessage>();
 
     // get the direct messages between me and this pubkey
     public getDirectMessages(pubkey: string): ChatMessage[] {
-        const events = [];
-        for (const event of this.directed_messages.values()) {
-            if (is_DM_between(event, this.ctx.publicKey.hex, pubkey)) {
-                events.push(event);
+        const messages = [];
+        for (const message of this.directed_messages.values()) {
+            if (is_DM_between(message.event, this.ctx.publicKey.hex, pubkey)) {
+                if (message.event.kind == NostrKind.Group_Message) {
+                    console.log(message);
+                }
+                messages.push(message);
             }
         }
-        const messages = convertEventsToChatMessages(events.sort(compare));
+        messages.sort((a, b) => compare(a.event, b.event));
         return messages;
     }
 
     async addEvent(event: Parsed_Event<NostrKind.DIRECT_MESSAGE | NostrKind.Group_Message>) {
         const kind = event.kind;
         if (kind == NostrKind.Group_Message) {
+            console.log("dm add event", kind);
             const gmEvent = { ...event, kind };
             const type = gmEventType(this.ctx, gmEvent);
             if (type == "gm_invitation") {
@@ -187,8 +191,16 @@ export class DirectedMessageController implements DirectMessageGetter {
                 if (invitation instanceof Error) {
                     return invitation;
                 }
-                // todo: add this invitation to the set
-                // need to refactor how getters are implemented
+                console.log("dm add event", invitation);
+                this.directed_messages.set(gmEvent.id, {
+                    type: "text", // todo: change to invitation
+                    event: gmEvent,
+                    author: gmEvent.publicKey,
+                    content: `You have been invited to group ${invitation.groupAddr.bech32()}`,
+                    created_at: new Date(gmEvent.created_at * 1000),
+                    // invitation: invitation,
+                    lamport: gmEvent.parsedTags.lamport_timestamp,
+                });
             }
             // else ignore
         } else {
@@ -204,7 +216,30 @@ export class DirectedMessageController implements DirectMessageGetter {
             if (dmEvent instanceof Error) {
                 return dmEvent;
             }
-            this.directed_messages.set(event.id, dmEvent);
+            const isImage = dmEvent.parsedTags.image;
+            if (isImage) {
+                const imageBase64 = reassembleBase64ImageFromEvents([dmEvent]);
+                if (imageBase64 instanceof Error) {
+                    return imageBase64;
+                }
+                this.directed_messages.set(event.id, {
+                    event: dmEvent,
+                    author: dmEvent.publicKey,
+                    content: imageBase64,
+                    type: "image",
+                    created_at: new Date(dmEvent.created_at * 1000),
+                    lamport: dmEvent.parsedTags.lamport_timestamp,
+                });
+            } else {
+                this.directed_messages.set(event.id, {
+                    event: dmEvent,
+                    author: dmEvent.publicKey,
+                    content: dmEvent.decryptedContent,
+                    type: "text",
+                    created_at: new Date(dmEvent.created_at * 1000),
+                    lamport: dmEvent.parsedTags.lamport_timestamp,
+                });
+            }
         }
     }
 }
@@ -217,57 +252,4 @@ function is_DM_between(event: NostrEvent, myPubkey: string, theirPubKey: string)
     } else {
         return false;
     }
-}
-
-export function convertEventsToChatMessages(
-    events: Iterable<DirectedMessage_Event>,
-): ChatMessage[] {
-    const messages: ChatMessage[] = [];
-    const groups = groupImageEvents(events);
-    let pubKeys = Array.from(groups.values()).map((es) => es[0].pubkey);
-
-    let textEvents = groups.get(undefined);
-    if (textEvents === undefined) {
-        textEvents = [];
-    }
-    pubKeys = pubKeys.concat(textEvents.map((e) => e.pubkey));
-
-    groups.delete(undefined);
-
-    for (let i = 0; i < textEvents.length; i++) {
-        const pubkey = PublicKey.FromHex(textEvents[i].pubkey);
-        if (pubkey instanceof Error) {
-            throw new Error(textEvents[i].pubkey);
-        }
-        messages.push({
-            event: textEvents[i],
-            author: pubkey,
-            content: textEvents[i].decryptedContent,
-            type: "text",
-            created_at: new Date(textEvents[i].created_at * 1000),
-            lamport: getTags(textEvents[i]).lamport_timestamp,
-        });
-    }
-
-    for (const imageEvents of groups.values()) {
-        const imageBase64 = reassembleBase64ImageFromEvents(imageEvents);
-        if (imageBase64 instanceof Error) {
-            console.info(imageBase64.message);
-            continue;
-        }
-        const pubkey = PublicKey.FromHex(imageEvents[0].pubkey);
-        if (pubkey instanceof Error) {
-            throw new Error(imageEvents[0].pubkey);
-        }
-        messages.push({
-            event: imageEvents[0],
-            author: pubkey,
-            content: imageBase64,
-            type: "image",
-            created_at: new Date(imageEvents[0].created_at * 1000),
-            lamport: getTags(imageEvents[0]).lamport_timestamp,
-        });
-    }
-
-    return messages;
 }
