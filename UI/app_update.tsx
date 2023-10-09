@@ -7,9 +7,8 @@ import { ConversationLists } from "./conversation-list.ts";
 
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { Database_Contextual_View } from "../database.ts";
-import { convertEventsToChatMessages } from "./dm.ts";
 
-import { DirectedMessageController, sendDMandImages } from "../features/dm.ts";
+import { convertEventsToChatMessages, DirectedMessageController, sendDMandImages } from "../features/dm.ts";
 import { notify } from "./notification.ts";
 import { EventBus } from "../event-bus.ts";
 import { ContactUpdate } from "./conversation-list.tsx";
@@ -464,26 +463,6 @@ export type DirectMessageGetter = {
 export type GroupMessageGetter = {
     getGroupMessages(publicKey: string): ChatMessage[];
 };
-
-export function getConversationMessages(args: {
-    targetPubkey: string;
-    isGroupChat: boolean;
-    dmGetter: DirectMessageGetter;
-    gmGetter: GroupMessageGetter;
-}): ChatMessage[] {
-    const { targetPubkey } = args;
-    if (args.isGroupChat) {
-        return args.gmGetter.getGroupMessages(args.targetPubkey);
-    }
-
-    let events = args.dmGetter.getDirectMessages(targetPubkey);
-    if (events == undefined) {
-        events = [];
-    }
-
-    const messages = convertEventsToChatMessages(events);
-    return messages;
-}
 
 export function updateConversation(
     model: Model,

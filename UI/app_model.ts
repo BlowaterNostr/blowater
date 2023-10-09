@@ -2,10 +2,10 @@ import { NavigationModel } from "./nav.tsx";
 import { SearchInitModel, SearchModel } from "./search_model.ts";
 import { ProfileData } from "../features/profile.ts";
 import { RightPanelModel } from "./message-panel.tsx";
-import { DM_Model } from "./dm.ts";
 import { App } from "./app.tsx";
 import { SignInModel } from "./signIn.tsx";
 import { EditorModel } from "./editor.tsx";
+import { DM_Model } from "./dm.tsx";
 
 export type Model = {
     app: App | undefined; // app is only available after sign-in

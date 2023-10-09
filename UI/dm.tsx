@@ -6,16 +6,10 @@ import { MessagePanel, RightPanelModel } from "./message-panel.tsx";
 import { EventBus } from "../event-bus.ts";
 import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
 import { CenterClass, IconButtonClass } from "./components/tw.ts";
-import {
-    DirectMessageGetter,
-    getConversationMessages,
-    GroupMessageGetter,
-    UI_Interaction_Event,
-} from "./app_update.tsx";
-import { NostrAccountContext } from "../lib/nostr-ts/nostr.ts";
+import { DirectMessageGetter, GroupMessageGetter, UI_Interaction_Event } from "./app_update.tsx";
+import { NostrAccountContext, NostrEvent } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { ProfileSyncer } from "../features/profile.ts";
-import { DM_Model } from "./dm.ts";
 import { getFocusedContent } from "./app.tsx";
 import { EventSyncer } from "./event_syncer.ts";
 import { ButtonGroup } from "./components/button-group.tsx";
@@ -25,6 +19,15 @@ import { GroupMessageController } from "../features/gm.ts";
 import { ProfileGetter } from "./search.tsx";
 import { InviteIcon } from "./icons2/invite-icon.tsx";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
+import { convertEventsToChatMessages } from "../features/dm.ts";
+import { ChatMessage } from "./message.ts";
+import { EditorModel } from "./editor.tsx";
+
+export type DM_Model = {
+    currentEditor: EditorModel | undefined;
+    focusedContent: Map<string, NostrEvent /* thread root event */ | PublicKey /* selected user profile */>;
+    isGroupMessage: boolean;
+};
 
 type DirectMessageContainerProps = {
     rightPanelModel: RightPanelModel;
@@ -168,4 +171,24 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
     );
     console.debug("DirectMessageContainer:end", Date.now() - t);
     return vDom;
+}
+
+export function getConversationMessages(args: {
+    targetPubkey: string;
+    isGroupChat: boolean;
+    dmGetter: DirectMessageGetter;
+    gmGetter: GroupMessageGetter;
+}): ChatMessage[] {
+    const { targetPubkey } = args;
+    if (args.isGroupChat) {
+        return args.gmGetter.getGroupMessages(args.targetPubkey);
+    }
+
+    let events = args.dmGetter.getDirectMessages(targetPubkey);
+    if (events == undefined) {
+        events = [];
+    }
+
+    const messages = convertEventsToChatMessages(events);
+    return messages;
 }
