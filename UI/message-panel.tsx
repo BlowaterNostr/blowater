@@ -520,7 +520,8 @@ export function ParseMessageContent(
                         vnode.push(itemStr);
                         break;
                     }
-                    vnode.push(Card(event, authorProfile, emit));
+                    const profile = profileGetter.getProfilesByPublicKey(event.publicKey);
+                    vnode.push(Card(event, profile ? profile.profile : undefined, emit));
                 }
                 break;
             case "tag":
