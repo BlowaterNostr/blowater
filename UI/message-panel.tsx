@@ -9,7 +9,7 @@ import { IconButtonClass } from "./components/tw.ts";
 import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { emitFunc } from "../event-bus.ts";
 
-import { ChatMessage, groupContinuousMessages, sortMessage, urlIsImage } from "./message.ts";
+import { ChatMessage, groupContinuousMessages, parseContent, sortMessage, urlIsImage } from "./message.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { Parsed_Event, PinConversation, Profile_Nostr_Event, UnpinConversation } from "../nostr.ts";
@@ -119,7 +119,7 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
 
                     <MessageList
                         myPublicKey={props.myPublicKey}
-                        threads={props.messages}
+                        messages={props.messages}
                         emit={props.emit}
                         profilesSyncer={props.profilesSyncer}
                         eventSyncer={props.eventSyncer}
@@ -166,7 +166,7 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
 }
 interface MessageListProps {
     myPublicKey: PublicKey;
-    threads: ChatMessage[];
+    messages: ChatMessage[];
     emit: emitFunc<DirectMessagePanelUpdate>;
     profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
@@ -200,20 +200,20 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
                     e.currentTarget.scrollTop < 1000
         ) {
             const ok = await this.jitter.shouldExecute();
-            if (!ok || this.state.currentRenderCount >= this.props.threads.length) {
+            if (!ok || this.state.currentRenderCount >= this.props.messages.length) {
                 return;
             }
             this.setState({
                 currentRenderCount: Math.min(
                     this.state.currentRenderCount + ItemsOfPerPage,
-                    this.props.threads.length,
+                    this.props.messages.length,
                 ),
             });
         }
     };
 
     sortAndSliceMessage = () => {
-        return sortMessage(this.props.threads)
+        return sortMessage(this.props.messages)
             .slice(
                 0,
                 this.state.currentRenderCount,
@@ -239,6 +239,7 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
                     profilesSyncer: this.props.profilesSyncer,
                     eventSyncer: this.props.eventSyncer,
                     authorProfile: profileEvent ? profileEvent.profile : undefined,
+                    profileGetter: this.props.profileGetter,
                 }),
             );
         }
@@ -291,6 +292,7 @@ function MessageBoxGroup(props: {
     emit: emitFunc<DirectMessagePanelUpdate | ViewUserDetail>;
     profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
+    profileGetter: ProfileGetter;
 }) {
     const messageGroups = props.messages.reverse();
     if (messageGroups.length == 0) {
@@ -335,6 +337,7 @@ function MessageBoxGroup(props: {
                                     props.profilesSyncer,
                                     props.eventSyncer,
                                     props.emit,
+                                    props.profileGetter,
                                     )}
                 </pre>
             </div>
@@ -364,6 +367,7 @@ function MessageBoxGroup(props: {
                         props.profilesSyncer,
                         props.eventSyncer,
                         props.emit,
+                        props.profileGetter
                         )}
                     </pre>
                 </div>
@@ -455,18 +459,22 @@ export function ParseMessageContent(
     profilesSyncer: ProfileSyncer,
     eventSyncer: EventSyncer,
     emit: emitFunc<ViewUserDetail | ViewThread | ViewNoteThread>,
+    profileGetter: ProfileGetter,
 ) {
     if (message.type == "image") {
         return <img src={message.content} />;
     }
 
+    let parsedContentItems;
     if (message.event.kind == NostrKind.Group_Message) {
-        return <p>{message.content}</p>;
+        parsedContentItems = parseContent(message.content);
+    } else {
+        parsedContentItems = message.event.parsedContentItems;
     }
 
     const vnode = [];
     let start = 0;
-    for (const item of message.event.parsedContentItems) {
+    for (const item of parsedContentItems) {
         vnode.push(message.content.slice(start, item.start));
         const itemStr = message.content.slice(item.start, item.end + 1);
         switch (item.type) {
@@ -486,9 +494,10 @@ export function ParseMessageContent(
             case "npub":
                 {
                     if (authorProfile) {
+                        const profile = profileGetter.getProfilesByPublicKey(item.pubkey);
                         vnode.push(
                             <ProfileCard
-                                profileData={authorProfile}
+                                profileData={profile ? profile.profile : undefined}
                                 publicKey={item.pubkey}
                                 emit={emit}
                             />,
@@ -511,7 +520,8 @@ export function ParseMessageContent(
                         vnode.push(itemStr);
                         break;
                     }
-                    vnode.push(Card(event, authorProfile, emit));
+                    const profile = profileGetter.getProfilesByPublicKey(event.publicKey);
+                    vnode.push(Card(event, profile ? profile.profile : undefined, emit));
                 }
                 break;
             case "tag":

@@ -8,10 +8,10 @@ import { ConversationLists } from "./conversation-list.ts";
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { Database_Contextual_View } from "../database.ts";
 
-import { convertEventsToChatMessages, DirectedMessageController, sendDMandImages } from "../features/dm.ts";
+import { DirectedMessageController, sendDMandImages } from "../features/dm.ts";
 import { notify } from "./notification.ts";
 import { EventBus } from "../event-bus.ts";
-import { ContactUpdate } from "./conversation-list.tsx";
+import { ContactUpdate, IsGruopChatSupported } from "./conversation-list.tsx";
 import { MyProfileUpdate } from "./edit-profile.tsx";
 import { EditorEvent, EditorModel, new_DM_EditorModel, SendMessage } from "./editor.tsx";
 import { DirectMessagePanelUpdate } from "./message-panel.tsx";
@@ -569,7 +569,14 @@ export async function* Database_Update(
                     }
                 }
             } else if (e.kind == NostrKind.Group_Message) {
-                const err = await groupController.addEvent({
+                let err = await groupController.addEvent({
+                    ...e,
+                    kind: e.kind,
+                });
+                if (err instanceof Error) {
+                    console.error(err);
+                }
+                err = await dmController.addEvent({
                     ...e,
                     kind: e.kind,
                 });
@@ -663,19 +670,19 @@ export async function handle_SendMessage(
         }
     } else {
         // todo: hack, change later
-        // const invitation = isInvitation(event.text);
-        // if (invitation) {
-        //     const invitationEvent = await groupControl.createInvitation(invitation, event.pubkey);
-        //     if (invitationEvent instanceof Error) {
-        //         return invitationEvent;
-        //     }
-        //     console.log(invitationEvent);
-        //     const err = await pool.sendEvent(invitationEvent);
-        //     if (err instanceof Error) {
-        //         return err;
-        //     }
-        //     return;
-        // }
+        const invitation = isInvitation(event.text);
+        if (invitation && IsGruopChatSupported) {
+            const invitationEvent = await groupControl.createInvitation(invitation, event.pubkey);
+            if (invitationEvent instanceof Error) {
+                return invitationEvent;
+            }
+            console.log(invitationEvent);
+            const err = await pool.sendEvent(invitationEvent);
+            if (err instanceof Error) {
+                return err;
+            }
+            return;
+        }
         const events = await sendDMandImages({
             sender: ctx,
             receiverPublicKey: event.pubkey,

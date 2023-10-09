@@ -225,6 +225,18 @@ Deno.test("inline parse", async (t) => {
                 end: 23,
             }],
         },
+        {
+            input:
+                "You have been invited to group npub1k9p03z0gqsz2dqvjrkp6337lq5tl9nzj4wx0sfrpjmje2ze8nyls424ds3",
+            output: [{
+                type: "npub",
+                pubkey: PublicKey.FromBech32(
+                    "npub1k9p03z0gqsz2dqvjrkp6337lq5tl9nzj4wx0sfrpjmje2ze8nyls424ds3",
+                ),
+                start: 31,
+                end: 93,
+            }],
+        },
     ];
     for (const [i, test] of data.entries()) {
         await t.step(test.input, () => {

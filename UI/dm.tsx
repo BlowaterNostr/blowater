@@ -19,7 +19,6 @@ import { GroupMessageController } from "../features/gm.ts";
 import { ProfileGetter } from "./search.tsx";
 import { InviteIcon } from "./icons2/invite-icon.tsx";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
-import { convertEventsToChatMessages } from "../features/dm.ts";
 import { ChatMessage } from "./message.ts";
 import { EditorModel } from "./editor.tsx";
 
