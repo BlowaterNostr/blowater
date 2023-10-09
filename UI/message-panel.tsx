@@ -9,7 +9,7 @@ import { IconButtonClass } from "./components/tw.ts";
 import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { emitFunc } from "../event-bus.ts";
 
-import { ChatMessage, groupContinuousMessages, sortMessage, urlIsImage } from "./message.ts";
+import { ChatMessage, groupContinuousMessages, parseContent, sortMessage, urlIsImage } from "./message.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { Parsed_Event, PinConversation, Profile_Nostr_Event, UnpinConversation } from "../nostr.ts";
@@ -460,13 +460,16 @@ export function ParseMessageContent(
         return <img src={message.content} />;
     }
 
+    let parsedContentItems;
     if (message.event.kind == NostrKind.Group_Message) {
-        return <p>{message.content}</p>;
+        parsedContentItems = parseContent(message.content);
+    } else {
+        parsedContentItems = message.event.parsedContentItems;
     }
 
     const vnode = [];
     let start = 0;
-    for (const item of message.event.parsedContentItems) {
+    for (const item of parsedContentItems) {
         vnode.push(message.content.slice(start, item.start));
         const itemStr = message.content.slice(item.start, item.end + 1);
         switch (item.type) {

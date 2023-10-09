@@ -1,7 +1,7 @@
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { DirectedMessage_Event, Parsed_Event } from "../nostr.ts";
 import { Nevent, NostrAddress, NostrProfile, NoteID } from "../lib/nostr-ts/nip19.ts";
-import { NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
+import { NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { gm_Invitation } from "../features/gm.ts";
 
 export function* parseContent(content: string) {
