@@ -239,6 +239,7 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
                     profilesSyncer: this.props.profilesSyncer,
                     eventSyncer: this.props.eventSyncer,
                     authorProfile: profileEvent ? profileEvent.profile : undefined,
+                    profileGetter: this.props.profileGetter,
                 }),
             );
         }
@@ -291,6 +292,7 @@ function MessageBoxGroup(props: {
     emit: emitFunc<DirectMessagePanelUpdate | ViewUserDetail>;
     profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
+    profileGetter: ProfileGetter;
 }) {
     const messageGroups = props.messages.reverse();
     if (messageGroups.length == 0) {
@@ -335,6 +337,7 @@ function MessageBoxGroup(props: {
                                     props.profilesSyncer,
                                     props.eventSyncer,
                                     props.emit,
+                                    props.profileGetter,
                                     )}
                 </pre>
             </div>
@@ -364,6 +367,7 @@ function MessageBoxGroup(props: {
                         props.profilesSyncer,
                         props.eventSyncer,
                         props.emit,
+                        props.profileGetter
                         )}
                     </pre>
                 </div>
@@ -455,6 +459,7 @@ export function ParseMessageContent(
     profilesSyncer: ProfileSyncer,
     eventSyncer: EventSyncer,
     emit: emitFunc<ViewUserDetail | ViewThread | ViewNoteThread>,
+    profileGetter: ProfileGetter,
 ) {
     if (message.type == "image") {
         return <img src={message.content} />;
@@ -489,9 +494,10 @@ export function ParseMessageContent(
             case "npub":
                 {
                     if (authorProfile) {
+                        const profile = profileGetter.getProfilesByPublicKey(item.pubkey);
                         vnode.push(
                             <ProfileCard
-                                profileData={authorProfile}
+                                profileData={profile ? profile.profile : undefined}
                                 publicKey={item.pubkey}
                                 emit={emit}
                             />,
