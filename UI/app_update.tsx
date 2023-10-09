@@ -457,7 +457,7 @@ export async function* UI_Interaction_Update(args: {
 }
 
 export type DirectMessageGetter = {
-    getDirectMessages(publicKey: string): DirectedMessage_Event[];
+    getDirectMessages(publicKey: string): ChatMessage[];
 };
 
 export type GroupMessageGetter = {

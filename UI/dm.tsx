@@ -184,11 +184,6 @@ export function getConversationMessages(args: {
         return args.gmGetter.getGroupMessages(args.targetPubkey);
     }
 
-    let events = args.dmGetter.getDirectMessages(targetPubkey);
-    if (events == undefined) {
-        events = [];
-    }
-
-    const messages = convertEventsToChatMessages(events);
+    let messages = args.dmGetter.getDirectMessages(targetPubkey);
     return messages;
 }

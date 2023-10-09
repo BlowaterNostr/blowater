@@ -172,7 +172,8 @@ export class DirectedMessageController implements DirectMessageGetter {
                 events.push(event);
             }
         }
-        return events.sort(compare);
+        const messages = convertEventsToChatMessages(events.sort(compare));
+        return messages;
     }
 
     async addEvent(event: Parsed_Event<NostrKind.DIRECT_MESSAGE>) {
