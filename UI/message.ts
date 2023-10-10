@@ -5,11 +5,13 @@ import { NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { gm_Invitation } from "../features/gm.ts";
 
 export function* parseContent(content: string) {
+    yield* match(/invitation:npub[0-9a-z]{59}/g, content, "invitation");
+
     // URLs
     yield* match(/https?:\/\/[^\s]+/g, content, "url");
 
     // npubs
-    yield* match(/(nostr:)?npub[0-9a-z]{59}/g, content, "npub");
+    yield* match(/(nostr:)?(invitation:)?npub[0-9a-z]{59}/g, content, "npub");
 
     //nprofile
     yield* match(/(nostr:)?nprofile[0-9a-z]+/g, content, "nprofile");
@@ -50,6 +52,24 @@ function* match(regex: RegExp, content: string, type: ItemType): Generator<Conte
                     end: urlEndPosition,
                 };
             }
+        } else if (type == "invitation") {
+            let bech32: string;
+            if (match[0].startsWith("invitation:")) {
+                bech32 = content.slice(urlStartPosition + 11, urlEndPosition + 1);
+            } else {
+                bech32 = content.slice(urlStartPosition, urlEndPosition + 1);
+            }
+            const pubkey = PublicKey.FromBech32(bech32);
+            if (pubkey instanceof Error) {
+                // ignore
+            } else {
+                yield {
+                    type: type,
+                    pubkey: pubkey,
+                    start: urlStartPosition,
+                    end: urlEndPosition,
+                };
+            }
         } else if (type == "npub") {
             let bech32: string;
             if (match[0].startsWith("nostr:")) {
@@ -59,6 +79,7 @@ function* match(regex: RegExp, content: string, type: ItemType): Generator<Conte
             }
             const pubkey = PublicKey.FromBech32(bech32);
             if (pubkey instanceof Error) {
+                console.log("+++++++", pubkey);
                 // ignore
             } else {
                 yield {
@@ -136,13 +157,19 @@ function* match(regex: RegExp, content: string, type: ItemType): Generator<Conte
 }
 
 type otherItemType = "url" | "tag";
-type ItemType = otherItemType | "note" | "npub" | "nprofile" | "naddr" | "nevent";
+type ItemType = otherItemType | "note" | "npub" | "nprofile" | "naddr" | "nevent" | "invitation";
 export type ContentItem = {
     type: otherItemType;
     start: number;
     end: number;
 } | {
     type: "npub";
+    pubkey: PublicKey;
+    start: number;
+    end: number;
+    relays?: string[];
+} | {
+    type: "invitation";
     pubkey: PublicKey;
     start: number;
     end: number;

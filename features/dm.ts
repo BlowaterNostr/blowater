@@ -189,7 +189,7 @@ export class DirectedMessageController implements DirectMessageGetter {
                     type: "text", // todo: change to invitation
                     event: gmEvent,
                     author: gmEvent.publicKey,
-                    content: `You have been invited to group ${invitation.groupAddr.bech32()}`,
+                    content: `invitation:${invitation.groupAddr.bech32()}`,
                     created_at: new Date(gmEvent.created_at * 1000),
                     // invitation: invitation,
                     lamport: gmEvent.parsedTags.lamport_timestamp,

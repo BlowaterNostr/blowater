@@ -23,6 +23,7 @@ import { ButtonGroup } from "./components/button-group.tsx";
 import { ProfileCard } from "./profile-card.tsx";
 import { NoteCard } from "./note-card.tsx";
 import { ProfileGetter } from "./search.tsx";
+import { InviteCard } from "./invite-card.tsx";
 
 export type RightPanelModel = {
     show: boolean;
@@ -490,6 +491,11 @@ export function ParseMessageContent(
                         );
                     }
                 }
+                break;
+            case "invitation":
+                vnode.push(
+                    <InviteCard publicKey={item.pubkey} profileGetter={profileGetter} />,
+                );
                 break;
             case "npub":
                 {
