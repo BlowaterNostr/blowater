@@ -1,12 +1,8 @@
-import { assertEquals, fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
-import { Channel, closed } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { prepareEncryptedNostrEvent } from "../lib/nostr-ts/event.ts";
-import { PrivateKey } from "../lib/nostr-ts/key.ts";
-import { InMemoryAccountContext, RelayResponse_REQ_Message } from "../lib/nostr-ts/nostr.ts";
-import { relays } from "../lib/nostr-ts/relay-list.test.ts";
-import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
-import { parseJSON } from "./profile.ts";
+import { assertEquals, assertNotEquals, fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
+import { PublicKey } from "../lib/nostr-ts/key.ts";
+import { InMemoryAccountContext } from "../lib/nostr-ts/nostr.ts";
 import { GroupMessageController } from "./gm.ts";
+import { getTags } from "../nostr.ts";
 
 Deno.test("group chat", async () => {
     const user_A = InMemoryAccountContext.Generate()
@@ -24,25 +20,22 @@ Deno.test("group chat", async () => {
     const invite_C = await gm_A.createInvitation(group_chat.groupKey.publicKey, user_C.publicKey)
     if(invite_C instanceof Error) fail(invite_C.message)
 
-    gm_B.addEvent()
-});
+    await gm_B.addEvent({
+        ...invite_B,
+        parsedTags: getTags(invite_B),
+        publicKey: PublicKey.FromHex(invite_B.pubkey) as PublicKey
+    })
 
-async function next(
-    chan: Channel<{
-        res: RelayResponse_REQ_Message;
-        url: string;
-    }>,
-) {
-    while (true) {
-        const msg = await chan.pop();
-        if (msg == closed) {
-            fail();
-        }
-        console.log(msg);
-        if (msg.res.type == "EOSE") {
-            continue;
-        }
-        return msg.res.event;
-    }
-    fail();
-}
+    await gm_C.addEvent({
+        ...invite_C,
+        parsedTags: getTags(invite_C),
+        publicKey: PublicKey.FromHex(invite_C.pubkey) as PublicKey
+    })
+
+   const gm_ctx_A = gm_A.getGroupChatCtx(group_chat.groupKey.publicKey)
+   const gm_ctx_B = gm_B.getGroupChatCtx(group_chat.groupKey.publicKey)
+   const gm_ctx_C = gm_C.getGroupChatCtx(group_chat.groupKey.publicKey)
+   assertEquals(gm_ctx_A, gm_ctx_B)
+   assertEquals(gm_ctx_A, gm_ctx_C)
+   assertNotEquals(gm_ctx_A, undefined)
+});
