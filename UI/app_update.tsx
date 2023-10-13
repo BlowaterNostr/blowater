@@ -10,14 +10,14 @@ import { Database_Contextual_View } from "../database.ts";
 
 import { DirectedMessageController, sendDMandImages } from "../features/dm.ts";
 import { notify } from "./notification.ts";
-import { EventBus } from "../event-bus.ts";
+import { EventBus, emitFunc } from "../event-bus.ts";
 import { ContactUpdate, IsGruopChatSupported } from "./conversation-list.tsx";
 import { MyProfileUpdate } from "./edit-profile.tsx";
 import { EditorEvent, EditorModel, new_DM_EditorModel, SendMessage } from "./editor.tsx";
 import { DirectMessagePanelUpdate } from "./message-panel.tsx";
 import { NavigationUpdate } from "./nav.tsx";
 import { Model } from "./app_model.ts";
-import { SearchUpdate } from "./search_model.ts";
+import { SearchUpdate, SelectConversation } from "./search_model.ts";
 import { LamportTime } from "../time.ts";
 import { SignInEvent, signInWithExtension, signInWithPrivateKey } from "./signIn.tsx";
 import {
@@ -494,6 +494,7 @@ export async function* Database_Update(
     convoLists: DM_List,
     groupController: GroupMessageController,
     dmController: DirectedMessageController,
+    emit: emitFunc<SelectConversation>
 ) {
     const changes = database.subscribe();
     while (true) {
@@ -585,29 +586,48 @@ export async function* Database_Update(
             }
 
             // notification
-            // {
-            //     const author = getConversationSummaryFromPublicKey(e.publicKey, convoLists.convoSummaries)
-            //         ?.profile;
-            //     if (e.pubkey != ctx.publicKey.hex && e.parsedTags.p.includes(ctx.publicKey.hex)) {
-            //         notify(
-            //             author?.profile.name ? author.profile.name : "",
-            //             "new message",
-            //             author?.profile.picture ? author.profile.picture : "",
-            //             () => {
-            //                 const k = PublicKey.FromHex(e.pubkey);
-            //                 if (k instanceof Error) {
-            //                     console.error(k);
-            //                     return;
-            //                 }
-            //                 emit({
-            //                     type: "SelectConversation",
-            //                     pubkey: k,
-            //                     isGroupChat: false, // todo
-            //                 });
-            //             },
-            //         );
-            //     }
-            // }
+            {
+                const author = database.getProfilesByPublicKey(e.publicKey)
+                    ?.profile;
+                if (e.pubkey != ctx.publicKey.hex && e.parsedTags.p.includes(ctx.publicKey.hex)) {
+                    notify(
+                        author?.name ? author.name : "",
+                        "new message",
+                        author?.picture ? author.picture : "",
+                        () => {
+                            if(e.kind == NostrKind.DIRECT_MESSAGE) {
+                                const k = PublicKey.FromHex(e.pubkey);
+                                if (k instanceof Error) {
+                                    console.error(k);
+                                    return;
+                                }
+                                emit({
+                                    type: "SelectConversation",
+                                    pubkey: k,
+                                    isGroupChat: false,
+                                });
+                            } else if(e.kind == NostrKind.Group_Message) {
+                                const k = PublicKey.FromHex(e.pubkey);
+                                if (k instanceof Error) {
+                                    console.error(k);
+                                    return;
+                                }
+                                emit({
+                                    type: "SelectConversation",
+                                    pubkey: k,
+                                    isGroupChat: true,
+                                });
+                            } else if(e.kind == NostrKind.TEXT_NOTE) {
+                                // todo
+                                // open the default kind 1 app
+                            } else {
+                                // todo
+                                // handle other types
+                            }
+                        },
+                    );
+                }
+            }
         }
         yield model;
     }

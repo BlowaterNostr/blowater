@@ -341,6 +341,7 @@ export class App {
                     this.conversationLists,
                     this.groupChatController,
                     this.dmController,
+                    this.eventBus.emit
                 )
             ) {
                 const t = Date.now();
