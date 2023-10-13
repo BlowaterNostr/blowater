@@ -5,7 +5,7 @@ import { InMemoryAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/n
 import { Database_Contextual_View } from "../database.ts";
 import { testEventBus } from "./_setup.test.ts";
 import { prepareEncryptedNostrEvent } from "../lib/nostr-ts/event.ts";
-import { ConversationLists } from "./conversation-list.ts";
+import { DM_List } from "./conversation-list.ts";
 import { EventSyncer } from "./event_syncer.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { ProfileSyncer } from "../features/profile.ts";
@@ -42,7 +42,7 @@ if (!e || e instanceof Error) {
     fail();
 }
 
-const allUserInfo = new ConversationLists(ctx, new ProfileSyncer(database, new ConnectionPool()));
+const allUserInfo = new DM_List(ctx, new ProfileSyncer(database, new ConnectionPool()));
 allUserInfo.addEvents([e]);
 allUserInfo.addEvents(database.events);
 console.log(database.events);

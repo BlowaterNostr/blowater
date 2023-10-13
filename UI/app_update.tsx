@@ -3,7 +3,7 @@ import { h } from "https://esm.sh/preact@10.17.1";
 import { ProfileSyncer, saveProfile } from "../features/profile.ts";
 
 import { App } from "./app.tsx";
-import { ConversationLists } from "./conversation-list.ts";
+import { DM_List } from "./conversation-list.ts";
 
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { Database_Contextual_View } from "../database.ts";
@@ -21,7 +21,6 @@ import { SearchUpdate } from "./search_model.ts";
 import { LamportTime } from "../time.ts";
 import { SignInEvent, signInWithExtension, signInWithPrivateKey } from "./signIn.tsx";
 import {
-    DirectedMessage_Event,
     Encrypted_Event,
     getTags,
     Parsed_Event,
@@ -106,7 +105,7 @@ export async function* UI_Interaction_Update(args: {
                 }
                 if (ctx) {
                     console.log("sign in as", ctx.publicKey.bech32());
-                    const dbView = await Database_Contextual_View.New(dexieDB, ctx);
+                    const dbView = await Database_Contextual_View.New(dexieDB);
                     if (dbView instanceof Error) {
                         throw dbView;
                     }
@@ -492,7 +491,7 @@ export async function* Database_Update(
     model: Model,
     profileSyncer: ProfileSyncer,
     lamport: LamportTime,
-    convoLists: ConversationLists,
+    convoLists: DM_List,
     groupController: GroupMessageController,
     dmController: DirectedMessageController,
 ) {

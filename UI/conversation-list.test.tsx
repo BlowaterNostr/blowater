@@ -7,7 +7,7 @@ import { PrivateKey } from "../lib/nostr-ts/key.ts";
 import { InMemoryAccountContext } from "../lib/nostr-ts/nostr.ts";
 import { testEventBus } from "./_setup.test.ts";
 import { initialModel } from "./app_model.ts";
-import { ConversationLists } from "./conversation-list.ts";
+import { DM_List } from "./conversation-list.ts";
 import { NewIndexedDB } from "./dexie-db.ts";
 import { ProfileSyncer } from "../features/profile.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
@@ -23,7 +23,7 @@ if (database instanceof Error) {
     fail(database.message);
 }
 
-const convoLists = new ConversationLists(ctx, new ProfileSyncer(database, new ConnectionPool()));
+const convoLists = new DM_List(ctx, new ProfileSyncer(database, new ConnectionPool()));
 convoLists.addEvents(database.events);
 
 const model = initialModel();

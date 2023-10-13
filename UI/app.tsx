@@ -8,7 +8,7 @@ import * as nav from "./nav.tsx";
 import { EventBus } from "../event-bus.ts";
 import { Setting } from "./setting.tsx";
 import { Database_Contextual_View } from "../database.ts";
-import { ConversationLists } from "./conversation-list.ts";
+import { DM_List } from "./conversation-list.ts";
 import { new_DM_EditorModel } from "./editor.tsx";
 import { initialModel, Model } from "./app_model.ts";
 import { AppEventBus, Database_Update, UI_Interaction_Event, UI_Interaction_Update } from "./app_update.tsx";
@@ -45,7 +45,7 @@ export async function Start(database: DexieDatabase) {
         console.error(ctx);
         model.signIn.warningString = "Please add your private key to your NIP-7 extension";
     } else if (ctx) {
-        const dbView = await Database_Contextual_View.New(database, ctx);
+        const dbView = await Database_Contextual_View.New(database);
         if (dbView instanceof Error) {
             throw dbView;
         }
@@ -109,7 +109,7 @@ export class App {
         public readonly otherConfig: OtherConfig,
         public readonly profileSyncer: ProfileSyncer,
         public readonly eventSyncer: EventSyncer,
-        public readonly conversationLists: ConversationLists,
+        public readonly conversationLists: DM_List,
         public readonly relayConfig: RelayConfig,
         public readonly groupChatController: GroupMessageController,
         public readonly lamport: time.LamportTime,
@@ -136,7 +136,7 @@ export class App {
         const profileSyncer = new ProfileSyncer(args.database, args.pool);
         profileSyncer.add(args.ctx.publicKey.hex);
 
-        const conversationLists = new ConversationLists(args.ctx, profileSyncer);
+        const conversationLists = new DM_List(args.ctx, profileSyncer);
         conversationLists.addEvents(args.database.events);
 
         const dmController = new DirectedMessageController(args.ctx);
