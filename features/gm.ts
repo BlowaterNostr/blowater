@@ -137,8 +137,6 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
         }
         const groupChatCtx = this.getGroupChatCtx(groupAddrPubkey);
         if (groupChatCtx == undefined) {
-            console.log(groupAddrPubkey);
-            console.log(this.created_groups);
             return new Error(`group ${groupAddr} does not have me in it`);
         }
         const decryptedContent = await groupChatCtx.decrypt(event.pubkey, event.content);
