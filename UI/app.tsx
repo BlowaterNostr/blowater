@@ -144,7 +144,6 @@ export class App {
         const groupSyncer = new GroupChatSyncer(args.database, args.pool);
         const groupChatController = new GroupMessageController(
             args.ctx,
-            conversationLists,
             groupSyncer,
             profileSyncer,
         );

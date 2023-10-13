@@ -29,11 +29,11 @@ export type gm_Invitation = {
 };
 
 export interface GroupChatAdder {
-    add(key: string): void
+    add(key: string): void;
 }
 
 export interface ProfileAdder {
-    add(key: string): void
+    add(key: string): void;
 }
 
 export class GroupMessageController implements GroupMessageGetter, GroupMessageListGetter {
@@ -53,15 +53,11 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
         for (const v of this.created_groups.values()) {
             conversations.push({
                 pubkey: v.groupKey.publicKey,
-                newestEventReceivedByMe: undefined,
-                newestEventSendByMe: undefined, // todo
             });
         }
         for (const v of this.invitations.values()) {
             conversations.push({
                 pubkey: v.groupAddr,
-                newestEventReceivedByMe: undefined,
-                newestEventSendByMe: undefined, // todo
             });
         }
         return conversations;
@@ -107,15 +103,6 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
             return await this.handleInvitation(event);
         } else {
             console.log(GroupMessageController.name, "ignore", event, "type", type);
-        }
-    }
-
-    async addEvents(...events: Parsed_Event<NostrKind.Group_Message>[]) {
-        for (const e of events) {
-            const err = await this.addEvent(e);
-            if (err instanceof Error) {
-                return err;
-            }
         }
     }
 

@@ -2,15 +2,7 @@ import { Encrypted_Event, getTags, Parsed_Event, Profile_Nostr_Event } from "./n
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { parseJSON, ProfileData } from "./features/profile.ts";
 import { parseContent } from "./UI/message.ts";
-import {
-
-    NostrAccountContext,
-    NostrEvent,
-    NostrKind,
-    Tag,
-    Tags,
-    verifyEvent,
-} from "./lib/nostr-ts/nostr.ts";
+import { NostrAccountContext, NostrEvent, NostrKind, Tag, Tags, verifyEvent } from "./lib/nostr-ts/nostr.ts";
 import { PublicKey } from "./lib/nostr-ts/key.ts";
 import { NoteID } from "./lib/nostr-ts/nip19.ts";
 import { ProfileController } from "./UI/search.tsx";

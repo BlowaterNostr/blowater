@@ -7,8 +7,8 @@ import { gm_Creation } from "../features/gm.ts";
 
 export interface ConversationSummary {
     pubkey: PublicKey;
-    newestEventSendByMe: NostrEvent | undefined;
-    newestEventReceivedByMe: NostrEvent | undefined;
+    newestEventSendByMe?: NostrEvent;
+    newestEventReceivedByMe?: NostrEvent;
 }
 
 export class DM_List implements ConversationListRetriever, NewMessageChecker {

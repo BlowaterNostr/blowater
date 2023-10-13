@@ -6,13 +6,10 @@ test: clear-coverage
 test-core:
 	deno test --config=deno.json --coverage=$(coverage_dir) --allow-net --trace-ops $(file).test.ts
 
-test-ws:
-	deno test --config=deno.json --coverage=$(coverage_dir) --allow-net --trace-ops websocket.test.ts
-
 test-db:
 	deno test --config=deno.json --coverage=$(coverage_dir) --allow-net --trace-ops database.test.ts
 
-test-features:
+test-features: clear-coverage
 	deno test --config=deno.json --coverage=$(coverage_dir) --allow-net --trace-ops features/$(file).test.ts
 
 cov:
