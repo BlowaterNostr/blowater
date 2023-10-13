@@ -82,6 +82,25 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
         return event;
     }
 
+    async prepareGroupMessageEvent(groupAddr: PublicKey, text: string) {
+        const groupCtx = this.getGroupChatCtx(groupAddr);
+        if (groupCtx == undefined) {
+            return new Error(`group ctx for ${groupAddr.bech32()} is empty`);
+        }
+        const nostrEvent = await prepareEncryptedNostrEvent(this.ctx, {
+            content: JSON.stringify({
+                type: "gm_message",
+                text,
+            }),
+            kind: NostrKind.Group_Message,
+            tags: [
+                ["p", groupAddr.hex],
+            ],
+            encryptKey: groupCtx.publicKey,
+        });
+        return nostrEvent
+    }
+
     createGroupChat() {
         const groupChatCreation: gm_Creation = {
             cipherKey: InMemoryAccountContext.New(PrivateKey.Generate()),

@@ -636,23 +636,9 @@ export async function handle_SendMessage(
     groupControl: GroupMessageController,
 ) {
     if (event.isGroupChat) {
-        const groupCtx = groupControl.getGroupChatCtx(event.pubkey);
-        if (groupCtx == undefined) {
-            return new Error(`group ctx for ${event.pubkey.bech32()} is empty`);
-        }
-        const nostrEvent = await prepareEncryptedNostrEvent(ctx, {
-            content: JSON.stringify({
-                type: "gm_message",
-                text: event.text,
-            }),
-            kind: NostrKind.Group_Message,
-            tags: [
-                ["p", event.pubkey.hex],
-            ],
-            encryptKey: groupCtx.publicKey,
-        });
-        if (nostrEvent instanceof Error) {
-            return nostrEvent;
+        const nostrEvent = await groupControl.prepareGroupMessageEvent(event.pubkey, event.text)
+        if(nostrEvent instanceof Error) {
+            return nostrEvent
         }
         const err = await pool.sendEvent(nostrEvent);
         if (err instanceof Error) {
