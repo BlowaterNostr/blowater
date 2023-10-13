@@ -27,6 +27,9 @@ Deno.test("group chat", async () => {
             parsedTags: getTags(event),
             publicKey: PublicKey.FromHex(event.pubkey) as PublicKey,
         });
+
+        const gm_admin_ctx = gm_A.getGroupAdminCtx(group_chat.groupKey.publicKey)
+        assertEquals(gm_admin_ctx, group_chat.groupKey)
     }
 
     const invite_B = await gm_A.createInvitation(group_chat.groupKey.publicKey, user_B.publicKey);
