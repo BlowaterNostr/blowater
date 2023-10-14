@@ -3,9 +3,7 @@ import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nost
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import {
     compare,
-    DirectedMessage_Event,
     getTags,
-    groupImageEvents,
     Parsed_Event,
     prepareNostrImageEvent,
     reassembleBase64ImageFromEvents,
