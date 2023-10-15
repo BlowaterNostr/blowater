@@ -98,7 +98,7 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
             ],
             encryptKey: groupCtx.publicKey,
         });
-        return nostrEvent
+        return nostrEvent;
     }
 
     createGroupChat() {

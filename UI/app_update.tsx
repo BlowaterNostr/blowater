@@ -10,7 +10,7 @@ import { Database_Contextual_View } from "../database.ts";
 
 import { DirectedMessageController, sendDMandImages } from "../features/dm.ts";
 import { notify } from "./notification.ts";
-import { EventBus, emitFunc } from "../event-bus.ts";
+import { emitFunc, EventBus } from "../event-bus.ts";
 import { ContactUpdate, IsGruopChatSupported } from "./conversation-list.tsx";
 import { MyProfileUpdate } from "./edit-profile.tsx";
 import { EditorEvent, EditorModel, new_DM_EditorModel, SendMessage } from "./editor.tsx";
@@ -494,7 +494,7 @@ export async function* Database_Update(
     convoLists: DM_List,
     groupController: GroupMessageController,
     dmController: DirectedMessageController,
-    emit: emitFunc<SelectConversation>
+    emit: emitFunc<SelectConversation>,
 ) {
     const changes = database.subscribe();
     while (true) {
@@ -595,7 +595,7 @@ export async function* Database_Update(
                         "new message",
                         author?.picture ? author.picture : "",
                         () => {
-                            if(e.kind == NostrKind.DIRECT_MESSAGE) {
+                            if (e.kind == NostrKind.DIRECT_MESSAGE) {
                                 const k = PublicKey.FromHex(e.pubkey);
                                 if (k instanceof Error) {
                                     console.error(k);
@@ -606,7 +606,7 @@ export async function* Database_Update(
                                     pubkey: k,
                                     isGroupChat: false,
                                 });
-                            } else if(e.kind == NostrKind.Group_Message) {
+                            } else if (e.kind == NostrKind.Group_Message) {
                                 const k = PublicKey.FromHex(e.pubkey);
                                 if (k instanceof Error) {
                                     console.error(k);
@@ -617,7 +617,7 @@ export async function* Database_Update(
                                     pubkey: k,
                                     isGroupChat: true,
                                 });
-                            } else if(e.kind == NostrKind.TEXT_NOTE) {
+                            } else if (e.kind == NostrKind.TEXT_NOTE) {
                                 // todo
                                 // open the default kind 1 app
                             } else {
@@ -656,9 +656,9 @@ export async function handle_SendMessage(
     groupControl: GroupMessageController,
 ) {
     if (event.isGroupChat) {
-        const nostrEvent = await groupControl.prepareGroupMessageEvent(event.pubkey, event.text)
-        if(nostrEvent instanceof Error) {
-            return nostrEvent
+        const nostrEvent = await groupControl.prepareGroupMessageEvent(event.pubkey, event.text);
+        if (nostrEvent instanceof Error) {
+            return nostrEvent;
         }
         const err = await pool.sendEvent(nostrEvent);
         if (err instanceof Error) {
