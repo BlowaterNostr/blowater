@@ -2,15 +2,7 @@ import { Encrypted_Event, getTags, Parsed_Event, Profile_Nostr_Event } from "./n
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { parseJSON, ProfileData } from "./features/profile.ts";
 import { parseContent } from "./UI/message.ts";
-import {
-    groupBy,
-    NostrAccountContext,
-    NostrEvent,
-    NostrKind,
-    Tag,
-    Tags,
-    verifyEvent,
-} from "./lib/nostr-ts/nostr.ts";
+import { NostrAccountContext, NostrEvent, NostrKind, Tag, Tags, verifyEvent } from "./lib/nostr-ts/nostr.ts";
 import { PublicKey } from "./lib/nostr-ts/key.ts";
 import { NoteID } from "./lib/nostr-ts/nip19.ts";
 import { ProfileController } from "./UI/search.tsx";
@@ -50,10 +42,9 @@ export class Database_Contextual_View implements ProfileController, EventGetter 
     private constructor(
         private readonly eventsAdapter: EventsAdapter,
         public readonly events: Parsed_Event[],
-        private readonly ctx: NostrAccountContext,
     ) {}
 
-    static async New(eventsAdapter: EventsAdapter, ctx: NostrAccountContext) {
+    static async New(eventsAdapter: EventsAdapter) {
         const t = Date.now();
         const allEvents = await eventsAdapter.filter();
         console.log("Database_Contextual_View:onload", Date.now() - t, allEvents.length);
@@ -80,7 +71,6 @@ export class Database_Contextual_View implements ProfileController, EventGetter 
         const db = new Database_Contextual_View(
             eventsAdapter,
             initialEvents,
-            ctx,
         );
         console.log("Database_Contextual_View:New time spent", Date.now() - t);
         for (const e of db.events) {
@@ -107,31 +97,13 @@ export class Database_Contextual_View implements ProfileController, EventGetter 
     }
 
     getProfilesByText(name: string): Profile_Nostr_Event[] {
-        const profileEvents: NostrEvent<NostrKind.META_DATA>[] = [];
-        for (const e of this.events) {
-            if (e.kind === NostrKind.META_DATA) {
-                // @ts-ignore
-                profileEvents.push(e);
-            }
-        }
-        if (profileEvents.length == 0) {
-            return [];
-        }
-        const profilesPerUser = groupBy(profileEvents, (e) => e.pubkey);
-
         const result = [];
-        for (const events of profilesPerUser.values()) {
-            events.sort((e1, e2) => e2.created_at - e1.created_at);
-            const p = events[0];
-            const profileEvent = parseProfileEvent(p);
-            if (profileEvent instanceof Error) {
-                throw profileEvent; // todo: fix later
-            }
+        for (const event of this.profiles.values()) {
             if (
-                profileEvent.profile.name &&
-                profileEvent.profile.name?.toLocaleLowerCase().indexOf(name.toLowerCase()) != -1
+                event.profile.name &&
+                event.profile.name?.toLocaleLowerCase().indexOf(name.toLowerCase()) != -1
             ) {
-                result.push(profileEvent);
+                result.push(event);
             }
         }
         return result;
@@ -151,10 +123,6 @@ export class Database_Contextual_View implements ProfileController, EventGetter 
             this.profiles.set(profileEvent.pubkey, profileEvent);
         }
     }
-
-    public readonly filterEvents = (filter: (e: NostrEvent) => boolean) => {
-        return this.events.filter(filter);
-    };
 
     async addEvent(event: NostrEvent) {
         // check if the event exists

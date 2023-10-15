@@ -3,25 +3,24 @@ import { h } from "https://esm.sh/preact@10.17.1";
 import { ProfileSyncer, saveProfile } from "../features/profile.ts";
 
 import { App } from "./app.tsx";
-import { ConversationLists } from "./conversation-list.ts";
+import { DM_List } from "./conversation-list.ts";
 
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { Database_Contextual_View } from "../database.ts";
 
 import { DirectedMessageController, sendDMandImages } from "../features/dm.ts";
 import { notify } from "./notification.ts";
-import { EventBus } from "../event-bus.ts";
+import { emitFunc, EventBus } from "../event-bus.ts";
 import { ContactUpdate, IsGruopChatSupported } from "./conversation-list.tsx";
 import { MyProfileUpdate } from "./edit-profile.tsx";
 import { EditorEvent, EditorModel, new_DM_EditorModel, SendMessage } from "./editor.tsx";
 import { DirectMessagePanelUpdate } from "./message-panel.tsx";
 import { NavigationUpdate } from "./nav.tsx";
 import { Model } from "./app_model.ts";
-import { SearchUpdate } from "./search_model.ts";
+import { SearchUpdate, SelectConversation } from "./search_model.ts";
 import { LamportTime } from "../time.ts";
 import { SignInEvent, signInWithExtension, signInWithPrivateKey } from "./signIn.tsx";
 import {
-    DirectedMessage_Event,
     Encrypted_Event,
     getTags,
     Parsed_Event,
@@ -37,7 +36,7 @@ import { Search } from "./search.tsx";
 import { NoteID } from "../lib/nostr-ts/nip19.ts";
 import { EventDetail, EventDetailItem } from "./event-detail.tsx";
 import { CreateGroup, CreateGroupChat, StartCreateGroupChat } from "./create-group.tsx";
-import { prepareEncryptedNostrEvent, prepareNormalNostrEvent } from "../lib/nostr-ts/event.ts";
+import { prepareNormalNostrEvent } from "../lib/nostr-ts/event.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
@@ -106,7 +105,7 @@ export async function* UI_Interaction_Update(args: {
                 }
                 if (ctx) {
                     console.log("sign in as", ctx.publicKey.bech32());
-                    const dbView = await Database_Contextual_View.New(dexieDB, ctx);
+                    const dbView = await Database_Contextual_View.New(dexieDB);
                     if (dbView instanceof Error) {
                         throw dbView;
                     }
@@ -492,9 +491,10 @@ export async function* Database_Update(
     model: Model,
     profileSyncer: ProfileSyncer,
     lamport: LamportTime,
-    convoLists: ConversationLists,
+    convoLists: DM_List,
     groupController: GroupMessageController,
     dmController: DirectedMessageController,
+    emit: emitFunc<SelectConversation>,
 ) {
     const changes = database.subscribe();
     while (true) {
@@ -585,30 +585,49 @@ export async function* Database_Update(
                 }
             }
 
-            // notification
-            // {
-            //     const author = getConversationSummaryFromPublicKey(e.publicKey, convoLists.convoSummaries)
-            //         ?.profile;
-            //     if (e.pubkey != ctx.publicKey.hex && e.parsedTags.p.includes(ctx.publicKey.hex)) {
-            //         notify(
-            //             author?.profile.name ? author.profile.name : "",
-            //             "new message",
-            //             author?.profile.picture ? author.profile.picture : "",
-            //             () => {
-            //                 const k = PublicKey.FromHex(e.pubkey);
-            //                 if (k instanceof Error) {
-            //                     console.error(k);
-            //                     return;
-            //                 }
-            //                 emit({
-            //                     type: "SelectConversation",
-            //                     pubkey: k,
-            //                     isGroupChat: false, // todo
-            //                 });
-            //             },
-            //         );
-            //     }
-            // }
+            // notification should be moved to after domain objects
+            {
+                const author = database.getProfilesByPublicKey(e.publicKey)
+                    ?.profile;
+                if (e.pubkey != ctx.publicKey.hex && e.parsedTags.p.includes(ctx.publicKey.hex)) {
+                    notify(
+                        author?.name ? author.name : "",
+                        "new message",
+                        author?.picture ? author.picture : "",
+                        () => {
+                            if (e.kind == NostrKind.DIRECT_MESSAGE) {
+                                const k = PublicKey.FromHex(e.pubkey);
+                                if (k instanceof Error) {
+                                    console.error(k);
+                                    return;
+                                }
+                                emit({
+                                    type: "SelectConversation",
+                                    pubkey: k,
+                                    isGroupChat: false,
+                                });
+                            } else if (e.kind == NostrKind.Group_Message) {
+                                const k = PublicKey.FromHex(e.pubkey);
+                                if (k instanceof Error) {
+                                    console.error(k);
+                                    return;
+                                }
+                                emit({
+                                    type: "SelectConversation",
+                                    pubkey: k,
+                                    isGroupChat: true,
+                                });
+                            } else if (e.kind == NostrKind.TEXT_NOTE) {
+                                // todo
+                                // open the default kind 1 app
+                            } else {
+                                // todo
+                                // handle other types
+                            }
+                        },
+                    );
+                }
+            }
         }
         yield model;
     }
@@ -637,21 +656,7 @@ export async function handle_SendMessage(
     groupControl: GroupMessageController,
 ) {
     if (event.isGroupChat) {
-        const groupCtx = groupControl.getGroupChatCtx(event.pubkey);
-        if (groupCtx == undefined) {
-            return new Error(`group ctx for ${event.pubkey.bech32()} is empty`);
-        }
-        const nostrEvent = await prepareEncryptedNostrEvent(ctx, {
-            content: JSON.stringify({
-                type: "gm_message",
-                text: event.text,
-            }),
-            kind: NostrKind.Group_Message,
-            tags: [
-                ["p", event.pubkey.hex],
-            ],
-            encryptKey: groupCtx.publicKey,
-        });
+        const nostrEvent = await groupControl.prepareGroupMessageEvent(event.pubkey, event.text);
         if (nostrEvent instanceof Error) {
             return nostrEvent;
         }

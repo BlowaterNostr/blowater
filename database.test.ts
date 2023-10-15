@@ -8,7 +8,7 @@ import { assertEquals, fail } from "https://deno.land/std@0.176.0/testing/assert
 const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
 
 Deno.test("Database", async () => {
-    const db = await Database_Contextual_View.New(testEventsAdapter, ctx);
+    const db = await Database_Contextual_View.New(testEventsAdapter);
     if (db instanceof Error) fail(db.message);
 
     const stream = db.subscribe();

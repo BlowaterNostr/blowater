@@ -7,14 +7,12 @@ import { gm_Creation } from "../features/gm.ts";
 
 export interface ConversationSummary {
     pubkey: PublicKey;
-    newestEventSendByMe: NostrEvent | undefined;
-    newestEventReceivedByMe: NostrEvent | undefined;
+    newestEventSendByMe?: NostrEvent;
+    newestEventReceivedByMe?: NostrEvent;
 }
 
-export class ConversationLists implements ConversationListRetriever, NewMessageChecker {
+export class DM_List implements ConversationListRetriever, NewMessageChecker {
     readonly convoSummaries = new Map<string, ConversationSummary>();
-    readonly groupChatSummaries = new Map<string, ConversationSummary>();
-    // private readonly profile = new Map<string, Profile_Nostr_Event>();
 
     constructor(
         public readonly ctx: NostrAccountContext,
@@ -54,12 +52,6 @@ export class ConversationLists implements ConversationListRetriever, NewMessageC
         }
     }
 
-    *getGroupChat() {
-        for (const value of this.groupChatSummaries.values()) {
-            yield value;
-        }
-    }
-
     getConversationType(pubkey: PublicKey, isGroupChat: boolean) {
         if (isGroupChat) {
             return "Group";
@@ -75,16 +67,6 @@ export class ConversationLists implements ConversationListRetriever, NewMessageC
         } else {
             return "Contacts";
         }
-    }
-
-    addGroupCreation(groupChatCreation: gm_Creation) {
-        const publicKey = groupChatCreation.groupKey.publicKey;
-        this.groupChatSummaries.set(publicKey.hex, {
-            pubkey: publicKey,
-            newestEventReceivedByMe: undefined,
-            newestEventSendByMe: undefined,
-        });
-        this.profileSyncer.add(publicKey.hex);
     }
 
     addEvents(

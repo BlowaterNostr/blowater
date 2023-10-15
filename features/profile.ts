@@ -4,8 +4,9 @@ import { NostrAccountContext, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { Parsed_Event, Profile_Nostr_Event } from "../nostr.ts";
 import { prepareNormalNostrEvent } from "../lib/nostr-ts/event.ts";
 import { semaphore } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { ProfileAdder } from "./gm.ts";
 
-export class ProfileSyncer {
+export class ProfileSyncer implements ProfileAdder {
     readonly userSet = new Set<string>();
     private readonly lock = semaphore(1);
 

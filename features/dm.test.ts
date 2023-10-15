@@ -12,7 +12,7 @@ const ctx = InMemoryAccountContext.New(
 );
 const pool = new ConnectionPool();
 pool.addRelayURLs(relays);
-const database = await Database_Contextual_View.New(testEventsAdapter, ctx);
+const database = await Database_Contextual_View.New(testEventsAdapter);
 if (database instanceof Error) {
     fail(database.message);
 }

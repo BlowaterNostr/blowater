@@ -1,7 +1,7 @@
 import { z } from "https://esm.sh/zod@3.22.4";
 import { Channel, semaphore } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { GroupMessageGetter } from "../UI/app_update.tsx";
-import { ConversationLists, ConversationSummary } from "../UI/conversation-list.ts";
+import { ConversationSummary } from "../UI/conversation-list.ts";
 import { GroupMessageListGetter } from "../UI/conversation-list.tsx";
 import { ChatMessage } from "../UI/message.ts";
 import { Database_Contextual_View } from "../database.ts";
@@ -10,7 +10,7 @@ import { PrivateKey, PublicKey } from "../lib/nostr-ts/key.ts";
 import { InMemoryAccountContext, NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { getTags, Parsed_Event } from "../nostr.ts";
-import { parseJSON, ProfileSyncer } from "./profile.ts";
+import { parseJSON } from "./profile.ts";
 
 export type GM_Types = "gm_creation" | "gm_message" | "gm_invitation";
 
@@ -28,6 +28,14 @@ export type gm_Invitation = {
     groupAddr: PublicKey;
 };
 
+export interface GroupChatAdder {
+    add(key: string): void;
+}
+
+export interface ProfileAdder {
+    add(key: string): void;
+}
+
 export class GroupMessageController implements GroupMessageGetter, GroupMessageListGetter {
     created_groups = new Map<string, gm_Creation>();
     invitations = new Map<string, gm_Invitation>();
@@ -36,9 +44,8 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
 
     constructor(
         private readonly ctx: NostrAccountContext,
-        private readonly conversationLists: ConversationLists,
-        private readonly groupSyncer: GroupChatSyncer,
-        private readonly profileSyncer: ProfileSyncer,
+        private readonly groupSyncer: GroupChatAdder,
+        private readonly profileSyncer: ProfileAdder,
     ) {}
 
     getConversationList() {
@@ -46,15 +53,11 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
         for (const v of this.created_groups.values()) {
             conversations.push({
                 pubkey: v.groupKey.publicKey,
-                newestEventReceivedByMe: undefined,
-                newestEventSendByMe: undefined, // todo
             });
         }
         for (const v of this.invitations.values()) {
             conversations.push({
                 pubkey: v.groupAddr,
-                newestEventReceivedByMe: undefined,
-                newestEventSendByMe: undefined, // todo
             });
         }
         return conversations;
@@ -77,6 +80,25 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
             }),
         });
         return event;
+    }
+
+    async prepareGroupMessageEvent(groupAddr: PublicKey, text: string) {
+        const groupCtx = this.getGroupChatCtx(groupAddr);
+        if (groupCtx == undefined) {
+            return new Error(`group ctx for ${groupAddr.bech32()} is empty`);
+        }
+        const nostrEvent = await prepareEncryptedNostrEvent(this.ctx, {
+            content: JSON.stringify({
+                type: "gm_message",
+                text,
+            }),
+            kind: NostrKind.Group_Message,
+            tags: [
+                ["p", groupAddr.hex],
+            ],
+            encryptKey: groupCtx.publicKey,
+        });
+        return nostrEvent;
     }
 
     createGroupChat() {
@@ -103,16 +125,7 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
         }
     }
 
-    async addEvents(...events: Parsed_Event<NostrKind.Group_Message>[]) {
-        for (const e of events) {
-            const err = await this.addEvent(e);
-            if (err instanceof Error) {
-                return err;
-            }
-        }
-    }
-
-    async handleInvitation(event: NostrEvent<NostrKind.Group_Message>) {
+    private async handleInvitation(event: NostrEvent<NostrKind.Group_Message>) {
         const invitation = await decodeInvitation(this.ctx, event);
         if (invitation instanceof Error) {
             return invitation;
@@ -122,7 +135,7 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
         this.profileSyncer.add(invitation.groupAddr.hex);
     }
 
-    async handleMessage(event: Parsed_Event<NostrKind.Group_Message>) {
+    private async handleMessage(event: Parsed_Event<NostrKind.Group_Message>) {
         const groupAddr = getTags(event).p[0];
         const groupAddrPubkey = PublicKey.FromHex(groupAddr);
         if (groupAddrPubkey instanceof Error) {
@@ -130,8 +143,6 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
         }
         const groupChatCtx = this.getGroupChatCtx(groupAddrPubkey);
         if (groupChatCtx == undefined) {
-            console.log(groupAddrPubkey);
-            console.log(this.created_groups);
             return new Error(`group ${groupAddr} does not have me in it`);
         }
         const decryptedContent = await groupChatCtx.decrypt(event.pubkey, event.content);
@@ -179,7 +190,7 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
         }
     }
 
-    async handleCreation(event: NostrEvent<NostrKind.Group_Message>) {
+    private async handleCreation(event: NostrEvent<NostrKind.Group_Message>) {
         const decryptedContent = await this.ctx.decrypt(event.pubkey, event.content);
         if (decryptedContent instanceof Error) {
             return decryptedContent;
@@ -219,7 +230,7 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
                 this.groupSyncer.add(groupKey.toPublicKey().hex);
                 this.profileSyncer.add(groupKey.toPublicKey().hex);
 
-                this.conversationLists.addGroupCreation(groupChatCreation);
+                // this.conversationLists.addGroupCreation(groupChatCreation);
             } else if (content.type == "gm_message") {
                 console.log(content);
             }
@@ -291,7 +302,7 @@ export function gmEventType(
     return "gm_message";
 }
 
-export class GroupChatSyncer {
+export class GroupChatSyncer implements GroupChatAdder {
     readonly groupAddrSet = new Set<string>();
     private readonly lock = semaphore(1);
 
