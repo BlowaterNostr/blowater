@@ -492,11 +492,6 @@ export function ParseMessageContent(
                     }
                 }
                 break;
-            case "invitation":
-                vnode.push(
-                    <InviteCard publicKey={item.pubkey} profileGetter={profileGetter} />,
-                );
-                break;
             case "npub":
                 {
                     if (authorProfile) {
