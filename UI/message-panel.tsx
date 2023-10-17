@@ -497,11 +497,13 @@ export function ParseMessageContent(
                     if (authorProfile) {
                         const profile = profileGetter.getProfilesByPublicKey(item.pubkey);
                         vnode.push(
-                            <ProfileCard
-                                profileData={profile ? profile.profile : undefined}
-                                publicKey={item.pubkey}
-                                emit={emit}
-                            />,
+                            <InviteCard profileGetter={profileGetter} publicKey={item.pubkey} />
+
+                            // <ProfileCard
+                            //     profileData={profile ? profile.profile : undefined}
+                            //     publicKey={item.pubkey}
+                            //     emit={emit}
+                            // />,
                         );
                         break;
                     } else {
