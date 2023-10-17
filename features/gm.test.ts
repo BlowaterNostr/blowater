@@ -83,7 +83,7 @@ Deno.test("should be only one group if the group created by me and invited me", 
     const gm_creation = gm_A.createGroupChat();
     gm_A.invitations.set(gm_creation.groupKey.publicKey.bech32(), {
         cipherKey: gm_creation.cipherKey,
-        groupAddr: gm_creation.groupKey.publicKey
+        groupAddr: gm_creation.groupKey.publicKey,
     });
 
     assertEquals(gm_A.getConversationList().length, 1);
