@@ -49,18 +49,18 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
     ) {}
 
     getConversationList() {
-        const conversations: ConversationSummary[] = [];
+        const conversations = new Map<string, ConversationSummary>();
         for (const v of this.created_groups.values()) {
-            conversations.push({
+            conversations.set(v.groupKey.publicKey.bech32(), {
                 pubkey: v.groupKey.publicKey,
             });
         }
         for (const v of this.invitations.values()) {
-            conversations.push({
+            conversations.set(v.groupAddr.bech32(), {
                 pubkey: v.groupAddr,
             });
         }
-        return conversations;
+        return Array.from(conversations.values());
     }
 
     getGroupMessages(publicKey: string): ChatMessage[] {

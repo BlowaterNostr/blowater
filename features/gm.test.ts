@@ -75,3 +75,17 @@ Deno.test("group chat", async () => {
         pubkey: group_chat.groupKey.publicKey,
     }]);
 });
+
+Deno.test("should be only one group if the group created by me and invited me", () => {
+    const user_A = InMemoryAccountContext.Generate();
+    const gm_A = new GroupMessageController(user_A, { add: (_) => {} }, { add: (_) => {} });
+
+    const gm_creation = gm_A.createGroupChat();
+    gm_A.invitations.set(gm_creation.groupKey.publicKey.bech32(), {
+        cipherKey: gm_creation.cipherKey,
+        groupAddr: gm_creation.groupKey.publicKey
+    });
+
+    assertEquals(gm_A.getConversationList().length, 1);
+    assertEquals(gm_A.getConversationList()[0].pubkey.bech32(), gm_creation.groupKey.publicKey.bech32());
+});
