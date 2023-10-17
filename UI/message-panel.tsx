@@ -467,7 +467,9 @@ export function ParseMessageContent(
     }
 
     let parsedContentItems;
-    if (message.event.kind == NostrKind.Group_Message) {
+    if (message.type == "gm_invitation") {
+        return <InviteCard publicKey={message.invitation.groupAddr} profileGetter={profileGetter} />;
+    } else if (message.event.kind == NostrKind.Group_Message) {
         parsedContentItems = parseContent(message.content);
     } else {
         parsedContentItems = message.event.parsedContentItems;
@@ -497,13 +499,11 @@ export function ParseMessageContent(
                     if (authorProfile) {
                         const profile = profileGetter.getProfilesByPublicKey(item.pubkey);
                         vnode.push(
-                            <InviteCard profileGetter={profileGetter} publicKey={item.pubkey} />
-
-                            // <ProfileCard
-                            //     profileData={profile ? profile.profile : undefined}
-                            //     publicKey={item.pubkey}
-                            //     emit={emit}
-                            // />,
+                            <ProfileCard
+                                profileData={profile ? profile.profile : undefined}
+                                publicKey={item.pubkey}
+                                emit={emit}
+                            />,
                         );
                         break;
                     } else {
