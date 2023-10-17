@@ -1,5 +1,5 @@
 /** @jsx h */
-import { h, VNode } from "https://esm.sh/preact@10.17.1";
+import { h, JSX, VNode } from "https://esm.sh/preact@10.17.1";
 import { tw } from "https://esm.sh/twind@0.16.16";
 import * as cl from "./conversation-list.tsx";
 import { MessagePanel, RightPanelModel } from "./message-panel.tsx";
@@ -21,6 +21,8 @@ import { InviteIcon } from "./icons2/invite-icon.tsx";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { ChatMessage } from "./message.ts";
 import { EditorModel } from "./editor.tsx";
+import { InviteButton } from "./invite-button.tsx";
+import { IsGruopChatSupported } from "./conversation-list.tsx";
 
 export type DM_Model = {
     currentEditor: EditorModel | undefined;
@@ -81,41 +83,54 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
     }
 
     const currentEditor = props.currentEditor;
-    const canEditGroupProfile = currentEditor && props.isGroupMessage &&
-        props.groupChatController.getGroupAdminCtx(currentEditor.pubkey);
-    const actions = canEditGroupProfile
-        ? (
-            <ButtonGroup>
-                <button
-                    class={tw`w-8 h-8 ${CenterClass}`}
-                    onClick={() => {
-                        props.bus.emit({
-                            type: "StartInvite",
-                            publicKey: currentEditor.pubkey,
-                        });
-                    }}
-                >
-                    <InviteIcon
-                        class={tw`w-6 h-6 text-[${PrimaryTextColor}] fill-current`}
+    let actions: JSX.Element | undefined;
+    if (currentEditor && IsGruopChatSupported) {
+        const canEditGroupProfile = props.isGroupMessage &&
+            props.groupChatController.getGroupAdminCtx(currentEditor.pubkey);
+        actions = canEditGroupProfile
+            ? (
+                <ButtonGroup>
+                    <button
+                        class={tw`w-8 h-8 ${CenterClass}`}
+                        onClick={() => {
+                            props.bus.emit({
+                                type: "StartInvite",
+                                publicKey: currentEditor.pubkey,
+                            });
+                        }}
+                    >
+                        <InviteIcon
+                            class={tw`w-6 h-6 text-[${PrimaryTextColor}] fill-current`}
+                        />
+                    </button>
+                    <button
+                        class={tw`w-8 h-8 ${CenterClass}`}
+                        onClick={() => {
+                            props.bus.emit({
+                                type: "StartEditGroupChatProfile",
+                                publicKey: currentEditor.pubkey,
+                            });
+                        }}
+                    >
+                        <SettingIcon
+                            class={tw`w-6 h-6 text-[${PrimaryTextColor}] stroke-current`}
+                            style={{ fill: "none" }}
+                        />
+                    </button>
+                </ButtonGroup>
+            )
+            : (
+                <ButtonGroup>
+                    <InviteButton
+                        groupChatController={props.groupChatController}
+                        profileGetter={props.profileGetter}
+                        userPublicKey={currentEditor.pubkey}
+                        emit={props.bus.emit}
                     />
-                </button>
-                <button
-                    class={tw`w-8 h-8 ${CenterClass}`}
-                    onClick={() => {
-                        props.bus.emit({
-                            type: "StartEditGroupChatProfile",
-                            publicKey: currentEditor.pubkey,
-                        });
-                    }}
-                >
-                    <SettingIcon
-                        class={tw`w-6 h-6 text-[${PrimaryTextColor}] stroke-current`}
-                        style={{ fill: "none" }}
-                    />
-                </button>
-            </ButtonGroup>
-        )
-        : undefined;
+                </ButtonGroup>
+            );
+    }
+
     const vDom = (
         <div
             class={tw`h-full w-full flex bg-[#36393F] overflow-hidden`}
@@ -158,7 +173,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                                         props.currentEditor.pubkey.bech32()}
                                 </span>
                             </div>
-                            {props.isGroupMessage ? actions : undefined}
+                            {actions}
                         </div>
                         <div class={tw`flex-1 overflow-x-auto`}>
                             {messagePanel}
