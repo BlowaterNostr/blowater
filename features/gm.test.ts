@@ -70,6 +70,7 @@ Deno.test("group chat", async () => {
             parsedTags: getTags(invite_B),
             publicKey: PublicKey.FromHex(invite_B.pubkey) as PublicKey,
         });
+        console.log(err, "===============");
         assertIsError(err);
     }
 

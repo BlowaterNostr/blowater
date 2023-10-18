@@ -118,7 +118,7 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
             return await this.handleCreation(event);
         } else if (type == "gm_message") {
             return await this.handleMessage(event);
-        } else if (type == "gm_invitation") { // I received
+        } else if (type == "gm_invitation") {
             return await this.handleInvitation(event);
         } else {
             console.log(GroupMessageController.name, "ignore", event, "type", type);
@@ -126,6 +126,9 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
     }
 
     private async handleInvitation(event: NostrEvent<NostrKind.Group_Message>) {
+        if (event.pubkey == this.ctx.publicKey.hex) {
+            return;
+        } // send by me
         const invitation = await decodeInvitation(this.ctx, event);
         if (invitation instanceof Error) {
             return invitation;
