@@ -127,7 +127,7 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
 
     private async handleInvitation(event: NostrEvent<NostrKind.Group_Message>) {
         if (event.pubkey == this.ctx.publicKey.hex) {
-            return;
+            return new Error("the invitation created by me.");
         } // send by me
         const invitation = await decodeInvitation(this.ctx, event);
         if (invitation instanceof Error) {
