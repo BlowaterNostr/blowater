@@ -37,16 +37,15 @@ export interface ProfileAdder {
 }
 
 export class GroupMessageController implements GroupMessageGetter, GroupMessageListGetter {
-    created_groups = new Map<string, gm_Creation>();
-    invitations = new Map<string, gm_Invitation>();
-    messages = new Map<string, ChatMessage[]>();
+    private created_groups = new Map<string, gm_Creation>();
+    private invitations = new Map<string, gm_Invitation>();
+    private messages = new Map<string, ChatMessage[]>();
     resync_chan = new Channel<null>();
 
     constructor(
         private readonly ctx: NostrAccountContext,
         private readonly groupSyncer: GroupChatAdder,
         private readonly profileSyncer: ProfileAdder,
-        private readonly conversationListRetriever: ConversationListRetriever,
     ) {}
 
     getConversationList() {
@@ -114,7 +113,7 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
     }
 
     async addEvent(event: Parsed_Event<NostrKind.Group_Message>) {
-        const type = gmEventType(this.ctx, event, this.conversationListRetriever, this);
+        const type = await gmEventType(this.ctx, event);
         if (type == "gm_creation") {
             return await this.handleCreation(event);
         } else if (type == "gm_message") {
@@ -288,12 +287,10 @@ function isCreation(event: NostrEvent<NostrKind.Group_Message>) {
     return event.tags.length == 0;
 }
 
-export function gmEventType(
+export async function gmEventType(
     ctx: NostrAccountContext,
     event: NostrEvent<NostrKind.Group_Message>,
-    conversationListRetriever: ConversationListRetriever,
-    groupMessageListGetter: GroupMessageListGetter,
-): GM_Types {
+): Promise<GM_Types> {
     if (isCreation(event)) {
         return "gm_creation";
     }
@@ -303,22 +300,38 @@ export function gmEventType(
         return "gm_invitation"; // received by me
     }
 
-    const isInGroup = Array.from(groupMessageListGetter.getConversationList()).filter((contact) =>
-        contact.pubkey.hex == receiver
-    );
-    if (isInGroup.length > 0) {
-        return "gm_message";
+    if (ctx.publicKey.hex == event.pubkey) { // I sent
+        const decryptedContent = await ctx.decrypt(receiver, event.content);
+        if (decryptedContent instanceof Error) {
+            console.error(decryptedContent.message);
+            return "gm_message";
+        }
+        const json = parseJSON<unknown>(decryptedContent);
+        if (json instanceof Error) {
+            console.error(json.message);
+            return "gm_message";
+        }
+        let message: {
+            type: string;
+            cipherKey: string;
+            groupAddr: string;
+        };
+        try {
+            message = z.object({
+                type: z.string(),
+                cipherKey: z.string(),
+                groupAddr: z.string(),
+            }).parse(json);
+        } catch (e) {
+            console.error(e);
+            return "gm_message";
+        }
+
+        if (message.type == "gm_invitation") {
+            return "gm_invitation";
+        }
     }
 
-    const isInConversation = Array.from(conversationListRetriever.getContacts()).filter((contact) =>
-        contact.pubkey.hex == receiver
-    );
-    const isInStrangers = Array.from(conversationListRetriever.getStrangers()).filter((contact) =>
-        contact.pubkey.hex == receiver
-    );
-    if (isInConversation.length > 0 || isInStrangers.length > 0) {
-        return "gm_invitation";
-    }
     return "gm_message";
 }
 

@@ -160,8 +160,6 @@ function merge<T>(...iters: AsyncIterable<T>[]) {
 export class DirectedMessageController implements DirectMessageGetter {
     constructor(
         public readonly ctx: NostrAccountContext,
-        private readonly conversationListRetriever: ConversationListRetriever,
-        private readonly groupMessageListGetter: GroupMessageListGetter,
     ) {}
 
     public readonly directed_messages = new Map<string, ChatMessage>();
@@ -186,11 +184,9 @@ export class DirectedMessageController implements DirectMessageGetter {
         if (kind == NostrKind.Group_Message) {
             console.log("dm add event", kind);
             const gmEvent = { ...event, kind };
-            const type = gmEventType(
+            const type = await gmEventType(
                 this.ctx,
                 gmEvent,
-                this.conversationListRetriever,
-                this.groupMessageListGetter,
             );
             if (type == "gm_invitation") {
                 const invitation = await decodeInvitation(this.ctx, gmEvent);

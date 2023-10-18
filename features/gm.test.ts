@@ -20,16 +20,9 @@ Deno.test("group chat", async () => {
     const user_B = InMemoryAccountContext.Generate();
     const user_C = InMemoryAccountContext.Generate();
 
-    const database = await Database_Contextual_View.New(testEventsAdapter);
-    if (database instanceof Error) {
-        fail(database.message);
-    }
-
-    const convoLists = new DM_List(user_A, new ProfileSyncer(database, new ConnectionPool()));
-
-    const gm_A = new GroupMessageController(user_A, { add: (_) => {} }, { add: (_) => {} }, convoLists);
-    const gm_B = new GroupMessageController(user_B, { add: (_) => {} }, { add: (_) => {} }, convoLists);
-    const gm_C = new GroupMessageController(user_C, { add: (_) => {} }, { add: (_) => {} }, convoLists);
+    const gm_A = new GroupMessageController(user_A, { add: (_) => {} }, { add: (_) => {} });
+    const gm_B = new GroupMessageController(user_B, { add: (_) => {} }, { add: (_) => {} });
+    const gm_C = new GroupMessageController(user_C, { add: (_) => {} }, { add: (_) => {} });
 
     const group_chat = gm_A.createGroupChat();
     {
@@ -91,22 +84,21 @@ Deno.test("group chat", async () => {
 
 Deno.test("should be only one group if the group created by me and invited me", async () => {
     const user_A = InMemoryAccountContext.Generate();
-    const database = await Database_Contextual_View.New(testEventsAdapter);
-    if (database instanceof Error) {
-        fail(database.message);
+    const gm_A = new GroupMessageController(user_A, { add: (_) => {} }, { add: (_) => {} });
+
+    const gmCreation = gm_A.createGroupChat();
+    const invitationEvent = await gm_A.createInvitation(gmCreation.groupKey.publicKey, user_A.publicKey);
+    if (invitationEvent instanceof Error) {
+        fail(invitationEvent.message);
     }
-
-    const convoLists = new DM_List(user_A, new ProfileSyncer(database, new ConnectionPool()));
-    const gm_A = new GroupMessageController(user_A, { add: (_) => {} }, { add: (_) => {} }, convoLists);
-
-    const gm_creation = gm_A.createGroupChat();
-    gm_A.invitations.set(gm_creation.groupKey.publicKey.bech32(), {
-        cipherKey: gm_creation.cipherKey,
-        groupAddr: gm_creation.groupKey.publicKey,
+    gm_A.addEvent({
+        ...invitationEvent,
+        parsedTags: getTags(invitationEvent),
+        publicKey: PublicKey.FromHex(invitationEvent.pubkey) as PublicKey,
     });
 
     assertEquals(gm_A.getConversationList().length, 1);
-    assertEquals(gm_A.getConversationList()[0].pubkey.bech32(), gm_creation.groupKey.publicKey.bech32());
+    assertEquals(gm_A.getConversationList()[0].pubkey.bech32(), gmCreation.groupKey.publicKey.bech32());
 });
 
 Deno.test("test invitation that I sent", async () => {
@@ -152,14 +144,14 @@ Deno.test("test invitation that I sent", async () => {
         publicKey: publicKey_AToB,
     }]); // stranges
 
-    const gm_A = new GroupMessageController(user_A, { add: (_) => {} }, { add: (_) => {} }, convoLists);
+    const gm_A = new GroupMessageController(user_A, { add: (_) => {} }, { add: (_) => {} });
     const group_A = gm_A.createGroupChat();
     const invitationEvent = await gm_A.createInvitation(group_A.groupKey.publicKey, user_B.publicKey);
     if (invitationEvent instanceof Error) {
         fail(invitationEvent.message);
     }
 
-    const eventType1 = gmEventType(user_A, invitationEvent, convoLists, gm_A);
+    const eventType1 = await gmEventType(user_A, invitationEvent);
     assertEquals(eventType1, "gm_invitation");
 
     const publicKey_BToA = PublicKey.FromHex(eventBToA.pubkey);
@@ -172,6 +164,6 @@ Deno.test("test invitation that I sent", async () => {
         publicKey: publicKey_BToA,
     }]); // convosations
 
-    const eventType2 = gmEventType(user_A, invitationEvent, convoLists, gm_A);
+    const eventType2 = await gmEventType(user_A, invitationEvent);
     assertEquals(eventType2, "gm_invitation");
 });
