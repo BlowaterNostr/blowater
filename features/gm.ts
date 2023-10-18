@@ -305,7 +305,10 @@ export function gmEventType(
     const isInConversation = Array.from(conversationListRetriever.getContacts()).filter((contact) =>
         contact.pubkey.hex == receiver
     );
-    if (isInConversation.length > 0) {
+    const isInStrangers = Array.from(conversationListRetriever.getStrangers()).filter((contact) =>
+        contact.pubkey.hex == receiver
+    );
+    if (isInConversation.length > 0 || isInStrangers.length > 0) {
         return "gm_invitation";
     }
     return "gm_message";

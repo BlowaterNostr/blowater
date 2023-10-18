@@ -19,7 +19,7 @@ import { UI_Interaction_Event } from "./app_update.tsx";
 import { ProfileData } from "../features/profile.ts";
 import { ProfileGetter } from "./search.tsx";
 
-export const IsGruopChatSupported = false;
+export const IsGruopChatSupported = true;
 
 export interface ConversationListRetriever {
     getContacts: () => Iterable<ConversationSummary>;

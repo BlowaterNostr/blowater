@@ -154,19 +154,15 @@ Deno.test("test invitation that I sent", async () => {
     if (eventBToA instanceof Error) {
         fail(eventBToA.message);
     }
-    const publicKey = PublicKey.FromHex(eventAToB.pubkey);
-    if (publicKey instanceof Error) {
-        fail(publicKey.message);
+    const publicKey_AToB = PublicKey.FromHex(eventAToB.pubkey);
+    if (publicKey_AToB instanceof Error) {
+        fail(publicKey_AToB.message);
     }
     convoLists.addEvents([{
         ...eventAToB,
         parsedTags: getTags(eventAToB),
-        publicKey: publicKey,
-    }, {
-        ...eventBToA,
-        parsedTags: getTags(eventBToA),
-        publicKey: publicKey,
-    }]);
+        publicKey: publicKey_AToB,
+    }]); // stranges
 
     const gm_A = new GroupMessageController(user_A, { add: (_) => {} }, { add: (_) => {} }, convoLists);
     const group_A = gm_A.createGroupChat();
@@ -175,6 +171,19 @@ Deno.test("test invitation that I sent", async () => {
         fail(invitationEvent.message);
     }
 
-    const eventType = gmEventType(user_A, invitationEvent, convoLists);
-    assertEquals(eventType, "gm_invitation");
+    const eventType1 = gmEventType(user_A, invitationEvent, convoLists);
+    assertEquals(eventType1, "gm_invitation");
+
+    const publicKey_BToA = PublicKey.FromHex(eventBToA.pubkey);
+    if (publicKey_BToA instanceof Error) {
+        fail(publicKey_BToA.message);
+    }
+    convoLists.addEvents([{
+        ...eventBToA,
+        parsedTags: getTags(eventBToA),
+        publicKey: publicKey_BToA,
+    }]); // convosations
+
+    const eventType2 = gmEventType(user_A, invitationEvent, convoLists);
+    assertEquals(eventType2, "gm_invitation");
 });
