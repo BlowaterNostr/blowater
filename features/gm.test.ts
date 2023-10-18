@@ -5,18 +5,35 @@ import {
     fail,
 } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
-import { InMemoryAccountContext } from "../lib/nostr-ts/nostr.ts";
-import { GroupMessageController } from "./gm.ts";
-import { getTags } from "../nostr.ts";
+import { InMemoryAccountContext, NostrKind } from "../lib/nostr-ts/nostr.ts";
+import { gmEventType, GroupMessageController } from "./gm.ts";
+import { getTags, Parsed_Event } from "../nostr.ts";
+import { DM_List } from "../UI/conversation-list.ts";
+import { NewIndexedDB } from "../UI/dexie-db.ts";
+import { Database_Contextual_View } from "../database.ts";
+import { ProfileSyncer } from "./profile.ts";
+import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
+import { prepareEncryptedNostrEvent, prepareNormalNostrEvent } from "../lib/nostr-ts/event.ts";
 
 Deno.test("group chat", async () => {
     const user_A = InMemoryAccountContext.Generate();
     const user_B = InMemoryAccountContext.Generate();
     const user_C = InMemoryAccountContext.Generate();
 
-    const gm_A = new GroupMessageController(user_A, { add: (_) => {} }, { add: (_) => {} });
-    const gm_B = new GroupMessageController(user_B, { add: (_) => {} }, { add: (_) => {} });
-    const gm_C = new GroupMessageController(user_C, { add: (_) => {} }, { add: (_) => {} });
+    const db = NewIndexedDB();
+    if (db instanceof Error) {
+        fail(db.message);
+    }
+    const database = await Database_Contextual_View.New(db);
+    if (database instanceof Error) {
+        fail(database.message);
+    }
+
+    const convoLists = new DM_List(user_A, new ProfileSyncer(database, new ConnectionPool()));
+
+    const gm_A = new GroupMessageController(user_A, { add: (_) => {} }, { add: (_) => {} }, convoLists);
+    const gm_B = new GroupMessageController(user_B, { add: (_) => {} }, { add: (_) => {} }, convoLists);
+    const gm_C = new GroupMessageController(user_C, { add: (_) => {} }, { add: (_) => {} }, convoLists);
 
     const group_chat = gm_A.createGroupChat();
     {
@@ -76,9 +93,19 @@ Deno.test("group chat", async () => {
     }]);
 });
 
-Deno.test("should be only one group if the group created by me and invited me", () => {
+Deno.test("should be only one group if the group created by me and invited me", async () => {
     const user_A = InMemoryAccountContext.Generate();
-    const gm_A = new GroupMessageController(user_A, { add: (_) => {} }, { add: (_) => {} });
+    const db = NewIndexedDB();
+    if (db instanceof Error) {
+        fail(db.message);
+    }
+    const database = await Database_Contextual_View.New(db);
+    if (database instanceof Error) {
+        fail(database.message);
+    }
+
+    const convoLists = new DM_List(user_A, new ProfileSyncer(database, new ConnectionPool()));
+    const gm_A = new GroupMessageController(user_A, { add: (_) => {} }, { add: (_) => {} }, convoLists);
 
     const gm_creation = gm_A.createGroupChat();
     gm_A.invitations.set(gm_creation.groupKey.publicKey.bech32(), {
@@ -88,4 +115,66 @@ Deno.test("should be only one group if the group created by me and invited me", 
 
     assertEquals(gm_A.getConversationList().length, 1);
     assertEquals(gm_A.getConversationList()[0].pubkey.bech32(), gm_creation.groupKey.publicKey.bech32());
+});
+
+Deno.test("test invitation that I sent", async () => {
+    const user_A = InMemoryAccountContext.Generate();
+    const user_B = InMemoryAccountContext.Generate();
+
+    const db = NewIndexedDB();
+    if (db instanceof Error) {
+        fail(db.message);
+    }
+    const database = await Database_Contextual_View.New(db);
+    if (database instanceof Error) {
+        fail(database.message);
+    }
+
+    const convoLists = new DM_List(user_A, new ProfileSyncer(database, new ConnectionPool()));
+    const eventAToB = await prepareEncryptedNostrEvent(user_A, {
+        kind: NostrKind.DIRECT_MESSAGE,
+        encryptKey: user_A.publicKey,
+        tags: [
+            ["p", user_B.publicKey.hex],
+        ],
+        content: "hi",
+    });
+    if (eventAToB instanceof Error) {
+        fail(eventAToB.message);
+    }
+
+    const eventBToA = await prepareEncryptedNostrEvent(user_B, {
+        kind: NostrKind.DIRECT_MESSAGE,
+        encryptKey: user_B.publicKey,
+        tags: [
+            ["p", user_A.publicKey.hex],
+        ],
+        content: "hello",
+    });
+    if (eventBToA instanceof Error) {
+        fail(eventBToA.message);
+    }
+    const publicKey = PublicKey.FromHex(eventAToB.pubkey);
+    if (publicKey instanceof Error) {
+        fail(publicKey.message);
+    }
+    convoLists.addEvents([{
+        ...eventAToB,
+        parsedTags: getTags(eventAToB),
+        publicKey: publicKey,
+    }, {
+        ...eventBToA,
+        parsedTags: getTags(eventBToA),
+        publicKey: publicKey,
+    }]);
+
+    const gm_A = new GroupMessageController(user_A, { add: (_) => {} }, { add: (_) => {} }, convoLists);
+    const group_A = gm_A.createGroupChat();
+    const invitationEvent = await gm_A.createInvitation(group_A.groupKey.publicKey, user_B.publicKey);
+    if (invitationEvent instanceof Error) {
+        fail(invitationEvent.message);
+    }
+
+    const eventType = gmEventType(user_A, invitationEvent, convoLists);
+    assertEquals(eventType, "gm_invitation");
 });

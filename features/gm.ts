@@ -2,7 +2,7 @@ import { z } from "https://esm.sh/zod@3.22.4";
 import { Channel, semaphore } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { GroupMessageGetter } from "../UI/app_update.tsx";
 import { ConversationSummary } from "../UI/conversation-list.ts";
-import { GroupMessageListGetter } from "../UI/conversation-list.tsx";
+import { ConversationListRetriever, GroupMessageListGetter } from "../UI/conversation-list.tsx";
 import { ChatMessage } from "../UI/message.ts";
 import { Database_Contextual_View } from "../database.ts";
 import { prepareEncryptedNostrEvent } from "../lib/nostr-ts/event.ts";
@@ -46,6 +46,7 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
         private readonly ctx: NostrAccountContext,
         private readonly groupSyncer: GroupChatAdder,
         private readonly profileSyncer: ProfileAdder,
+        private readonly conversationListRetriever: ConversationListRetriever,
     ) {}
 
     getConversationList() {
@@ -113,7 +114,7 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
     }
 
     async addEvent(event: Parsed_Event<NostrKind.Group_Message>) {
-        const type = gmEventType(this.ctx, event);
+        const type = gmEventType(this.ctx, event, this.conversationListRetriever);
         if (type == "gm_creation") {
             return await this.handleCreation(event);
         } else if (type == "gm_message") {
@@ -290,6 +291,7 @@ function isCreation(event: NostrEvent<NostrKind.Group_Message>) {
 export function gmEventType(
     ctx: NostrAccountContext,
     event: NostrEvent<NostrKind.Group_Message>,
+    conversationListRetriever: ConversationListRetriever,
 ): GM_Types {
     if (isCreation(event)) {
         return "gm_creation";
@@ -298,6 +300,13 @@ export function gmEventType(
     const receiver = getTags(event).p[0];
     if (receiver == ctx.publicKey.hex) {
         return "gm_invitation"; // received by me
+    }
+
+    const isInConversation = Array.from(conversationListRetriever.getContacts()).filter((contact) =>
+        contact.pubkey.hex == receiver
+    );
+    if (isInConversation.length > 0) {
+        return "gm_invitation";
     }
     return "gm_message";
 }
@@ -341,7 +350,13 @@ export class GroupChatSyncer implements GroupChatAdder {
 }
 
 export async function decodeInvitation(ctx: NostrAccountContext, event: NostrEvent<NostrKind.Group_Message>) {
-    const decryptedContent = await ctx.decrypt(event.pubkey, event.content);
+    let decryptedContent;
+    const pTags = getTags(event).p;
+    if (pTags.length > 0 && pTags[0] != ctx.publicKey.hex) { // I sent
+        decryptedContent = await ctx.decrypt(pTags[0], event.content);
+    } else {
+        decryptedContent = await ctx.decrypt(event.pubkey, event.content);
+    }
     if (decryptedContent instanceof Error) {
         return decryptedContent;
     }
