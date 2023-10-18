@@ -9,22 +9,18 @@ import { InMemoryAccountContext, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { gmEventType, GroupMessageController } from "./gm.ts";
 import { getTags, Parsed_Event } from "../nostr.ts";
 import { DM_List } from "../UI/conversation-list.ts";
-import { NewIndexedDB } from "../UI/dexie-db.ts";
 import { Database_Contextual_View } from "../database.ts";
 import { ProfileSyncer } from "./profile.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { prepareEncryptedNostrEvent, prepareNormalNostrEvent } from "../lib/nostr-ts/event.ts";
+import { testEventsAdapter } from "../UI/_setup.test.ts";
 
 Deno.test("group chat", async () => {
     const user_A = InMemoryAccountContext.Generate();
     const user_B = InMemoryAccountContext.Generate();
     const user_C = InMemoryAccountContext.Generate();
 
-    const db = NewIndexedDB();
-    if (db instanceof Error) {
-        fail(db.message);
-    }
-    const database = await Database_Contextual_View.New(db);
+    const database = await Database_Contextual_View.New(testEventsAdapter);
     if (database instanceof Error) {
         fail(database.message);
     }
@@ -95,11 +91,7 @@ Deno.test("group chat", async () => {
 
 Deno.test("should be only one group if the group created by me and invited me", async () => {
     const user_A = InMemoryAccountContext.Generate();
-    const db = NewIndexedDB();
-    if (db instanceof Error) {
-        fail(db.message);
-    }
-    const database = await Database_Contextual_View.New(db);
+    const database = await Database_Contextual_View.New(testEventsAdapter);
     if (database instanceof Error) {
         fail(database.message);
     }
@@ -121,11 +113,7 @@ Deno.test("test invitation that I sent", async () => {
     const user_A = InMemoryAccountContext.Generate();
     const user_B = InMemoryAccountContext.Generate();
 
-    const db = NewIndexedDB();
-    if (db instanceof Error) {
-        fail(db.message);
-    }
-    const database = await Database_Contextual_View.New(db);
+    const database = await Database_Contextual_View.New(testEventsAdapter);
     if (database instanceof Error) {
         fail(database.message);
     }
