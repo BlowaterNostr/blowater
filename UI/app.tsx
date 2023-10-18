@@ -139,8 +139,6 @@ export class App {
         const conversationLists = new DM_List(args.ctx, profileSyncer);
         conversationLists.addEvents(args.database.events);
 
-        const dmController = new DirectedMessageController(args.ctx, conversationLists);
-
         const groupSyncer = new GroupChatSyncer(args.database, args.pool);
         const groupChatController = new GroupMessageController(
             args.ctx,
@@ -148,6 +146,8 @@ export class App {
             profileSyncer,
             conversationLists,
         );
+
+        const dmController = new DirectedMessageController(args.ctx, conversationLists, groupChatController);
 
         (async () => {
             for (const e of args.database.events) {

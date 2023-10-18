@@ -171,7 +171,7 @@ Deno.test("test invitation that I sent", async () => {
         fail(invitationEvent.message);
     }
 
-    const eventType1 = gmEventType(user_A, invitationEvent, convoLists);
+    const eventType1 = gmEventType(user_A, invitationEvent, convoLists, gm_A);
     assertEquals(eventType1, "gm_invitation");
 
     const publicKey_BToA = PublicKey.FromHex(eventBToA.pubkey);
@@ -184,6 +184,6 @@ Deno.test("test invitation that I sent", async () => {
         publicKey: publicKey_BToA,
     }]); // convosations
 
-    const eventType2 = gmEventType(user_A, invitationEvent, convoLists);
+    const eventType2 = gmEventType(user_A, invitationEvent, convoLists, gm_A);
     assertEquals(eventType2, "gm_invitation");
 });

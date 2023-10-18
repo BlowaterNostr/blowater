@@ -15,7 +15,7 @@ import { DirectMessageGetter } from "../UI/app_update.tsx";
 import { parseDM } from "../database.ts";
 import { ChatMessage } from "../UI/message.ts";
 import { decodeInvitation, gmEventType } from "./gm.ts";
-import { ConversationListRetriever } from "../UI/conversation-list.tsx";
+import { ConversationListRetriever, GroupMessageListGetter } from "../UI/conversation-list.tsx";
 
 export async function sendDMandImages(args: {
     sender: NostrAccountContext;
@@ -160,7 +160,8 @@ function merge<T>(...iters: AsyncIterable<T>[]) {
 export class DirectedMessageController implements DirectMessageGetter {
     constructor(
         public readonly ctx: NostrAccountContext,
-        public readonly conversationListRetriever: ConversationListRetriever,
+        private readonly conversationListRetriever: ConversationListRetriever,
+        private readonly groupMessageListGetter: GroupMessageListGetter,
     ) {}
 
     public readonly directed_messages = new Map<string, ChatMessage>();
@@ -185,7 +186,12 @@ export class DirectedMessageController implements DirectMessageGetter {
         if (kind == NostrKind.Group_Message) {
             console.log("dm add event", kind);
             const gmEvent = { ...event, kind };
-            const type = gmEventType(this.ctx, gmEvent, this.conversationListRetriever);
+            const type = gmEventType(
+                this.ctx,
+                gmEvent,
+                this.conversationListRetriever,
+                this.groupMessageListGetter,
+            );
             if (type == "gm_invitation") {
                 const invitation = await decodeInvitation(this.ctx, gmEvent);
                 if (invitation instanceof Error) {

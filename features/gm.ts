@@ -114,7 +114,7 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
     }
 
     async addEvent(event: Parsed_Event<NostrKind.Group_Message>) {
-        const type = gmEventType(this.ctx, event, this.conversationListRetriever);
+        const type = gmEventType(this.ctx, event, this.conversationListRetriever, this);
         if (type == "gm_creation") {
             return await this.handleCreation(event);
         } else if (type == "gm_message") {
@@ -292,6 +292,7 @@ export function gmEventType(
     ctx: NostrAccountContext,
     event: NostrEvent<NostrKind.Group_Message>,
     conversationListRetriever: ConversationListRetriever,
+    groupMessageListGetter: GroupMessageListGetter,
 ): GM_Types {
     if (isCreation(event)) {
         return "gm_creation";
@@ -300,6 +301,13 @@ export function gmEventType(
     const receiver = getTags(event).p[0];
     if (receiver == ctx.publicKey.hex) {
         return "gm_invitation"; // received by me
+    }
+
+    const isInGroup = Array.from(groupMessageListGetter.getConversationList()).filter((contact) =>
+        contact.pubkey.hex == receiver
+    );
+    if (isInGroup.length > 0) {
+        return "gm_message";
     }
 
     const isInConversation = Array.from(conversationListRetriever.getContacts()).filter((contact) =>
