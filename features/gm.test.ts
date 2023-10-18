@@ -7,12 +7,12 @@ import {
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { InMemoryAccountContext, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { gmEventType, GroupMessageController } from "./gm.ts";
-import { getTags, Parsed_Event } from "../nostr.ts";
+import { getTags } from "../nostr.ts";
 import { DM_List } from "../UI/conversation-list.ts";
 import { Database_Contextual_View } from "../database.ts";
 import { ProfileSyncer } from "./profile.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
-import { prepareEncryptedNostrEvent, prepareNormalNostrEvent } from "../lib/nostr-ts/event.ts";
+import { prepareEncryptedNostrEvent } from "../lib/nostr-ts/event.ts";
 import { testEventsAdapter } from "../UI/_setup.test.ts";
 
 Deno.test("group chat", async () => {
