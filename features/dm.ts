@@ -15,7 +15,6 @@ import { DirectMessageGetter } from "../UI/app_update.tsx";
 import { parseDM } from "../database.ts";
 import { ChatMessage } from "../UI/message.ts";
 import { decodeInvitation, gmEventType } from "./gm.ts";
-import { ConversationListRetriever, GroupMessageListGetter } from "../UI/conversation-list.tsx";
 
 export async function sendDMandImages(args: {
     sender: NostrAccountContext;
@@ -184,10 +183,7 @@ export class DirectedMessageController implements DirectMessageGetter {
         if (kind == NostrKind.Group_Message) {
             console.log("dm add event", kind);
             const gmEvent = { ...event, kind };
-            const type = await gmEventType(
-                this.ctx,
-                gmEvent,
-            );
+            const type = await gmEventType(this.ctx, gmEvent);
             if (type == "gm_invitation") {
                 const invitation = await decodeInvitation(this.ctx, gmEvent);
                 if (invitation instanceof Error) {
