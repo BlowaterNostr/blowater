@@ -2,6 +2,7 @@ import {
     assertEquals,
     assertIsError,
     assertNotEquals,
+    assertNotInstanceOf,
     fail,
 } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
@@ -14,6 +15,7 @@ import { ProfileSyncer } from "./profile.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { prepareEncryptedNostrEvent } from "../lib/nostr-ts/event.ts";
 import { testEventsAdapter } from "../UI/_setup.test.ts";
+import { DirectedMessageController } from "./dm.ts";
 
 Deno.test("group chat", async () => {
     const user_A = InMemoryAccountContext.Generate();
@@ -70,7 +72,6 @@ Deno.test("group chat", async () => {
             parsedTags: getTags(invite_B),
             publicKey: PublicKey.FromHex(invite_B.pubkey) as PublicKey,
         });
-        console.log(err, "===============");
         assertIsError(err);
     }
 
@@ -83,7 +84,7 @@ Deno.test("group chat", async () => {
     }]);
 });
 
-Deno.test("should be only one group if the group created by me and invited me", async () => {
+Deno.test("There should only be one group if the group is created by me and inviting myself.", async () => {
     const user_A = InMemoryAccountContext.Generate();
     const gm_A = new GroupMessageController(user_A, { add: (_) => {} }, { add: (_) => {} });
 
@@ -99,72 +100,40 @@ Deno.test("should be only one group if the group created by me and invited me", 
     });
 
     assertEquals(gm_A.getConversationList().length, 1);
-    assertEquals(gm_A.getConversationList()[0].pubkey.bech32(), gmCreation.groupKey.publicKey.bech32());
+    assertEquals(gm_A.getConversationList()[0].pubkey, gmCreation.groupKey.publicKey);
 });
 
 Deno.test("test invitation that I sent", async () => {
     const user_A = InMemoryAccountContext.Generate();
     const user_B = InMemoryAccountContext.Generate();
-
-    const database = await Database_Contextual_View.New(testEventsAdapter);
-    if (database instanceof Error) {
-        fail(database.message);
-    }
-
-    const convoLists = new DM_List(user_A, new ProfileSyncer(database, new ConnectionPool()));
-    const eventAToB = await prepareEncryptedNostrEvent(user_A, {
-        kind: NostrKind.DIRECT_MESSAGE,
-        encryptKey: user_A.publicKey,
-        tags: [
-            ["p", user_B.publicKey.hex],
-        ],
-        content: "hi",
-    });
-    if (eventAToB instanceof Error) {
-        fail(eventAToB.message);
-    }
-
-    const eventBToA = await prepareEncryptedNostrEvent(user_B, {
-        kind: NostrKind.DIRECT_MESSAGE,
-        encryptKey: user_B.publicKey,
-        tags: [
-            ["p", user_A.publicKey.hex],
-        ],
-        content: "hello",
-    });
-    if (eventBToA instanceof Error) {
-        fail(eventBToA.message);
-    }
-    const publicKey_AToB = PublicKey.FromHex(eventAToB.pubkey);
-    if (publicKey_AToB instanceof Error) {
-        fail(publicKey_AToB.message);
-    }
-    convoLists.addEvents([{
-        ...eventAToB,
-        parsedTags: getTags(eventAToB),
-        publicKey: publicKey_AToB,
-    }]); // stranges
-
     const gm_A = new GroupMessageController(user_A, { add: (_) => {} }, { add: (_) => {} });
-    const group_A = gm_A.createGroupChat();
-    const invitationEvent = await gm_A.createInvitation(group_A.groupKey.publicKey, user_B.publicKey);
-    if (invitationEvent instanceof Error) {
-        fail(invitationEvent.message);
+    const dm_A = new DirectedMessageController(user_A);
+
+    // user_A created a group and invite user_B
+    const gm_A_Creation = gm_A.createGroupChat();
+    const invite_user_B = await gm_A.createInvitation(gm_A_Creation.groupKey.publicKey, user_B.publicKey);
+    if (invite_user_B instanceof Error) {
+        fail(invite_user_B.message);
     }
-
-    const eventType1 = await gmEventType(user_A, invitationEvent);
-    assertEquals(eventType1, "gm_invitation");
-
-    const publicKey_BToA = PublicKey.FromHex(eventBToA.pubkey);
-    if (publicKey_BToA instanceof Error) {
-        fail(publicKey_BToA.message);
+    // should not add this invite event into gm_A
+    {
+        const gm_A_addEvent_res = gm_A.addEvent({
+            ...invite_user_B,
+            parsedTags: getTags(invite_user_B),
+            publicKey: PublicKey.FromHex(invite_user_B.pubkey) as PublicKey,
+        });
+        assertIsError(gm_A_addEvent_res);
     }
-    convoLists.addEvents([{
-        ...eventBToA,
-        parsedTags: getTags(eventBToA),
-        publicKey: publicKey_BToA,
-    }]); // convosations
+    // should add this invite event into dm_A
+    {
+        const dm_A_addEvent_res = dm_A.addEvent({
+            ...invite_user_B,
+            parsedTags: getTags(invite_user_B),
+            publicKey: PublicKey.FromHex(invite_user_B.pubkey) as PublicKey,
+        });
+        assertNotInstanceOf(dm_A_addEvent_res, Error);
 
-    const eventType2 = await gmEventType(user_A, invitationEvent);
-    assertEquals(eventType2, "gm_invitation");
+        const messages = dm_A.getDirectMessages(user_B.publicKey.hex);
+        assertEquals(messages.length, 1);
+    }
 });

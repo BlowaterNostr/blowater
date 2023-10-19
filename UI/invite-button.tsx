@@ -87,7 +87,7 @@ export class InviteButton extends Component<Props, State> {
                                             onClick={(e) => this.sendEvent(e, group.pubkey)}
                                         >
                                             {profileGetter.getProfilesByPublicKey(group.pubkey)?.profile
-                                                .name || group.pubkey}
+                                                .name || group.pubkey.bech32()}
                                         </li>
                                     );
                                 })
