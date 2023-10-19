@@ -23,6 +23,7 @@ import { ButtonGroup } from "./components/button-group.tsx";
 import { ProfileCard } from "./profile-card.tsx";
 import { NoteCard } from "./note-card.tsx";
 import { ProfileGetter } from "./search.tsx";
+import { InviteCard } from "./invite-card.tsx";
 
 export type RightPanelModel = {
     show: boolean;
@@ -466,7 +467,9 @@ export function ParseMessageContent(
     }
 
     let parsedContentItems;
-    if (message.event.kind == NostrKind.Group_Message) {
+    if (message.type == "gm_invitation") {
+        return <InviteCard publicKey={message.invitation.groupAddr} profileGetter={profileGetter} />;
+    } else if (message.event.kind == NostrKind.Group_Message) {
         parsedContentItems = parseContent(message.content);
     } else {
         parsedContentItems = message.event.parsedContentItems;

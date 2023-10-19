@@ -186,13 +186,13 @@ export class DirectedMessageController implements DirectMessageGetter {
                     return invitation;
                 }
                 this.directed_messages.set(gmEvent.id, {
-                    type: "text", // todo: change to invitation
+                    type: "gm_invitation",
                     event: gmEvent,
+                    invitation: invitation,
                     author: gmEvent.publicKey,
-                    content: `You have been invited to group ${invitation.groupAddr.bech32()}`,
                     created_at: new Date(gmEvent.created_at * 1000),
-                    // invitation: invitation,
                     lamport: gmEvent.parsedTags.lamport_timestamp,
+                    content: gmEvent.content,
                 });
             }
             // else ignore

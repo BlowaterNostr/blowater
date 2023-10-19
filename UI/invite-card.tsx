@@ -4,17 +4,17 @@ import { tw } from "https://esm.sh/twind@0.16.16";
 import { PrimaryTextColor, SecondaryBackgroundColor, SecondaryTextColor } from "./style/colors.ts";
 import { Avatar } from "./components/avatar.tsx";
 import { LinearGradientsClass, NoOutlineClass } from "./components/tw.ts";
+import { PublicKey } from "../lib/nostr-ts/key.ts";
+import { ProfileGetter } from "./search.tsx";
 
 // invite event
 // profile syncer
 // emit
 export function InviteCard(props: {
-    picture?: string;
-    name: string;
-    description: string;
-    onJoin: () => void;
+    publicKey: PublicKey;
+    profileGetter: ProfileGetter;
 }) {
-    const { picture, name, description, onJoin } = props;
+    const { publicKey, profileGetter } = props;
 
     const styles = {
         container: tw`bg-[${SecondaryBackgroundColor}] rounded-sm p-2 max-w-sm my-1`,
@@ -32,16 +32,18 @@ export function InviteCard(props: {
             tw`px-4 py-2 rounded-sm ${LinearGradientsClass} hover:bg-gradient-to-l text-[${PrimaryTextColor}] text-sm ${NoOutlineClass} font-bold`,
     };
 
+    const profile = profileGetter.getProfilesByPublicKey(publicKey);
+
     return (
         <div class={styles.container}>
             <p class={styles.title}>Please join me on group chat</p>
             <div class={styles.profile.container}>
-                <Avatar picture={picture} class={styles.profile.picture} />
+                <Avatar picture={profile?.profile.picture} class={styles.profile.picture} />
                 <div class={styles.profile.text.container}>
-                    <h3 class={styles.profile.text.name}>{name}</h3>
-                    <p class={styles.profile.text.description}>{description}</p>
+                    <h3 class={styles.profile.text.name}>{profile?.profile.name || publicKey.bech32()}</h3>
+                    <p class={styles.profile.text.description}>{profile?.profile.about}</p>
                 </div>
-                <button class={styles.button} onClick={onJoin}>Join</button>
+                <button class={styles.button}>Join</button>
             </div>
         </div>
     );
