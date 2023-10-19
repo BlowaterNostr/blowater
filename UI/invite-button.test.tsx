@@ -18,7 +18,8 @@ if (database instanceof Error) {
 const user_A = InMemoryAccountContext.Generate();
 const user_B = InMemoryAccountContext.Generate();
 const gm_A = new GroupMessageController(user_A, { add: (_) => {} }, { add: (_) => {} });
-const gm_A_creation_event = await gm_A.encodeCreationToNostrEvent(gm_A.createGroupChat());
+const gm_A_creation = gm_A.createGroupChat();
+const gm_A_creation_event = await gm_A.encodeCreationToNostrEvent(gm_A_creation);
 if (gm_A_creation_event instanceof Error) {
     fail(gm_A_creation_event.message);
 }
@@ -41,4 +42,8 @@ render(
 
 for await (const event of testEventBus.onChange()) {
     console.log(event);
+    // @ts-ignore
+    console.log(event.groupPublicKey.hex, "=", gm_A_creation.groupKey.publicKey.hex);
+    // @ts-ignore
+    console.log(event.usersPublicKey[0].hex, "=", user_B.publicKey.hex);
 }
