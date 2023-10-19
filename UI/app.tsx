@@ -140,7 +140,6 @@ export class App {
         conversationLists.addEvents(args.database.events);
 
         const dmController = new DirectedMessageController(args.ctx);
-
         const groupSyncer = new GroupChatSyncer(args.database, args.pool);
         const groupChatController = new GroupMessageController(
             args.ctx,

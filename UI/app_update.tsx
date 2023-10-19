@@ -44,6 +44,7 @@ import { OtherConfig } from "./config-other.ts";
 import { EditGroup, EditGroupChatProfile, StartEditGroupChatProfile } from "./edit-group.tsx";
 import { GroupMessageController } from "../features/gm.ts";
 import { ChatMessage } from "./message.ts";
+import { InviteUsersToGroup } from "./invite-button.tsx";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -61,7 +62,8 @@ export type UI_Interaction_Event =
     | StartCreateGroupChat
     | EditGroupChatProfile
     | StartEditGroupChatProfile
-    | StartInvite;
+    | StartInvite
+    | InviteUsersToGroup;
 
 type BackToContactList = {
     type: "BackToContactList";
@@ -267,7 +269,23 @@ export async function* UI_Interaction_Update(args: {
         //
         // DM
         //
-        else if (event.type == "ToggleRightPanel") {
+        else if (event.type == "InviteUsersToGroup") {
+            for (const pubkey of event.usersPublicKey) {
+                const invitationEvent = await app.groupChatController.createInvitation(
+                    event.groupPublicKey,
+                    pubkey,
+                );
+                if (invitationEvent instanceof Error) {
+                    console.error(invitationEvent);
+                    continue;
+                }
+                const err = await pool.sendEvent(invitationEvent);
+                if (err instanceof Error) {
+                    console.error(err);
+                    continue;
+                }
+            }
+        } else if (event.type == "ToggleRightPanel") {
             model.rightPanelModel.show = event.show;
         } else if (event.type == "ViewThread") {
             if (model.navigationModel.activeNav == "DM") {

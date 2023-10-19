@@ -2,7 +2,7 @@ import { z } from "https://esm.sh/zod@3.22.4";
 import { Channel, semaphore } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { GroupMessageGetter } from "../UI/app_update.tsx";
 import { ConversationSummary } from "../UI/conversation-list.ts";
-import { GroupMessageListGetter } from "../UI/conversation-list.tsx";
+import { ConversationListRetriever, GroupMessageListGetter } from "../UI/conversation-list.tsx";
 import { ChatMessage } from "../UI/message.ts";
 import { Database_Contextual_View } from "../database.ts";
 import { prepareEncryptedNostrEvent } from "../lib/nostr-ts/event.ts";
@@ -37,10 +37,9 @@ export interface ProfileAdder {
 }
 
 export class GroupMessageController implements GroupMessageGetter, GroupMessageListGetter {
-    created_groups = new Map<string, gm_Creation>();
-    invitations = new Map<string, gm_Invitation>();
-    messages = new Map<string, ChatMessage[]>();
-    resync_chan = new Channel<null>();
+    private created_groups = new Map<string, gm_Creation>();
+    private invitations = new Map<string, gm_Invitation>();
+    private messages = new Map<string, ChatMessage[]>();
 
     constructor(
         private readonly ctx: NostrAccountContext,
@@ -49,18 +48,18 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
     ) {}
 
     getConversationList() {
-        const conversations: ConversationSummary[] = [];
+        const conversations = new Map<string, ConversationSummary>();
         for (const v of this.created_groups.values()) {
-            conversations.push({
+            conversations.set(v.groupKey.publicKey.bech32(), {
                 pubkey: v.groupKey.publicKey,
             });
         }
         for (const v of this.invitations.values()) {
-            conversations.push({
+            conversations.set(v.groupAddr.bech32(), {
                 pubkey: v.groupAddr,
             });
         }
-        return conversations;
+        return Array.from(conversations.values());
     }
 
     getGroupMessages(publicKey: string): ChatMessage[] {
@@ -113,12 +112,14 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
     }
 
     async addEvent(event: Parsed_Event<NostrKind.Group_Message>) {
-        const type = gmEventType(this.ctx, event);
-        if (type == "gm_creation") {
+        const type = await gmEventType(this.ctx, event);
+        if (type instanceof Error) {
+            return type;
+        } else if (type == "gm_creation") {
             return await this.handleCreation(event);
         } else if (type == "gm_message") {
             return await this.handleMessage(event);
-        } else if (type == "gm_invitation") { // I received
+        } else if (type == "gm_invitation") {
             return await this.handleInvitation(event);
         } else {
             console.log(GroupMessageController.name, "ignore", event, "type", type);
@@ -126,6 +127,9 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
     }
 
     private async handleInvitation(event: NostrEvent<NostrKind.Group_Message>) {
+        if (event.pubkey == this.ctx.publicKey.hex) {
+            return new Error("the invitation created by me.");
+        } // send by me
         const invitation = await decodeInvitation(this.ctx, event);
         if (invitation instanceof Error) {
             return invitation;
@@ -287,10 +291,10 @@ function isCreation(event: NostrEvent<NostrKind.Group_Message>) {
     return event.tags.length == 0;
 }
 
-export function gmEventType(
+export async function gmEventType(
     ctx: NostrAccountContext,
     event: NostrEvent<NostrKind.Group_Message>,
-): GM_Types {
+): Promise<GM_Types | Error> {
     if (isCreation(event)) {
         return "gm_creation";
     }
@@ -299,6 +303,37 @@ export function gmEventType(
     if (receiver == ctx.publicKey.hex) {
         return "gm_invitation"; // received by me
     }
+
+    if (ctx.publicKey.hex == event.pubkey) { // I sent
+        const decryptedContent = await ctx.decrypt(receiver, event.content);
+        if (decryptedContent instanceof Error) {
+            return decryptedContent;
+        }
+        const json = parseJSON<unknown>(decryptedContent);
+        if (json instanceof Error) {
+            return json;
+        }
+        let message: {
+            type: string;
+            cipherKey: string;
+            groupAddr: string;
+        };
+        try {
+            message = z.object({
+                type: z.string(),
+                cipherKey: z.string(),
+                groupAddr: z.string(),
+            }).parse(json);
+        } catch (e) {
+            return e;
+        }
+
+        if (message.type == "gm_invitation") {
+            return "gm_invitation";
+        }
+        return "gm_message";
+    }
+
     return "gm_message";
 }
 
@@ -341,7 +376,13 @@ export class GroupChatSyncer implements GroupChatAdder {
 }
 
 export async function decodeInvitation(ctx: NostrAccountContext, event: NostrEvent<NostrKind.Group_Message>) {
-    const decryptedContent = await ctx.decrypt(event.pubkey, event.content);
+    let decryptedContent;
+    const pTags = getTags(event).p;
+    if (pTags.length > 0 && pTags[0] != ctx.publicKey.hex) { // I sent
+        decryptedContent = await ctx.decrypt(pTags[0], event.content);
+    } else {
+        decryptedContent = await ctx.decrypt(event.pubkey, event.content);
+    }
     if (decryptedContent instanceof Error) {
         return decryptedContent;
     }
