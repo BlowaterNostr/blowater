@@ -307,7 +307,7 @@ export async function gmEventType(
     if (ctx.publicKey.hex == event.pubkey) { // I sent
         const decryptedContent = await ctx.decrypt(receiver, event.content);
         if (decryptedContent instanceof Error) {
-            return decryptedContent;
+            return "gm_message";
         }
         const json = parseJSON<unknown>(decryptedContent);
         if (json instanceof Error) {

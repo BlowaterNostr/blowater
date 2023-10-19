@@ -145,3 +145,37 @@ Deno.test("test invitation that I sent", async () => {
         assertEquals(messages[0].event, parsedEvent);
     }
 });
+
+Deno.test("should get the correct gm type", async () => {
+    const user_A = InMemoryAccountContext.Generate();
+    const gm_A = new GroupMessageController(user_A, { add: (_) => {} }, { add: (_) => {} });
+    const creation = gm_A.createGroupChat();
+    {
+        // message
+        const messageEvent = await gm_A.prepareGroupMessageEvent(creation.groupKey.publicKey, "hello");
+        if (messageEvent instanceof Error) {
+            fail(messageEvent.message);
+        }
+        assertEquals(await gmEventType(user_A, messageEvent), "gm_message");
+    }
+
+    {
+        // invitation
+        const invitationEvent = await gm_A.createInvitation(creation.groupKey.publicKey, user_A.publicKey);
+        if (invitationEvent instanceof Error) {
+            fail(invitationEvent.message);
+        }
+
+        assertEquals(await gmEventType(user_A, invitationEvent), "gm_invitation");
+    }
+
+    {
+        // creation
+        const creationEvent = await gm_A.encodeCreationToNostrEvent(gm_A.createGroupChat());
+        if (creationEvent instanceof Error) {
+            fail(creationEvent.message);
+        }
+
+        assertEquals(await gmEventType(user_A, creationEvent), "gm_creation");
+    }
+});
