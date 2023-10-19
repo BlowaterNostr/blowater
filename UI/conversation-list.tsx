@@ -18,8 +18,7 @@ import { Component } from "https://esm.sh/preact@10.17.1";
 import { UI_Interaction_Event } from "./app_update.tsx";
 import { ProfileData } from "../features/profile.ts";
 import { ProfileGetter } from "./search.tsx";
-
-export const IsGruopChatSupported = false;
+import { IS_BETA_VERSION } from "./config.js";
 
 export interface ConversationListRetriever {
     getContacts: () => Iterable<ConversationSummary>;
@@ -128,7 +127,7 @@ export class ConversationList extends Component<Props, State> {
                             />
                             New Chat
                         </button>
-                        {IsGruopChatSupported
+                        {IS_BETA_VERSION
                             ? (
                                 <Fragment>
                                     <div class={tw`h-4 w-1 bg-[${PrimaryTextColor}] !p-0`}></div>
@@ -178,7 +177,7 @@ export class ConversationList extends Component<Props, State> {
                         Strangers: {strangers.length}
                     </li>
 
-                    {IsGruopChatSupported
+                    {IS_BETA_VERSION
                         ? (
                             <li
                                 class={tw`h-full flex-1 cursor-pointer hover:text-[#F7F7F7] text-[#96989D] bg-[#2F3136] hover:bg-[#42464D] ${CenterClass} ${

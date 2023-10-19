@@ -22,7 +22,7 @@ import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { ChatMessage } from "./message.ts";
 import { EditorModel } from "./editor.tsx";
 import { InviteButton } from "./invite-button.tsx";
-import { IsGruopChatSupported } from "./conversation-list.tsx";
+import { IS_BETA_VERSION } from "./config.js";
 
 export type DM_Model = {
     currentEditor: EditorModel | undefined;
@@ -84,7 +84,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
 
     const currentEditor = props.currentEditor;
     let actions: JSX.Element | undefined;
-    if (currentEditor && IsGruopChatSupported) {
+    if (currentEditor && IS_BETA_VERSION) {
         const canEditGroupProfile = props.isGroupMessage &&
             props.groupChatController.getGroupAdminCtx(currentEditor.pubkey);
         actions = canEditGroupProfile
