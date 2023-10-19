@@ -168,9 +168,6 @@ export class DirectedMessageController implements DirectMessageGetter {
         const messages = [];
         for (const message of this.directed_messages.values()) {
             if (is_DM_between(message.event, this.ctx.publicKey.hex, pubkey)) {
-                if (message.event.kind == NostrKind.Group_Message) {
-                    console.log(message);
-                }
                 messages.push(message);
             }
         }
@@ -181,7 +178,6 @@ export class DirectedMessageController implements DirectMessageGetter {
     async addEvent(event: Parsed_Event<NostrKind.DIRECT_MESSAGE | NostrKind.Group_Message>) {
         const kind = event.kind;
         if (kind == NostrKind.Group_Message) {
-            console.log("dm add event", kind);
             const gmEvent = { ...event, kind };
             const type = await gmEventType(this.ctx, gmEvent);
             if (type == "gm_invitation") {
@@ -189,7 +185,6 @@ export class DirectedMessageController implements DirectMessageGetter {
                 if (invitation instanceof Error) {
                     return invitation;
                 }
-                console.log("dm add event", invitation);
                 this.directed_messages.set(gmEvent.id, {
                     type: "text", // todo: change to invitation
                     event: gmEvent,
