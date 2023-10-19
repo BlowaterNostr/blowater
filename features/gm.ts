@@ -40,7 +40,6 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
     private created_groups = new Map<string, gm_Creation>();
     private invitations = new Map<string, gm_Invitation>();
     private messages = new Map<string, ChatMessage[]>();
-    resync_chan = new Channel<null>();
 
     constructor(
         private readonly ctx: NostrAccountContext,
