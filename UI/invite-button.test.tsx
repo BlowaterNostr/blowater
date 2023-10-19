@@ -38,3 +38,7 @@ render(
     </div>,
     document.body,
 );
+
+for await (const event of testEventBus.onChange()) {
+    console.log(event);
+}
