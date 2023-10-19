@@ -117,7 +117,7 @@ Deno.test("test invitation that I sent", async () => {
     }
     // should not add this invite event into gm_A
     {
-        const gm_A_addEvent_res = gm_A.addEvent({
+        const gm_A_addEvent_res = await gm_A.addEvent({
             ...invite_user_B,
             parsedTags: getTags(invite_user_B),
             publicKey: PublicKey.FromHex(invite_user_B.pubkey) as PublicKey,
@@ -126,7 +126,7 @@ Deno.test("test invitation that I sent", async () => {
     }
     // should add this invite event into dm_A
     {
-        const dm_A_addEvent_res = dm_A.addEvent({
+        const dm_A_addEvent_res = await dm_A.addEvent({
             ...invite_user_B,
             parsedTags: getTags(invite_user_B),
             publicKey: PublicKey.FromHex(invite_user_B.pubkey) as PublicKey,
