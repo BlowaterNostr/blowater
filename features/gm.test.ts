@@ -148,7 +148,9 @@ Deno.test("test invitation that I sent", async () => {
 
 Deno.test("should get the correct gm type", async () => {
     const user_A = InMemoryAccountContext.Generate();
+    const user_B = InMemoryAccountContext.Generate();
     const gm_A = new GroupMessageController(user_A, { add: (_) => {} }, { add: (_) => {} });
+    const gm_B = new GroupMessageController(user_B, { add: (_) => {} }, { add: (_) => {} });
     const creation = gm_A.createGroupChat();
     {
         // message
@@ -177,5 +179,23 @@ Deno.test("should get the correct gm type", async () => {
         }
 
         assertEquals(await gmEventType(user_A, creationEvent), "gm_creation");
+    }
+
+    {
+        // receive messages from others
+        const invitation_B = await gm_A.createInvitation(creation.groupKey.publicKey, user_B.publicKey);
+        if (invitation_B instanceof Error) {
+            fail(invitation_B.message);
+        }
+        await gm_B.addEvent({
+            ...invitation_B,
+            parsedTags: getTags(invitation_B),
+            publicKey: PublicKey.FromHex(invitation_B.pubkey) as PublicKey,
+        });
+        const messageEvent = await gm_B.prepareGroupMessageEvent(creation.groupKey.publicKey, "hi");
+        if (messageEvent instanceof Error) {
+            fail(messageEvent.message);
+        }
+        assertEquals(await gmEventType(user_A, messageEvent), "gm_message");
     }
 });
