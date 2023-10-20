@@ -145,3 +145,57 @@ Deno.test("test invitation that I sent", async () => {
         assertEquals(messages[0].event, parsedEvent);
     }
 });
+
+Deno.test("should get the correct gm type", async () => {
+    const user_A = InMemoryAccountContext.Generate();
+    const user_B = InMemoryAccountContext.Generate();
+    const gm_A = new GroupMessageController(user_A, { add: (_) => {} }, { add: (_) => {} });
+    const gm_B = new GroupMessageController(user_B, { add: (_) => {} }, { add: (_) => {} });
+    const creation = gm_A.createGroupChat();
+    {
+        // message
+        const messageEvent = await gm_A.prepareGroupMessageEvent(creation.groupKey.publicKey, "hello");
+        if (messageEvent instanceof Error) {
+            fail(messageEvent.message);
+        }
+        assertEquals(await gmEventType(user_A, messageEvent), "gm_message");
+    }
+
+    {
+        // invitation
+        const invitationEvent = await gm_A.createInvitation(creation.groupKey.publicKey, user_A.publicKey);
+        if (invitationEvent instanceof Error) {
+            fail(invitationEvent.message);
+        }
+
+        assertEquals(await gmEventType(user_A, invitationEvent), "gm_invitation");
+    }
+
+    {
+        // creation
+        const creationEvent = await gm_A.encodeCreationToNostrEvent(gm_A.createGroupChat());
+        if (creationEvent instanceof Error) {
+            fail(creationEvent.message);
+        }
+
+        assertEquals(await gmEventType(user_A, creationEvent), "gm_creation");
+    }
+
+    {
+        // receive messages from others
+        const invitation_B = await gm_A.createInvitation(creation.groupKey.publicKey, user_B.publicKey);
+        if (invitation_B instanceof Error) {
+            fail(invitation_B.message);
+        }
+        await gm_B.addEvent({
+            ...invitation_B,
+            parsedTags: getTags(invitation_B),
+            publicKey: PublicKey.FromHex(invitation_B.pubkey) as PublicKey,
+        });
+        const messageEvent = await gm_B.prepareGroupMessageEvent(creation.groupKey.publicKey, "hi");
+        if (messageEvent instanceof Error) {
+            fail(messageEvent.message);
+        }
+        assertEquals(await gmEventType(user_A, messageEvent), "gm_message");
+    }
+});
