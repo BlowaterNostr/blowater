@@ -24,6 +24,7 @@ import { ProfileCard } from "./profile-card.tsx";
 import { NoteCard } from "./note-card.tsx";
 import { ProfileGetter } from "./search.tsx";
 import { InviteCard } from "./invite-card.tsx";
+import { SelectConversation } from "./search_model.ts";
 
 export type RightPanelModel = {
     show: boolean;
@@ -73,7 +74,7 @@ interface DirectMessagePanelProps {
     rightPanelModel: RightPanelModel;
 
     emit: emitFunc<
-        EditorEvent | DirectMessagePanelUpdate | PinConversation | UnpinConversation
+        EditorEvent | DirectMessagePanelUpdate | PinConversation | UnpinConversation | SelectConversation
     >;
     profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
@@ -168,7 +169,7 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
 interface MessageListProps {
     myPublicKey: PublicKey;
     messages: ChatMessage[];
-    emit: emitFunc<DirectMessagePanelUpdate>;
+    emit: emitFunc<DirectMessagePanelUpdate | SelectConversation>;
     profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
     profileGetter: ProfileGetter;
@@ -290,7 +291,7 @@ function MessageBoxGroup(props: {
     authorProfile: ProfileData | undefined;
     messages: ChatMessage[];
     myPublicKey: PublicKey;
-    emit: emitFunc<DirectMessagePanelUpdate | ViewUserDetail>;
+    emit: emitFunc<DirectMessagePanelUpdate | ViewUserDetail | SelectConversation>;
     profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
     profileGetter: ProfileGetter;
@@ -459,7 +460,7 @@ export function ParseMessageContent(
     authorProfile: ProfileData | undefined,
     profilesSyncer: ProfileSyncer,
     eventSyncer: EventSyncer,
-    emit: emitFunc<ViewUserDetail | ViewThread | ViewNoteThread>,
+    emit: emitFunc<ViewUserDetail | ViewThread | ViewNoteThread | SelectConversation>,
     profileGetter: ProfileGetter,
 ) {
     if (message.type == "image") {
@@ -468,7 +469,9 @@ export function ParseMessageContent(
 
     let parsedContentItems;
     if (message.type == "gm_invitation") {
-        return <InviteCard publicKey={message.invitation.groupAddr} profileGetter={profileGetter} />;
+        return (
+            <InviteCard publicKey={message.invitation.groupAddr} profileGetter={profileGetter} emit={emit} />
+        );
     } else if (message.event.kind == NostrKind.Group_Message) {
         parsedContentItems = parseContent(message.content);
     } else {

@@ -6,6 +6,8 @@ import { Avatar } from "./components/avatar.tsx";
 import { LinearGradientsClass, NoOutlineClass } from "./components/tw.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { ProfileGetter } from "./search.tsx";
+import { SelectConversation } from "./search_model.ts";
+import { emitFunc } from "../event-bus.ts";
 
 // invite event
 // profile syncer
@@ -13,6 +15,7 @@ import { ProfileGetter } from "./search.tsx";
 export function InviteCard(props: {
     publicKey: PublicKey;
     profileGetter: ProfileGetter;
+    emit: emitFunc<SelectConversation>;
 }) {
     const { publicKey, profileGetter } = props;
 
@@ -33,6 +36,13 @@ export function InviteCard(props: {
     };
 
     const profile = profileGetter.getProfilesByPublicKey(publicKey);
+    const open = () => {
+        props.emit({
+            type: "SelectConversation",
+            pubkey: publicKey,
+            isGroupChat: true,
+        });
+    };
 
     return (
         <div class={styles.container}>
@@ -43,7 +53,7 @@ export function InviteCard(props: {
                     <h3 class={styles.profile.text.name}>{profile?.profile.name || publicKey.bech32()}</h3>
                     <p class={styles.profile.text.description}>{profile?.profile.about}</p>
                 </div>
-                <button class={styles.button}>Join</button>
+                <button class={styles.button} onClick={open}>Open</button>
             </div>
         </div>
     );
