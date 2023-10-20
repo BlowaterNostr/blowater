@@ -83,26 +83,13 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
     }
 
     const currentEditor = props.currentEditor;
-    let actions: JSX.Element | undefined;
+    let buttons = [];
     if (currentEditor && IS_BETA_VERSION) {
-        const canEditGroupProfile = props.isGroupMessage &&
-            props.groupChatController.getGroupAdminCtx(currentEditor.pubkey);
-        actions = canEditGroupProfile
-            ? (
-                <ButtonGroup>
-                    <button
-                        class={tw`w-8 h-8 ${CenterClass}`}
-                        onClick={() => {
-                            props.bus.emit({
-                                type: "StartInvite",
-                                publicKey: currentEditor.pubkey,
-                            });
-                        }}
-                    >
-                        <InviteIcon
-                            class={tw`w-6 h-6 text-[${PrimaryTextColor}] fill-current`}
-                        />
-                    </button>
+        if (props.isGroupMessage) {
+            const canEditGroupProfile = props.groupChatController.getGroupAdminCtx(currentEditor.pubkey);
+            if (canEditGroupProfile) {
+                buttons.push(
+                    // setting button
                     <button
                         class={tw`w-8 h-8 ${CenterClass}`}
                         onClick={() => {
@@ -116,19 +103,19 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                             class={tw`w-6 h-6 text-[${PrimaryTextColor}] stroke-current`}
                             style={{ fill: "none" }}
                         />
-                    </button>
-                </ButtonGroup>
-            )
-            : (
-                <ButtonGroup>
-                    <InviteButton
-                        groupChatController={props.groupChatController}
-                        profileGetter={props.profileGetter}
-                        userPublicKey={currentEditor.pubkey}
-                        emit={props.bus.emit}
-                    />
-                </ButtonGroup>
+                    </button>,
+                );
+            }
+        } else {
+            buttons.push(
+                <InviteButton
+                    groupChatController={props.groupChatController}
+                    profileGetter={props.profileGetter}
+                    userPublicKey={currentEditor.pubkey}
+                    emit={props.bus.emit}
+                />,
             );
+        }
     }
 
     const vDom = (
@@ -173,7 +160,9 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                                         props.currentEditor.pubkey.bech32()}
                                 </span>
                             </div>
-                            {actions}
+                            <ButtonGroup>
+                                {buttons}
+                            </ButtonGroup>
                         </div>
                         <div class={tw`flex-1 overflow-x-auto`}>
                             {messagePanel}
