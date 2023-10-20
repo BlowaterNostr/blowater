@@ -11,7 +11,7 @@ import { Database_Contextual_View } from "../database.ts";
 import { DirectedMessageController, sendDMandImages } from "../features/dm.ts";
 import { notify } from "./notification.ts";
 import { emitFunc, EventBus } from "../event-bus.ts";
-import { ContactUpdate, IsGruopChatSupported } from "./conversation-list.tsx";
+import { ContactUpdate } from "./conversation-list.tsx";
 import { MyProfileUpdate } from "./edit-profile.tsx";
 import { EditorEvent, EditorModel, new_DM_EditorModel, SendMessage } from "./editor.tsx";
 import { DirectMessagePanelUpdate } from "./message-panel.tsx";
@@ -45,6 +45,7 @@ import { EditGroup, EditGroupChatProfile, StartEditGroupChatProfile } from "./ed
 import { GroupMessageController } from "../features/gm.ts";
 import { ChatMessage } from "./message.ts";
 import { InviteUsersToGroup } from "./invite-button.tsx";
+import { IS_BETA_VERSION } from "./config.js";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -694,7 +695,7 @@ export async function handle_SendMessage(
     } else {
         // todo: hack, change later
         const invitation = isInvitation(event.text);
-        if (invitation && IsGruopChatSupported) {
+        if (invitation && IS_BETA_VERSION) {
             const invitationEvent = await groupControl.createInvitation(invitation, event.pubkey);
             if (invitationEvent instanceof Error) {
                 return invitationEvent;
