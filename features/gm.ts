@@ -113,9 +113,7 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
 
     async addEvent(event: Parsed_Event<NostrKind.Group_Message>) {
         const type = await gmEventType(this.ctx, event);
-        if (type instanceof Error) {
-            return type;
-        } else if (type == "gm_creation") {
+        if (type == "gm_creation") {
             return await this.handleCreation(event);
         } else if (type == "gm_message") {
             return await this.handleMessage(event);
@@ -294,7 +292,7 @@ function isCreation(event: NostrEvent<NostrKind.Group_Message>) {
 export async function gmEventType(
     ctx: NostrAccountContext,
     event: NostrEvent<NostrKind.Group_Message>,
-): Promise<GM_Types | Error> {
+): Promise<GM_Types> {
     if (isCreation(event)) {
         return "gm_creation";
     }
@@ -305,33 +303,10 @@ export async function gmEventType(
     }
 
     if (ctx.publicKey.hex == event.pubkey) { // I sent
-        const decryptedContent = await ctx.decrypt(receiver, event.content);
-        if (decryptedContent instanceof Error) {
+        if (await ctx.decrypt(receiver, event.content) instanceof Error) {
             return "gm_message";
         }
-        const json = parseJSON<unknown>(decryptedContent);
-        if (json instanceof Error) {
-            return json;
-        }
-        let message: {
-            type: string;
-            cipherKey: string;
-            groupAddr: string;
-        };
-        try {
-            message = z.object({
-                type: z.string(),
-                cipherKey: z.string(),
-                groupAddr: z.string(),
-            }).parse(json);
-        } catch (e) {
-            return e;
-        }
-
-        if (message.type == "gm_invitation") {
-            return "gm_invitation";
-        }
-        return "gm_message";
+        return "gm_invitation";
     }
 
     return "gm_message";
