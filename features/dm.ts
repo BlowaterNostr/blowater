@@ -47,7 +47,6 @@ export async function sendDMandImages(args: {
             receiverPublicKey,
             blob,
             NostrKind.DIRECT_MESSAGE,
-            tags,
         );
         if (imgEvent instanceof Error) {
             return imgEvent;

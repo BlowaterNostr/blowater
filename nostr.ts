@@ -108,7 +108,6 @@ export async function prepareNostrImageEvent(
     receiverPublicKey: PublicKey,
     blob: Blob,
     kind: nostr.NostrKind,
-    tags?: Tag[],
 ): Promise<nostr.NostrEvent | Error> {
     // prepare nostr event
     // read the blob
@@ -130,7 +129,7 @@ export async function prepareNostrImageEvent(
         pubkey: sender.publicKey.hex,
         tags: [
             ["p", receiverPublicKey.hex],
-            ...(tags || []),
+            ["image"],
         ],
         content: encrypted,
     };
