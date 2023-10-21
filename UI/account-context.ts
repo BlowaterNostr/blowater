@@ -26,17 +26,13 @@ export class Nip7ExtensionContext implements NostrAccountContext {
             pubkey: string;
             plaintext: string;
         } | {
-            op: "decrypt";
-            pubkey: string;
-            ciphertext: string;
-        } | {
             op: "signEvent";
             event: UnsignedNostrEvent;
         }
     >();
 
     private readonly encryptChan = chan<string | Error>();
-    private readonly decryptChan = chan<string | Error>();
+    // private readonly decryptChan = chan<string | Error>();
     private readonly signEventChan = chan<NostrEvent>();
 
     static async New(): Promise<Nip7ExtensionContext | Error | undefined> {
@@ -79,9 +75,6 @@ export class Nip7ExtensionContext implements NostrAccountContext {
                     } catch (e) {
                         await this.encryptChan.put(e as Error);
                     }
-                } else if (op.op == "decrypt") {
-                    const res = await alby.nip04.decrypt(op.pubkey, op.ciphertext);
-                    await this.decryptChan.put(res);
                 } else if (op.op === "signEvent") {
                     const res = await alby.signEvent(op.event);
                     await this.signEventChan.put(res);
@@ -113,16 +106,12 @@ export class Nip7ExtensionContext implements NostrAccountContext {
         return res;
     };
     decrypt = async (pubkey: string, ciphertext: string) => {
-        await this.operationChan.put({
-            op: "decrypt",
-            pubkey,
-            ciphertext,
-        });
-        const res = await this.decryptChan.pop();
-        if (res === closed) {
-            throw new Error("unreachable");
+        try {
+            const res = await this.alby.nip04.decrypt(pubkey, ciphertext);
+            return res;
+        } catch (e) {
+            return e as Error;
         }
-        return res;
     };
 }
 
