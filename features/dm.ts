@@ -6,7 +6,6 @@ import {
     getTags,
     Parsed_Event,
     prepareNostrImageEvent,
-    reassembleBase64ImageFromEvents,
     Tag,
 } from "../nostr.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
@@ -59,8 +58,7 @@ export async function sendDMandImages(args: {
         if (imgEvent instanceof Error) {
             return imgEvent;
         }
-        let [fileEvent, _] = imgEvent;
-        eventsToSend.push(fileEvent);
+        eventsToSend.push(imgEvent);
     }
     // send the event
     for (const event of eventsToSend) {
@@ -209,10 +207,7 @@ export class DirectedMessageController implements DirectMessageGetter {
             }
             const isImage = dmEvent.parsedTags.image;
             if (isImage) {
-                const imageBase64 = reassembleBase64ImageFromEvents([dmEvent]);
-                if (imageBase64 instanceof Error) {
-                    return imageBase64;
-                }
+                const imageBase64 = dmEvent.content;    // todo: decrypt
                 this.directed_messages.set(event.id, {
                     event: dmEvent,
                     author: dmEvent.publicKey,

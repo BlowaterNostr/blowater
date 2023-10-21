@@ -214,7 +214,7 @@ export async function* UI_Interaction_Update(args: {
             );
             if (err instanceof Error) {
                 console.error("update:SendMessage", err);
-                continue; // todo: global error toast
+                continue;
             }
         } else if (event.type == "UpdateMessageFiles") {
             const editors = event.isGroupChat ? model.gmEditors : model.dmEditors;
