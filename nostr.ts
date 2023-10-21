@@ -109,15 +109,7 @@ export async function prepareNostrImageEvent(
     blob: Blob,
     kind: nostr.NostrKind,
 ): Promise<nostr.NostrEvent | Error> {
-    // prepare nostr event
-    // read the blob
     const binaryContent = await nostr.blobToBase64(blob);
-
-    const limit = 64 * 1024;
-    if (binaryContent.length > limit) {
-        return new Error(`content size ${binaryContent.length} > limit ${limit}`);
-    }
-
     const encrypted = await sender.encrypt(receiverPublicKey.hex, binaryContent);
     if (encrypted instanceof Error) {
         return encrypted;
