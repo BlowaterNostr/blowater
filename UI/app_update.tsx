@@ -462,6 +462,7 @@ export async function* UI_Interaction_Update(args: {
                     title: "Content",
                     fields: [
                         content,
+                        event.message.content,
                         originalEventRaw,
                     ],
                 },

@@ -6,10 +6,7 @@ import {
     NostrEvent,
     NostrKind,
 } from "./lib/nostr-ts/nostr.ts";
-import {
-    prepareNostrImageEvent,
-    prepareReplyEvent,
-} from "./nostr.ts";
+import { prepareNostrImageEvent, prepareReplyEvent } from "./nostr.ts";
 import { PrivateKey } from "./lib/nostr-ts/key.ts";
 import { utf8Decode } from "./lib/nostr-ts/ende.ts";
 import { prepareNormalNostrEvent } from "./lib/nostr-ts/event.ts";
