@@ -108,8 +108,7 @@ export async function prepareNostrImageEvent(
     receiverPublicKey: PublicKey,
     blob: Blob,
     kind: nostr.NostrKind,
-    tags?: Tag[],
-): Promise<[nostr.NostrEvent, string] | Error> {
+): Promise<nostr.NostrEvent | Error> {
     // prepare nostr event
     // read the blob
     const binaryContent = await nostr.blobToBase64(blob);
@@ -124,56 +123,18 @@ export async function prepareNostrImageEvent(
         return encrypted;
     }
 
-    const GroupLeadEventID = PrivateKey.Generate().hex;
     const event: nostr.UnsignedNostrEvent = {
         created_at: Math.floor(Date.now() / 1000),
         kind: kind,
         pubkey: sender.publicKey.hex,
         tags: [
             ["p", receiverPublicKey.hex],
-            ["image", GroupLeadEventID, "1", "0"],
-            ...(tags || []),
+            ["image"],
         ],
         content: encrypted,
     };
     const signedEvent = await sender.signEvent(event);
-    return [signedEvent, GroupLeadEventID];
-}
-
-export function reassembleBase64ImageFromEvents(
-    events: nostr.NostrEvent[],
-) {
-    if (events.length === 0) {
-        return "";
-    }
-
-    const firstEvent = events[0];
-    const imageTag = getTags(firstEvent).image;
-    if (imageTag == undefined) {
-        return new Error(`${firstEvent.id} is not an image event`);
-    }
-
-    const [_2, chunkCount, _4] = imageTag;
-    const chunks = new Array<string | null>(Number(chunkCount));
-    chunks.fill(null);
-
-    for (const event of events) {
-        const imageTag = getTags(event).image;
-        if (imageTag == undefined) {
-            return new Error(`${event.id} is not an image event`);
-        }
-        const [_2, _3, chunkIndex] = imageTag;
-        const cIndex = Number(chunkIndex);
-        chunks[cIndex] = event.content;
-    }
-
-    if (chunks.includes(null)) {
-        const miss = chunks.filter((c) => c === null).length;
-        return new Error(
-            `not enough chunks for image event ${firstEvent.id}, need ${Number(chunkCount)}, miss ${miss}`,
-        );
-    }
-    return chunks.join("");
+    return signedEvent;
 }
 
 export function groupImageEvents<T extends Parsed_Event>(events: Iterable<T>) {

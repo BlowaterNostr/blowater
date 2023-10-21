@@ -1,14 +1,7 @@
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
+import { decryptNostrEvent, NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
-import {
-    compare,
-    getTags,
-    Parsed_Event,
-    prepareNostrImageEvent,
-    reassembleBase64ImageFromEvents,
-    Tag,
-} from "../nostr.ts";
+import { compare, getTags, Parsed_Event, prepareNostrImageEvent, Tag } from "../nostr.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { prepareEncryptedNostrEvent } from "../lib/nostr-ts/event.ts";
 import { DirectMessageGetter } from "../UI/app_update.tsx";
@@ -54,15 +47,11 @@ export async function sendDMandImages(args: {
             receiverPublicKey,
             blob,
             NostrKind.DIRECT_MESSAGE,
-            tags,
         );
         if (imgEvent instanceof Error) {
             return imgEvent;
         }
-        let [fileEvent, _] = imgEvent;
-        // for (const event of fileEvents) {
-        eventsToSend.push(fileEvent);
-        // }
+        eventsToSend.push(imgEvent);
     }
     // send the event
     for (const event of eventsToSend) {
@@ -211,10 +200,7 @@ export class DirectedMessageController implements DirectMessageGetter {
             }
             const isImage = dmEvent.parsedTags.image;
             if (isImage) {
-                const imageBase64 = reassembleBase64ImageFromEvents([dmEvent]);
-                if (imageBase64 instanceof Error) {
-                    return imageBase64;
-                }
+                const imageBase64 = dmEvent.decryptedContent;
                 this.directed_messages.set(event.id, {
                     event: dmEvent,
                     author: dmEvent.publicKey,

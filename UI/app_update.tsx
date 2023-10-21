@@ -207,25 +207,29 @@ export async function* UI_Interaction_Update(args: {
                 app.ctx,
                 app.lamport,
                 pool,
-                app.model.editors,
+                app.model.dmEditors,
                 app.model.gmEditors,
                 app.database,
                 app.groupChatController,
             );
             if (err instanceof Error) {
                 console.error("update:SendMessage", err);
-                continue; // todo: global error toast
+                continue;
             }
         } else if (event.type == "UpdateMessageFiles") {
-            const editor = model.editors.get(event.pubkey.hex);
+            const editors = event.isGroupChat ? model.gmEditors : model.dmEditors;
+            const editor = editors.get(event.pubkey.hex);
             if (editor) {
                 editor.files = event.files;
             } else {
-                console.log(event);
-                throw new Error("impossible state");
+                editors.set(event.pubkey.hex, {
+                    files: event.files,
+                    pubkey: event.pubkey,
+                    text: "",
+                });
             }
         } else if (event.type == "UpdateEditorText") {
-            const editorMap = event.isGroupChat ? model.gmEditors : model.editors;
+            const editorMap = event.isGroupChat ? model.gmEditors : model.dmEditors;
             console.log(editorMap);
             const editor = editorMap.get(event.pubkey.hex);
             if (editor) {
@@ -458,6 +462,7 @@ export async function* UI_Interaction_Update(args: {
                     title: "Content",
                     fields: [
                         content,
+                        event.message.content,
                         originalEventRaw,
                     ],
                 },
@@ -487,7 +492,7 @@ export function updateConversation(
     targetPublicKey: PublicKey,
     isGroupChat: boolean,
 ) {
-    const editorMap = isGroupChat ? model.gmEditors : model.editors;
+    const editorMap = isGroupChat ? model.gmEditors : model.dmEditors;
     let editor = editorMap.get(targetPublicKey.hex);
     // If this conversation is new
     if (editor == undefined) {
@@ -546,13 +551,13 @@ export async function* Database_Update(
             }
             if (e.kind == NostrKind.META_DATA || e.kind == NostrKind.DIRECT_MESSAGE) {
                 for (const contact of convoLists.convoSummaries.values()) {
-                    const editor = model.editors.get(contact.pubkey.hex);
+                    const editor = model.dmEditors.get(contact.pubkey.hex);
                     if (editor == null) { // a stranger sends a message
                         const pubkey = PublicKey.FromHex(contact.pubkey.hex);
                         if (pubkey instanceof Error) {
                             throw pubkey; // impossible
                         }
-                        model.editors.set(
+                        model.dmEditors.set(
                             contact.pubkey.hex,
                             new_DM_EditorModel(
                                 pubkey,
@@ -693,20 +698,6 @@ export async function handle_SendMessage(
             editor.text = "";
         }
     } else {
-        // todo: hack, change later
-        const invitation = isInvitation(event.text);
-        if (invitation && IS_BETA_VERSION) {
-            const invitationEvent = await groupControl.createInvitation(invitation, event.pubkey);
-            if (invitationEvent instanceof Error) {
-                return invitationEvent;
-            }
-            console.log(invitationEvent);
-            const err = await pool.sendEvent(invitationEvent);
-            if (err instanceof Error) {
-                return err;
-            }
-            return;
-        }
         const events = await sendDMandImages({
             sender: ctx,
             receiverPublicKey: event.pubkey,
@@ -731,15 +722,4 @@ export async function handle_SendMessage(
             editor.text = "";
         }
     }
-}
-
-function isInvitation(text: string): PublicKey | false {
-    if (text.length == 70 && text.slice(0, 7) == "invite:") {
-        const pubkey = PublicKey.FromBech32(text.slice(7));
-        if (pubkey instanceof Error) {
-            return false;
-        }
-        return pubkey;
-    }
-    return false;
 }

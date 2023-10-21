@@ -49,7 +49,7 @@ console.log(database.events);
 const pool = new ConnectionPool();
 const model = initialModel();
 model.dm.currentEditor = ctx.publicKey;
-model.editors.set(ctx.publicKey.hex, {
+model.dmEditors.set(ctx.publicKey.hex, {
     files: [],
     id: ctx.publicKey.hex,
     tags: [["p", ctx.publicKey.hex]],
@@ -74,7 +74,7 @@ const view = () => {
             rightPanelModel={{
                 show: true,
             }}
-            editors={model.editors}
+            editors={model.dmEditors}
             currentEditor={model.dm.currentEditor}
             focusedContent={model.dm.focusedContent}
             hasNewMessages={model.dm.hasNewMessages}
@@ -108,7 +108,7 @@ for await (const e of testEventBus.onChange()) {
             ctx,
             lamport,
             pool,
-            model.editors,
+            model.dmEditors,
             database,
         );
         if (err instanceof Error) {
@@ -118,7 +118,7 @@ for await (const e of testEventBus.onChange()) {
     } else if (e.type == "UpdateEditorText") {
         const event = e;
         if (event.target.kind == NostrKind.DIRECT_MESSAGE) {
-            const editor = model.editors.get(event.id);
+            const editor = model.dmEditors.get(event.id);
             if (editor) {
                 editor.text = event.text;
             } else {
