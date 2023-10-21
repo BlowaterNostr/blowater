@@ -9,7 +9,6 @@ import { ImageIcon } from "./icons2/image-icon.tsx";
 import { DividerBackgroundColor, PrimaryBackgroundColor, PrimaryTextColor } from "./style/colors.ts";
 import { SendIcon } from "./icons2/send-icon.tsx";
 import { Component } from "https://esm.sh/preact@10.17.1";
-import { Model } from "./app_model.ts";
 import { RemoveIcon } from "./icons2/remove-icon.tsx";
 
 export type EditorModel = {
@@ -84,7 +83,7 @@ export class Editor extends Component<EditorProps> {
             props.emit({
                 type: "SendMessage",
                 pubkey: props.targetNpub,
-                files: [], // todo
+                files: props.files,
                 text: props.text,
                 isGroupChat: props.isGroupChat,
             });
@@ -209,8 +208,7 @@ export class Editor extends Component<EditorProps> {
                             try {
                                 clipboardData = await window.navigator.clipboard.read();
                             } catch (e) {
-                                console.log(e.message);
-                                // todo: global error toast
+                                console.error(e.message);
                                 return;
                             }
                             for (const item of clipboardData) {
@@ -218,17 +216,12 @@ export class Editor extends Component<EditorProps> {
                                     const image = await item.getType(
                                         "image/png",
                                     );
-                                    // todo
-                                    // props.emit({
-                                    //     type: "UpdateMessageFiles",
-                                    //     id: props.targetNpub.hex,
-                                    //     target: {
-                                    //         receiver: {
-                                    //             pubkey: props.targetNpub
-                                    //         }
-                                    //     },
-                                    //     files: props.model.files.concat([image]),
-                                    // });
+                                    props.emit({
+                                        type: "UpdateMessageFiles",
+                                        isGroupChat: props.isGroupChat,
+                                        pubkey: props.targetNpub,
+                                        files: props.files.concat([image]),
+                                    });
                                 } catch (e) {
                                     console.error(e);
                                 }

@@ -29,7 +29,7 @@ const pool = new ConnectionPool();
 const model = initialModel();
 pool.addRelayURL(relays[0]);
 
-const editor = model.editors.get(ctx.publicKey.hex);
+const editor = model.dmEditors.get(ctx.publicKey.hex);
 
 const view = () => {
     if (editor == undefined) {
@@ -67,7 +67,7 @@ for await (const e of testEventBus.onChange()) {
             ctx,
             lamport,
             pool,
-            model.editors,
+            model.dmEditors,
             database,
         );
         if (err instanceof Error) {

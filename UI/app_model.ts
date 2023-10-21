@@ -12,7 +12,7 @@ export type Model = {
     dm: DM_Model;
     search: SearchModel;
 
-    editors: Map<string, EditorModel>;
+    dmEditors: Map<string, EditorModel>;
     gmEditors: Map<string, EditorModel>;
 
     // profile
@@ -40,7 +40,7 @@ export function initialModel(): Model {
             currentEditor: undefined,
             isGroupMessage: false,
         },
-        editors: editors,
+        dmEditors: editors,
         gmEditors: new Map(),
         newProfileField: {
             key: "",

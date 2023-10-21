@@ -60,9 +60,7 @@ export async function sendDMandImages(args: {
             return imgEvent;
         }
         let [fileEvent, _] = imgEvent;
-        // for (const event of fileEvents) {
         eventsToSend.push(fileEvent);
-        // }
     }
     // send the event
     for (const event of eventsToSend) {

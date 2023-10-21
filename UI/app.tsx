@@ -307,13 +307,13 @@ export class App {
 
         /* contacts */
         for (const contact of this.conversationLists.convoSummaries.values()) {
-            const editor = this.model.editors.get(contact.pubkey.hex);
+            const editor = this.model.dmEditors.get(contact.pubkey.hex);
             if (editor == null) {
                 const pubkey = PublicKey.FromHex(contact.pubkey.hex);
                 if (pubkey instanceof Error) {
                     throw pubkey; // impossible
                 }
-                this.model.editors.set(
+                this.model.dmEditors.set(
                     contact.pubkey.hex,
                     new_DM_EditorModel(
                         pubkey,
