@@ -21,7 +21,7 @@ type NIP07 = {
 
 export class Nip7ExtensionContext implements NostrAccountContext {
     private readonly operationChan = chan<
-        "enable" | {
+        {
             op: "encrypt";
             pubkey: string;
             plaintext: string;
@@ -34,7 +34,7 @@ export class Nip7ExtensionContext implements NostrAccountContext {
             event: UnsignedNostrEvent;
         }
     >();
-    private readonly enableChan = chan<boolean>();
+
     private readonly encryptChan = chan<string | Error>();
     private readonly decryptChan = chan<string | Error>();
     private readonly signEventChan = chan<NostrEvent>();
@@ -69,23 +69,10 @@ export class Nip7ExtensionContext implements NostrAccountContext {
         private alby: NIP07,
         public publicKey: PublicKey,
     ) {
+        console.log(alby);
         (async () => {
             for await (const op of this.operationChan) {
-                if (op === "enable") {
-                    if (alby.enable == undefined) { // could be nos2x
-                        await this.enableChan.put(true);
-                    }
-                    let isEnabled = true;
-                    if (typeof (alby.enable) == "function") {
-                        try {
-                            const res = await alby.enable();
-                            isEnabled = res.enabled;
-                        } catch (e) {
-                            await this.enableChan.put(false);
-                        }
-                    }
-                    await this.enableChan.put(isEnabled);
-                } else if (op.op == "encrypt") {
+                if (op.op == "encrypt") {
                     try {
                         const res = await alby.nip04.encrypt(op.pubkey, op.plaintext);
                         await this.encryptChan.put(res);
@@ -132,15 +119,6 @@ export class Nip7ExtensionContext implements NostrAccountContext {
             ciphertext,
         });
         const res = await this.decryptChan.pop();
-        if (res === closed) {
-            throw new Error("unreachable");
-        }
-        return res;
-    };
-
-    enable = async (): Promise<boolean> => {
-        await this.operationChan.put("enable");
-        const res = await this.enableChan.pop();
         if (res === closed) {
             throw new Error("unreachable");
         }

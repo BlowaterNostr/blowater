@@ -67,18 +67,6 @@ export async function signInWithExtension() {
     }
     if (albyCtx === undefined) {
         open(AlbyURL);
-    } else {
-        try {
-            const enabled = await albyCtx.enable();
-            if (enabled) {
-                setSignInState("nip07");
-            } else {
-                console.error("User rejected Alby login");
-            }
-        } catch (e) {
-            console.log(e);
-            return "You rejected Alby login. Refresh page to enable it again.";
-        }
     }
     return albyCtx;
 }
