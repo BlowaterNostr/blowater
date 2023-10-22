@@ -23,7 +23,11 @@ if (profileData instanceof Error) {
 
 render(
     <div>
-        <ProfileCard publicKey={ctx.publicKey} profileData={profileData} emit={testEventBus.emit} />
+        <ProfileCard publicKey={ctx.publicKey} profileData={{
+name: "John Doe",
+            about: "I am a person",
+            avatar: "https://example.com/avatar.png",
+        }} emit={testEventBus.emit} />
         <ProfileCard publicKey={ctx.publicKey} profileData={undefined} emit={testEventBus.emit} />
         <ProfileCard
             publicKey={ctx.publicKey}
