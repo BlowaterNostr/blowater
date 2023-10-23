@@ -34,7 +34,7 @@ export interface EventPutter {
 
 export type EventsAdapter = EventsFilter & EventRemover & EventGetter & EventPutter;
 
-export class Database_Contextual_View implements ProfileController, EventGetter {
+export class Database_Contextual_View implements ProfileController, EventGetter, EventRemover {
     public readonly sourceOfChange = csp.chan<Parsed_Event | null>(buffer_size);
     private readonly caster = csp.multi<Parsed_Event | null>(this.sourceOfChange);
     public readonly profiles = new Map<string, Profile_Nostr_Event>();
@@ -96,6 +96,10 @@ export class Database_Contextual_View implements ProfileController, EventGetter 
         return undefined;
     }
 
+    remove(id: string): Promise<void> {
+        return this.eventsAdapter.remove(id);
+    }
+
     getProfilesByText(name: string): Profile_Nostr_Event[] {
         const result = [];
         for (const event of this.profiles.values()) {
@@ -149,7 +153,7 @@ export class Database_Contextual_View implements ProfileController, EventGetter 
         };
 
         // add event to database and notify subscribers
-        console.log("Database.addEvent", NoteID.FromHex(event.id).bech32());
+        console.log("Database.addEvent", event);
 
         this.events.push(parsedEvent);
 

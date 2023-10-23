@@ -592,19 +592,25 @@ export async function* Database_Update(
                     }
                 }
             } else if (e.kind == NostrKind.Group_Message) {
-                let err = await groupController.addEvent({
-                    ...e,
-                    kind: e.kind,
-                });
-                if (err instanceof Error) {
-                    console.error(err);
+                {
+                    const err = await groupController.addEvent({
+                        ...e,
+                        kind: e.kind,
+                    });
+                    if (err instanceof Error) {
+                        console.error(err, e);
+                        await database.remove(e.id);
+                    }
                 }
-                err = await dmController.addEvent({
-                    ...e,
-                    kind: e.kind,
-                });
-                if (err instanceof Error) {
-                    console.error(err);
+                {
+                    const err = await dmController.addEvent({
+                        ...e,
+                        kind: e.kind,
+                    });
+                    if (err instanceof Error) {
+                        console.error(err);
+                        await database.remove(e.id);
+                    }
                 }
             }
 
