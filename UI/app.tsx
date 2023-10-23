@@ -25,7 +25,7 @@ import { DexieDatabase } from "./dexie-db.ts";
 import { About } from "./about.tsx";
 import { ProfileSyncer } from "../features/profile.ts";
 import { Popover, PopOverInputChannel } from "./components/popover.tsx";
-import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { Channel, sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { GroupChatSyncer, GroupMessageController } from "../features/gm.ts";
 import { OtherConfig } from "./config-other.ts";
 import { ProfileGetter } from "./search.tsx";
@@ -59,7 +59,6 @@ export async function Start(database: DexieDatabase) {
             popOverInputChan,
             otherConfig,
         });
-        await app.initApp();
         model.app = app;
     }
 
@@ -181,7 +180,7 @@ export class App {
             }
         })();
 
-        return new App(
+        const app = new App(
             args.database,
             args.model,
             args.ctx,
@@ -197,9 +196,11 @@ export class App {
             lamport,
             dmController,
         );
+        await app.initApp();
+        return app;
     }
 
-    initApp = async () => {
+    private initApp = async () => {
         console.log("App.initApp");
 
         ///////////////////////////////////
@@ -234,6 +235,15 @@ export class App {
                 }
                 this.relayConfig.merge(_relayConfig.save());
                 this.relayConfig.saveToLocalStorage(this.ctx);
+            }
+        })();
+        (async () => {
+            for (;;) {
+                await sleep(3000);
+                const err = this.relayConfig.syncWithPool(this.pool);
+                if (err instanceof Error) {
+                    throw err; // don't know what to do, should crash the app
+                }
             }
         })();
 

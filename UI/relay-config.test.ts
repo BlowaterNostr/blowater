@@ -69,8 +69,7 @@ Deno.test("Relay Config", async () => {
         {
             const err = await relayConfig.syncWithPool(pool);
             if (err != undefined) {
-                assertEquals(err.length, 1);
-                assertEquals(err[0].message, "wss://somewhere has been closed, can't wait for it to open");
+                assertEquals(err.message, "wss://somewhere has been closed, can't wait for it to open");
             }
 
             // add one relay to the pool directly
@@ -85,8 +84,7 @@ Deno.test("Relay Config", async () => {
             // will remove urls that's in the pool but not in the config
             const err2 = await relayConfig.syncWithPool(pool);
             if (err2 != undefined) {
-                assertEquals(err2.length, 1);
-                assertEquals(err2[0].message, "wss://somewhere has been closed, can't wait for it to open");
+                assertEquals(err2.message, "wss://somewhere has been closed, can't wait for it to open");
             }
             assertEquals(pool.getRelays().map((r) => r.url), ["wss://relay.damus.io"]); // wirednet is removed
         }

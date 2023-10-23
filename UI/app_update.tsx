@@ -123,7 +123,6 @@ export async function* UI_Interaction_Update(args: {
                         popOverInputChan: args.popOver,
                         otherConfig,
                     });
-                    await app.initApp();
                     model.app = app;
                 } else {
                     console.error("failed to sign in");
