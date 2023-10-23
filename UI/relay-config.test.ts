@@ -54,8 +54,7 @@ Deno.test("Relay Config", async () => {
         assertEquals(relayConfig.getRelayURLs(), new Set(["wss://relay.damus.io", "wss://somewhere"]));
     }
 
-    const pri = PrivateKey.Generate();
-    const ctx = InMemoryAccountContext.New(pri);
+    const ctx = InMemoryAccountContext.Generate()
     const event = await relayConfig.toNostrEvent(ctx);
     if (event instanceof Error) fail(event.message);
 
