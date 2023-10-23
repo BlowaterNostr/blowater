@@ -1,6 +1,5 @@
 import {
     assertEquals,
-    assertIsError,
     assertNotEquals,
     assertNotInstanceOf,
     fail,
