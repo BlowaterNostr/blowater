@@ -44,7 +44,7 @@ jobs:
         run: make test
 
       - name: UI test
-        run: cd UI && deno run test.ts
+        run: cd UI && deno run test-ui.ts
 
   deploy:
     timeout-minutes: 1
