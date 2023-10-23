@@ -25,7 +25,7 @@ import { emitFunc } from "../event-bus.ts";
 
 export type SaveProfile = {
     type: "SaveProfile";
-    profile: ProfileData | undefined;
+    profile: ProfileData;
     ctx: NostrAccountContext;
 };
 
@@ -131,6 +131,10 @@ export class EditProfile extends Component<Props, State> {
     };
 
     onSubmit = () => {
+        if (!this.state.profile) {
+            return
+        }
+
         this.props.emit({
             type: "SaveProfile",
             ctx: this.props.ctx,

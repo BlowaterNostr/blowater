@@ -37,7 +37,7 @@ import { EventDetail, EventDetailItem } from "./event-detail.tsx";
 import { CreateGroup, CreateGroupChat, StartCreateGroupChat } from "./create-group.tsx";
 import { prepareNormalNostrEvent } from "../lib/nostr-ts/event.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
-import { InMemoryAccountContext, NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
+import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { OtherConfig } from "./config-other.ts";
 import { EditGroup, EditGroupChatProfile, StartEditGroupChatProfile } from "./edit-group.tsx";
@@ -246,11 +246,6 @@ export async function* UI_Interaction_Update(args: {
         // Profile
         //
         else if (event.type == "SaveProfile") {
-            if (!event.profile) {
-                console.log("impossible");
-                continue;
-            }
-
             await saveProfile(
                 event.profile,
                 event.ctx,
