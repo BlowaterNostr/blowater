@@ -129,18 +129,6 @@ export async function prepareNostrImageEvent(
     return signedEvent;
 }
 
-export function groupImageEvents<T extends Parsed_Event>(events: Iterable<T>) {
-    return groupBy(events, (event) => {
-        const tags = event.parsedTags;
-        const imageTag = tags.image;
-        if (imageTag == undefined) {
-            return undefined;
-        }
-        const groupID = imageTag[0];
-        return groupID;
-    });
-}
-
 export async function prepareReplyEvent(
     sender: nostr.NostrAccountContext,
     targetEvent: nostr.NostrEvent,
