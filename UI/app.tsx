@@ -26,7 +26,7 @@ import { About } from "./about.tsx";
 import { ProfileSyncer } from "../features/profile.ts";
 import { Popover, PopOverInputChannel } from "./components/popover.tsx";
 import { Channel, sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { GroupChatSyncer, GroupMessageController } from "../features/gm.ts";
+import { group_GM_events, GroupChatSyncer, GroupMessageController } from "../features/gm.ts";
 import { OtherConfig } from "./config-other.ts";
 import { ProfileGetter } from "./search.tsx";
 import { fromEvents } from "../time.ts";
@@ -147,30 +147,9 @@ export class App {
         );
 
         (async () => {
+            // load DMs
             for (const e of args.database.events) {
-                if (e.kind == NostrKind.Group_Message) {
-                    {
-                        const err = await groupChatController.addEvent({
-                            ...e,
-                            kind: e.kind,
-                        });
-                        if (err instanceof Error) {
-                            console.error(err);
-                            console.error(e);
-                            await args.database.remove(e.id);
-                        }
-                    }
-                    {
-                        const err2 = await dmController.addEvent({
-                            ...e,
-                            kind: e.kind,
-                        });
-                        if (err2 instanceof Error) {
-                            console.error(err2);
-                            await args.database.remove(e.id);
-                        }
-                    }
-                } else if (e.kind == NostrKind.DIRECT_MESSAGE) {
+                if (e.kind == NostrKind.DIRECT_MESSAGE) {
                     const error = await dmController.addEvent({
                         ...e,
                         kind: e.kind,
@@ -185,6 +164,29 @@ export class App {
                 // notify update loop to render
                 // todo: directly call render instead of go through database update loop
                 args.database.sourceOfChange.put(null);
+            }
+            // load GMs
+            const group_events = await group_GM_events(args.ctx, args.database.events);
+            for (const e of group_events.creataions) {
+                const error = await groupChatController.addEvent(e);
+                if (error instanceof Error) {
+                    console.error(error, e);
+                    await args.database.remove(e.id);
+                }
+            }
+            for (const e of group_events.invites) {
+                const error = await groupChatController.addEvent(e);
+                if (error instanceof Error) {
+                    console.error(error, e);
+                    await args.database.remove(e.id);
+                }
+            }
+            for (const e of group_events.messages) {
+                const error = await groupChatController.addEvent(e);
+                if (error instanceof Error) {
+                    console.error(error, e);
+                    await args.database.remove(e.id);
+                }
             }
         })();
 

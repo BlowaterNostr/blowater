@@ -1,8 +1,8 @@
 import { z } from "https://esm.sh/zod@3.22.4";
-import { Channel, semaphore } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { semaphore } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { GroupMessageGetter } from "../UI/app_update.tsx";
 import { ConversationSummary } from "../UI/conversation-list.ts";
-import { ConversationListRetriever, GroupMessageListGetter } from "../UI/conversation-list.tsx";
+import { GroupMessageListGetter } from "../UI/conversation-list.tsx";
 import { ChatMessage } from "../UI/message.ts";
 import { Database_Contextual_View } from "../database.ts";
 import { prepareEncryptedNostrEvent } from "../lib/nostr-ts/event.ts";
@@ -282,15 +282,36 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
     }
 }
 
-function isCreation(event: NostrEvent<NostrKind.Group_Message>) {
-    return event.tags.length == 0;
+export async function group_GM_events(ctx: NostrAccountContext, events: Parsed_Event[]) {
+    const invites = [];
+    const messages = [];
+    const creataions = [];
+    for (const event of events) {
+        if (event.kind != NostrKind.Group_Message) {
+            continue;
+        }
+        const gmEvent = { ...event, kind: event.kind };
+        const type = await gmEventType(ctx, gmEvent);
+        if (type == "gm_creation") {
+            creataions.push(gmEvent);
+        } else if (type == "gm_invitation") {
+            invites.push(gmEvent);
+        } else {
+            messages.push(gmEvent);
+        }
+    }
+    return {
+        creataions,
+        invites,
+        messages,
+    };
 }
 
 export async function gmEventType(
     ctx: NostrAccountContext,
     event: NostrEvent<NostrKind.Group_Message>,
 ): Promise<GM_Types> {
-    if (isCreation(event)) {
+    if (event.tags.length == 0) {
         return "gm_creation";
     }
 

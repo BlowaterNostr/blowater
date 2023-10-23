@@ -1,9 +1,9 @@
 /*
     Extension to common Nostr types
 */
-import { PrivateKey, PublicKey } from "./lib/nostr-ts/key.ts";
+import { PublicKey } from "./lib/nostr-ts/key.ts";
 import * as nostr from "./lib/nostr-ts/nostr.ts";
-import { groupBy, NostrKind, TagPubKey } from "./lib/nostr-ts/nostr.ts";
+import { NostrKind, TagPubKey } from "./lib/nostr-ts/nostr.ts";
 import { ProfileData } from "./features/profile.ts";
 import { ContentItem } from "./UI/message.ts";
 import { prepareEncryptedNostrEvent, prepareNormalNostrEvent } from "./lib/nostr-ts/event.ts";
@@ -127,18 +127,6 @@ export async function prepareNostrImageEvent(
     };
     const signedEvent = await sender.signEvent(event);
     return signedEvent;
-}
-
-export function groupImageEvents<T extends Parsed_Event>(events: Iterable<T>) {
-    return groupBy(events, (event) => {
-        const tags = event.parsedTags;
-        const imageTag = tags.image;
-        if (imageTag == undefined) {
-            return undefined;
-        }
-        const groupID = imageTag[0];
-        return groupID;
-    });
 }
 
 export async function prepareReplyEvent(
