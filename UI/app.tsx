@@ -244,7 +244,7 @@ export class App {
                 for (const url of urls) {
                     await this.pool.removeRelay(url);
                     const err = await this.pool.addRelayURL(url);
-                    if(err instanceof Error) {
+                    if (err instanceof Error) {
                         console.error(err);
                     }
                 }
