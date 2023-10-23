@@ -149,19 +149,25 @@ export class App {
         (async () => {
             for (const e of args.database.events) {
                 if (e.kind == NostrKind.Group_Message) {
-                    let err = await groupChatController.addEvent({
-                        ...e,
-                        kind: e.kind,
-                    });
-                    if (err instanceof Error) {
-                        console.error(err.message);
+                    {
+                        const err = await groupChatController.addEvent({
+                            ...e,
+                            kind: e.kind,
+                        });
+                        if (err instanceof Error) {
+                            console.error(err);
+                            await args.database.remove(e.id);
+                        }
                     }
-                    err = await dmController.addEvent({
-                        ...e,
-                        kind: e.kind,
-                    });
-                    if (err instanceof Error) {
-                        console.error(err);
+                    {
+                        const err2 = await dmController.addEvent({
+                            ...e,
+                            kind: e.kind,
+                        });
+                        if (err2 instanceof Error) {
+                            console.error(err2);
+                            await args.database.remove(e.id);
+                        }
                     }
                 } else if (e.kind == NostrKind.DIRECT_MESSAGE) {
                     const error = await dmController.addEvent({
@@ -169,7 +175,8 @@ export class App {
                         kind: e.kind,
                     });
                     if (error instanceof Error) {
-                        console.error(error.message); // should delete the event
+                        console.error(error.message);
+                        await args.database.remove(e.id);
                     }
                 } else {
                     continue;
