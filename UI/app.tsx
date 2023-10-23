@@ -502,7 +502,11 @@ export function AppComponent(props: {
                         <div
                             class={tw`max-w-[35rem] h-full m-auto`}
                         >
-                            <EditProfile publicKey={model.app.ctx.publicKey} profileGetter={app.database} />
+                            <EditProfile
+                                ctx={model.app.ctx}
+                                profileGetter={app.database}
+                                emit={props.eventBus.emit}
+                            />
                         </div>
                     </div>
                     {dmVNode}

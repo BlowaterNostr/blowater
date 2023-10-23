@@ -1,5 +1,5 @@
 /** @jsx h */
-import { Fragment, h } from "https://esm.sh/preact@10.17.1";
+import { createRef, Fragment, h } from "https://esm.sh/preact@10.17.1";
 import { tw } from "https://esm.sh/twind@0.16.16";
 import { Avatar } from "./components/avatar.tsx";
 import {
@@ -12,49 +12,21 @@ import {
 import { ProfileData } from "../features/profile.ts";
 import {
     DividerBackgroundColor,
+    ErrorColor,
     HintLinkColor,
     HintTextColor,
     HoverButtonBackgroudColor,
     PrimaryTextColor,
 } from "./style/colors.ts";
-import { Component, ComponentChildren, Ref } from "https://esm.sh/preact@10.11.3";
-import { PublicKey } from "../lib/nostr-ts/key.ts";
+import { Component, ComponentChildren } from "https://esm.sh/preact@10.11.3";
 import { ProfileGetter } from "./search.tsx";
+import { NostrAccountContext } from "../lib/nostr-ts/nostr.ts";
+import { emitFunc } from "../event-bus.ts";
 
-export type MyProfileUpdate =
-    | Edit
-    | Save
-    | EditNewProfileFieldKey
-    | EditNewProfileFieldValue
-    | InsertNewProfileField;
-
-export type Edit = {
-    type: "EditMyProfile";
-    profile: ProfileData;
-};
-
-type Save = {
-    type: "SaveMyProfile";
-    profile: ProfileData;
-};
-
-export type EditNewProfileFieldKey = {
-    type: "EditNewProfileFieldKey";
-    key: string;
-};
-
-export type EditNewProfileFieldValue = {
-    type: "EditNewProfileFieldValue";
-    value: string;
-};
-
-export type InsertNewProfileField = {
-    type: "InsertNewProfileField";
-};
-
-type Props = {
-    publicKey: PublicKey;
-    profileGetter: ProfileGetter;
+export type SaveProfile = {
+    type: "SaveProfile";
+    profile: ProfileData | undefined;
+    ctx: NostrAccountContext;
 };
 
 type profileItem = {
@@ -63,12 +35,24 @@ type profileItem = {
     hint?: ComponentChildren;
 };
 
-export class EditProfile extends Component<Props, {}> {
+type Props = {
+    ctx: NostrAccountContext;
+    profileGetter: ProfileGetter;
+    emit: emitFunc<SaveProfile>;
+};
+
+type State = {
+    profile: ProfileData | undefined;
+    newFieldKeyError: string;
+};
+
+export class EditProfile extends Component<Props, State> {
     styles = {
+        container: tw`py-2`,
         banner: {
-            container: tw`h-72 w-full rounded-lg relative`,
+            container: tw`h-72 w-full rounded-lg mb-20 relative`,
             avatar:
-                tw`w-24 h-24 m-auto absolute top-64 left-1/2 box-border border-2 border-[${PrimaryTextColor}] -translate-x-2/4`,
+                tw`w-24 h-24 m-auto absolute top-60 left-1/2 box-border border-2 border-[${PrimaryTextColor}] -translate-x-2/4`,
         },
         avatar: tw`w-24 h-24 m-auto box-border border-2 border-[${PrimaryTextColor}]`,
         field: {
@@ -87,22 +71,78 @@ export class EditProfile extends Component<Props, {}> {
         custom: {
             title: tw`text-[${PrimaryTextColor}] font-blod text-sm`,
             text: tw`text-[${HintTextColor}] text-sm`,
+            error: tw`text-sm text-[${ErrorColor}]`,
         },
     };
-    profileItems: profileItem[] = [];
-    profile: ProfileData | undefined;
 
     componentDidMount() {
-        const { publicKey, profileGetter } = this.props;
-        this.profile = profileGetter.getProfilesByPublicKey(publicKey)?.profile;
-        this.profileItems = [
+        const { ctx, profileGetter } = this.props;
+        this.setState({
+            profile: profileGetter.getProfilesByPublicKey(ctx.publicKey)?.profile,
+        });
+    }
+
+    newFieldKey = createRef<HTMLInputElement>();
+    newFieldValue = createRef<HTMLTextAreaElement>();
+
+    onInput = (e: h.JSX.TargetedEvent<HTMLTextAreaElement, Event>, key?: string) => {
+        const lines = e.currentTarget.value.split("\n");
+        e.currentTarget.setAttribute(
+            "rows",
+            `${lines.length}`,
+        );
+        if (key) {
+            const value = e.currentTarget.value;
+            this.setState({
+                profile: {
+                    ...this.state.profile,
+                    [key]: value,
+                },
+            });
+        }
+    };
+
+    addField = () => {
+        if (!this.newFieldKey.current || !this.newFieldValue.current) {
+            return;
+        }
+
+        if (this.newFieldKey.current.value.trim() == "") {
+            this.setState({
+                newFieldKeyError: "Key is required.",
+            });
+            return;
+        }
+
+        this.setState({
+            profile: {
+                ...this.state.profile,
+                [this.newFieldKey.current.value]: this.newFieldValue.current.value,
+            },
+            newFieldKeyError: "",
+        });
+
+        this.newFieldKey.current.value = "";
+        this.newFieldValue.current.value = "";
+    };
+
+    onSubmit = () => {
+        this.props.emit({
+            type: "SaveProfile",
+            ctx: this.props.ctx,
+            profile: this.state.profile,
+        });
+    };
+
+    render() {
+        const profileItems: profileItem[] = [
             {
-                key: "Name",
-                value: this.profile?.name,
+                key: "name",
+                value: this.state.profile?.name,
             },
             {
-                key: "Picture",
-                value: this.profile?.picture,
+                key: "picture",
+                value: this.state.profile?.picture,
                 hint: (
                     <span class={this.styles.field.hint.text}>
                         You can upload your images on websites like{" "}
@@ -113,73 +153,65 @@ export class EditProfile extends Component<Props, {}> {
                 ),
             },
             {
-                key: "About",
-                value: this.profile?.about,
+                key: "about",
+                value: this.state.profile?.about,
             },
             {
-                key: "Website",
-                value: this.profile?.website,
+                key: "website",
+                value: this.state.profile?.website,
             },
             {
-                key: "Banner",
-                value: this.profile?.banner,
+                key: "banner",
+                value: this.state.profile?.banner,
             },
         ];
 
-        if (this.profile) {
-            for (const [key, value] of Object.entries(this.profile)) {
+        if (this.state.profile) {
+            for (const [key, value] of Object.entries(this.state.profile)) {
                 if (["name", "picture", "about", "website", "banner"].includes(key) || !value) {
                     continue;
                 }
 
-                this.profileItems.push({
+                profileItems.push({
                     key: key,
                     value: value,
                 });
             }
         }
-    }
 
-    render() {
-        const banner = this.profile?.banner
+        const banner = this.state.profile?.banner
             ? (
                 <div
                     class={this.styles.banner.container}
                     style={{
                         background: `url(${
-                            this.profile?.banner ? this.profile.banner : "default-bg.png"
+                            this.state.profile?.banner ? this.state.profile.banner : "default-bg.png"
                         }) no-repeat center center / cover`,
                     }}
                 >
                     <Avatar
-                        picture={this.profile?.picture}
+                        picture={this.state.profile?.picture}
                         class={this.styles.banner.avatar}
                     />
                 </div>
             )
             : (
                 <Avatar
-                    picture={this.profile?.picture}
+                    picture={this.state.profile?.picture}
                     class={this.styles.avatar}
                 />
             );
 
-        const items = this.profileItems.map((item) => (
+        const items = profileItems.map((item) => (
             <Fragment>
-                <h3 class={this.styles.field.title} style={{textTransform: "capitalize"}}>
+                <h3 class={this.styles.field.title} style={{ textTransform: "capitalize" }}>
                     {item.key}
                 </h3>
                 <textarea
                     placeholder={item.key}
                     rows={item.value?.split("\n")?.length || 1}
                     value={item.value}
-                    onInput={(e) => {
-                        const lines = e.currentTarget.value.split("\n");
-                        e.currentTarget.setAttribute(
-                            "rows",
-                            `${lines.length}`,
-                        );
-                    }}
+                    onInput={(e) => this.onInput(e, item.key)}
                     type="text"
                     class={this.styles.field.input}
                 >
@@ -189,7 +221,7 @@ export class EditProfile extends Component<Props, {}> {
         ));
 
         return (
-            <Fragment>
+            <div class={this.styles.container}>
                 {banner}
                 {items}
 
@@ -203,36 +235,32 @@ export class EditProfile extends Component<Props, {}> {
                     Field name
                 </h3>
                 <input
+                    ref={this.newFieldKey}
                     placeholder="e.g. hobbies"
                     type="text"
                     class={this.styles.field.input}
                 />
+                <span class={this.styles.custom.error}>{this.state.newFieldKeyError}</span>
 
                 <h3 class={this.styles.field.title}>
                     Field value
                 </h3>
                 <textarea
+                    ref={this.newFieldValue}
                     placeholder="e.g. Sports, Reading, Design"
-                    // rows={item.value?.split("\n")?.length || 1}
-                    // value={item.value}
-                    onInput={(e) => {
-                        const lines = e.currentTarget.value.split("\n");
-                        e.currentTarget.setAttribute(
-                            "rows",
-                            `${lines.length}`,
-                        );
-                    }}
+                    rows={1}
+                    onInput={(e) => this.onInput(e)}
                     type="text"
                     class={this.styles.field.input}
                 >
                 </textarea>
 
-                <button class={this.styles.addButton}>Add Field</button>
+                <button class={this.styles.addButton} onClick={this.addField}>Add Field</button>
 
                 <div class={tw`${DividerClass}`}></div>
 
-                <button class={this.styles.submitButton}>Update Profile</button>
-            </Fragment>
+                <button class={this.styles.submitButton} onClick={this.onSubmit}>Update Profile</button>
+            </div>
         );
     }
 }
