@@ -153,7 +153,7 @@ export class Database_Contextual_View implements ProfileController, EventGetter,
         };
 
         // add event to database and notify subscribers
-        console.log("Database.addEvent", NoteID.FromHex(event.id).bech32());
+        console.log("Database.addEvent", event);
 
         this.events.push(parsedEvent);
 

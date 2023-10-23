@@ -6,15 +6,9 @@ import {
     fail,
 } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
-import { InMemoryAccountContext, NostrKind } from "../lib/nostr-ts/nostr.ts";
+import { InMemoryAccountContext } from "../lib/nostr-ts/nostr.ts";
 import { gmEventType, GroupMessageController } from "./gm.ts";
 import { getTags } from "../nostr.ts";
-import { DM_List } from "../UI/conversation-list.ts";
-import { Database_Contextual_View } from "../database.ts";
-import { ProfileSyncer } from "./profile.ts";
-import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
-import { prepareEncryptedNostrEvent } from "../lib/nostr-ts/event.ts";
-import { testEventsAdapter } from "../UI/_setup.test.ts";
 import { DirectedMessageController } from "./dm.ts";
 
 Deno.test("group chat", async () => {
@@ -66,13 +60,12 @@ Deno.test("group chat", async () => {
         assertNotEquals(gm_ctx_A, undefined);
     }
     {
-        // wrong invite
         const err = await gm_A.addEvent({
             ...invite_B,
             parsedTags: getTags(invite_B),
             publicKey: PublicKey.FromHex(invite_B.pubkey) as PublicKey,
         });
-        assertIsError(err);
+        assertEquals(err, undefined);
     }
 
     const list = gm_A.getConversationList();
@@ -128,7 +121,7 @@ Deno.test("test invitation that I sent", async () => {
             parsedTags: getTags(invite_user_B),
             publicKey: PublicKey.FromHex(invite_user_B.pubkey) as PublicKey,
         });
-        assertIsError(gm_A_addEvent_res);
+        assertEquals(gm_A_addEvent_res, undefined);
     }
     // should add this invitation event into dm_A
     {
@@ -197,5 +190,51 @@ Deno.test("should get the correct gm type", async () => {
             fail(messageEvent.message);
         }
         assertEquals(await gmEventType(user_A, messageEvent), "gm_message");
+    }
+});
+
+Deno.test("need to add group before handling relevant messages", async () => {
+    const user_A = InMemoryAccountContext.Generate();
+    const user_B = InMemoryAccountContext.Generate();
+    const gm_A = new GroupMessageController(user_A, { add: (_) => {} }, { add: (_) => {} });
+    const gm_B = new GroupMessageController(user_B, { add: (_) => {} }, { add: (_) => {} });
+
+    const groupChat = gm_A.createGroupChat();
+
+    {
+        const message = await gm_A.prepareGroupMessageEvent(groupChat.groupKey.publicKey, "hi");
+        if (message instanceof Error) fail(message.message);
+
+        // will get an error because the group chat is not added to user B yet
+        const err = await gm_B.addEvent({
+            ...message,
+            parsedTags: getTags(message),
+            publicKey: user_A.publicKey,
+        });
+        assertEquals(err?.message, `group ${groupChat.groupKey.publicKey.hex} does not have me in it`);
+    }
+    {
+        // now, invite user B to group first, then send the message
+        {
+            const invite = await gm_A.createInvitation(groupChat.groupKey.publicKey, user_B.publicKey);
+            if (invite instanceof Error) fail(invite.message);
+            const err = await gm_B.addEvent({
+                ...invite,
+                parsedTags: getTags(invite),
+                publicKey: user_A.publicKey,
+            });
+            assertEquals(err, undefined);
+        }
+        {
+            const message = await gm_A.prepareGroupMessageEvent(groupChat.groupKey.publicKey, "hi");
+            if (message instanceof Error) fail(message.message);
+            // will get an error because the group chat is not added to user B yet
+            const err = await gm_B.addEvent({
+                ...message,
+                parsedTags: getTags(message),
+                publicKey: user_A.publicKey,
+            });
+            assertEquals(err, undefined); // no error before the invitation has been added before this message
+        }
     }
 });

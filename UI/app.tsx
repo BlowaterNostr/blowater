@@ -156,6 +156,7 @@ export class App {
                         });
                         if (err instanceof Error) {
                             console.error(err);
+                            console.error(e);
                             await args.database.remove(e.id);
                         }
                     }

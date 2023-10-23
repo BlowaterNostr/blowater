@@ -126,8 +126,8 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
 
     private async handleInvitation(event: NostrEvent<NostrKind.Group_Message>) {
         if (event.pubkey == this.ctx.publicKey.hex) {
-            return new Error("the invitation created by me.");
-        } // send by me
+            return; // ignore this case because this is an invitation created by me
+        }
         const invitation = await decodeInvitation(this.ctx, event);
         if (invitation instanceof Error) {
             return invitation;
@@ -138,7 +138,7 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
     }
 
     private async handleMessage(event: Parsed_Event<NostrKind.Group_Message>) {
-        const groupAddr = getTags(event).p[0];
+        const groupAddr = event.parsedTags.p[0];
         const groupAddrPubkey = PublicKey.FromHex(groupAddr);
         if (groupAddrPubkey instanceof Error) {
             return groupAddrPubkey;
@@ -169,10 +169,7 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
                 text: z.string(),
             }).parse(json);
         } catch (e) {
-            message = e as Error;
-        }
-        if (message instanceof Error) {
-            return message;
+            return e as Error;
         }
 
         const chatMessage: ChatMessage = {
