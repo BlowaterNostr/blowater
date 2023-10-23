@@ -12,7 +12,6 @@ import { DirectedMessageController, sendDMandImages } from "../features/dm.ts";
 import { notify } from "./notification.ts";
 import { emitFunc, EventBus } from "../event-bus.ts";
 import { ContactUpdate } from "./conversation-list.tsx";
-import { MyProfileUpdate } from "./edit-profile.tsx";
 import { EditorEvent, EditorModel, new_DM_EditorModel, SendMessage } from "./editor.tsx";
 import { DirectMessagePanelUpdate } from "./message-panel.tsx";
 import { NavigationUpdate } from "./nav.tsx";
@@ -46,6 +45,7 @@ import { GroupMessageController } from "../features/gm.ts";
 import { ChatMessage } from "./message.ts";
 import { InviteUsersToGroup } from "./invite-button.tsx";
 import { IS_BETA_VERSION } from "./config.js";
+import { SaveProfile } from "./edit-profile.tsx";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -54,7 +54,7 @@ export type UI_Interaction_Event =
     | NavigationUpdate
     | DirectMessagePanelUpdate
     | BackToContactList
-    | MyProfileUpdate
+    | SaveProfile
     | PinConversation
     | UnpinConversation
     | SignInEvent
@@ -243,23 +243,14 @@ export async function* UI_Interaction_Update(args: {
             console.log(editor);
         } //
         //
-        // MyProfile
+        // Profile
         //
-        else if (event.type == "EditMyProfile") {
-            model.myProfile = Object.assign(model.myProfile || {}, event.profile);
-        } else if (event.type == "SaveMyProfile") {
-            InsertNewProfileField(app.model);
+        else if (event.type == "SaveProfile") {
             await saveProfile(
                 event.profile,
-                app.ctx,
+                event.ctx,
                 pool,
             );
-        } else if (event.type == "EditNewProfileFieldKey") {
-            model.newProfileField.key = event.key;
-        } else if (event.type == "EditNewProfileFieldValue") {
-            model.newProfileField.value = event.value;
-        } else if (event.type == "InsertNewProfileField") {
-            InsertNewProfileField(app.model);
         } //
         //
         // Navigation
@@ -659,18 +650,6 @@ export async function* Database_Update(
             }
         }
         yield model;
-    }
-}
-
-function InsertNewProfileField(model: Model) {
-    if (model.newProfileField.key && model.newProfileField.value) {
-        model.myProfile = Object.assign(model.myProfile || {}, {
-            [model.newProfileField.key]: model.newProfileField.value,
-        });
-        model.newProfileField = {
-            key: "",
-            value: "",
-        };
     }
 }
 
