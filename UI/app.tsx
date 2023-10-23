@@ -240,9 +240,13 @@ export class App {
         (async () => {
             for (;;) {
                 await sleep(3000);
-                const err = this.relayConfig.syncWithPool(this.pool);
-                if (err instanceof Error) {
-                    throw err; // don't know what to do, should crash the app
+                const urls = this.pool.getClosedRelaysThatShouldBeReconnected();
+                for (const url of urls) {
+                    await this.pool.removeRelay(url);
+                    const err = await this.pool.addRelayURL(url);
+                    if(err instanceof Error) {
+                        console.error(err);
+                    }
                 }
             }
         })();
