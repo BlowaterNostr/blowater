@@ -48,7 +48,7 @@ type State = {
 
 export class EditProfile extends Component<Props, State> {
     styles = {
-        container: tw`py-2`,
+        container: tw`py-4`,
         banner: {
             container: tw`h-72 w-full rounded-lg mb-20 relative`,
             avatar:
@@ -69,7 +69,7 @@ export class EditProfile extends Component<Props, State> {
             tw`w-full p-3 rounded-lg ${NoOutlineClass} text-[${PrimaryTextColor}] ${CenterClass} ${LinearGradientsClass}  hover:bg-gradient-to-l`,
         divider: tw`${DividerClass}`,
         custom: {
-            title: tw`text-[${PrimaryTextColor}] font-blod text-sm`,
+            title: tw`text-[${PrimaryTextColor}] font-bold text-sm`,
             text: tw`text-[${HintTextColor}] text-sm`,
             error: tw`text-sm text-[${ErrorColor}]`,
         },
@@ -80,6 +80,10 @@ export class EditProfile extends Component<Props, State> {
         this.setState({
             profile: profileGetter.getProfilesByPublicKey(ctx.publicKey)?.profile,
         });
+    }
+
+    shouldComponentUpdate(_: Readonly<Props>, nextState: Readonly<State>, __: any): boolean {
+        return JSON.stringify(this.state.profile) != JSON.stringify(nextState.profile);
     }
 
     newFieldKey = createRef<HTMLInputElement>();
