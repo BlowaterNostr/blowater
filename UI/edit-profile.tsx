@@ -2,12 +2,9 @@
 import { Fragment, h } from "https://esm.sh/preact@10.17.1";
 import { tw } from "https://esm.sh/twind@0.16.16";
 import { Avatar } from "./components/avatar.tsx";
-import { emitFunc, EventEmitter } from "../event-bus.ts";
 import {
-    ButtonClass,
     CenterClass,
     DividerClass,
-    inputBorderClass,
     InputClass,
     LinearGradientsClass,
     NoOutlineClass,
@@ -18,9 +15,11 @@ import {
     HintLinkColor,
     HintTextColor,
     HoverButtonBackgroudColor,
-    PlaceholderColor,
     PrimaryTextColor,
 } from "./style/colors.ts";
+import { Component, ComponentChildren, Ref } from "https://esm.sh/preact@10.11.3";
+import { PublicKey } from "../lib/nostr-ts/key.ts";
+import { ProfileGetter } from "./search.tsx";
 
 export type MyProfileUpdate =
     | Edit
@@ -53,271 +52,187 @@ export type InsertNewProfileField = {
     type: "InsertNewProfileField";
 };
 
-export function EditProfile(props: {
-    emit: emitFunc<MyProfileUpdate>;
-    myProfile: ProfileData | undefined;
-    newProfileField: {
-        key: string;
-        value: string;
-    };
-}) {
-    return (
-        <div class={tw`py-[3rem]`}>
-            {props.myProfile?.banner
-                ? (
-                    <div
-                        class={tw`h-[18.75rem] w-full rounded-lg relative`}
-                        style={{
-                            background: `url(${
-                                props.myProfile?.banner ? props.myProfile.banner : "default-bg.png"
-                            }) no-repeat center center / cover`,
-                        }}
-                    >
-                        <Avatar
-                            picture={props.myProfile?.picture}
-                            class={tw`w-[6.25rem] h-[6.25rem] m-auto absolute top-[15.62rem] left-[50%] box-border border-[3px] border-[${PrimaryTextColor}]`}
-                            style={{
-                                transform: "translate(-50%, 0%)",
-                            }}
-                        />
-                    </div>
-                )
-                : (
-                    <Avatar
-                        picture={props.myProfile?.picture}
-                        class={tw`w-[6.25rem] h-[6.25rem] m-auto box-border border-[3px] border-[${PrimaryTextColor}]`}
-                    />
-                )}
-            <h3 class={tw`text-[${PrimaryTextColor}] mt-[4.5rem]`}>
-                Name
-            </h3>
-            <textarea
-                placeholder="Name"
-                rows={props.myProfile?.name?.split("\n")?.length || 1}
-                value={props.myProfile?.name}
-                onInput={(e) => {
-                    props.emit({
-                        type: "EditMyProfile",
-                        profile: {
-                            name: e.currentTarget.value,
-                        },
-                    });
-                    const lines = e.currentTarget.value.split("\n");
-                    e.currentTarget.setAttribute(
-                        "rows",
-                        `${lines.length}`,
-                    );
-                }}
-                type="text"
-                class={tw`${InputClass}`}
-            >
-            </textarea>
-            <h3 class={tw`mt-[1.5rem] text-[${PrimaryTextColor}]`}>
-                Picture
-            </h3>
-            <textarea
-                placeholder="Profile Image URL"
-                rows={props.myProfile?.picture?.split("\n")?.length || 1}
-                value={props.myProfile?.picture}
-                onInput={(e) => {
-                    props.emit({
-                        type: "EditMyProfile",
-                        profile: {
-                            picture: e.currentTarget.value,
-                        },
-                    });
-                    const lines = e.currentTarget.value.split("\n");
-                    e.currentTarget.setAttribute(
-                        "rows",
-                        `${lines.length}`,
-                    );
-                }}
-                type="text"
-                class={tw`${InputClass}`}
-            >
-            </textarea>
-            <span class={tw`text-[0.875rem] text-[${HintTextColor}]`}>
-                You can upload your images on websites like{" "}
-                <a class={tw`text-[${HintLinkColor}]`} href="https://nostr.build/" target="_blank">
-                    nostr.build
-                </a>
-            </span>
-            <h3 class={tw`mt-[1.5rem] text-[${PrimaryTextColor}]`}>
-                About
-            </h3>
-            <textarea
-                placeholder="About"
-                rows={props.myProfile?.about?.split("\n")?.length || 1}
-                value={props.myProfile?.about}
-                onInput={(e) => {
-                    props.emit({
-                        type: "EditMyProfile",
-                        profile: {
-                            about: e.currentTarget.value,
-                        },
-                    });
-                    const lines = e.currentTarget.value.split("\n");
-                    e.currentTarget.setAttribute(
-                        "rows",
-                        `${lines.length}`,
-                    );
-                }}
-                type="text"
-                class={tw`${InputClass}`}
-            >
-            </textarea>
-            <h3 class={tw`mt-[1.5rem] text-[${PrimaryTextColor}]`}>
-                Website
-            </h3>
-            <textarea
-                placeholder="Website"
-                rows={props.myProfile?.website?.split("\n")?.length || 1}
-                value={props.myProfile?.website}
-                onInput={(e) => {
-                    props.emit({
-                        type: "EditMyProfile",
-                        profile: {
-                            website: e.currentTarget.value,
-                        },
-                    });
-                    const lines = e.currentTarget.value.split("\n");
-                    e.currentTarget.setAttribute(
-                        "rows",
-                        `${lines.length}`,
-                    );
-                }}
-                type="text"
-                class={tw`${InputClass}`}
-            >
-            </textarea>
-            <h3 class={tw`mt-[1.5rem] text-[${PrimaryTextColor}]`}>
-                Banner
-            </h3>
-            <textarea
-                placeholder="Banner Image Url"
-                rows={props.myProfile?.banner?.split("\n")?.length || 1}
-                value={props.myProfile?.banner}
-                onInput={(e) => {
-                    props.emit({
-                        type: "EditMyProfile",
-                        profile: {
-                            banner: e.currentTarget.value,
-                        },
-                    });
-                    const lines = e.currentTarget.value.split("\n");
-                    e.currentTarget.setAttribute(
-                        "rows",
-                        `${lines.length}`,
-                    );
-                }}
-                type="text"
-                class={tw`${InputClass}`}
-            >
-            </textarea>
-            {props.myProfile
-                ? Object.entries(props.myProfile).map(([key, value]) => {
-                    if (["name", "picture", "about", "website", "banner"].includes(key) || !value) {
-                        return undefined;
-                    }
+type Props = {
+    publicKey: PublicKey;
+    profileGetter: ProfileGetter;
+};
 
-                    return (
-                        <Fragment>
-                            <h3 class={tw`mt-[1.5rem] text-[${PrimaryTextColor}]`}>
-                                {key}
-                            </h3>
-                            <textarea
-                                placeholder={key}
-                                rows={value.toString().split("\n").length}
-                                value={value}
-                                onInput={(e) => {
-                                    props.emit({
-                                        type: "EditMyProfile",
-                                        profile: {
-                                            [key]: e.currentTarget.value,
-                                        },
-                                    });
-                                    const lines = e.currentTarget.value.split("\n");
-                                    e.currentTarget.setAttribute(
-                                        "rows",
-                                        `${lines.length}`,
-                                    );
-                                }}
-                                type="text"
-                                class={tw`${InputClass}`}
-                            >
-                            </textarea>
-                        </Fragment>
-                    );
-                })
-                : undefined}
-            <div class={tw`${DividerClass}`}></div>
-            <p class={tw`text-[${PrimaryTextColor}] font-blod text-[0.8125rem]`}>Custom Fields</p>
-            <span class={tw`text-[${HintTextColor}] text-[0.875rem]`}>
-                Create your own custom fields, anything goes!
-            </span>
-            <h3 class={tw`text-[${PrimaryTextColor}] mt-[1.5rem]`}>
-                Field name
-            </h3>
-            <input
-                placeholder="e.g. hobbies"
-                value={props.newProfileField.key}
-                onInput={(e) => {
-                    props.emit({
-                        type: "EditNewProfileFieldKey",
-                        key: e.currentTarget.value,
-                    });
-                }}
-                type="text"
-                class={tw`${InputClass}`}
-            />
-            <h3 class={tw`mt-[1.5rem] text-[${PrimaryTextColor}]`}>
-                Field value
-            </h3>
-            <textarea
-                placeholder="e.g. Sports, Reading, Design"
-                rows={1}
-                value={props.newProfileField.value}
-                onInput={(e) => {
-                    props.emit({
-                        type: "EditNewProfileFieldValue",
-                        value: e.currentTarget.value,
-                    });
-                    const lines = e.currentTarget.value.split("\n");
-                    e.currentTarget.setAttribute(
-                        "rows",
-                        `${lines.length}`,
-                    );
-                }}
-                type="text"
-                class={tw`${InputClass}`}
-            >
-            </textarea>
-            <button
-                class={tw`w-full mt-[1.5rem] p-[0.75rem] rounded-lg ${NoOutlineClass} text-[${PrimaryTextColor}] bg-[${DividerBackgroundColor}] hover:bg-[${HoverButtonBackgroudColor}] ${CenterClass}`}
-                onClick={() => {
-                    props.emit({
-                        type: "InsertNewProfileField",
-                    });
-                }}
-            >
-                Add Field
-            </button>
-            <div class={tw`${DividerClass}`}></div>
-            <div class={tw`mt-[1.5rem] flex justify-end`}>
-                <button
-                    class={tw`w-full p-[0.75rem] rounded-lg ${NoOutlineClass} text-[${PrimaryTextColor}] ${CenterClass} ${LinearGradientsClass}  hover:bg-gradient-to-l`}
-                    onClick={async () => {
-                        if (props.myProfile) {
-                            props.emit({
-                                type: "SaveMyProfile",
-                                profile: props.myProfile,
-                            });
-                        }
+type profileItem = {
+    key: string;
+    value?: string;
+    hint?: ComponentChildren;
+};
+
+export class EditProfile extends Component<Props, {}> {
+    styles = {
+        banner: {
+            container: tw`h-72 w-full rounded-lg relative`,
+            avatar:
+                tw`w-24 h-24 m-auto absolute top-64 left-1/2 box-border border-2 border-[${PrimaryTextColor}] -translate-x-2/4`,
+        },
+        avatar: tw`w-24 h-24 m-auto box-border border-2 border-[${PrimaryTextColor}]`,
+        field: {
+            title: tw`text-[${PrimaryTextColor}] mt-8`,
+            input: tw`${InputClass}`,
+            hint: {
+                text: tw`text-sm text-[${HintTextColor}]`,
+                link: tw`text-[${HintLinkColor}]`,
+            },
+        },
+        addButton:
+            tw`w-full mt-6 p-3 rounded-lg ${NoOutlineClass} text-[${PrimaryTextColor}] bg-[${DividerBackgroundColor}] hover:bg-[${HoverButtonBackgroudColor}] ${CenterClass}`,
+        submitButton:
+            tw`w-full p-3 rounded-lg ${NoOutlineClass} text-[${PrimaryTextColor}] ${CenterClass} ${LinearGradientsClass}  hover:bg-gradient-to-l`,
+        divider: tw`${DividerClass}`,
+        custom: {
+            title: tw`text-[${PrimaryTextColor}] font-blod text-sm`,
+            text: tw`text-[${HintTextColor}] text-sm`,
+        },
+    };
+    profileItems: profileItem[] = [];
+    profile: ProfileData | undefined;
+
+    componentDidMount() {
+        const { publicKey, profileGetter } = this.props;
+        this.profile = profileGetter.getProfilesByPublicKey(publicKey)?.profile;
+        this.profileItems = [
+            {
+                key: "Name",
+                value: this.profile?.name,
+            },
+            {
+                key: "Picture",
+                value: this.profile?.picture,
+                hint: (
+                    <span class={this.styles.field.hint.text}>
+                        You can upload your images on websites like{" "}
+                        <a class={this.styles.field.hint.link} href="https://nostr.build/" target="_blank">
+                            nostr.build
+                        </a>
+                    </span>
+                ),
+            },
+            {
+                key: "About",
+                value: this.profile?.about,
+            },
+            {
+                key: "Website",
+                value: this.profile?.website,
+            },
+            {
+                key: "Banner",
+                value: this.profile?.banner,
+            },
+        ];
+
+        if (this.profile) {
+            for (const [key, value] of Object.entries(this.profile)) {
+                if (["name", "picture", "about", "website", "banner"].includes(key) || !value) {
+                    continue;
+                }
+
+                this.profileItems.push({
+                    key: key,
+                    value: value,
+                });
+            }
+        }
+    }
+
+    render() {
+        const banner = this.profile?.banner
+            ? (
+                <div
+                    class={this.styles.banner.container}
+                    style={{
+                        background: `url(${
+                            this.profile?.banner ? this.profile.banner : "default-bg.png"
+                        }) no-repeat center center / cover`,
                     }}
                 >
-                    Update Profile
-                </button>
-            </div>
-        </div>
-    );
+                    <Avatar
+                        picture={this.profile?.picture}
+                        class={this.styles.banner.avatar}
+                    />
+                </div>
+            )
+            : (
+                <Avatar
+                    picture={this.profile?.picture}
+                    class={this.styles.avatar}
+                />
+            );
+
+        const items = this.profileItems.map((item) => (
+            <Fragment>
+                <h3 class={this.styles.field.title} style={{textTransform: "capitalize"}}>
+                    {item.key}
+                </h3>
+                <textarea
+                    placeholder={item.key}
+                    rows={item.value?.split("\n")?.length || 1}
+                    value={item.value}
+                    onInput={(e) => {
+                        const lines = e.currentTarget.value.split("\n");
+                        e.currentTarget.setAttribute(
+                            "rows",
+                            `${lines.length}`,
+                        );
+                    }}
+                    type="text"
+                    class={this.styles.field.input}
+                >
+                </textarea>
+                {item.hint}
+            </Fragment>
+        ));
+
+        return (
+            <Fragment>
+                {banner}
+                {items}
+
+                <div class={this.styles.divider}></div>
+                <p class={this.styles.custom.title}>Custom Fields</p>
+                <span class={this.styles.custom.text}>
+                    Create your own custom fields, anything goes!
+                </span>
+
+                <h3 class={this.styles.field.title}>
+                    Field name
+                </h3>
+                <input
+                    placeholder="e.g. hobbies"
+                    type="text"
+                    class={this.styles.field.input}
+                />
+
+                <h3 class={this.styles.field.title}>
+                    Field value
+                </h3>
+                <textarea
+                    placeholder="e.g. Sports, Reading, Design"
+                    // rows={item.value?.split("\n")?.length || 1}
+                    // value={item.value}
+                    onInput={(e) => {
+                        const lines = e.currentTarget.value.split("\n");
+                        e.currentTarget.setAttribute(
+                            "rows",
+                            `${lines.length}`,
+                        );
+                    }}
+                    type="text"
+                    class={this.styles.field.input}
+                >
+                </textarea>
+
+                <button class={this.styles.addButton}>Add Field</button>
+
+                <div class={tw`${DividerClass}`}></div>
+
+                <button class={this.styles.submitButton}>Update Profile</button>
+            </Fragment>
+        );
+    }
 }

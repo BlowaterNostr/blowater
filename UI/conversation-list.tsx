@@ -120,7 +120,7 @@ export class ConversationList extends Component<Props, State> {
                             class={tw`w-full h-10 ${CenterClass} text-sm text-[${PrimaryTextColor}] !hover:bg-transparent hover:font-bold group`}
                         >
                             <ChatIcon
-                                class={tw`w-4 h-4m mr-1 text-[${PrimaryTextColor}] stroke-current`}
+                                class={tw`w-4 h-4 mr-1 text-[${PrimaryTextColor}] stroke-current`}
                                 style={{
                                     fill: "none",
                                 }}

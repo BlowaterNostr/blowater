@@ -22,7 +22,7 @@ export function ProfileCard(props: {
         profile: {
             container: tw`flex`,
             avatar: tw`w-10 h-10`,
-            name: tw`text-[1.2rem] font-blod leading-10 truncate ml-2`,
+            name: tw`text-[1.2rem] font-bold leading-10 truncate ml-2`,
         },
         divider: tw`${DividerClass} my-[0.5rem]`,
         about: tw`text-[0.8rem]`,
