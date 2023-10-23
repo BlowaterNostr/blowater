@@ -108,7 +108,7 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
         const err = await this.props.relayConfig.syncWithPool(this.props.relayPool);
         if (err != undefined) {
             this.setState({
-                error: err.map((e) => e.message).join("\n"),
+                error: err.message,
             });
         }
         this.setState({
@@ -151,7 +151,7 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
                 const err = await props.relayConfig.syncWithPool(props.relayPool);
                 if (err != undefined) {
                     this.setState({
-                        error: err.map((e) => e.message).join("\n"),
+                        error: err.message,
                     });
                 }
                 this.setState({
@@ -221,7 +221,7 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
                                         const err = await props.relayConfig.syncWithPool(props.relayPool);
                                         if (err != undefined) {
                                             this.setState({
-                                                error: err.map((e) => e.message).join("\n"),
+                                                error: err.message,
                                             });
                                         }
                                         this.setState({

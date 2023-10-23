@@ -85,7 +85,7 @@ export class RelayConfig {
     save() {
         return Automerge.save(this.config);
     }
-    saveAsHex() {
+    private saveAsHex() {
         const bytes = this.save();
         return secp256k1.utils.bytesToHex(bytes);
     }
@@ -118,22 +118,18 @@ export class RelayConfig {
     }
 
     async syncWithPool(pool: ConnectionPool) {
-        const errors = [];
-        for (const url of Object.keys(this.config)) {
-            const err = await pool.addRelayURL(url);
-            if (err instanceof RelayAlreadyRegistered) {
-                continue;
-            } else if (err instanceof Error) {
-                errors.push(err);
-            }
-        }
         for (const r of pool.getRelays()) {
             if (this.config[r.url] == undefined) {
                 await pool.removeRelay(r.url);
             }
         }
-        if (errors.length > 0) {
-            return errors;
+        for (const url of Object.keys(this.config)) {
+            const err = await pool.addRelayURL(url);
+            if (err instanceof RelayAlreadyRegistered) {
+                continue;
+            } else if (err instanceof Error) {
+                return err;
+            }
         }
     }
 }
