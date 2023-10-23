@@ -132,7 +132,7 @@ export class EditProfile extends Component<Props, State> {
 
     onSubmit = () => {
         if (!this.state.profile) {
-            return
+            return;
         }
 
         this.props.emit({
