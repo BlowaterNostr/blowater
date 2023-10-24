@@ -23,6 +23,7 @@ import { ChatMessage } from "./message.ts";
 import { EditorModel } from "./editor.tsx";
 import { InviteButton } from "./invite-button.tsx";
 import { IS_BETA_VERSION } from "./config.js";
+import { UserIcon } from "./icons2/user-icon.tsx";
 
 export type DM_Model = {
     currentEditor: EditorModel | undefined;
@@ -86,6 +87,23 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
     let buttons = [];
     if (currentEditor && IS_BETA_VERSION) {
         if (props.isGroupMessage) {
+            buttons.push(
+                <button
+                    class={tw`w-8 h-8 ${CenterClass}`}
+                    onClick={() => {
+                        props.bus.emit({
+                            type: "ViewUserDetail",
+                            pubkey: currentEditor.pubkey,
+                        });
+                    }}
+                >
+                    <UserIcon
+                        class={tw`w-6 h-6 text-[${PrimaryTextColor}] stroke-current`}
+                        style={{ fill: "none" }}
+                    />
+                </button>,
+            );
+
             const canEditGroupProfile = props.groupChatController.getGroupAdminCtx(currentEditor.pubkey);
             if (canEditGroupProfile) {
                 buttons.push(
