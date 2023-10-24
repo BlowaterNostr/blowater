@@ -5,6 +5,7 @@ import { EditGroup } from "./edit-group.tsx";
 import { InMemoryAccountContext } from "../lib/nostr-ts/nostr.ts";
 import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { Database_Contextual_View } from "../database.ts";
+import { EditProfile } from "./edit-profile.tsx";
 
 const database = await Database_Contextual_View.New(testEventsAdapter);
 if (database instanceof Error) {
@@ -13,7 +14,7 @@ if (database instanceof Error) {
 const ctx = InMemoryAccountContext.Generate();
 
 render(
-    <EditGroup
+    <EditProfile
         emit={testEventBus.emit}
         ctx={ctx}
         profileGetter={database}

@@ -17,6 +17,7 @@ import {
     HintTextColor,
     HoverButtonBackgroudColor,
     PrimaryTextColor,
+    SecondaryBackgroundColor,
 } from "./style/colors.ts";
 import { Component, ComponentChildren } from "https://esm.sh/preact@10.11.3";
 import { ProfileGetter } from "./search.tsx";
@@ -48,7 +49,7 @@ type State = {
 
 export class EditProfile extends Component<Props, State> {
     styles = {
-        container: tw`py-4`,
+        container: tw`py-4 bg-[${SecondaryBackgroundColor}]`,
         banner: {
             container: tw`h-72 w-full rounded-lg mb-20 relative`,
             avatar:
@@ -149,6 +150,10 @@ export class EditProfile extends Component<Props, State> {
                 value: this.state.profile?.name,
             },
             {
+                key: "banner",
+                value: this.state.profile?.banner,
+            },
+            {
                 key: "picture",
                 value: this.state.profile?.picture,
                 hint: (
@@ -167,10 +172,6 @@ export class EditProfile extends Component<Props, State> {
             {
                 key: "website",
                 value: this.state.profile?.website,
-            },
-            {
-                key: "banner",
-                value: this.state.profile?.banner,
             },
         ];
 

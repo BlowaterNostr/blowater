@@ -95,7 +95,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                         onClick={() => {
                             props.bus.emit({
                                 type: "StartEditGroupChatProfile",
-                                publicKey: currentEditor.pubkey,
+                                ctx: canEditGroupProfile,
                             });
                         }}
                     >

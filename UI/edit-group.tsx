@@ -10,133 +10,34 @@ import { ProfileData } from "../features/profile.ts";
 import { emitFunc } from "../event-bus.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { ProfileGetter } from "./search.tsx";
+import { EditProfile, SaveProfile } from "./edit-profile.tsx";
+import { NostrAccountContext } from "../lib/nostr-ts/nostr.ts";
 
 export type StartEditGroupChatProfile = {
     type: "StartEditGroupChatProfile";
-    publicKey: PublicKey;
+    ctx: NostrAccountContext;
 };
 
-export type EditGroupChatProfile = {
-    type: "EditGroupChatProfile";
-    publicKey: PublicKey;
-    profileData: ProfileData;
-};
-
-type Props = {
-    emit: emitFunc<EditGroupChatProfile>;
-    publicKey: PublicKey;
+export function EditGroup(props: {
+    ctx: NostrAccountContext;
     profileGetter: ProfileGetter;
-};
-
-type State = {
-    name: string;
-    picture: string;
-    error: string;
-};
-
-export class EditGroup extends Component<Props, State> {
-    state = {
-        name: "",
-        picture: "",
-        error: "",
-    };
-    styles = {
+    emit: emitFunc<SaveProfile>;
+}) {
+    const styles = {
         container: tw`py-6 px-4 bg-[${SecondaryBackgroundColor}]`,
         header: {
             container: tw`text-[${PrimaryTextColor}] text-xl flex`,
             icon: tw`w-8 h-8 mr-4 text-[${TitleIconColor}] fill-current`,
         },
-        title: tw`mt-7 text-[${PrimaryTextColor}]`,
-        avatar: tw`w-14 h-14 m-auto`,
-        input: tw`${InputClass} mt-4`,
-        error: tw`mt-2 text-[${ErrorColor}] text-xs`,
-        submit:
-            tw`w-full mt-4 ${ButtonClass} ${LinearGradientsClass} hover:bg-gradient-to-l disabled:opacity-50`,
     };
 
-    componentDidMount() {
-        const profile = this.props.profileGetter.getProfilesByPublicKey(this.props.publicKey);
-
-        this.setState({
-            name: profile?.profile.name || "",
-            picture: profile?.profile.picture || "",
-        });
-    }
-
-    onNameInput = (name: string) => {
-        this.setState({
-            name: name,
-        });
-
-        if (name.trim()) {
-            this.setState({
-                error: "",
-            });
-        }
-    };
-
-    onPictureInput = (picture: string) => {
-        this.setState({
-            picture: picture,
-        });
-    };
-
-    onSubmit = async () => {
-        const name = this.state.name.trim();
-        if (!name) {
-            this.setState({
-                error: "Name is required.",
-            });
-            return;
-        }
-
-        this.props.emit({
-            type: "EditGroupChatProfile",
-            publicKey: this.props.publicKey,
-            profileData: {
-                name: name,
-                picture: this.state.picture,
-            },
-        });
-    };
-
-    error = () => {
-        if (this.state.error) {
-            return <p class={this.styles.error}>{this.state.error}</p>;
-        }
-
-        return undefined;
-    };
-
-    render() {
-        return (
-            <div class={this.styles.container}>
-                <p class={this.styles.header.container}>
-                    <GroupIcon class={this.styles.header.icon} />
-                    Update Group
-                </p>
-                <Avatar picture={this.state.picture} class={this.styles.avatar} />
-                <p class={this.styles.title}>Group Name</p>
-                <input
-                    onInput={(e) => this.onNameInput(e.currentTarget.value)}
-                    value={this.state.name}
-                    type="text"
-                    class={this.styles.input}
-                />
-                {this.error()}
-
-                <p class={this.styles.title}>Picture</p>
-                <input
-                    onInput={(e) => this.onPictureInput(e.currentTarget.value)}
-                    value={this.state.picture}
-                    type="text"
-                    class={this.styles.input}
-                />
-
-                <button class={this.styles.submit} onClick={this.onSubmit}>
-                    Update
-                </button>
-            </div>
-        );
-    }
+    return (
+        <div class={styles.container}>
+            <p class={styles.header.container}>
+                <GroupIcon class={styles.header.icon} />
+                Update Group
+            </p>
+            <EditProfile ctx={props.ctx} profileGetter={props.profileGetter} emit={props.emit} />
+        </div>
+    );
 }
