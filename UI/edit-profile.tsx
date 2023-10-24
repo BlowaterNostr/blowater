@@ -150,6 +150,10 @@ export class EditProfile extends Component<Props, State> {
                 value: this.state.profile?.name,
             },
             {
+                key: "banner",
+                value: this.state.profile?.banner,
+            },
+            {
                 key: "picture",
                 value: this.state.profile?.picture,
                 hint: (
@@ -168,10 +172,6 @@ export class EditProfile extends Component<Props, State> {
             {
                 key: "website",
                 value: this.state.profile?.website,
-            },
-            {
-                key: "banner",
-                value: this.state.profile?.banner,
             },
         ];
 
