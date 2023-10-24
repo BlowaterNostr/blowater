@@ -12,3 +12,6 @@ app: bundle-app
 
 bundle-app:
 	deno bundle --config=./deno.json _main.tsx deploy/main.mjs
+
+compile-all-tests:
+	deno run --allow-read --allow-env --allow-write --allow-net _compile-ui-tests.ts

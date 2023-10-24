@@ -43,6 +43,9 @@ jobs:
       - name: Run tests
         run: make test
 
+      - name: UI test
+        run: cd UI && make compile-all-tests
+
   deploy:
     timeout-minutes: 1
     runs-on: ubuntu-latest
