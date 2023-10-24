@@ -297,7 +297,8 @@ export async function* UI_Interaction_Update(args: {
                 if (
                     model.rightPanelModel.show == true &&
                     currentFocus instanceof PublicKey &&
-                    currentFocus.hex == event.pubkey.hex
+                    currentFocus.hex == event.pubkey.hex &&
+                    currentFocus.hex == model.dm.currentEditor.pubkey.hex
                 ) {
                     model.rightPanelModel.show = false;
                 } else {
