@@ -40,11 +40,10 @@ import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { OtherConfig } from "./config-other.ts";
-import { EditGroup, EditGroupChatProfile, StartEditGroupChatProfile } from "./edit-group.tsx";
+import { EditGroup, StartEditGroupChatProfile } from "./edit-group.tsx";
 import { GroupMessageController } from "../features/gm.ts";
 import { ChatMessage } from "./message.ts";
 import { InviteUsersToGroup } from "./invite-button.tsx";
-import { IS_BETA_VERSION } from "./config.js";
 import { SaveProfile } from "./edit-profile.tsx";
 
 export type UI_Interaction_Event =
@@ -61,7 +60,6 @@ export type UI_Interaction_Event =
     | RelayConfigChange
     | CreateGroupChat
     | StartCreateGroupChat
-    | EditGroupChatProfile
     | StartEditGroupChatProfile
     | StartInvite
     | InviteUsersToGroup;
@@ -251,6 +249,7 @@ export async function* UI_Interaction_Update(args: {
                 event.ctx,
                 pool,
             );
+            app.popOverInputChan.put({ children: undefined });
         } //
         //
         // Navigation
@@ -376,31 +375,11 @@ export async function* UI_Interaction_Update(args: {
                 children: (
                     <EditGroup
                         emit={eventBus.emit}
-                        publicKey={event.publicKey}
+                        ctx={event.ctx}
                         profileGetter={app.database}
                     />
                 ),
             });
-        } else if (event.type == "EditGroupChatProfile") {
-            const profileData = event.profileData;
-            const publicKey = event.publicKey;
-            const groupCtx = app.groupChatController.getGroupAdminCtx(publicKey);
-            if (groupCtx == undefined) {
-                console.error(`No permission to modify gorup ${publicKey}'s profile`);
-                continue;
-            }
-            const profileEvent = await prepareNormalNostrEvent(
-                groupCtx,
-                NostrKind.META_DATA,
-                [],
-                JSON.stringify(profileData),
-            );
-            const err = pool.sendEvent(profileEvent);
-            if (err instanceof Error) {
-                console.error(err);
-                continue;
-            }
-            app.popOverInputChan.put({ children: undefined });
         } else if (event.type == "StartInvite") {
             app.popOverInputChan.put({
                 children: <div></div>,
