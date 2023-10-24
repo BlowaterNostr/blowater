@@ -16,15 +16,16 @@ import { relays } from "../lib/nostr-ts/relay-list.test.ts";
 import { DirectMessageContainer } from "./dm.tsx";
 import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { NewIndexedDB } from "./dexie-db.ts";
-import { GroupChatController } from "../group-chat.ts";
 import { OtherConfig } from "./config-other.ts";
+import { DirectedMessageController } from "../features/dm.ts";
+import { GroupMessageController } from "../features/gm.ts";
 
 const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
 const indexedDB = NewIndexedDB();
 if (indexedDB instanceof Error) {
     fail(indexedDB.message);
 }
-const database = await Database_Contextual_View.New(indexedDB, ctx);
+const database = await Database_Contextual_View.New(indexedDB);
 if (database instanceof Error) {
     fail(database.message);
 }
@@ -48,21 +49,10 @@ allUserInfo.addEvents(database.events);
 console.log(database.events);
 const pool = new ConnectionPool();
 const model = initialModel();
-model.dm.currentEditor = ctx.publicKey;
-model.dmEditors.set(ctx.publicKey.hex, {
-    files: [],
-    id: ctx.publicKey.hex,
-    tags: [["p", ctx.publicKey.hex]],
-    target: {
-        kind: NostrKind.DIRECT_MESSAGE,
-        receiver: {
-            pubkey: ctx.publicKey,
-        },
-    },
-    text: "",
-});
 
 pool.addRelayURL(relays[0]);
+
+const gmControl = new GroupMessageController(ctx, { add: (_) => {} }, { add: (_) => {} });
 
 const view = () => {
     return (
@@ -74,17 +64,17 @@ const view = () => {
             rightPanelModel={{
                 show: true,
             }}
-            editors={model.dmEditors}
             currentEditor={model.dm.currentEditor}
             focusedContent={model.dm.focusedContent}
-            hasNewMessages={model.dm.hasNewMessages}
             ctx={ctx}
             pool={pool}
-            dmGetter={database}
-            groupChatController={new GroupChatController(ctx, allUserInfo)}
             isGroupMessage={false}
             pinListGetter={new OtherConfig()}
             profileGetter={database}
+            dmGetter={new DirectedMessageController(ctx)}
+            groupChatController={gmControl}
+            gmGetter={gmControl}
+            newMessageChecker={allUserInfo}
         />
     );
 };
@@ -109,22 +99,14 @@ for await (const e of testEventBus.onChange()) {
             lamport,
             pool,
             model.dmEditors,
+            model.gmEditors,
             database,
+            gmControl,
         );
+
         if (err instanceof Error) {
             console.error("update:SendMessage", err);
             continue; // todo: global error toast
-        }
-    } else if (e.type == "UpdateEditorText") {
-        const event = e;
-        if (event.target.kind == NostrKind.DIRECT_MESSAGE) {
-            const editor = model.dmEditors.get(event.id);
-            if (editor) {
-                editor.text = event.text;
-            } else {
-                console.log(event.target.receiver, event.id);
-                throw new Error("impossible state");
-            }
         }
     }
     render(view(), document.body);
