@@ -292,17 +292,22 @@ export async function* UI_Interaction_Update(args: {
             }
             model.rightPanelModel.show = true;
         } else if (event.type == "ViewUserDetail") {
-            if (
-                model.navigationModel.activeNav == "DM"
-            ) {
-                if (model.dm.currentEditor) {
+            if (model.dm.currentEditor) {
+                const currentFocus = model.dm.focusedContent.get(model.dm.currentEditor.pubkey.hex);
+                if (
+                    model.rightPanelModel.show == true &&
+                    currentFocus instanceof PublicKey &&
+                    currentFocus.hex == event.pubkey.hex
+                ) {
+                    model.rightPanelModel.show = false;
+                } else {
                     model.dm.focusedContent.set(
                         model.dm.currentEditor.pubkey.hex,
                         event.pubkey,
                     );
+                    model.rightPanelModel.show = true;
                 }
             }
-            model.rightPanelModel.show = true;
         } else if (event.type == "ViewNoteThread") {
             let root: NostrEvent = event.event;
             const tags = getTags(event.event);
