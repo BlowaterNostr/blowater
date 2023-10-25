@@ -136,7 +136,7 @@ export async function prepareGroupImageEvent(
         tags: Tag[];
         blob: Blob;
     },
-): Promise<nostr.NostrEvent | Error> {
+): Promise<nostr.NostrEvent<nostr.NostrKind.Group_Message, nostr.Tag> | Error> {
     const binaryContent = await nostr.blobToBase64(args.blob);
     const imgEvent = await prepareEncryptedNostrEvent(
         sender,

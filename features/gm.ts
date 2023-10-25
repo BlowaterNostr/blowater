@@ -1,6 +1,5 @@
 import { z } from "https://esm.sh/zod@3.22.4";
 import { semaphore } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import * as nostr from "../lib/nostr-ts/nostr.ts";
 import { GroupMessageGetter } from "../UI/app_update.tsx";
 import { ConversationSummary } from "../UI/conversation-list.ts";
 import { GroupMessageListGetter } from "../UI/conversation-list.tsx";
@@ -10,7 +9,7 @@ import { prepareEncryptedNostrEvent } from "../lib/nostr-ts/event.ts";
 import { PrivateKey, PublicKey } from "../lib/nostr-ts/key.ts";
 import { InMemoryAccountContext, NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
-import { getTags, Parsed_Event, prepareGroupImageEvent } from "../nostr.ts";
+import { getTags, Parsed_Event, prepareGroupImageEvent, Tag } from "../nostr.ts";
 import { parseJSON } from "./profile.ts";
 
 export type GM_Types = "gm_creation" | "gm_message" | "gm_invitation";
@@ -83,7 +82,7 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
     }
 
     async prepareGroupMessageEvent(groupAddr: PublicKey, text: string, files: Blob[]) {
-        const eventsToSend: NostrEvent[] = [];
+        const eventsToSend: NostrEvent<NostrKind.Group_Message, Tag>[] = [];
         const groupCtx = this.getGroupChatCtx(groupAddr);
         if (groupCtx == undefined) {
             return new Error(`group ctx for ${groupAddr.bech32()} is empty`);
