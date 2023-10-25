@@ -81,7 +81,10 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
         return event;
     }
 
-    async prepareGroupMessageEvent(groupAddr: PublicKey, text: string, files: Blob[]) {
+    async prepareGroupMessageEvent(groupAddr: PublicKey, message: {
+        text: string;
+        files: Blob[];
+    }) {
         const eventsToSend: NostrEvent<NostrKind.Group_Message, Tag>[] = [];
         const groupCtx = this.getGroupChatCtx(groupAddr);
         if (groupCtx == undefined) {
@@ -90,7 +93,8 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
         const nostrEvent = await prepareEncryptedNostrEvent(this.ctx, {
             content: JSON.stringify({
                 type: "gm_message",
-                text,
+                text: message.text,
+                kind: "text",
             }),
             kind: NostrKind.Group_Message,
             tags: [
@@ -104,7 +108,7 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
         }
 
         eventsToSend.push(nostrEvent);
-        for (const blob of files) {
+        for (const blob of message.files) {
             const imgEvent = await prepareGroupImageEvent(this.ctx, {
                 blob: blob,
                 tags: [
@@ -179,42 +183,34 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
             return author;
         }
 
-        const isImage = event.parsedTags.image;
-        let chatMessage: ChatMessage;
-        if (isImage) {
-            chatMessage = {
-                type: "image",
-                event: event,
-                author: author,
-                content: decryptedContent,
-                created_at: new Date(event.created_at * 1000),
-                lamport: event.parsedTags.lamport_timestamp,
-            };
-        } else {
-            const json = parseJSON<unknown>(decryptedContent);
-            if (json instanceof Error) {
-                return json;
-            }
-
-            let message;
-            try {
-                message = z.object({
-                    type: z.string(),
-                    text: z.string(),
-                }).parse(json);
-            } catch (e) {
-                return e as Error;
-            }
-
-            chatMessage = {
-                type: "text",
-                event: event,
-                author: author,
-                content: message.text,
-                created_at: new Date(event.created_at * 1000),
-                lamport: event.parsedTags.lamport_timestamp,
-            };
+        const json = parseJSON<unknown>(decryptedContent);
+        if (json instanceof Error) {
+            return json;
         }
+
+        let message;
+        try {
+            message = z.object({
+                type: z.string(),
+                text: z.string(),
+                kind: z.string(),
+            }).parse(json);
+        } catch (e) {
+            return e as Error;
+        }
+
+        if (message.kind != "text" && message.kind != "image") {
+            return new Error("invalid kind");
+        }
+
+        const chatMessage: ChatMessage = {
+            type: message.kind,
+            event: event,
+            author: author,
+            content: message.text,
+            created_at: new Date(event.created_at * 1000),
+            lamport: event.parsedTags.lamport_timestamp,
+        };
 
         const messages = this.messages.get(groupAddr);
         if (messages) {

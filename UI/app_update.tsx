@@ -651,8 +651,10 @@ export async function handle_SendMessage(
     if (event.isGroupChat) {
         const eventsToSend = await groupControl.prepareGroupMessageEvent(
             event.pubkey,
-            event.text,
-            event.files,
+            {
+                text: event.text,
+                files: event.files,
+            },
         );
         if (eventsToSend instanceof Error) {
             return eventsToSend;

@@ -141,12 +141,13 @@ export async function prepareGroupImageEvent(
     const imgEvent = await prepareEncryptedNostrEvent(
         sender,
         {
-            content: binaryContent,
+            content: JSON.stringify({
+                type: "gm_message",
+                text: binaryContent,
+                kind: "image",
+            }),
             kind: NostrKind.Group_Message,
-            tags: [
-                ...args.tags,
-                ["image"],
-            ],
+            tags: args.tags,
             encryptKey: args.encryptKey,
         },
     );

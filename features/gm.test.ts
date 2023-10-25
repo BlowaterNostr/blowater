@@ -146,7 +146,10 @@ Deno.test("should get the correct gm type", async () => {
     const creation = gm_A.createGroupChat();
     {
         // message
-        const messageEvent = await gm_A.prepareGroupMessageEvent(creation.groupKey.publicKey, "hello", []);
+        const messageEvent = await gm_A.prepareGroupMessageEvent(creation.groupKey.publicKey, {
+            text: "hi",
+            files: [],
+        });
         if (messageEvent instanceof Error) {
             fail(messageEvent.message);
         }
@@ -184,7 +187,10 @@ Deno.test("should get the correct gm type", async () => {
             parsedTags: getTags(invitation_B),
             publicKey: PublicKey.FromHex(invitation_B.pubkey) as PublicKey,
         });
-        const messageEvent = await gm_B.prepareGroupMessageEvent(creation.groupKey.publicKey, "hi", []);
+        const messageEvent = await gm_B.prepareGroupMessageEvent(creation.groupKey.publicKey, {
+            text: "hi",
+            files: [],
+        });
         if (messageEvent instanceof Error) {
             fail(messageEvent.message);
         }
@@ -201,7 +207,10 @@ Deno.test("need to add group before handling relevant messages", async () => {
     const groupChat = gm_A.createGroupChat();
 
     {
-        const message = await gm_A.prepareGroupMessageEvent(groupChat.groupKey.publicKey, "hi", []);
+        const message = await gm_A.prepareGroupMessageEvent(groupChat.groupKey.publicKey, {
+            text: "hi",
+            files: [],
+        });
         if (message instanceof Error) fail(message.message);
 
         // will get an error because the group chat is not added to user B yet
@@ -225,7 +234,10 @@ Deno.test("need to add group before handling relevant messages", async () => {
             assertEquals(err, undefined);
         }
         {
-            const message = await gm_A.prepareGroupMessageEvent(groupChat.groupKey.publicKey, "hi", []);
+            const message = await gm_A.prepareGroupMessageEvent(groupChat.groupKey.publicKey, {
+                text: "hi",
+                files: [],
+            });
             if (message instanceof Error) fail(message.message);
             // will get an error because the group chat is not added to user B yet
             const err = await gm_B.addEvent({
