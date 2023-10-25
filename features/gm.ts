@@ -7,9 +7,15 @@ import { ChatMessage } from "../UI/message.ts";
 import { Database_Contextual_View } from "../database.ts";
 import { prepareEncryptedNostrEvent } from "../lib/nostr-ts/event.ts";
 import { PrivateKey, PublicKey } from "../lib/nostr-ts/key.ts";
-import { InMemoryAccountContext, NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
+import {
+    blobToBase64,
+    InMemoryAccountContext,
+    NostrAccountContext,
+    NostrEvent,
+    NostrKind,
+} from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
-import { getTags, Parsed_Event, prepareGroupImageEvent, Tag } from "../nostr.ts";
+import { getTags, Parsed_Event, Tag } from "../nostr.ts";
 import { parseJSON } from "./profile.ts";
 
 export type GM_Types = "gm_creation" | "gm_message" | "gm_invitation";
@@ -90,17 +96,10 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
         if (groupCtx == undefined) {
             return new Error(`group ctx for ${groupAddr.bech32()} is empty`);
         }
-        const nostrEvent = await prepareEncryptedNostrEvent(this.ctx, {
-            content: JSON.stringify({
-                type: "gm_message",
-                text: message.text,
-                kind: "text",
-            }),
-            kind: NostrKind.Group_Message,
-            tags: [
-                ["p", groupAddr.hex],
-            ],
+        const nostrEvent = await this.prepareEvent(this.ctx, {
+            message: message.text,
             encryptKey: groupCtx.publicKey,
+            groupAddr: groupAddr,
         });
 
         if (nostrEvent instanceof Error) {
@@ -109,12 +108,10 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
 
         eventsToSend.push(nostrEvent);
         for (const blob of message.files) {
-            const imgEvent = await prepareGroupImageEvent(this.ctx, {
-                blob: blob,
-                tags: [
-                    ["p", groupAddr.hex],
-                ],
+            const imgEvent = await this.prepareEvent(this.ctx, {
+                message: blob,
                 encryptKey: groupCtx.publicKey,
+                groupAddr: groupAddr,
             });
 
             if (imgEvent instanceof Error) {
@@ -309,6 +306,41 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
                 ["p", invitee.hex],
             ],
         });
+        return event;
+    }
+
+    async prepareEvent(
+        sender: NostrAccountContext,
+        args: {
+            encryptKey: PublicKey;
+            message: string | Blob;
+            groupAddr: PublicKey;
+        },
+    ) {
+        let message: string;
+        let kind: "text" | "image";
+        if (args.message instanceof Blob) {
+            kind = "image";
+            message = await blobToBase64(args.message);
+        } else {
+            kind = "text";
+            message = args.message;
+        }
+        const event = await prepareEncryptedNostrEvent(
+            sender,
+            {
+                content: JSON.stringify({
+                    type: "gm_message",
+                    text: message,
+                    kind: kind,
+                }),
+                kind: NostrKind.Group_Message,
+                tags: [
+                    ["p", args.groupAddr.hex],
+                ],
+                encryptKey: args.encryptKey,
+            },
+        );
         return event;
     }
 }
