@@ -129,6 +129,30 @@ export async function prepareNostrImageEvent(
     return signedEvent;
 }
 
+export async function prepareGroupImageEvent(
+    sender: nostr.NostrAccountContext,
+    args: {
+        encryptKey: PublicKey;
+        tags: Tag[];
+        blob: Blob;
+    },
+): Promise<nostr.NostrEvent | Error> {
+    const binaryContent = await nostr.blobToBase64(args.blob);
+    const imgEvent = await prepareEncryptedNostrEvent(
+        sender,
+        {
+            content: binaryContent,
+            kind: NostrKind.Group_Message,
+            tags: [
+                ...args.tags,
+                ["image"],
+            ],
+            encryptKey: args.encryptKey,
+        },
+    );
+    return imgEvent;
+}
+
 export async function prepareReplyEvent(
     sender: nostr.NostrAccountContext,
     targetEvent: nostr.NostrEvent,

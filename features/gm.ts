@@ -1,5 +1,6 @@
 import { z } from "https://esm.sh/zod@3.22.4";
 import { semaphore } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import * as nostr from "../lib/nostr-ts/nostr.ts";
 import { GroupMessageGetter } from "../UI/app_update.tsx";
 import { ConversationSummary } from "../UI/conversation-list.ts";
 import { GroupMessageListGetter } from "../UI/conversation-list.tsx";
@@ -9,7 +10,7 @@ import { prepareEncryptedNostrEvent } from "../lib/nostr-ts/event.ts";
 import { PrivateKey, PublicKey } from "../lib/nostr-ts/key.ts";
 import { InMemoryAccountContext, NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
-import { getTags, Parsed_Event } from "../nostr.ts";
+import { getTags, Parsed_Event, prepareGroupImageEvent } from "../nostr.ts";
 import { parseJSON } from "./profile.ts";
 
 export type GM_Types = "gm_creation" | "gm_message" | "gm_invitation";
@@ -81,7 +82,8 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
         return event;
     }
 
-    async prepareGroupMessageEvent(groupAddr: PublicKey, text: string) {
+    async prepareGroupMessageEvent(groupAddr: PublicKey, text: string, files: Blob[]) {
+        const eventsToSend: NostrEvent[] = [];
         const groupCtx = this.getGroupChatCtx(groupAddr);
         if (groupCtx == undefined) {
             return new Error(`group ctx for ${groupAddr.bech32()} is empty`);
@@ -97,7 +99,28 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
             ],
             encryptKey: groupCtx.publicKey,
         });
-        return nostrEvent;
+
+        if (nostrEvent instanceof Error) {
+            return nostrEvent;
+        }
+
+        eventsToSend.push(nostrEvent);
+        for (const blob of files) {
+            const imgEvent = await prepareGroupImageEvent(this.ctx, {
+                blob: blob,
+                tags: [
+                    ["p", groupAddr.hex],
+                ],
+                encryptKey: groupCtx.publicKey,
+            });
+
+            if (imgEvent instanceof Error) {
+                return imgEvent;
+            }
+
+            eventsToSend.push(imgEvent);
+        }
+        return eventsToSend;
     }
 
     createGroupChat() {
@@ -152,34 +175,47 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
             return decryptedContent;
         }
 
-        const json = parseJSON<unknown>(decryptedContent);
-        if (json instanceof Error) {
-            return json;
-        }
-
         const author = PublicKey.FromHex(event.pubkey);
         if (author instanceof Error) {
             return author;
         }
 
-        let message;
-        try {
-            message = z.object({
-                type: z.string(),
-                text: z.string(),
-            }).parse(json);
-        } catch (e) {
-            return e as Error;
-        }
+        const isImage = event.parsedTags.image;
+        let chatMessage: ChatMessage;
+        if (isImage) {
+            chatMessage = {
+                type: "image",
+                event: event,
+                author: author,
+                content: decryptedContent,
+                created_at: new Date(event.created_at * 1000),
+                lamport: event.parsedTags.lamport_timestamp,
+            };
+        } else {
+            const json = parseJSON<unknown>(decryptedContent);
+            if (json instanceof Error) {
+                return json;
+            }
 
-        const chatMessage: ChatMessage = {
-            type: "text",
-            event: event,
-            author: author,
-            content: message.text,
-            created_at: new Date(event.created_at * 1000),
-            lamport: event.parsedTags.lamport_timestamp,
-        };
+            let message;
+            try {
+                message = z.object({
+                    type: z.string(),
+                    text: z.string(),
+                }).parse(json);
+            } catch (e) {
+                return e as Error;
+            }
+
+            chatMessage = {
+                type: "text",
+                event: event,
+                author: author,
+                content: message.text,
+                created_at: new Date(event.created_at * 1000),
+                lamport: event.parsedTags.lamport_timestamp,
+            };
+        }
 
         const messages = this.messages.get(groupAddr);
         if (messages) {
