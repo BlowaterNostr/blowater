@@ -146,14 +146,11 @@ Deno.test("should get the correct gm type", async () => {
     const creation = gm_A.createGroupChat();
     {
         // message
-        const messageEvent = await gm_A.prepareGroupMessageEvent(creation.groupKey.publicKey, {
-            text: "hi",
-            files: [],
-        });
+        const messageEvent = await gm_A.prepareGroupMessageEvent(creation.groupKey.publicKey, "hi");
         if (messageEvent instanceof Error) {
             fail(messageEvent.message);
         }
-        assertEquals(await gmEventType(user_A, messageEvent[0]), "gm_message");
+        assertEquals(await gmEventType(user_A, messageEvent), "gm_message");
     }
 
     {
@@ -187,14 +184,11 @@ Deno.test("should get the correct gm type", async () => {
             parsedTags: getTags(invitation_B),
             publicKey: PublicKey.FromHex(invitation_B.pubkey) as PublicKey,
         });
-        const messageEvent = await gm_B.prepareGroupMessageEvent(creation.groupKey.publicKey, {
-            text: "hi",
-            files: [],
-        });
+        const messageEvent = await gm_B.prepareGroupMessageEvent(creation.groupKey.publicKey, "hi");
         if (messageEvent instanceof Error) {
             fail(messageEvent.message);
         }
-        assertEquals(await gmEventType(user_A, messageEvent[0]), "gm_message");
+        assertEquals(await gmEventType(user_A, messageEvent), "gm_message");
     }
 });
 
@@ -207,16 +201,13 @@ Deno.test("need to add group before handling relevant messages", async () => {
     const groupChat = gm_A.createGroupChat();
 
     {
-        const message = await gm_A.prepareGroupMessageEvent(groupChat.groupKey.publicKey, {
-            text: "hi",
-            files: [],
-        });
+        const message = await gm_A.prepareGroupMessageEvent(groupChat.groupKey.publicKey, "hi");
         if (message instanceof Error) fail(message.message);
 
         // will get an error because the group chat is not added to user B yet
         const err = await gm_B.addEvent({
-            ...message[0],
-            parsedTags: getTags(message[0]),
+            ...message,
+            parsedTags: getTags(message),
             publicKey: user_A.publicKey,
         });
         assertEquals(err?.message, `group ${groupChat.groupKey.publicKey.hex} does not have me in it`);
@@ -234,15 +225,12 @@ Deno.test("need to add group before handling relevant messages", async () => {
             assertEquals(err, undefined);
         }
         {
-            const message = await gm_A.prepareGroupMessageEvent(groupChat.groupKey.publicKey, {
-                text: "hi",
-                files: [],
-            });
+            const message = await gm_A.prepareGroupMessageEvent(groupChat.groupKey.publicKey, "hi");
             if (message instanceof Error) fail(message.message);
             // will get an error because the group chat is not added to user B yet
             const err = await gm_B.addEvent({
-                ...message[0],
-                parsedTags: getTags(message[0]),
+                ...message,
+                parsedTags: getTags(message),
                 publicKey: user_A.publicKey,
             });
             assertEquals(err, undefined); // no error before the invitation has been added before this message

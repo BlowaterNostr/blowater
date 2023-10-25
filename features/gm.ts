@@ -87,40 +87,62 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
         return event;
     }
 
-    async prepareGroupMessageEvent(groupAddr: PublicKey, message: {
-        text: string;
-        files: Blob[];
-    }) {
+    async prepareGroupMessageEvent(groupAddr: PublicKey, message: string | Blob) {
         const eventsToSend: NostrEvent<NostrKind.Group_Message, Tag>[] = [];
         const groupCtx = this.getGroupChatCtx(groupAddr);
         if (groupCtx == undefined) {
             return new Error(`group ctx for ${groupAddr.bech32()} is empty`);
         }
-        const nostrEvent = await this.prepareEvent(this.ctx, {
-            message: message.text,
-            encryptKey: groupCtx.publicKey,
-            groupAddr: groupAddr,
-        });
-
-        if (nostrEvent instanceof Error) {
-            return nostrEvent;
+        let text: string;
+        let kind: "text" | "image";
+        if (message instanceof Blob) {
+            kind = "image";
+            text = await blobToBase64(message);
+        } else {
+            kind = "text";
+            text = message;
         }
-
-        eventsToSend.push(nostrEvent);
-        for (const blob of message.files) {
-            const imgEvent = await this.prepareEvent(this.ctx, {
-                message: blob,
+        const event = await prepareEncryptedNostrEvent(
+            this.ctx,
+            {
+                content: JSON.stringify({
+                    type: "gm_message",
+                    text: text,
+                    kind: kind,
+                }),
+                kind: NostrKind.Group_Message,
+                tags: [
+                    ["p", groupAddr.hex],
+                ],
                 encryptKey: groupCtx.publicKey,
-                groupAddr: groupAddr,
-            });
+            },
+        );
+        return event;
+        // const nostrEvent = await this.prepareEvent(this.ctx, {
+        //     message: message.text,
+        //     encryptKey: groupCtx.publicKey,
+        //     groupAddr: groupAddr,
+        // });
 
-            if (imgEvent instanceof Error) {
-                return imgEvent;
-            }
+        // if (nostrEvent instanceof Error) {
+        //     return nostrEvent;
+        // }
 
-            eventsToSend.push(imgEvent);
-        }
-        return eventsToSend;
+        // eventsToSend.push(nostrEvent);
+        // for (const blob of message.files) {
+        //     const imgEvent = await this.prepareEvent(this.ctx, {
+        //         message: blob,
+        //         encryptKey: groupCtx.publicKey,
+        //         groupAddr: groupAddr,
+        //     });
+
+        //     if (imgEvent instanceof Error) {
+        //         return imgEvent;
+        //     }
+
+        //     eventsToSend.push(imgEvent);
+        // }
+        // return eventsToSend;
     }
 
     createGroupChat() {
@@ -306,41 +328,6 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
                 ["p", invitee.hex],
             ],
         });
-        return event;
-    }
-
-    async prepareEvent(
-        sender: NostrAccountContext,
-        args: {
-            encryptKey: PublicKey;
-            message: string | Blob;
-            groupAddr: PublicKey;
-        },
-    ) {
-        let message: string;
-        let kind: "text" | "image";
-        if (args.message instanceof Blob) {
-            kind = "image";
-            message = await blobToBase64(args.message);
-        } else {
-            kind = "text";
-            message = args.message;
-        }
-        const event = await prepareEncryptedNostrEvent(
-            sender,
-            {
-                content: JSON.stringify({
-                    type: "gm_message",
-                    text: message,
-                    kind: kind,
-                }),
-                kind: NostrKind.Group_Message,
-                tags: [
-                    ["p", args.groupAddr.hex],
-                ],
-                encryptKey: args.encryptKey,
-            },
-        );
         return event;
     }
 }
