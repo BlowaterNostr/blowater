@@ -88,7 +88,6 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
     }
 
     async prepareGroupMessageEvent(groupAddr: PublicKey, message: string | Blob) {
-        const eventsToSend: NostrEvent<NostrKind.Group_Message, Tag>[] = [];
         const groupCtx = this.getGroupChatCtx(groupAddr);
         if (groupCtx == undefined) {
             return new Error(`group ctx for ${groupAddr.bech32()} is empty`);
@@ -118,31 +117,6 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
             },
         );
         return event;
-        // const nostrEvent = await this.prepareEvent(this.ctx, {
-        //     message: message.text,
-        //     encryptKey: groupCtx.publicKey,
-        //     groupAddr: groupAddr,
-        // });
-
-        // if (nostrEvent instanceof Error) {
-        //     return nostrEvent;
-        // }
-
-        // eventsToSend.push(nostrEvent);
-        // for (const blob of message.files) {
-        //     const imgEvent = await this.prepareEvent(this.ctx, {
-        //         message: blob,
-        //         encryptKey: groupCtx.publicKey,
-        //         groupAddr: groupAddr,
-        //     });
-
-        //     if (imgEvent instanceof Error) {
-        //         return imgEvent;
-        //     }
-
-        //     eventsToSend.push(imgEvent);
-        // }
-        // return eventsToSend;
     }
 
     createGroupChat() {
@@ -197,14 +171,14 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
             return decryptedContent;
         }
 
-        const author = PublicKey.FromHex(event.pubkey);
-        if (author instanceof Error) {
-            return author;
-        }
-
         const json = parseJSON<unknown>(decryptedContent);
         if (json instanceof Error) {
             return json;
+        }
+
+        const author = PublicKey.FromHex(event.pubkey);
+        if (author instanceof Error) {
+            return author;
         }
 
         let message;
@@ -219,7 +193,7 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
         }
 
         if (message.kind != "text" && message.kind != "image") {
-            return new Error("invalid kind");
+            return new Error(`invalid kind: ${message.kind}`);
         }
 
         const chatMessage: ChatMessage = {

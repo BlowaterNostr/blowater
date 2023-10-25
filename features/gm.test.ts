@@ -5,10 +5,12 @@ import {
     fail,
 } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
-import { InMemoryAccountContext } from "../lib/nostr-ts/nostr.ts";
+import { blobToBase64, InMemoryAccountContext } from "../lib/nostr-ts/nostr.ts";
 import { gmEventType, GroupMessageController } from "./gm.ts";
 import { getTags } from "../nostr.ts";
 import { DirectedMessageController } from "./dm.ts";
+import { parseJSON } from "./profile.ts";
+import { z } from "https://esm.sh/zod@3.22.4";
 
 Deno.test("group chat", async () => {
     const user_A = InMemoryAccountContext.Generate();
@@ -235,5 +237,78 @@ Deno.test("need to add group before handling relevant messages", async () => {
             });
             assertEquals(err, undefined); // no error before the invitation has been added before this message
         }
+    }
+});
+
+Deno.test("prepare gruop message event should return correct", async () => {
+    const user_A = InMemoryAccountContext.Generate();
+    const gm_A = new GroupMessageController(user_A, { add: (_) => {} }, { add: (_) => {} });
+    const groupChat = gm_A.createGroupChat();
+
+    {
+        // blob
+        const blob = new Blob();
+        const blobMessageEvent = await gm_A.prepareGroupMessageEvent(groupChat.groupKey.publicKey, blob);
+        if (blobMessageEvent instanceof Error) fail(blobMessageEvent.message);
+
+        const decryptedContent = await groupChat.cipherKey.decrypt(
+            blobMessageEvent.pubkey,
+            blobMessageEvent.content,
+        );
+        if (decryptedContent instanceof Error) {
+            fail(decryptedContent.message);
+        }
+        const json = parseJSON<unknown>(decryptedContent);
+        if (json instanceof Error) {
+            fail(json.message);
+        }
+
+        let message;
+        try {
+            message = z.object({
+                type: z.string(),
+                text: z.string(),
+                kind: z.string(),
+            }).parse(json);
+        } catch (e) {
+            fail(e);
+        }
+
+        assertEquals(message.kind, "image");
+        assertEquals(message.text, await blobToBase64(blob));
+        assertEquals(message.type, "gm_message");
+    }
+
+    {
+        // text
+        const textMessageEvent = await gm_A.prepareGroupMessageEvent(groupChat.groupKey.publicKey, "hi");
+        if (textMessageEvent instanceof Error) fail(textMessageEvent.message);
+
+        const decryptedContent = await groupChat.cipherKey.decrypt(
+            textMessageEvent.pubkey,
+            textMessageEvent.content,
+        );
+        if (decryptedContent instanceof Error) {
+            fail(decryptedContent.message);
+        }
+        const json = parseJSON<unknown>(decryptedContent);
+        if (json instanceof Error) {
+            fail(json.message);
+        }
+
+        let message;
+        try {
+            message = z.object({
+                type: z.string(),
+                text: z.string(),
+                kind: z.string(),
+            }).parse(json);
+        } catch (e) {
+            fail(e);
+        }
+
+        assertEquals(message.kind, "text");
+        assertEquals(message.text, "hi");
+        assertEquals(message.type, "gm_message");
     }
 });
