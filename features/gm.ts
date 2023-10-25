@@ -143,6 +143,26 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
         }
     }
 
+    serializationMessage(decryptedContent: string) {
+        const json = parseJSON<unknown>(decryptedContent);
+        if (json instanceof Error) {
+            return json;
+        }
+
+        let message;
+        try {
+            message = z.object({
+                type: z.string(),
+                text: z.string(),
+                kind: z.string(),
+            }).parse(json);
+        } catch (e) {
+            return e as Error;
+        }
+
+        return message;
+    }
+
     private async handleInvitation(event: NostrEvent<NostrKind.Group_Message>) {
         if (event.pubkey == this.ctx.publicKey.hex) {
             return; // ignore this case because this is an invitation created by me
@@ -171,25 +191,13 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
             return decryptedContent;
         }
 
-        const json = parseJSON<unknown>(decryptedContent);
-        if (json instanceof Error) {
-            return json;
-        }
-
         const author = PublicKey.FromHex(event.pubkey);
         if (author instanceof Error) {
             return author;
         }
-
-        let message;
-        try {
-            message = z.object({
-                type: z.string(),
-                text: z.string(),
-                kind: z.string(),
-            }).parse(json);
-        } catch (e) {
-            return e as Error;
+        const message = this.serializationMessage(decryptedContent);
+        if (message instanceof Error) {
+            return message;
         }
 
         if (message.kind != "text" && message.kind != "image") {

@@ -258,20 +258,9 @@ Deno.test("prepare gruop message event should return correct", async () => {
         if (decryptedContent instanceof Error) {
             fail(decryptedContent.message);
         }
-        const json = parseJSON<unknown>(decryptedContent);
-        if (json instanceof Error) {
-            fail(json.message);
-        }
-
-        let message;
-        try {
-            message = z.object({
-                type: z.string(),
-                text: z.string(),
-                kind: z.string(),
-            }).parse(json);
-        } catch (e) {
-            fail(e);
+        const message = gm_A.serializationMessage(decryptedContent);
+        if (message instanceof Error) {
+            fail(message.message);
         }
 
         assertEquals(message.kind, "image");
@@ -291,20 +280,9 @@ Deno.test("prepare gruop message event should return correct", async () => {
         if (decryptedContent instanceof Error) {
             fail(decryptedContent.message);
         }
-        const json = parseJSON<unknown>(decryptedContent);
-        if (json instanceof Error) {
-            fail(json.message);
-        }
-
-        let message;
-        try {
-            message = z.object({
-                type: z.string(),
-                text: z.string(),
-                kind: z.string(),
-            }).parse(json);
-        } catch (e) {
-            fail(e);
+        const message = gm_A.serializationMessage(decryptedContent);
+        if (message instanceof Error) {
+            fail(message.message);
         }
 
         assertEquals(message.kind, "text");
