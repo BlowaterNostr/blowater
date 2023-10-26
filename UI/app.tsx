@@ -411,23 +411,6 @@ export function AppComponent(props: {
     const app = model.app;
     const myAccountCtx = model.app.ctx;
 
-    let settingNode;
-    if (model.navigationModel.activeNav == "Setting") {
-        settingNode = (
-            <div
-                class={tw`flex-1 overflow-hidden overflow-y-auto`}
-            >
-                {Setting({
-                    logout: app.logout,
-                    relayConfig: app.relayConfig,
-                    myAccountContext: myAccountCtx,
-                    relayPool: props.pool,
-                    emit: props.eventBus.emit,
-                })}
-            </div>
-        );
-    }
-
     let appList;
     if (model.navigationModel.activeNav == "AppList") {
         appList = (
@@ -511,8 +494,14 @@ export function AppComponent(props: {
                     </div>
                     {dmVNode}
                     {aboutNode}
-                    {settingNode}
-                    {/* {socialPostsPanel} */}
+                    {Setting({
+                        show: model.navigationModel.activeNav == "Setting",
+                        logout: app.logout,
+                        relayConfig: app.relayConfig,
+                        myAccountContext: myAccountCtx,
+                        relayPool: props.pool,
+                        emit: props.eventBus.emit,
+                    })}
                     {appList}
                     <Popover
                         inputChan={props.popOverInputChan}

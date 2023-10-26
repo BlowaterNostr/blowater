@@ -34,6 +34,7 @@ export interface SettingProps {
     relayPool: ConnectionPool;
     myAccountContext: NostrAccountContext;
     emit: emitFunc<RelayConfigChange>;
+    show: boolean;
 }
 
 const colors = {
@@ -50,32 +51,39 @@ export const Setting = (props: SettingProps) => {
     if (ctx instanceof InMemoryAccountContext) {
         priKey = ctx.privateKey;
     }
+    if (props.show == false) {
+        return undefined;
+    }
     return (
-        <div class={tw`min-w-full min-h-full px-2 bg-[${SecondaryBackgroundColor}]`}>
-            <div class={tw`max-w-[41rem] m-auto py-[1.5rem]`}>
-                <div class={tw`px-[1rem] py-[1.5rem] ${inputBorderClass} rounded-lg mt-[1.5rem]`}>
-                    <RelaySetting
-                        emit={props.emit}
-                        relayConfig={props.relayConfig}
-                        relayPool={props.relayPool}
-                    >
-                    </RelaySetting>
-                </div>
+        <div
+            class={tw`flex-1 overflow-hidden overflow-y-auto`}
+        >
+            <div class={tw`min-w-full min-h-full px-2 bg-[${SecondaryBackgroundColor}]`}>
+                <div class={tw`max-w-[41rem] m-auto py-[1.5rem]`}>
+                    <div class={tw`px-[1rem] py-[1.5rem] ${inputBorderClass} rounded-lg mt-[1.5rem]`}>
+                        <RelaySetting
+                            emit={props.emit}
+                            relayConfig={props.relayConfig}
+                            relayPool={props.relayPool}
+                        >
+                        </RelaySetting>
+                    </div>
 
-                <div
-                    class={tw`px-[1rem] py-[0.5rem] ${inputBorderClass} rounded-lg mt-[1.5rem] text-[${PrimaryTextColor}]`}
-                >
-                    <KeyView
-                        privateKey={priKey}
-                        publicKey={props.myAccountContext.publicKey}
-                    />
+                    <div
+                        class={tw`px-[1rem] py-[0.5rem] ${inputBorderClass} rounded-lg mt-[1.5rem] text-[${PrimaryTextColor}]`}
+                    >
+                        <KeyView
+                            privateKey={priKey}
+                            publicKey={props.myAccountContext.publicKey}
+                        />
+                    </div>
+                    <button
+                        class={tw`w-full p-[0.75rem] mt-[1.5rem] rounded-lg ${NoOutlineClass} ${CenterClass} ${LinearGradientsClass}  hover:bg-gradient-to-l text-[${PrimaryTextColor}]`}
+                        onClick={props.logout}
+                    >
+                        Logout
+                    </button>
                 </div>
-                <button
-                    class={tw`w-full p-[0.75rem] mt-[1.5rem] rounded-lg ${NoOutlineClass} ${CenterClass} ${LinearGradientsClass}  hover:bg-gradient-to-l text-[${PrimaryTextColor}]`}
-                    onClick={props.logout}
-                >
-                    Logout
-                </button>
             </div>
         </div>
     );
