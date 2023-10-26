@@ -113,6 +113,7 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
     };
 
     async componentDidMount() {
+        console.log(`${RelaySetting.name}::componentDidMount`);
         const err = await this.props.relayConfig.syncWithPool(this.props.relayPool);
         if (err != undefined) {
             this.setState({
