@@ -5,12 +5,10 @@ import {
     fail,
 } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
-import { blobToBase64, InMemoryAccountContext } from "../lib/nostr-ts/nostr.ts";
+import { InMemoryAccountContext, blobToBase64 } from "../lib/nostr-ts/nostr.ts";
 import { gmEventType, GroupMessageController } from "./gm.ts";
 import { getTags } from "../nostr.ts";
 import { DirectedMessageController } from "./dm.ts";
-import { parseJSON } from "./profile.ts";
-import { z } from "https://esm.sh/zod@3.22.4";
 
 Deno.test("group chat", async () => {
     const user_A = InMemoryAccountContext.Generate();
@@ -148,7 +146,7 @@ Deno.test("should get the correct gm type", async () => {
     const creation = gm_A.createGroupChat();
     {
         // message
-        const messageEvent = await gm_A.prepareGroupMessageEvent(creation.groupKey.publicKey, "hi");
+        const messageEvent = await gm_A.prepareGroupMessageEvent(creation.groupKey.publicKey, "hello");
         if (messageEvent instanceof Error) {
             fail(messageEvent.message);
         }
@@ -259,6 +257,7 @@ Deno.test("should be able to handle the correct message type", async () => {
         const message = gm_A.getGroupMessages(groupChat.groupKey.publicKey.hex);
         assertEquals(message.length, 1);
         assertEquals(message[0].type, "image");
+        assertEquals(message[0].content, await blobToBase64(blob));
     }
 
     {
@@ -274,5 +273,6 @@ Deno.test("should be able to handle the correct message type", async () => {
         const message = gm_A.getGroupMessages(groupChat.groupKey.publicKey.hex);
         assertEquals(message.length, 2);
         assertEquals(message[1].type, "text");
+        assertEquals(message[1].content, "hi");
     }
 });
