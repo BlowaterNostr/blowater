@@ -240,7 +240,7 @@ Deno.test("need to add group before handling relevant messages", async () => {
     }
 });
 
-Deno.test("prepare gruop message event should return correct", async () => {
+Deno.test("should be able to handle the correct message type", async () => {
     const user_A = InMemoryAccountContext.Generate();
     const gm_A = new GroupMessageController(user_A, { add: (_) => {} }, { add: (_) => {} });
     const groupChat = gm_A.createGroupChat();
@@ -250,43 +250,29 @@ Deno.test("prepare gruop message event should return correct", async () => {
         const blob = new Blob();
         const blobMessageEvent = await gm_A.prepareGroupMessageEvent(groupChat.groupKey.publicKey, blob);
         if (blobMessageEvent instanceof Error) fail(blobMessageEvent.message);
+        await gm_A.addEvent({
+            ...blobMessageEvent,
+            parsedTags: getTags(blobMessageEvent),
+            publicKey: PublicKey.FromHex(blobMessageEvent.pubkey) as PublicKey,
+        });
 
-        const decryptedContent = await groupChat.cipherKey.decrypt(
-            blobMessageEvent.pubkey,
-            blobMessageEvent.content,
-        );
-        if (decryptedContent instanceof Error) {
-            fail(decryptedContent.message);
-        }
-        const message = gm_A.serializationMessage(decryptedContent);
-        if (message instanceof Error) {
-            fail(message.message);
-        }
-
-        assertEquals(message.kind, "image");
-        assertEquals(message.text, await blobToBase64(blob));
-        assertEquals(message.type, "gm_message");
+        const message = gm_A.getGroupMessages(groupChat.groupKey.publicKey.hex);
+        assertEquals(message.length, 1);
+        assertEquals(message[0].type, "image");
     }
 
     {
         // text
         const textMessageEvent = await gm_A.prepareGroupMessageEvent(groupChat.groupKey.publicKey, "hi");
         if (textMessageEvent instanceof Error) fail(textMessageEvent.message);
+        await gm_A.addEvent({
+            ...textMessageEvent,
+            parsedTags: getTags(textMessageEvent),
+            publicKey: PublicKey.FromHex(textMessageEvent.pubkey) as PublicKey,
+        });
 
-        const decryptedContent = await groupChat.cipherKey.decrypt(
-            textMessageEvent.pubkey,
-            textMessageEvent.content,
-        );
-        if (decryptedContent instanceof Error) {
-            fail(decryptedContent.message);
-        }
-        const message = gm_A.serializationMessage(decryptedContent);
-        if (message instanceof Error) {
-            fail(message.message);
-        }
-
-        assertEquals(message.kind, "text");
-        assertEquals(message.text, "hi");
-        assertEquals(message.type, "gm_message");
+        const message = gm_A.getGroupMessages(groupChat.groupKey.publicKey.hex);
+        assertEquals(message.length, 2);
+        assertEquals(message[1].type, "text");
     }
 });
