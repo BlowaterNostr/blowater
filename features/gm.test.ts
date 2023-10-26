@@ -5,7 +5,7 @@ import {
     fail,
 } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
-import { InMemoryAccountContext, blobToBase64 } from "../lib/nostr-ts/nostr.ts";
+import { blobToBase64, InMemoryAccountContext } from "../lib/nostr-ts/nostr.ts";
 import { gmEventType, GroupMessageController } from "./gm.ts";
 import { getTags } from "../nostr.ts";
 import { DirectedMessageController } from "./dm.ts";
