@@ -51,9 +51,7 @@ export async function saveProfile(
 ) {
     const event = await prepareNormalNostrEvent(
         sender,
-        NostrKind.META_DATA,
-        [],
-        JSON.stringify(profile),
+        { kind: NostrKind.META_DATA, content: JSON.stringify(profile) },
     );
     pool.sendEvent(event);
 }

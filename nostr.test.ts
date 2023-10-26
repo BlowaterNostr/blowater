@@ -50,9 +50,11 @@ Deno.test("Generate reply event", async () => {
 
     const message1 = await prepareNormalNostrEvent(
         userAContext,
-        NostrKind.DIRECT_MESSAGE,
-        [],
-        "text message 1",
+        {
+            kind: NostrKind.DIRECT_MESSAGE,
+
+            content: "text message 1",
+        },
     );
 
     const replyMessage1WithText = await prepareReplyEvent(
