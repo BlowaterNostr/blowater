@@ -7,9 +7,15 @@ import { ChatMessage } from "../UI/message.ts";
 import { Database_Contextual_View } from "../database.ts";
 import { prepareEncryptedNostrEvent } from "../lib/nostr-ts/event.ts";
 import { PrivateKey, PublicKey } from "../lib/nostr-ts/key.ts";
-import { InMemoryAccountContext, NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
+import {
+    blobToBase64,
+    InMemoryAccountContext,
+    NostrAccountContext,
+    NostrEvent,
+    NostrKind,
+} from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
-import { getTags, Parsed_Event } from "../nostr.ts";
+import { getTags, Parsed_Event, Tag } from "../nostr.ts";
 import { parseJSON } from "./profile.ts";
 
 export type GM_Types = "gm_creation" | "gm_message" | "gm_invitation";
@@ -81,23 +87,36 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
         return event;
     }
 
-    async prepareGroupMessageEvent(groupAddr: PublicKey, text: string) {
+    async prepareGroupMessageEvent(groupAddr: PublicKey, message: string | Blob) {
         const groupCtx = this.getGroupChatCtx(groupAddr);
         if (groupCtx == undefined) {
             return new Error(`group ctx for ${groupAddr.bech32()} is empty`);
         }
-        const nostrEvent = await prepareEncryptedNostrEvent(this.ctx, {
-            content: JSON.stringify({
-                type: "gm_message",
-                text,
-            }),
-            kind: NostrKind.Group_Message,
-            tags: [
-                ["p", groupAddr.hex],
-            ],
-            encryptKey: groupCtx.publicKey,
-        });
-        return nostrEvent;
+        let text: string;
+        let kind: "text" | "image";
+        if (message instanceof Blob) {
+            kind = "image";
+            text = await blobToBase64(message);
+        } else {
+            kind = "text";
+            text = message;
+        }
+        const event = await prepareEncryptedNostrEvent(
+            this.ctx,
+            {
+                content: JSON.stringify({
+                    type: "gm_message",
+                    text: text,
+                    kind: kind,
+                }),
+                kind: NostrKind.Group_Message,
+                tags: [
+                    ["p", groupAddr.hex],
+                ],
+                encryptKey: groupCtx.publicKey,
+            },
+        );
+        return event;
     }
 
     createGroupChat() {
@@ -167,13 +186,22 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
             message = z.object({
                 type: z.string(),
                 text: z.string(),
+                kind: z.string(),
             }).parse(json);
         } catch (e) {
             return e as Error;
         }
 
+        if (message instanceof Error) {
+            return message;
+        }
+
+        if (message.kind != "text" && message.kind != "image") {
+            return new Error(`invalid kind: ${message.kind}`);
+        }
+
         const chatMessage: ChatMessage = {
-            type: "text",
+            type: message.kind,
             event: event,
             author: author,
             content: message.text,

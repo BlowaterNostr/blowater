@@ -649,17 +649,31 @@ export async function handle_SendMessage(
     groupControl: GroupMessageController,
 ) {
     if (event.isGroupChat) {
-        const nostrEvent = await groupControl.prepareGroupMessageEvent(event.pubkey, event.text);
-        if (nostrEvent instanceof Error) {
-            return nostrEvent;
+        const textEvent = await groupControl.prepareGroupMessageEvent(
+            event.pubkey,
+            event.text,
+        );
+        if (textEvent instanceof Error) {
+            return textEvent;
         }
-        const err = await pool.sendEvent(nostrEvent);
+        const err = await pool.sendEvent(textEvent);
         if (err instanceof Error) {
             return err;
         }
-        const err2 = await db.addEvent(nostrEvent);
-        if (err2 instanceof Error) {
-            console.error(err);
+
+        for (const blob of event.files) {
+            const imageEvent = await groupControl.prepareGroupMessageEvent(
+                event.pubkey,
+                blob,
+            );
+            if (imageEvent instanceof Error) {
+                return imageEvent;
+            }
+
+            const err = await pool.sendEvent(imageEvent);
+            if (err instanceof Error) {
+                return err;
+            }
         }
         const editor = gmEditors.get(event.pubkey.hex);
         if (editor) {

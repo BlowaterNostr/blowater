@@ -5,7 +5,7 @@ import {
     fail,
 } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
-import { InMemoryAccountContext } from "../lib/nostr-ts/nostr.ts";
+import { blobToBase64, InMemoryAccountContext } from "../lib/nostr-ts/nostr.ts";
 import { gmEventType, GroupMessageController } from "./gm.ts";
 import { getTags } from "../nostr.ts";
 import { DirectedMessageController } from "./dm.ts";
@@ -235,5 +235,44 @@ Deno.test("need to add group before handling relevant messages", async () => {
             });
             assertEquals(err, undefined); // no error before the invitation has been added before this message
         }
+    }
+});
+
+Deno.test("should be able to handle the correct message type", async () => {
+    const user_A = InMemoryAccountContext.Generate();
+    const gm_A = new GroupMessageController(user_A, { add: (_) => {} }, { add: (_) => {} });
+    const groupChat = gm_A.createGroupChat();
+
+    {
+        // blob
+        const blob = new Blob();
+        const blobMessageEvent = await gm_A.prepareGroupMessageEvent(groupChat.groupKey.publicKey, blob);
+        if (blobMessageEvent instanceof Error) fail(blobMessageEvent.message);
+        await gm_A.addEvent({
+            ...blobMessageEvent,
+            parsedTags: getTags(blobMessageEvent),
+            publicKey: PublicKey.FromHex(blobMessageEvent.pubkey) as PublicKey,
+        });
+
+        const message = gm_A.getGroupMessages(groupChat.groupKey.publicKey.hex);
+        assertEquals(message.length, 1);
+        assertEquals(message[0].type, "image");
+        assertEquals(message[0].content, await blobToBase64(blob));
+    }
+
+    {
+        // text
+        const textMessageEvent = await gm_A.prepareGroupMessageEvent(groupChat.groupKey.publicKey, "hi");
+        if (textMessageEvent instanceof Error) fail(textMessageEvent.message);
+        await gm_A.addEvent({
+            ...textMessageEvent,
+            parsedTags: getTags(textMessageEvent),
+            publicKey: PublicKey.FromHex(textMessageEvent.pubkey) as PublicKey,
+        });
+
+        const message = gm_A.getGroupMessages(groupChat.groupKey.publicKey.hex);
+        assertEquals(message.length, 2);
+        assertEquals(message[1].type, "text");
+        assertEquals(message[1].content, "hi");
     }
 });
