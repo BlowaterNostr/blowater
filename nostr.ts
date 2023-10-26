@@ -168,23 +168,25 @@ export async function prepareReplyEvent(
 
     return prepareNormalNostrEvent(
         sender,
-        targetEvent.kind,
-        [
-            [
-                "e",
-                targetEvent.id,
-                "",
-                "reply",
-            ],
-            ...ps.map((p) =>
+        {
+            kind: targetEvent.kind,
+            tags: [
                 [
-                    "p",
-                    p,
-                ] as TagPubKey
-            ),
-            ...tags,
-        ],
-        content,
+                    "e",
+                    targetEvent.id,
+                    "",
+                    "reply",
+                ],
+                ...ps.map((p) =>
+                    [
+                        "p",
+                        p,
+                    ] as TagPubKey
+                ),
+                ...tags,
+            ],
+            content,
+        },
     );
 }
 

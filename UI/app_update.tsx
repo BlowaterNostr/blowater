@@ -365,9 +365,10 @@ export async function* UI_Interaction_Update(args: {
             }
             const profileEvent = await prepareNormalNostrEvent(
                 groupCreation.groupKey,
-                NostrKind.META_DATA,
-                [],
-                JSON.stringify(profileData),
+                {
+                    kind: NostrKind.META_DATA,
+                    content: JSON.stringify(profileData),
+                },
             );
             const err2 = pool.sendEvent(profileEvent);
             if (err2 instanceof Error) {
