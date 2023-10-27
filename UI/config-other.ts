@@ -1,4 +1,3 @@
-import * as Automerge from "https://deno.land/x/automerge@2.1.0-alpha.12/index.ts";
 import { prepareParameterizedEvent } from "../lib/nostr-ts/event.ts";
 import { NostrAccountContext, NostrEvent, NostrKind, verifyEvent } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
@@ -39,10 +38,10 @@ export class OtherConfig implements PinListGetter {
         return OtherConfig.Empty();
     }
 
-    private pinList = new AutomergeSet(); // set of pubkeys in npub format
+    private pinList = new Set<string>(); // set of pubkeys in npub format
 
     getPinList(): Set<string> {
-        return this.pinList.value();
+        return this.pinList;
     }
 
     addPin(pubkey: string) {
@@ -58,17 +57,14 @@ export class OtherConfig implements PinListGetter {
         if (decrypted instanceof Error) {
             return decrypted;
         }
-        const pinList = new AutomergeSet();
-        pinList.fromHex(decrypted);
         const c = new OtherConfig();
-        c.pinList.merge(pinList);
         return c;
     }
 
     async toNostrEvent(ctx: NostrAccountContext) {
         const encryptedContent = await ctx.encrypt(
             ctx.publicKey.hex,
-            this.pinList.toHex(),
+            ctx.publicKey.hex,
         );
         if (encryptedContent instanceof Error) {
             return encryptedContent;
@@ -122,45 +118,6 @@ export class OtherConfig implements PinListGetter {
                 console.error(config);
                 continue;
             }
-            this.pinList.merge(config.pinList);
         }
-    }
-}
-
-export class AutomergeSet {
-    private set = Automerge.init<{
-        [key: string]: true;
-    }>();
-
-    add(v: string) {
-        console.log("add", v);
-        this.set = Automerge.change(this.set, "add", (doc) => {
-            doc[v] = true;
-        });
-    }
-
-    delete(v: string) {
-        this.set = Automerge.change(this.set, "add", (doc) => {
-            delete doc[v];
-        });
-    }
-
-    merge(other: AutomergeSet) {
-        this.set = Automerge.merge(this.set, other.set);
-    }
-
-    value() {
-        return new Set(Object.keys(this.set));
-    }
-
-    toHex() {
-        const bytes = Automerge.save(this.set);
-        return secp256k1.utils.bytesToHex(bytes);
-    }
-
-    fromHex(hex: string) {
-        const bytes = secp256k1.utils.hexToBytes(hex);
-        const set = Automerge.load(bytes);
-        this.set = Automerge.merge(this.set, set);
     }
 }

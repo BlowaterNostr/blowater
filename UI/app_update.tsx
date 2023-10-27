@@ -391,12 +391,7 @@ export async function* UI_Interaction_Update(args: {
                 children: <div></div>,
             });
         } else if (event.type == "RelayConfigChange") {
-            const e = await app.relayConfig.toNostrEvent(app.ctx);
-            if (e instanceof Error) {
-                throw e; // impossible
-            }
-            pool.sendEvent(e);
-            app.relayConfig.saveToLocalStorage(app.ctx);
+            
         } else if (event.type == "ViewEventDetail") {
             const nostrEvent = event.message.event;
             const eventID = nostrEvent.id;

@@ -20,7 +20,7 @@ import { getCurrentSignInCtx, setSignInState, SignIn } from "./signIn.tsx";
 import { AppList } from "./app-list.tsx";
 import { SecondaryBackgroundColor } from "./style/colors.ts";
 import { EventSyncer } from "./event_syncer.ts";
-import { defaultRelays, RelayConfig } from "./relay-config.ts";
+import { defaultRelays } from "./relay-config.ts";
 import { DexieDatabase } from "./dexie-db.ts";
 import { About } from "./about.tsx";
 import { ProfileSyncer } from "../features/profile.ts";
@@ -109,7 +109,6 @@ export class App {
         public readonly profileSyncer: ProfileSyncer,
         public readonly eventSyncer: EventSyncer,
         public readonly conversationLists: DM_List,
-        public readonly relayConfig: RelayConfig,
         public readonly groupChatController: GroupMessageController,
         public readonly lamport: time.LamportTime,
         public readonly dmController: DirectedMessageController,
@@ -126,12 +125,7 @@ export class App {
     }) {
         const lamport = fromEvents(args.database.events);
         const eventSyncer = new EventSyncer(args.pool, args.database);
-        const relayConfig = RelayConfig.FromLocalStorage(args.ctx);
-        if (relayConfig.getRelayURLs().size == 0) {
-            for (const url of defaultRelays) {
-                relayConfig.add(url);
-            }
-        }
+        args.pool.addRelayURLs(defaultRelays);
         const profileSyncer = new ProfileSyncer(args.database, args.pool);
         profileSyncer.add(args.ctx.publicKey.hex);
 
@@ -201,7 +195,6 @@ export class App {
             profileSyncer,
             eventSyncer,
             conversationLists,
-            relayConfig,
             groupChatController,
             lamport,
             dmController,
@@ -216,37 +209,6 @@ export class App {
         ///////////////////////////////////
         // Add relays to Connection Pool //
         ///////////////////////////////////
-        // relay config synchronization, need to refactor later
-        (async () => {
-            const err = await this.relayConfig.syncWithPool(this.pool);
-            if (err instanceof Error) {
-                throw err; // don't know what to do, should crash the app
-            }
-            const stream = await this.pool.newSub("relay config", {
-                "#d": ["RelayConfig"],
-                authors: [this.ctx.publicKey.hex],
-                kinds: [NostrKind.Custom_App_Data],
-            });
-            if (stream instanceof Error) {
-                throw stream; // impossible
-            }
-            for await (const msg of stream.chan) {
-                if (msg.res.type == "EOSE") {
-                    continue;
-                }
-                RelayConfig.FromNostrEvent(msg.res.event, this.ctx);
-                const _relayConfig = await RelayConfig.FromNostrEvent(
-                    msg.res.event,
-                    this.ctx,
-                );
-                if (_relayConfig instanceof Error) {
-                    console.log(_relayConfig.message);
-                    continue;
-                }
-                this.relayConfig.merge(_relayConfig.save());
-                this.relayConfig.saveToLocalStorage(this.ctx);
-            }
-        })();
         (async () => {
             for (;;) {
                 await sleep(3000);
@@ -419,7 +381,6 @@ export function AppComponent(props: {
             >
                 {Setting({
                     logout: app.logout,
-                    relayConfig: app.relayConfig,
                     myAccountContext: myAccountCtx,
                     relayPool: props.pool,
                     emit: props.eventBus.emit,

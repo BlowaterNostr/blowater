@@ -24,13 +24,11 @@ import {
 } from "./style/colors.ts";
 import { RelayIcon } from "./icons2/relay-icon.tsx";
 import { DeleteIcon } from "./icons2/delete-icon.tsx";
-import { RelayConfig } from "./relay-config.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { emitFunc } from "../event-bus.ts";
 
 export interface SettingProps {
     logout: () => void;
-    relayConfig: RelayConfig;
     relayPool: ConnectionPool;
     myAccountContext: NostrAccountContext;
     emit: emitFunc<RelayConfigChange>;
@@ -56,7 +54,6 @@ export const Setting = (props: SettingProps) => {
                 <div class={tw`px-[1rem] py-[1.5rem] ${inputBorderClass} rounded-lg mt-[1.5rem]`}>
                     <RelaySetting
                         emit={props.emit}
-                        relayConfig={props.relayConfig}
                         relayPool={props.relayPool}
                     >
                     </RelaySetting>
@@ -86,7 +83,6 @@ export type RelayConfigChange = {
 };
 
 type RelaySettingProp = {
-    relayConfig: RelayConfig;
     relayPool: ConnectionPool;
     emit: emitFunc<RelayConfigChange>;
 };
@@ -104,58 +100,15 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
         relayStatus: [],
     };
 
-    async componentDidMount() {
-        const err = await this.props.relayConfig.syncWithPool(this.props.relayPool);
-        if (err != undefined) {
-            this.setState({
-                error: err.message,
-            });
-        }
-        this.setState({
-            relayStatus: this.computeRelayStatus(this.props),
-        });
-    }
-
-    computeRelayStatus(props: RelaySettingProp) {
-        const _relayStatus: { url: string; status: keyof typeof colors }[] = [];
-        for (const url of props.relayConfig.getRelayURLs()) {
-            const relay = props.relayPool.getRelay(url);
-            let status: keyof typeof colors = "Not In Pool";
-            if (relay) {
-                status = relay.ws.status();
-            }
-            _relayStatus.push({
-                url,
-                status,
-            });
-        }
-        return _relayStatus;
-    }
-
     render(props: RelaySettingProp) {
         const addRelayInput = this.state.addRelayInput;
-
-        const relayStatus = this.computeRelayStatus(props);
 
         const addRelay = async () => {
             // props.eventBus.emit({ type: "AddRelay" });
             console.log("add", addRelayInput);
             if (addRelayInput.length > 0) {
-                props.relayConfig.add(addRelayInput);
                 this.setState({
                     addRelayInput: "",
-                });
-                this.setState({
-                    relayStatus: this.computeRelayStatus(props),
-                });
-                const err = await props.relayConfig.syncWithPool(props.relayPool);
-                if (err != undefined) {
-                    this.setState({
-                        error: err.message,
-                    });
-                }
-                this.setState({
-                    relayStatus: this.computeRelayStatus(props),
                 });
                 props.emit({ type: "RelayConfigChange" });
             }
@@ -193,54 +146,6 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
                 {this.state.error
                     ? <p class={tw`mt-2 text-[${ErrorColor}] text-[0.875rem]`}>{this.state.error}</p>
                     : undefined}
-
-                <ul class={tw`mt-[1.5rem] text-[${PrimaryTextColor}]`}>
-                    {relayStatus.map((r) => {
-                        return (
-                            <li
-                                class={tw`w-full px-[1rem] py-[0.75rem] rounded-lg bg-[${DividerBackgroundColor}80] mb-[0.5rem]  flex items-center justify-between`}
-                            >
-                                <div class={tw`flex items-center flex-1 overflow-hidden`}>
-                                    <span
-                                        class={tw`bg-[${
-                                            colors[r.status]
-                                        }] text-center block py-1 px-2 rounded text-[0.8rem] mr-2 font-bold`}
-                                    >
-                                        {r.status}
-                                    </span>
-                                    <span class={tw`truncate`}>{r.url}</span>
-                                </div>
-
-                                <button
-                                    class={tw`w-[2rem] h-[2rem] rounded-lg bg-transparent hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
-                                    onClick={async () => {
-                                        props.relayConfig.remove(r.url);
-                                        this.setState({
-                                            relayStatus: this.computeRelayStatus(props),
-                                        });
-                                        const err = await props.relayConfig.syncWithPool(props.relayPool);
-                                        if (err != undefined) {
-                                            this.setState({
-                                                error: err.message,
-                                            });
-                                        }
-                                        this.setState({
-                                            relayStatus: this.computeRelayStatus(props),
-                                        });
-                                        props.emit({ type: "RelayConfigChange" });
-                                    }}
-                                >
-                                    <DeleteIcon
-                                        class={tw`w-[1rem] h-[1rem]`}
-                                        style={{
-                                            stroke: ErrorColor,
-                                        }}
-                                    />
-                                </button>
-                            </li>
-                        );
-                    })}
-                </ul>
             </Fragment>
         );
     }
