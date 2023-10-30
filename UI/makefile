@@ -17,7 +17,7 @@ compile-all-tests:
 	deno run --allow-read --allow-env --allow-write --allow-net _compile-ui-tests.ts
 
 build-extension:
-	deno run --allow-read --allow-env --allow-write --allow-net deploy-extension.ts
+	deno run --allow-read --allow-env --allow-write --allow-net build-extension.ts
 
-build:
-	deno run --allow-read --allow-env --allow-write --allow-net deploy.ts
+build-pwa:
+	deno run --allow-read --allow-env --allow-write --allow-net build-pwa.ts
