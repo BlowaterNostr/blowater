@@ -15,3 +15,9 @@ bundle-app:
 
 compile-all-tests:
 	deno run --allow-read --allow-env --allow-write --allow-net _compile-ui-tests.ts
+
+build-extension:
+	deno run --allow-read --allow-env --allow-write --allow-net deploy-extension.ts
+
+build:
+	deno run --allow-read --allow-env --allow-write --allow-net deploy.ts
