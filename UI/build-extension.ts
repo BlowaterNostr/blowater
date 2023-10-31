@@ -12,7 +12,9 @@ const exists = async (filename: string): Promise<boolean> => {
         }
     }
 };
-const folderName = "build-extension";
+
+// https://stackoverflow.com/questions/3931741/why-does-make-think-the-target-is-up-to-date
+const folderName = ".build-extension";
 
 if (await exists(folderName)) {
     await Deno.remove(folderName, { recursive: true });

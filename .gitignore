@@ -9,5 +9,5 @@ Elm
 DevOps/stats.sqlite
 *.DS_Store
 .DS_Store
-build-pwa
-build-extension
+.build-pwa
+.build-extension

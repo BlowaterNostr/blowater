@@ -264,25 +264,25 @@ export class App {
         this.otherConfig.syncFromRelay(this.pool, this.ctx);
 
         // group chat synchronization
-        (async () => {
-            const stream = await this.pool.newSub("gm_send", {
-                authors: [this.ctx.publicKey.hex],
-                kinds: [NostrKind.Group_Message],
-            });
-            if (stream instanceof Error) {
-                throw stream; // crash the app
-            }
-            for await (const msg of stream.chan) {
-                if (msg.res.type == "EOSE") {
-                    continue;
-                }
-                const ok = await this.database.addEvent(msg.res.event);
-                if (ok instanceof Error) {
-                    console.error(msg.res.event);
-                    console.error(ok);
-                }
-            }
-        })();
+        // (async () => {
+        //     const stream = await this.pool.newSub("gm_send", {
+        //         authors: [this.ctx.publicKey.hex],
+        //         kinds: [NostrKind.Group_Message],
+        //     });
+        //     if (stream instanceof Error) {
+        //         throw stream; // crash the app
+        //     }
+        //     for await (const msg of stream.chan) {
+        //         if (msg.res.type == "EOSE") {
+        //             continue;
+        //         }
+        //         const ok = await this.database.addEvent(msg.res.event);
+        //         if (ok instanceof Error) {
+        //             console.error(msg.res.event);
+        //             console.error(ok);
+        //         }
+        //     }
+        // })();
         (async () => {
             const stream = await this.pool.newSub("gm_receive", {
                 "#p": [this.ctx.publicKey.hex],
