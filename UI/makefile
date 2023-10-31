@@ -7,11 +7,8 @@ test: bundle
 bundle:
 	deno bundle --config=./deno.json $(page).test.tsx deploy/main.mjs
 
-app: bundle-app
-	file_server --port=$(port) ./deploy
-
-bundle-app:
-	deno bundle --config=./deno.json _main.tsx deploy/main.mjs
+app: build-pwa
+	file_server --port=$(port) ./build-pwa
 
 compile-all-tests:
 	deno run --allow-read --allow-env --allow-write --allow-net _compile-ui-tests.ts

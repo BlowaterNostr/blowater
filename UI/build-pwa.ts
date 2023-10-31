@@ -15,7 +15,7 @@ const exists = async (filename: string): Promise<boolean> => {
 const folderName = "build-pwa";
 
 if (await exists(folderName)) {
-    Deno.remove(folderName, { recursive: true });
+    await Deno.remove(folderName, { recursive: true });
 }
 
 await Deno.mkdir(folderName);
