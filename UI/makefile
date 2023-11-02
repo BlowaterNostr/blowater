@@ -1,3 +1,5 @@
+# https://stackoverflow.com/questions/3931741/why-does-make-think-the-target-is-up-to-date
+.PHONY: build-pwa build-extension
 page=app
 port=4507
 
