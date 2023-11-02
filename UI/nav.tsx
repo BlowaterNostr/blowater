@@ -58,7 +58,7 @@ export class NavBar extends Component<Props, State> {
         avatar: tw`w-12 h-12`,
         tabsContainer: tw`last:flex-1 last:flex last:items-end`,
         tabs: (active: boolean) =>
-            tw`rounded w-10 h-10 ${
+            tw`rounded-lg w-10 h-10 ${
                 active ? `bg-[${SecondaryBackgroundColor}]` : ""
             } hover:bg-[${SecondaryBackgroundColor}] ${CenterClass} ${NoOutlineClass}`,
         mobileContainer: tw`h-16 flex justify-evenly bg-[${PrimaryBackgroundColor}] items-center`,
