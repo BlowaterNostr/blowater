@@ -14,6 +14,7 @@ const ctx = InMemoryAccountContext.Generate();
 render(
     <div class={tw`h-screen`}>
         <NavBar emit={testEventBus.emit} publicKey={ctx.publicKey} profileGetter={db} />
+        <NavBar emit={testEventBus.emit} publicKey={ctx.publicKey} profileGetter={db} isMobile={true} />
     </div>,
     document.body,
 );
