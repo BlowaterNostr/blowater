@@ -467,14 +467,11 @@ export function AppComponent(props: {
             <div class={tw`w-full h-full flex flex-col`}>
                 <div class={tw`w-full flex-1 flex overflow-hidden`}>
                     <div class={tw`mobile:hidden`}>
-                        {nav.NavBar({
-                            profilePicURL: model.myProfile?.picture,
-                            publicKey: myAccountCtx.publicKey,
-                            database: app.database,
-                            pool: props.pool,
-                            emit: app.eventBus.emit,
-                            ...model.navigationModel,
-                        })}
+                        <nav.NavBar
+                            publicKey={app.ctx.publicKey}
+                            profileGetter={app.database}
+                            emit={app.eventBus.emit}
+                        />
                     </div>
 
                     <div
@@ -510,13 +507,11 @@ export function AppComponent(props: {
 
                 <div class={tw`desktop:hidden`}>
                     {
-                        <nav.MobileNavBar
-                            profilePicURL={model.myProfile?.picture}
-                            publicKey={myAccountCtx.publicKey}
-                            database={app.database}
-                            pool={props.pool}
+                        <nav.NavBar
+                            publicKey={app.ctx.publicKey}
+                            profileGetter={app.database}
                             emit={app.eventBus.emit}
-                            {...model.navigationModel}
+                            isMobile={true}
                         />
                     }
                 </div>

@@ -1,41 +1,24 @@
 /** @jsx h */
 import { h, render } from "https://esm.sh/preact@10.17.1";
-
-import { NewIndexedDB } from "./dexie-db.ts";
-
-import * as nav from "./nav.tsx";
+import { NavBar } from "./nav.tsx";
+import { InMemoryAccountContext } from "../lib/nostr-ts/nostr.ts";
+import { Database_Contextual_View } from "../database.ts";
+import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
+import { testEventBus, testEventsAdapter } from "./_setup.test.ts";
 import { tw } from "https://esm.sh/twind@0.16.16";
 
-import { EventBus } from "../event-bus.ts";
-import { UI_Interaction_Event } from "./app_update.ts";
-import { PublicKey } from "../lib/nostr-ts/key.ts";
-import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
+const db = await Database_Contextual_View.New(testEventsAdapter);
+if (db instanceof Error) fail(db.message);
+const ctx = InMemoryAccountContext.Generate();
 
-const db = await NewIndexedDB();
-if (db instanceof Error) {
-    throw db;
+render(
+    <div class={tw`h-screen`}>
+        <NavBar emit={testEventBus.emit} publicKey={ctx.publicKey} profileGetter={db} />
+        <NavBar emit={testEventBus.emit} publicKey={ctx.publicKey} profileGetter={db} isMobile={true} />
+    </div>,
+    document.body,
+);
+
+for await (const event of testEventBus.onChange()) {
+    console.log(event);
 }
-const NavProps: nav.Props = {
-    publicKey: PublicKey.FromHex(
-        "0add27aa36e2e5e2591370f485af1344447705cfc37b1a1e6b0224be878c9687",
-    ) as PublicKey,
-    database: db,
-    pool: new ConnectionPool(),
-    eventEmitter: new EventBus<UI_Interaction_Event>(),
-    AddRelayButtonClickedError: "",
-    AddRelayInput: "",
-    activeNav: "DM",
-    picture: undefined,
-};
-
-export default function NavTest() {
-    return (
-        <div class={tw`h-screen`}>
-            <nav.NavBar
-                {...NavProps}
-            />
-        </div>
-    );
-}
-
-render(<NavTest />, document.body);

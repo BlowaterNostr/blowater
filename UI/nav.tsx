@@ -1,14 +1,8 @@
 /** @jsx h */
-import { h } from "https://esm.sh/preact@10.17.1";
+import { ComponentChild, h } from "https://esm.sh/preact@10.17.1";
 import { tw } from "https://esm.sh/twind@0.16.16";
-import { AboutIcon, AppListIcon } from "./icons/mod.tsx";
-import * as db from "../database.ts";
-
 import { Avatar } from "./components/avatar.tsx";
-import { CenterClass, NoOutlineClass } from "./components/tw.ts";
-import { emitFunc, EventEmitter } from "../event-bus.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
-import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import {
     PrimaryBackgroundColor,
     PrimaryTextColor,
@@ -17,192 +11,135 @@ import {
 } from "./style/colors.ts";
 import { ChatIcon } from "./icons2/chat-icon.tsx";
 import { UserIcon } from "./icons2/user-icon.tsx";
-import { SocialIcon } from "./icons2/social-icon.tsx";
 import { SettingIcon } from "./icons2/setting-icon.tsx";
-
-export type Props = {
-    profilePicURL: string | undefined;
-    publicKey: PublicKey;
-    database: db.Database_Contextual_View;
-    pool: ConnectionPool;
-    emit: emitFunc<NavigationUpdate>;
-} & NavigationModel;
-
-export type ActiveNav = ActiveTab | "Setting";
-export type ActiveTab = "DM" | /* "Group" | */ "Profile" | "About" | "AppList";
-
-export type NavigationModel = {
-    activeNav: ActiveNav;
-};
+import { Component } from "https://esm.sh/preact@10.17.1";
+import { ProfileGetter } from "./search.tsx";
+import { ProfileData } from "../features/profile.ts";
+import { AboutIcon } from "./icons2/about-icon.tsx";
+import { AppListIcon } from "./icons2/app-list-icon.tsx";
+import { CenterClass, NoOutlineClass } from "./components/tw.ts";
+import { emitFunc } from "../event-bus.ts";
 
 export type NavigationUpdate = {
     type: "ChangeNavigation";
-    index: ActiveNav;
+    id: NavTabID;
 };
 
-const navTabLayoutOrder: ActiveTab[] = ["DM", /*"Group",*/ "Profile", "About", "AppList"];
-const tabs = {
-    "DM": (active: boolean) => (
-        <ChatIcon
-            class={tw`w-[2rem] h-[2rem]`}
-            style={{
-                stroke: active ? PrimaryTextColor : SecondaryTextColor,
-                fill: "none",
-            }}
-        />
-    ),
-    "Profile": (active: boolean) => (
-        <UserIcon
-            class={tw`w-[2rem] h-[2rem]`}
-            style={{
-                stroke: active ? PrimaryTextColor : SecondaryTextColor,
-                fill: "none",
-            }}
-        />
-    ),
-    "About": (active: boolean) => (
-        <AboutIcon
-            class={tw`w-[2rem] h-[2rem]`}
-            style={{
-                fill: active ? PrimaryTextColor : SecondaryTextColor,
-            }}
-        />
-    ),
-    "AppList": (active: boolean) => (
-        <AppListIcon
-            class={tw`w-[2rem] h-[2rem]`}
-            style={{
-                stroke: active ? PrimaryTextColor : SecondaryTextColor,
-                fill: "none",
-            }}
-        />
-    ),
+export type NavigationModel = {
+    activeNav: NavTabID;
 };
 
-export function NavBar(props: Props) {
-    return (
-        <div
-            class={tw`bg-[${PrimaryBackgroundColor}] w-[5.75rem] h-full flex flex-col justify-between overflow-y-auto px-[1.12rem] py-[3rem]`}
-        >
-            <div>
-                <Avatar
-                    picture={props.profilePicURL}
-                    class={tw`w-[3.5rem] h-[3.5rem] m-auto mb-[2rem]`}
-                />
-                <ul>
-                    {navTabLayoutOrder.map((tab) => {
-                        const tabComponent = tabs[tab];
-                        return (
-                            <li
-                                class={tw`
-                                    w-[3.5rem] h-[3.5rem] cursor-pointer hover:bg-[${SecondaryBackgroundColor}] rounded-[1rem] mb-[0.5rem] ${CenterClass}
-                                    ${
-                                    props.activeNav === tab
-                                        ? `bg-[${SecondaryBackgroundColor}] hover:bg-[${SecondaryBackgroundColor}]`
-                                        : ""
-                                }
-                                `}
-                                onClick={() => {
-                                    props.emit({
-                                        type: "ChangeNavigation",
-                                        index: tab,
-                                    });
-                                }}
-                            >
-                                {tabComponent(props.activeNav === tab)}
-                            </li>
-                        );
-                    })}
-                </ul>
-            </div>
-            <button
-                onClick={() => {
-                    props.emit({
-                        type: "ChangeNavigation",
-                        index: "Setting",
-                    });
-                }}
-                class={tw`
-                        w-[3.5rem] h-[3.5rem] mx-auto hover:bg-[${SecondaryBackgroundColor}] rounded-[1rem] ${CenterClass} ${NoOutlineClass}
-                        ${props.activeNav === "Setting" ? `bg-[${SecondaryBackgroundColor}]` : ""}
-                        `}
-            >
-                <SettingIcon
-                    class={tw`w-[2rem] h-[2rem]`}
-                    style={{
-                        stroke: props.activeNav === "Setting" ? PrimaryTextColor : SecondaryTextColor,
-                        fill: "none",
-                    }}
-                />
-            </button>
-        </div>
-    );
-}
+type Props = {
+    publicKey: PublicKey;
+    profileGetter: ProfileGetter;
+    emit: emitFunc<NavigationUpdate>;
+    isMobile?: boolean;
+};
 
-export function MobileNavBar(props: Props) {
-    return (
-        <div
-            class={tw`bg-[${PrimaryBackgroundColor}] h-[5.75rem] w-full flex justify-between overflow-x-auto py-[1.12rem] px-[3rem]`}
-        >
-            <div
-                class={tw`flex`}
-                style={{
-                    minWidth: "fit-content",
-                }}
-            >
-                <ul class={tw`flex`}>
-                    {navTabLayoutOrder.map((tab) => {
-                        const tabComponent = tabs[tab];
-                        return (
-                            <li
-                                class={tw`
-                                w-[3.5rem] h-[3.5rem] cursor-pointer hover:bg-[${SecondaryBackgroundColor}] rounded-[1rem] mr-[0.5rem] ${CenterClass}
-                                ${
-                                    props.activeNav === tab
-                                        ? `bg-[${SecondaryBackgroundColor}] hover:bg-[${SecondaryBackgroundColor}]`
-                                        : ""
-                                }
-                            `}
-                                onClick={() => {
-                                    props.emit({
-                                        type: "ChangeNavigation",
-                                        index: tab,
-                                    });
-                                }}
+type State = {
+    activeIndex: number;
+};
+
+type NavTabID = "DM" | "Profile" | "About" | "AppList" | "Setting";
+type NavTab = {
+    icon: (active: boolean) => ComponentChild;
+    id: NavTabID;
+};
+
+export class NavBar extends Component<Props, State> {
+    styles = {
+        container:
+            tw`h-full w-16 flex flex-col gap-y-4 overflow-y-auto bg-[${PrimaryBackgroundColor}] py-8 items-center`,
+        icons: (active: boolean, fill?: boolean) => (
+            tw`w-6 h-6 ${fill ? "fill-current" : "stroke-current"} text-[${
+                active ? PrimaryTextColor : SecondaryTextColor
+            }]`
+        ),
+        avatar: tw`w-12 h-12`,
+        tabsContainer: tw`last:flex-1 last:flex last:items-end`,
+        tabs: (active: boolean) =>
+            tw`rounded-lg w-10 h-10 ${
+                active ? `bg-[${SecondaryBackgroundColor}]` : ""
+            } hover:bg-[${SecondaryBackgroundColor}] ${CenterClass} ${NoOutlineClass}`,
+        mobileContainer: tw`h-16 flex justify-evenly bg-[${PrimaryBackgroundColor}] items-center`,
+    };
+
+    myProfile: ProfileData | undefined;
+    tabs: NavTab[] = [
+        {
+            icon: (active: boolean) => <ChatIcon class={this.styles.icons(active)} />,
+            id: "DM",
+        },
+        {
+            icon: (active: boolean) => <UserIcon class={this.styles.icons(active)} />,
+            id: "Profile",
+        },
+        {
+            icon: (active: boolean) => <AboutIcon class={this.styles.icons(active, true)} />,
+            id: "About",
+        },
+        {
+            icon: (active: boolean) => <AppListIcon class={this.styles.icons(active, true)} />,
+            id: "AppList",
+        },
+        {
+            icon: (active: boolean) => <SettingIcon class={this.styles.icons(active)} />,
+            id: "Setting",
+        },
+    ];
+
+    componentWillMount() {
+        this.setState({
+            activeIndex: 0,
+        });
+        this.myProfile = this.props.profileGetter.getProfilesByPublicKey(this.props.publicKey)?.profile;
+    }
+
+    changeTab = (activeIndex: number) => {
+        if (activeIndex == this.state.activeIndex) {
+            return;
+        }
+
+        this.props.emit({
+            type: "ChangeNavigation",
+            id: this.tabs[activeIndex].id,
+        });
+
+        this.setState({
+            activeIndex: activeIndex,
+        });
+    };
+
+    render() {
+        return (
+            this.props.isMobile
+                ? (
+                    <div class={this.styles.mobileContainer}>
+                        {this.tabs.map((tab, index) => (
+                            <button
+                                onClick={() => this.changeTab(index)}
+                                class={this.styles.tabs(this.state.activeIndex == index)}
                             >
-                                {tabComponent(props.activeNav === tab)}
-                            </li>
-                        );
-                    })}
-                </ul>
-            </div>
-            <div
-                class={tw`w-20 h-full flex`}
-                style={{
-                    minWidth: "5rem",
-                }}
-            >
-                <button
-                    onClick={() => {
-                        props.emit({
-                            type: "ChangeNavigation",
-                            index: "Setting",
-                        });
-                    }}
-                    class={tw`
-                            w-[3.5rem] h-[3.5rem] mx-auto hover:bg-[${SecondaryBackgroundColor}] rounded-[1rem] ${CenterClass} ${NoOutlineClass}
-                            ${props.activeNav === "Setting" ? `bg-[${SecondaryBackgroundColor}]` : ""}
-                            `}
-                >
-                    <SettingIcon
-                        class={tw`w-[2rem] h-[2rem]`}
-                        style={{
-                            stroke: props.activeNav === "Setting" ? PrimaryTextColor : SecondaryTextColor,
-                            fill: "none",
-                        }}
-                    />
-                </button>
-            </div>
-        </div>
-    );
+                                {tab.icon(this.state.activeIndex == index)}
+                            </button>
+                        ))}
+                    </div>
+                )
+                : (
+                    <div class={this.styles.container}>
+                        <Avatar class={this.styles.avatar} picture={this.myProfile?.picture} />
+                        {this.tabs.map((tab, index) => (
+                            <div class={this.styles.tabsContainer}>
+                                <button
+                                    onClick={() => this.changeTab(index)}
+                                    class={this.styles.tabs(this.state.activeIndex == index)}
+                                >
+                                    {tab.icon(this.state.activeIndex == index)}
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                )
+        );
+    }
 }

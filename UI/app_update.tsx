@@ -255,7 +255,7 @@ export async function* UI_Interaction_Update(args: {
         // Navigation
         //
         else if (event.type == "ChangeNavigation") {
-            model.navigationModel.activeNav = event.index;
+            model.navigationModel.activeNav = event.id;
             model.rightPanelModel = {
                 show: false,
             };
