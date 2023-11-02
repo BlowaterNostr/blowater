@@ -507,14 +507,12 @@ export function AppComponent(props: {
 
                 <div class={tw`desktop:hidden`}>
                     {
-                        // <nav.MobileNavBar
-                        //     profilePicURL={model.myProfile?.picture}
-                        //     publicKey={myAccountCtx.publicKey}
-                        //     database={app.database}
-                        //     pool={props.pool}
-                        //     emit={app.eventBus.emit}
-                        //     {...model.navigationModel}
-                        // />
+                        <nav.NavBar
+                            publicKey={app.ctx.publicKey}
+                            profileGetter={app.database}
+                            emit={app.eventBus.emit}
+                            isMobile={true}
+                        />
                     }
                 </div>
             </div>

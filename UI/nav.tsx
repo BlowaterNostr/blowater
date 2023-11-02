@@ -33,6 +33,7 @@ type Props = {
     publicKey: PublicKey;
     profileGetter: ProfileGetter;
     emit: emitFunc<NavigationUpdate>;
+    isMobile?: boolean;
 };
 
 type State = {
@@ -59,7 +60,9 @@ export class NavBar extends Component<Props, State> {
             tw`rounded w-10 h-10 ${
                 active ? `bg-[${SecondaryBackgroundColor}]` : ""
             } hover:bg-[${SecondaryBackgroundColor}] ${CenterClass} ${NoOutlineClass}`,
+        mobileContainer: tw`h-16 flex justify-evenly bg-[${PrimaryBackgroundColor}] items-center`,
     };
+
     myProfile: ProfileData | undefined;
     tabs: NavTab[] = [
         {
@@ -108,17 +111,32 @@ export class NavBar extends Component<Props, State> {
 
     render() {
         return (
-            <div class={this.styles.container}>
-                <Avatar class={this.styles.avatar} picture={this.myProfile?.picture} />
-                {this.tabs.map((tab, index) => (
-                    <button
-                        onClick={() => this.changeTab(index)}
-                        class={this.styles.tabs(this.state.activeIndex == index)}
-                    >
-                        {tab.icon(this.state.activeIndex == index)}
-                    </button>
-                ))}
-            </div>
+            this.props.isMobile
+                ? (
+                    <div class={this.styles.mobileContainer}>
+                        {this.tabs.map((tab, index) => (
+                            <button
+                                onClick={() => this.changeTab(index)}
+                                class={this.styles.tabs(this.state.activeIndex == index)}
+                            >
+                                {tab.icon(this.state.activeIndex == index)}
+                            </button>
+                        ))}
+                    </div>
+                )
+                : (
+                    <div class={this.styles.container}>
+                        <Avatar class={this.styles.avatar} picture={this.myProfile?.picture} />
+                        {this.tabs.map((tab, index) => (
+                            <button
+                                onClick={() => this.changeTab(index)}
+                                class={this.styles.tabs(this.state.activeIndex == index)}
+                            >
+                                {tab.icon(this.state.activeIndex == index)}
+                            </button>
+                        ))}
+                    </div>
+                )
         );
     }
 }
