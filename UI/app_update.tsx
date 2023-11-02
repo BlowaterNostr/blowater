@@ -255,6 +255,7 @@ export async function* UI_Interaction_Update(args: {
         // Navigation
         //
         else if (event.type == "ChangeNavigation") {
+            model.navigationModel.activeNav = event.id;
             model.rightPanelModel = {
                 show: false,
             };
@@ -280,6 +281,16 @@ export async function* UI_Interaction_Update(args: {
             }
         } else if (event.type == "ToggleRightPanel") {
             model.rightPanelModel.show = event.show;
+        } else if (event.type == "ViewThread") {
+            if (model.navigationModel.activeNav == "DM") {
+                if (model.dm.currentEditor) {
+                    model.dm.focusedContent.set(
+                        model.dm.currentEditor.pubkey.hex,
+                        event.root,
+                    );
+                }
+            }
+            model.rightPanelModel.show = true;
         } else if (event.type == "ViewUserDetail") {
             if (model.dm.currentEditor) {
                 const currentFocus = model.dm.focusedContent.get(model.dm.currentEditor.pubkey.hex);
