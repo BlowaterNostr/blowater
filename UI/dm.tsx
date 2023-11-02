@@ -10,7 +10,7 @@ import { DirectMessageGetter, GroupMessageGetter, UI_Interaction_Event } from ".
 import { NostrAccountContext, NostrEvent } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { ProfileSyncer } from "../features/profile.ts";
-import { getFocusedContent } from "./app.tsx";
+// import { getFocusedContent } from "./app.tsx";
 import { EventSyncer } from "./event_syncer.ts";
 import { ButtonGroup } from "./components/button-group.tsx";
 import { PrimaryTextColor } from "./style/colors.ts";
@@ -65,16 +65,16 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
             gmGetter: props.gmGetter,
         });
 
-        const focusedContent = getFocusedContent(
-            props.focusedContent.get(props.currentEditor.pubkey.hex),
-            props.profileGetter,
-        );
+        // const focusedContent = getFocusedContent(
+        //     props.focusedContent.get(props.currentEditor.pubkey.hex),
+        //     props.profileGetter,
+        // );
         messagePanel = new MessagePanel({
             myPublicKey: props.ctx.publicKey,
             messages: convoMsgs,
             rightPanelModel: props.rightPanelModel,
             emit: props.bus.emit,
-            focusedContent: focusedContent,
+            focusedContent: undefined,
             profilesSyncer: props.profilesSyncer,
             eventSyncer: props.eventSyncer,
             isGroupChat: props.isGroupMessage,

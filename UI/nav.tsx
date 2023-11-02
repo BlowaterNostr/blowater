@@ -1,13 +1,12 @@
 /** @jsx h */
 import { ComponentChild, h } from "https://esm.sh/preact@10.17.1";
 import { tw } from "https://esm.sh/twind@0.16.16";
-import { AppListIcon } from "./icons/mod.tsx";
-
 import { Avatar } from "./components/avatar.tsx";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import {
     PrimaryBackgroundColor,
     PrimaryTextColor,
+    SecondaryBackgroundColor,
     SecondaryTextColor,
 } from "./style/colors.ts";
 import { ChatIcon } from "./icons2/chat-icon.tsx";
@@ -17,71 +16,104 @@ import { Component } from "https://esm.sh/preact@10.17.1";
 import { ProfileGetter } from "./search.tsx";
 import { ProfileData } from "../features/profile.ts";
 import { AboutIcon } from "./icons2/about-icon.tsx";
+import { AppListIcon } from "./icons2/app-list-icon.tsx";
+import { CenterClass, NoOutlineClass } from "./components/tw.ts";
+import { emitFunc } from "../event-bus.ts";
+
+export type NavigationUpdate = {
+    type: "ChangeNavigation";
+    id: NavTabID;
+};
 
 type Props = {
     publicKey: PublicKey;
     profileGetter: ProfileGetter;
+    emit: emitFunc<NavigationUpdate>;
 };
 
 type State = {
     activeIndex: number;
-}
-
+};
 
 type NavTabID = "DM" | "Profile" | "About" | "AppList" | "Setting";
 type NavTab = {
     icon: (active: boolean) => ComponentChild;
     id: NavTabID;
-}
+};
 
 export class NavBar extends Component<Props, State> {
     styles = {
         container:
-            tw`h-full w-16 flex flex-col justify-between overflow-y-auto bg-[${PrimaryBackgroundColor}]`,
-        icons: (active: boolean) => (
-            tw`stroke-current text-[${active ? PrimaryTextColor : SecondaryTextColor}]`
-        )
+            tw`h-full w-16 flex flex-col gap-y-4 overflow-y-auto bg-[${PrimaryBackgroundColor}] py-8 items-center`,
+        icons: (active: boolean, fill?: boolean) => (
+            tw`w-6 h-6 ${fill ? "fill-current" : "stroke-current"} text-[${
+                active ? PrimaryTextColor : SecondaryTextColor
+            }]`
+        ),
+        avatar: tw`w-12 h-12`,
+        tabs: (active: boolean) =>
+            tw`rounded w-10 h-10 ${
+                active ? `bg-[${SecondaryBackgroundColor}]` : ""
+            } hover:bg-[${SecondaryBackgroundColor}] ${CenterClass} ${NoOutlineClass}`,
     };
     myProfile: ProfileData | undefined;
     tabs: NavTab[] = [
         {
-            icon: (active: boolean) => <ChatIcon class={this.styles.icons(active)}/>,
-            id: "DM"
+            icon: (active: boolean) => <ChatIcon class={this.styles.icons(active)} />,
+            id: "DM",
         },
         {
-            icon: (active: boolean) => <UserIcon class={this.styles.icons(active)}/>,
-            id: "Profile"
+            icon: (active: boolean) => <UserIcon class={this.styles.icons(active)} />,
+            id: "Profile",
         },
         {
-            icon: (active: boolean) => <AboutIcon class={this.styles.icons(active)}/>,
-            id: "About"
+            icon: (active: boolean) => <AboutIcon class={this.styles.icons(active, true)} />,
+            id: "About",
         },
         {
-            icon: (active: boolean) => <AppListIcon class={this.styles.icons(active)}/>,
-            id: "AppList"
+            icon: (active: boolean) => <AppListIcon class={this.styles.icons(active, true)} />,
+            id: "AppList",
         },
         {
-            icon: (active: boolean) => <SettingIcon class={this.styles.icons(active)}/>,
-            id: "Setting"
-        }
+            icon: (active: boolean) => <SettingIcon class={this.styles.icons(active)} />,
+            id: "Setting",
+        },
     ];
 
     componentWillMount() {
         this.setState({
-            activeIndex: 0
+            activeIndex: 0,
         });
         this.myProfile = this.props.profileGetter.getProfilesByPublicKey(this.props.publicKey)?.profile;
     }
 
+    changeTab = (activeIndex: number) => {
+        if (activeIndex == this.state.activeIndex) {
+            return;
+        }
+
+        this.props.emit({
+            type: "ChangeNavigation",
+            id: this.tabs[activeIndex].id,
+        });
+
+        this.setState({
+            activeIndex: activeIndex,
+        });
+    };
+
     render() {
         return (
             <div class={this.styles.container}>
-                <Avatar picture={this.myProfile?.picture} />
-                {
-                    this.tabs.map((tab, index) => (
-                        tab.icon(this.state.activeIndex == index)
-                    ))
-                }
+                <Avatar class={this.styles.avatar} picture={this.myProfile?.picture} />
+                {this.tabs.map((tab, index) => (
+                    <button
+                        onClick={() => this.changeTab(index)}
+                        class={this.styles.tabs(this.state.activeIndex == index)}
+                    >
+                        {tab.icon(this.state.activeIndex == index)}
+                    </button>
+                ))}
             </div>
         );
     }
@@ -94,11 +126,6 @@ export class NavBar extends Component<Props, State> {
 //     pool: ConnectionPool;
 //     emit: emitFunc<NavigationUpdate>;
 // } & NavigationModel;
-
-// export type NavigationUpdate = {
-//     type: "ChangeNavigation";
-//     id: NavTabID;
-// };
 
 // const navTabLayoutOrder: ActiveTab[] = ["DM", /*"Group",*/ "Profile", "About", "AppList"];
 // const tabs = {
