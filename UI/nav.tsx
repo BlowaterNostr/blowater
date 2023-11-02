@@ -56,6 +56,7 @@ export class NavBar extends Component<Props, State> {
             }]`
         ),
         avatar: tw`w-12 h-12`,
+        tabsContainer: tw`last:flex-1 last:flex last:items-end`,
         tabs: (active: boolean) =>
             tw`rounded w-10 h-10 ${
                 active ? `bg-[${SecondaryBackgroundColor}]` : ""
@@ -128,12 +129,14 @@ export class NavBar extends Component<Props, State> {
                     <div class={this.styles.container}>
                         <Avatar class={this.styles.avatar} picture={this.myProfile?.picture} />
                         {this.tabs.map((tab, index) => (
-                            <button
-                                onClick={() => this.changeTab(index)}
-                                class={this.styles.tabs(this.state.activeIndex == index)}
-                            >
-                                {tab.icon(this.state.activeIndex == index)}
-                            </button>
+                            <div class={this.styles.tabsContainer}>
+                                <button
+                                    onClick={() => this.changeTab(index)}
+                                    class={this.styles.tabs(this.state.activeIndex == index)}
+                                >
+                                    {tab.icon(this.state.activeIndex == index)}
+                                </button>
+                            </div>
                         ))}
                     </div>
                 )
