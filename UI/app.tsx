@@ -4,7 +4,7 @@ import * as dm from "../features/dm.ts";
 import { DirectMessageContainer } from "./dm.tsx";
 import { tw } from "https://esm.sh/twind@0.16.16";
 import { EditProfile } from "./edit-profile.tsx";
-// import * as nav from "./nav.tsx";
+import * as nav from "./nav.tsx";
 import { EventBus } from "../event-bus.ts";
 import { Setting } from "./setting.tsx";
 import { Database_Contextual_View } from "../database.ts";
@@ -412,136 +412,133 @@ export function AppComponent(props: {
     const myAccountCtx = model.app.ctx;
 
     let appList;
-    // if (model.navigationModel.activeNav == "AppList") {
-    //     appList = (
-    //         <div
-    //             class={tw`flex-1 overflow-hidden overflow-y-auto bg-[#313338]`}
-    //         >
-    //             <AppList />
-    //         </div>
-    //     );
-    // }
+    if (model.navigationModel.activeNav == "AppList") {
+        appList = (
+            <div
+                class={tw`flex-1 overflow-hidden overflow-y-auto bg-[#313338]`}
+            >
+                <AppList />
+            </div>
+        );
+    }
 
     let dmVNode;
     let aboutNode;
-    //     if (
-    //         model.navigationModel.activeNav == "DM" ||
-    //         model.navigationModel.activeNav == "About"
-    //     ) {
-    //         if (model.navigationModel.activeNav == "DM") {
-    //             dmVNode = (
-    //                 <div
-    //                     class={tw`flex-1 overflow-hidden`}
-    //                 >
-    //                     {DirectMessageContainer({
-    //                         ...model.dm,
-    //                         rightPanelModel: model.rightPanelModel,
-    //                         bus: app.eventBus,
-    //                         ctx: myAccountCtx,
-    //                         dmGetter: app.dmController,
-    //                         profileGetter: app.database,
-    //                         pool: props.pool,
-    //                         conversationLists: app.conversationLists,
-    //                         profilesSyncer: app.profileSyncer,
-    //                         eventSyncer: app.eventSyncer,
-    //                         pinListGetter: app.otherConfig,
-    //                         groupChatController: app.groupChatController,
-    //                         newMessageChecker: app.conversationLists,
-    //                         gmGetter: app.groupChatController,
-    //                     })}
-    //                 </div>
-    //             );
-    //         }
+    if (
+        model.navigationModel.activeNav == "DM" ||
+        model.navigationModel.activeNav == "About"
+    ) {
+        if (model.navigationModel.activeNav == "DM") {
+            dmVNode = (
+                <div
+                    class={tw`flex-1 overflow-hidden`}
+                >
+                    {DirectMessageContainer({
+                        ...model.dm,
+                        rightPanelModel: model.rightPanelModel,
+                        bus: app.eventBus,
+                        ctx: myAccountCtx,
+                        dmGetter: app.dmController,
+                        profileGetter: app.database,
+                        pool: props.pool,
+                        conversationLists: app.conversationLists,
+                        profilesSyncer: app.profileSyncer,
+                        eventSyncer: app.eventSyncer,
+                        pinListGetter: app.otherConfig,
+                        groupChatController: app.groupChatController,
+                        newMessageChecker: app.conversationLists,
+                        gmGetter: app.groupChatController,
+                    })}
+                </div>
+            );
+        }
 
-    //         if (model.navigationModel.activeNav == "About") {
-    //             aboutNode = About();
-    //         }
-    //     }
+        if (model.navigationModel.activeNav == "About") {
+            aboutNode = About();
+        }
+    }
 
-    //     console.debug("AppComponent:2", Date.now() - t);
+    console.debug("AppComponent:2", Date.now() - t);
 
-    //     const final = (
-    //         <div
-    //             class={tw`font-roboto flex flex-col h-screen w-screen overflow-hidden`}
-    //         >
-    //             <div class={tw`w-full h-full flex flex-col`}>
-    //                 <div class={tw`w-full flex-1 flex overflow-hidden`}>
-    //                     <div class={tw`mobile:hidden`}>
-    //                         {nav.NavBar({
-    //                             profilePicURL: model.myProfile?.picture,
-    //                             publicKey: myAccountCtx.publicKey,
-    //                             database: app.database,
-    //                             pool: props.pool,
-    //                             emit: app.eventBus.emit,
-    //                             ...model.navigationModel,
-    //                         })}
-    //                     </div>
+    const final = (
+        <div
+            class={tw`font-roboto flex flex-col h-screen w-screen overflow-hidden`}
+        >
+            <div class={tw`w-full h-full flex flex-col`}>
+                <div class={tw`w-full flex-1 flex overflow-hidden`}>
+                    <div class={tw`mobile:hidden`}>
+                        <nav.NavBar
+                            publicKey={app.ctx.publicKey}
+                            profileGetter={app.database}
+                            emit={app.eventBus.emit}
+                        />
+                    </div>
 
-    //                     <div
-    //                         class={tw`h-full px-[3rem] bg-[${SecondaryBackgroundColor}] flex-1 overflow-auto${
-    //                             model.navigationModel.activeNav == "Profile" ? " block" : " hidden"
-    //                         }`}
-    //                     >
-    //                         <div
-    //                             class={tw`max-w-[35rem] h-full m-auto`}
-    //                         >
-    //                             <EditProfile
-    //                                 ctx={model.app.ctx}
-    //                                 profileGetter={app.database}
-    //                                 emit={props.eventBus.emit}
-    //                             />
-    //                         </div>
-    //                     </div>
-    //                     {dmVNode}
-    //                     {aboutNode}
-    //                     {Setting({
-    //                         show: model.navigationModel.activeNav == "Setting",
-    //                         logout: app.logout,
-    //                         relayConfig: app.relayConfig,
-    //                         myAccountContext: myAccountCtx,
-    //                         relayPool: props.pool,
-    //                         emit: props.eventBus.emit,
-    //                     })}
-    //                     {appList}
-    //                     <Popover
-    //                         inputChan={props.popOverInputChan}
-    //                     />
-    //                 </div>
+                    <div
+                        class={tw`h-full px-[3rem] bg-[${SecondaryBackgroundColor}] flex-1 overflow-auto${
+                            model.navigationModel.activeNav == "Profile" ? " block" : " hidden"
+                        }`}
+                    >
+                        <div
+                            class={tw`max-w-[35rem] h-full m-auto`}
+                        >
+                            <EditProfile
+                                ctx={model.app.ctx}
+                                profileGetter={app.database}
+                                emit={props.eventBus.emit}
+                            />
+                        </div>
+                    </div>
+                    {dmVNode}
+                    {aboutNode}
+                    {Setting({
+                        show: model.navigationModel.activeNav == "Setting",
+                        logout: app.logout,
+                        relayConfig: app.relayConfig,
+                        myAccountContext: myAccountCtx,
+                        relayPool: props.pool,
+                        emit: props.eventBus.emit,
+                    })}
+                    {appList}
+                    <Popover
+                        inputChan={props.popOverInputChan}
+                    />
+                </div>
 
-    //                 <div class={tw`desktop:hidden`}>
-    //                     {
-    //                         <nav.MobileNavBar
-    //                             profilePicURL={model.myProfile?.picture}
-    //                             publicKey={myAccountCtx.publicKey}
-    //                             database={app.database}
-    //                             pool={props.pool}
-    //                             emit={app.eventBus.emit}
-    //                             {...model.navigationModel}
-    //                         />
-    //                     }
-    //                 </div>
-    //             </div>
-    //         </div>
-    //     );
+                <div class={tw`desktop:hidden`}>
+                    {
+                        // <nav.MobileNavBar
+                        //     profilePicURL={model.myProfile?.picture}
+                        //     publicKey={myAccountCtx.publicKey}
+                        //     database={app.database}
+                        //     pool={props.pool}
+                        //     emit={app.eventBus.emit}
+                        //     {...model.navigationModel}
+                        // />
+                    }
+                </div>
+            </div>
+        </div>
+    );
 
-    //     console.debug("AppComponent:end", Date.now() - t);
-    //     return final;
-    // }
+    console.debug("AppComponent:end", Date.now() - t);
+    return final;
+}
 
-    // // todo: move to somewhere else
-    // export function getFocusedContent(
-    //     focusedContent: PublicKey | NostrEvent | undefined,
-    //     profileGetter: ProfileGetter,
-    // ) {
-    //     if (focusedContent == undefined) {
-    //         return;
-    //     }
-    //     if (focusedContent instanceof PublicKey) {
-    //         const profileData = profileGetter.getProfilesByPublicKey(focusedContent)?.profile;
-    //         return {
-    //             type: "ProfileData" as "ProfileData",
-    //             data: profileData,
-    //             pubkey: focusedContent,
-    //         };
-    //     }
+// todo: move to somewhere else
+export function getFocusedContent(
+    focusedContent: PublicKey | NostrEvent | undefined,
+    profileGetter: ProfileGetter,
+) {
+    if (focusedContent == undefined) {
+        return;
+    }
+    if (focusedContent instanceof PublicKey) {
+        const profileData = profileGetter.getProfilesByPublicKey(focusedContent)?.profile;
+        return {
+            type: "ProfileData" as "ProfileData",
+            data: profileData,
+            pubkey: focusedContent,
+        };
+    }
 }

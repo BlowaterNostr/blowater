@@ -25,6 +25,10 @@ export type NavigationUpdate = {
     id: NavTabID;
 };
 
+export type NavigationModel = {
+    activeNav: NavTabID;
+};
+
 type Props = {
     publicKey: PublicKey;
     profileGetter: ProfileGetter;

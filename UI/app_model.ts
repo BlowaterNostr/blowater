@@ -1,3 +1,4 @@
+import { NavigationModel } from "./nav.tsx";
 import { SearchInitModel, SearchModel } from "./search_model.ts";
 import { ProfileData } from "../features/profile.ts";
 import { RightPanelModel } from "./message-panel.tsx";
@@ -22,6 +23,7 @@ export type Model = {
     };
 
     // UI
+    navigationModel: NavigationModel;
     rightPanelModel: RightPanelModel;
 
     // sign in
@@ -43,6 +45,9 @@ export function initialModel(): Model {
         newProfileField: {
             key: "",
             value: "",
+        },
+        navigationModel: {
+            activeNav: "DM",
         },
         rightPanelModel: {
             show: false,
