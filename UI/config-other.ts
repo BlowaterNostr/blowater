@@ -1,7 +1,7 @@
 import * as Automerge from "https://deno.land/x/automerge@2.1.0-alpha.12/index.ts";
 import { prepareParameterizedEvent } from "../lib/nostr-ts/event.ts";
 import { NostrAccountContext, NostrEvent, NostrKind, verifyEvent } from "../lib/nostr-ts/nostr.ts";
-import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
+import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
 import { PinListGetter } from "./conversation-list.tsx";
 import * as secp256k1 from "../lib/nostr-ts/vendor/secp256k1.js";
 import { parseJSON } from "../features/profile.ts";

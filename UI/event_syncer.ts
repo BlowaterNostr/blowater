@@ -1,4 +1,4 @@
-import { ConnectionPool, SubscriptionAlreadyExist } from "../lib/nostr-ts/relay.ts";
+import { ConnectionPool, SubscriptionAlreadyExist } from "../lib/nostr-ts/relay-pool.ts";
 import { Database_Contextual_View } from "../database.ts";
 import { NostrFilters, NostrKind, RelayResponse_REQ_Message, verifyEvent } from "../lib/nostr-ts/nostr.ts";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";

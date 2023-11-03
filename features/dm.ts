@@ -1,6 +1,6 @@
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { decryptNostrEvent, NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
-import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
+import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
 import { compare, getTags, Parsed_Event, prepareNostrImageEvent, Tag } from "../nostr.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { prepareEncryptedNostrEvent } from "../lib/nostr-ts/event.ts";

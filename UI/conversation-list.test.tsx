@@ -10,7 +10,7 @@ import { initialModel } from "./app_model.ts";
 import { DM_List } from "./conversation-list.ts";
 import { NewIndexedDB } from "./dexie-db.ts";
 import { ProfileSyncer } from "../features/profile.ts";
-import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
+import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
 import { OtherConfig } from "./config-other.ts";
 
 const ctx = InMemoryAccountContext.New(PrivateKey.Generate());

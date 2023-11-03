@@ -15,7 +15,6 @@ import { AppEventBus, Database_Update, UI_Interaction_Event, UI_Interaction_Upda
 import * as time from "../time.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
-import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { getCurrentSignInCtx, setSignInState, SignIn } from "./signIn.tsx";
 import { AppList } from "./app-list.tsx";
 import { SecondaryBackgroundColor } from "./style/colors.ts";
@@ -31,6 +30,7 @@ import { OtherConfig } from "./config-other.ts";
 import { ProfileGetter } from "./search.tsx";
 import { fromEvents } from "../time.ts";
 import { DirectedMessageController } from "../features/dm.ts";
+import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");

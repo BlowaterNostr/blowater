@@ -14,7 +14,7 @@ import {
     NostrEvent,
     NostrKind,
 } from "../lib/nostr-ts/nostr.ts";
-import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
+import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
 import { getTags, Parsed_Event, Tag } from "../nostr.ts";
 import { parseJSON } from "./profile.ts";
 

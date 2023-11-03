@@ -8,7 +8,7 @@ import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
 import { CenterClass, IconButtonClass } from "./components/tw.ts";
 import { DirectMessageGetter, GroupMessageGetter, UI_Interaction_Event } from "./app_update.tsx";
 import { NostrAccountContext, NostrEvent } from "../lib/nostr-ts/nostr.ts";
-import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
+import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
 import { ProfileSyncer } from "../features/profile.ts";
 import { getFocusedContent } from "./app.tsx";
 import { EventSyncer } from "./event_syncer.ts";

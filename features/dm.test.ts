@@ -4,7 +4,7 @@ import { Database_Contextual_View } from "../database.ts";
 import { PrivateKey } from "../lib/nostr-ts/key.ts";
 import { InMemoryAccountContext } from "../lib/nostr-ts/nostr.ts";
 import { relays } from "../lib/nostr-ts/relay-list.test.ts";
-import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
+import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
 import { getAllEncryptedMessagesOf } from "./dm.ts";
 
 const ctx = InMemoryAccountContext.New(

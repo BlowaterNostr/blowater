@@ -7,7 +7,7 @@ import { testEventBus } from "./_setup.test.ts";
 import { prepareEncryptedNostrEvent } from "../lib/nostr-ts/event.ts";
 import { DM_List } from "./conversation-list.ts";
 import { EventSyncer } from "./event_syncer.ts";
-import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
+import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
 import { ProfileSyncer } from "../features/profile.ts";
 import { handle_SendMessage } from "./app_update.tsx";
 import { LamportTime } from "../time.ts";
