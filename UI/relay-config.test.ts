@@ -1,6 +1,6 @@
 import { PrivateKey } from "../lib/nostr-ts/key.ts";
 import { InMemoryAccountContext } from "../lib/nostr-ts/nostr.ts";
-import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
+import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
 import { RelayConfig } from "./relay-config.ts";
 import { assertEquals, assertNotInstanceOf, fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 

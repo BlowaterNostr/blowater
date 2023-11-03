@@ -1,10 +1,10 @@
 import { Database_Contextual_View } from "../database.ts";
-import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
 import { NostrAccountContext, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { Parsed_Event, Profile_Nostr_Event } from "../nostr.ts";
 import { prepareNormalNostrEvent } from "../lib/nostr-ts/event.ts";
 import { semaphore } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { ProfileAdder } from "./gm.ts";
+import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
 
 export class ProfileSyncer implements ProfileAdder {
     readonly userSet = new Set<string>();

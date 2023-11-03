@@ -38,7 +38,7 @@ import { CreateGroup, CreateGroupChat, StartCreateGroupChat } from "./create-gro
 import { prepareNormalNostrEvent } from "../lib/nostr-ts/event.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
-import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
+import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
 import { OtherConfig } from "./config-other.ts";
 import { EditGroup, StartEditGroupChatProfile } from "./edit-group.tsx";
 import { GroupMessageController } from "../features/gm.ts";

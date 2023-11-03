@@ -1,6 +1,6 @@
 import { DB } from "https://deno.land/x/sqlite@v3.7.2/mod.ts";
 import { NostrKind } from "../lib/nostr-ts/nostr.ts";
-import { ConnectionPool } from "../lib/nostr-ts/relay.ts";
+import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
 
 // Open a database
 const db = new DB("stats.sqlite");
@@ -29,7 +29,7 @@ for (const url of urls) {
 }
 
 const r = await pool.newSub("stats", {
-    kinds: [NostrKind.CustomAppData],
+    kinds: [NostrKind.Custom_App_Data],
 });
 if (r instanceof Error) {
     throw r;
