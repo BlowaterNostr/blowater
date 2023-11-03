@@ -1,7 +1,5 @@
-import { ConnectionPool, SubscriptionAlreadyExist } from "../lib/nostr-ts/relay-pool.ts";
+import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
 import { Database_Contextual_View } from "../database.ts";
-import { NostrFilters, NostrKind, RelayResponse_REQ_Message, verifyEvent } from "../lib/nostr-ts/nostr.ts";
-import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { NoteID } from "../lib/nostr-ts/nip19.ts";
 
 export class EventSyncer {
