@@ -20,20 +20,22 @@ export class RelayConfig {
     // This is a state based CRDT based on Vector Clock
     // see https://www.youtube.com/watch?v=OOlnp2bZVRs
     private config: Automerge.next.Doc<Config> = Automerge.init();
-    private constructor() {}
+    private constructor(
+        private readonly pool: ConnectionPool
+    ) {}
 
-    static Empty() {
-        return new RelayConfig();
+    static Empty(pool: ConnectionPool) {
+        return new RelayConfig(pool);
     }
 
     // The the relay config of this account from local storage
-    static FromLocalStorage(ctx: NostrAccountContext) {
+    static FromLocalStorage(ctx: NostrAccountContext, pool: ConnectionPool) {
         const encodedConfigStr = localStorage.getItem(this.localStorageKey(ctx));
         if (encodedConfigStr == null) {
-            return RelayConfig.Empty();
+            return RelayConfig.Empty(pool);
         }
         const config = Automerge.load<Config>(secp256k1.utils.hexToBytes(encodedConfigStr));
-        const relayConfig = new RelayConfig();
+        const relayConfig = new RelayConfig(pool);
         relayConfig.config = config;
         return relayConfig;
     }
@@ -44,7 +46,7 @@ export class RelayConfig {
     /////////////////////////////
     // Nostr Encoding Decoding //
     /////////////////////////////
-    static async FromNostrEvent(event: NostrEvent, ctx: NostrAccountContext) {
+    static async FromNostrEvent(event: NostrEvent, ctx: NostrAccountContext, pool: ConnectionPool) {
         const decrypted = await ctx.decrypt(ctx.publicKey.hex, event.content);
         if (decrypted instanceof Error) {
             return decrypted;
@@ -56,7 +58,7 @@ export class RelayConfig {
         if (json instanceof Error) {
             return json;
         }
-        const relayConfig = new RelayConfig();
+        const relayConfig = new RelayConfig(pool);
         relayConfig.merge(secp256k1.utils.hexToBytes(json.data));
         return relayConfig;
     }

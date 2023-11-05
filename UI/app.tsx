@@ -125,7 +125,7 @@ export class App {
     }) {
         const lamport = fromEvents(args.database.events);
         const eventSyncer = new EventSyncer(args.pool, args.database);
-        const relayConfig = RelayConfig.FromLocalStorage(args.ctx);
+        const relayConfig = RelayConfig.FromLocalStorage(args.ctx, args.pool);
         if (relayConfig.getRelayURLs().size == 0) {
             for (const url of defaultRelays) {
                 relayConfig.add(url);
