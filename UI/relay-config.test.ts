@@ -73,7 +73,7 @@ Deno.test("Relay Config", async () => {
 
             // add one relay to the pool directly
             assertNotInstanceOf(pool.addRelayURL("wss://relay.nostr.wirednet.jp"), Error);
-            assertEquals(pool.getRelays().map((r) => r.url), [
+            assertEquals(Array.from(pool.getRelays()).map((r) => r.url), [
                 "wss://relay.damus.io",
                 "wss://relay.nostr.wirednet.jp",
             ]);
@@ -85,7 +85,7 @@ Deno.test("Relay Config", async () => {
             if (err2 != undefined) {
                 assertEquals(err2.message, "wss://somewhere/ is in state Closed, code 0");
             }
-            assertEquals(pool.getRelays().map((r) => r.url), ["wss://relay.damus.io"]); // wirednet is removed
+            assertEquals(Array.from(pool.getRelays()).map((r) => r.url), ["wss://relay.damus.io"]); // wirednet is removed
         }
         await pool.close();
     }

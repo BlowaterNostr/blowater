@@ -247,19 +247,6 @@ export class App {
                 this.relayConfig.saveToLocalStorage(this.ctx);
             }
         })();
-        (async () => {
-            for (;;) {
-                await sleep(3000);
-                const urls = this.pool.getClosedRelaysThatShouldBeReconnected();
-                for (const url of urls) {
-                    await this.pool.removeRelay(url);
-                    const err = await this.pool.addRelayURL(url);
-                    if (err instanceof Error) {
-                        console.error(err);
-                    }
-                }
-            }
-        })();
 
         this.otherConfig.syncFromRelay(this.pool, this.ctx);
 
