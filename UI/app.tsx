@@ -24,7 +24,7 @@ import { DexieDatabase } from "./dexie-db.ts";
 import { About } from "./about.tsx";
 import { ProfileSyncer } from "../features/profile.ts";
 import { Popover, PopOverInputChannel } from "./components/popover.tsx";
-import { Channel, sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { group_GM_events, GroupChatSyncer, GroupMessageController } from "../features/gm.ts";
 import { OtherConfig } from "./config-other.ts";
 import { ProfileGetter } from "./search.tsx";
@@ -125,7 +125,7 @@ export class App {
     }) {
         const lamport = fromEvents(args.database.events);
         const eventSyncer = new EventSyncer(args.pool, args.database);
-        const relayConfig = RelayConfig.FromLocalStorage(args.ctx, args.pool);
+        const relayConfig = RelayConfig.FromLocalStorage(args.ctx);
         if (relayConfig.getRelayURLs().size == 0) {
             for (const url of defaultRelays) {
                 relayConfig.add(url);

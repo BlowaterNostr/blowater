@@ -27,7 +27,7 @@ export class RelayConfig {
     }
 
     // The the relay config of this account from local storage
-    static FromLocalStorage(ctx: NostrAccountContext, pool: ConnectionPool) {
+    static FromLocalStorage(ctx: NostrAccountContext) {
         const encodedConfigStr = localStorage.getItem(this.localStorageKey(ctx));
         if (encodedConfigStr == null) {
             return RelayConfig.Empty();

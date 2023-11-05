@@ -69,14 +69,10 @@ Deno.test("Relay Config", async () => {
             // add one relay to the pool directly
             assertNotInstanceOf(pool.addRelayURL("wss://relay.nostr.wirednet.jp"), Error);
             assertEquals(Array.from(pool.getRelays()).map((r) => r.url), [
-                "wss://relay.damus.io",
                 "wss://relay.nostr.wirednet.jp",
             ]);
 
             assertEquals(relayConfig.getRelayURLs(), new Set(["wss://relay.damus.io", "wss://somewhere"]));
-
-            // will remove urls that's in the pool but not in the config
-            assertEquals(Array.from(pool.getRelays()).map((r) => r.url), ["wss://relay.damus.io"]); // wirednet is removed
         }
         await pool.close();
     }
