@@ -112,19 +112,6 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
         relayStatus: [],
     };
 
-    async componentDidMount() {
-        console.log(`${RelaySetting.name}::componentDidMount`);
-        const err = await this.props.relayConfig.syncWithPool(this.props.relayPool);
-        if (err != undefined) {
-            this.setState({
-                error: err.message,
-            });
-        }
-        this.setState({
-            relayStatus: this.computeRelayStatus(this.props),
-        });
-    }
-
     computeRelayStatus(props: RelaySettingProp) {
         const _relayStatus: { url: string; status: keyof typeof colors }[] = [];
         for (const url of props.relayConfig.getRelayURLs()) {
@@ -154,15 +141,6 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
                 this.setState({
                     addRelayInput: "",
                 });
-                this.setState({
-                    relayStatus: this.computeRelayStatus(props),
-                });
-                const err = await props.relayConfig.syncWithPool(props.relayPool);
-                if (err != undefined) {
-                    this.setState({
-                        error: err.message,
-                    });
-                }
                 this.setState({
                     relayStatus: this.computeRelayStatus(props),
                 });
@@ -224,15 +202,6 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
                                     class={tw`w-[2rem] h-[2rem] rounded-lg bg-transparent hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
                                     onClick={async () => {
                                         props.relayConfig.remove(r.url);
-                                        this.setState({
-                                            relayStatus: this.computeRelayStatus(props),
-                                        });
-                                        const err = await props.relayConfig.syncWithPool(props.relayPool);
-                                        if (err != undefined) {
-                                            this.setState({
-                                                error: err.message,
-                                            });
-                                        }
                                         this.setState({
                                             relayStatus: this.computeRelayStatus(props),
                                         });

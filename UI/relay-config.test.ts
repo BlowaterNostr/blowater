@@ -66,11 +66,6 @@ Deno.test("Relay Config", async () => {
     { // synchronize with connection pool
         const pool = new ConnectionPool();
         {
-            const err = await relayConfig.syncWithPool(pool);
-            if (err != undefined) {
-                assertEquals(err.message, "wss://somewhere/ is in state Closed, code 0");
-            }
-
             // add one relay to the pool directly
             assertNotInstanceOf(pool.addRelayURL("wss://relay.nostr.wirednet.jp"), Error);
             assertEquals(Array.from(pool.getRelays()).map((r) => r.url), [
@@ -81,10 +76,6 @@ Deno.test("Relay Config", async () => {
             assertEquals(relayConfig.getRelayURLs(), new Set(["wss://relay.damus.io", "wss://somewhere"]));
 
             // will remove urls that's in the pool but not in the config
-            const err2 = await relayConfig.syncWithPool(pool);
-            if (err2 != undefined) {
-                assertEquals(err2.message, "wss://somewhere/ is in state Closed, code 0");
-            }
             assertEquals(Array.from(pool.getRelays()).map((r) => r.url), ["wss://relay.damus.io"]); // wirednet is removed
         }
         await pool.close();

@@ -116,22 +116,6 @@ export class RelayConfig {
             delete config[url];
         });
     }
-
-    async syncWithPool(pool: ConnectionPool) {
-        for (const r of pool.getRelays()) {
-            if (this.config[r.url] == undefined) {
-                await pool.removeRelay(r.url);
-            }
-        }
-        for (const url of Object.keys(this.config)) {
-            const err = await pool.addRelayURL(url);
-            if (err instanceof RelayAlreadyRegistered) {
-                continue;
-            } else if (err instanceof Error) {
-                return err;
-            }
-        }
-    }
 }
 
 export function applyPoolToRelayConfig(pool: ConnectionPool, relayConfig: RelayConfig) {
