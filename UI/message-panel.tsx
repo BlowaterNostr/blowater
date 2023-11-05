@@ -3,7 +3,7 @@ import { Component, ComponentChildren, createRef, h } from "https://esm.sh/preac
 import { tw } from "https://esm.sh/twind@0.16.16";
 import { Editor, EditorEvent, EditorModel } from "./editor.tsx";
 
-import { AboutIcon, CloseIcon, LeftArrowIcon, ReplyIcon } from "./icons/mod.tsx";
+import { CloseIcon, LeftArrowIcon } from "./icons/mod.tsx";
 import { Avatar } from "./components/avatar.tsx";
 import { IconButtonClass } from "./components/tw.ts";
 import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
@@ -25,6 +25,7 @@ import { NoteCard } from "./note-card.tsx";
 import { ProfileGetter } from "./search.tsx";
 import { InviteCard } from "./invite-card.tsx";
 import { SelectConversation } from "./search_model.ts";
+import { AboutIcon } from "./icons2/about-icon.tsx";
 
 export type RightPanelModel = {
     show: boolean;

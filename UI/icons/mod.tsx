@@ -14,6 +14,5 @@ export * from "./unpin-icon.tsx";
 export * from "./close-icon.tsx";
 export * from "./copy-icon.tsx";
 export * from "./social-icon.tsx";
-export * from "./about-icon.tsx";
 export * from "./app-list-icon.tsx";
 export * from "./reply-icon.tsx";

@@ -2,10 +2,10 @@
 import { Fragment, h } from "https://esm.sh/preact@10.11.3";
 import { tw } from "https://esm.sh/twind@0.16.16";
 import { CenterClass, InputClass } from "./components/tw.ts";
-import { AboutIcon } from "./icons/about-icon.tsx";
 import { PrimaryTextColor, SecondaryBackgroundColor, TitleIconColor } from "./style/colors.ts";
 import { OnFocusTransitionButton } from "./components/on-focus-transition-button.tsx";
 import { Component } from "https://esm.sh/preact@10.11.3";
+import { AboutIcon } from "./icons2/about-icon.tsx";
 
 export type EventDetailItem = {
     title: string;
