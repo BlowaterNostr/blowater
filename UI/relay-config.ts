@@ -1,7 +1,7 @@
 import * as Automerge from "https://deno.land/x/automerge@2.1.0-alpha.12/index.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import * as secp256k1 from "../lib/nostr-ts/vendor/secp256k1.js";
-import { ConnectionPool, RelayAlreadyRegistered } from "../lib/nostr-ts/relay-pool.ts";
+import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
 import { prepareParameterizedEvent } from "../lib/nostr-ts/event.ts";
 import { parseJSON } from "../features/profile.ts";
 
