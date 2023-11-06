@@ -3,7 +3,7 @@ import { Component } from "https://esm.sh/preact@10.17.1";
 import { h } from "https://esm.sh/preact@10.17.1";
 import { tw } from "https://esm.sh/twind@0.16.16";
 import { ErrorColor, PrimaryTextColor, SecondaryBackgroundColor, TitleIconColor } from "./style/colors.ts";
-import { GroupIcon } from "./icons2/group-icon.tsx";
+import { GroupIcon } from "./icons/group-icon.tsx";
 import { ButtonClass, InputClass, LinearGradientsClass } from "./components/tw.ts";
 import { Avatar } from "./components/avatar.tsx";
 import { ProfileData } from "../features/profile.ts";

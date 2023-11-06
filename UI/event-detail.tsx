@@ -5,7 +5,7 @@ import { CenterClass, InputClass } from "./components/tw.ts";
 import { PrimaryTextColor, SecondaryBackgroundColor, TitleIconColor } from "./style/colors.ts";
 import { OnFocusTransitionButton } from "./components/on-focus-transition-button.tsx";
 import { Component } from "https://esm.sh/preact@10.11.3";
-import { AboutIcon } from "./icons2/about-icon.tsx";
+import { AboutIcon } from "./icons/about-icon.tsx";
 
 export type EventDetailItem = {
     title: string;

@@ -5,20 +5,21 @@ import { Avatar } from "./components/avatar.tsx";
 import { CenterClass, IconButtonClass, LinearGradientsClass } from "./components/tw.ts";
 import { ConversationSummary, sortUserInfo } from "./conversation-list.ts";
 import { emitFunc, EventSubscriber } from "../event-bus.ts";
-import { PinIcon, UnpinIcon } from "./icons/mod.tsx";
 import { SearchUpdate, SelectConversation } from "./search_model.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { PinConversation, UnpinConversation } from "../nostr.ts";
 import { PrimaryTextColor } from "./style/colors.ts";
 import { ButtonGroup } from "./components/button-group.tsx";
-import { ChatIcon } from "./icons2/chat-icon.tsx";
+import { ChatIcon } from "./icons/chat-icon.tsx";
 import { StartCreateGroupChat } from "./create-group.tsx";
-import { GroupIcon } from "./icons2/group-icon.tsx";
+import { GroupIcon } from "./icons/group-icon.tsx";
 import { Component } from "https://esm.sh/preact@10.17.1";
 import { UI_Interaction_Event } from "./app_update.tsx";
 import { ProfileData } from "../features/profile.ts";
 import { ProfileGetter } from "./search.tsx";
 import { IS_BETA_VERSION } from "./config.js";
+import { UnpinIcon } from "./icons/unpin-icon.tsx";
+import { PinIcon } from "./icons/pin-icon.tsx";
 
 export interface ConversationListRetriever {
     getContacts: () => Iterable<ConversationSummary>;

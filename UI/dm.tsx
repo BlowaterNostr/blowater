@@ -4,7 +4,6 @@ import { tw } from "https://esm.sh/twind@0.16.16";
 import * as cl from "./conversation-list.tsx";
 import { MessagePanel, RightPanelModel } from "./message-panel.tsx";
 import { EventBus } from "../event-bus.ts";
-import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
 import { CenterClass, IconButtonClass } from "./components/tw.ts";
 import { DirectMessageGetter, GroupMessageGetter, UI_Interaction_Event } from "./app_update.tsx";
 import { NostrAccountContext, NostrEvent } from "../lib/nostr-ts/nostr.ts";
@@ -14,16 +13,17 @@ import { getFocusedContent } from "./app.tsx";
 import { EventSyncer } from "./event_syncer.ts";
 import { ButtonGroup } from "./components/button-group.tsx";
 import { PrimaryTextColor } from "./style/colors.ts";
-import { SettingIcon } from "./icons2/setting-icon.tsx";
+import { SettingIcon } from "./icons/setting-icon.tsx";
 import { GroupMessageController } from "../features/gm.ts";
 import { ProfileGetter } from "./search.tsx";
-import { InviteIcon } from "./icons2/invite-icon.tsx";
+import { InviteIcon } from "./icons/invite-icon.tsx";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { ChatMessage } from "./message.ts";
 import { EditorModel } from "./editor.tsx";
 import { InviteButton } from "./invite-button.tsx";
 import { IS_BETA_VERSION } from "./config.js";
-import { UserIcon } from "./icons2/user-icon.tsx";
+import { UserIcon } from "./icons/user-icon.tsx";
+import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
 
 export type DM_Model = {
     currentEditor: EditorModel | undefined;

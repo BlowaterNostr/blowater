@@ -9,14 +9,14 @@ import {
     SecondaryBackgroundColor,
     SecondaryTextColor,
 } from "./style/colors.ts";
-import { ChatIcon } from "./icons2/chat-icon.tsx";
-import { UserIcon } from "./icons2/user-icon.tsx";
-import { SettingIcon } from "./icons2/setting-icon.tsx";
+import { ChatIcon } from "./icons/chat-icon.tsx";
+import { UserIcon } from "./icons/user-icon.tsx";
+import { SettingIcon } from "./icons/setting-icon.tsx";
 import { Component } from "https://esm.sh/preact@10.17.1";
 import { ProfileGetter } from "./search.tsx";
 import { ProfileData } from "../features/profile.ts";
-import { AboutIcon } from "./icons2/about-icon.tsx";
-import { AppListIcon } from "./icons2/app-list-icon.tsx";
+import { AboutIcon } from "./icons/about-icon.tsx";
+import { AppListIcon } from "./icons/app-list-icon.tsx";
 import { CenterClass, NoOutlineClass } from "./components/tw.ts";
 import { emitFunc } from "../event-bus.ts";
 
