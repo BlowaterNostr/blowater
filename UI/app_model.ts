@@ -3,7 +3,6 @@ import { SearchInitModel, SearchModel } from "./search_model.ts";
 import { ProfileData } from "../features/profile.ts";
 import { RightPanelModel } from "./message-panel.tsx";
 import { App } from "./app.tsx";
-import { SignInModel } from "./signIn.tsx";
 import { EditorModel } from "./editor.tsx";
 import { DM_Model } from "./dm.tsx";
 
@@ -25,9 +24,6 @@ export type Model = {
     // UI
     navigationModel: NavigationModel;
     rightPanelModel: RightPanelModel;
-
-    // sign in
-    signIn: SignInModel;
 };
 
 export function initialModel(): Model {
@@ -53,8 +49,5 @@ export function initialModel(): Model {
             show: false,
         },
         myProfile: undefined,
-        signIn: {
-            privateKey: "",
-        },
     };
 }

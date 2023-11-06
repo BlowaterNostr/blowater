@@ -2,18 +2,23 @@
 import { Component, h } from "https://esm.sh/preact@10.17.1";
 import { tw } from "https://esm.sh/twind@0.16.16";
 import { GetLocalStorageAccountContext, Nip7ExtensionContext } from "./account-context.ts";
-import { ButtonClass, CenterClass, DividerClass } from "./components/tw.ts";
+import { ButtonClass, CenterClass, LinearGradientsClass } from "./components/tw.ts";
 import KeyView from "./key-view.tsx";
 import { PrivateKey } from "../lib/nostr-ts/key.ts";
-import { InMemoryAccountContext } from "../lib/nostr-ts/nostr.ts";
-import { emitFunc, EventEmitter } from "../event-bus.ts";
+import { InMemoryAccountContext, NostrAccountContext } from "../lib/nostr-ts/nostr.ts";
+import { emitFunc } from "../event-bus.ts";
+import {
+    ErrorColor,
+    HintTextColor,
+    HoverButtonBackgroudColor,
+    PrimaryBackgroundColor,
+    PrimaryTextColor,
+    SecondaryBackgroundColor,
+} from "./style/colors.ts";
 
 export type SignInEvent = {
-    type: "signin";
-    privateKey?: PrivateKey; // undefined means sign in with extentions
-} | {
-    type: "editSignInPrivateKey";
-    privateKey: string;
+    type: "SignInEvent";
+    ctx: NostrAccountContext;
 };
 
 const AlbyURL = "https://getalby.com/";
@@ -60,174 +65,181 @@ export async function getCurrentSignInCtx() {
     return undefined;
 }
 
-export async function signInWithExtension() {
-    const albyCtx = await Nip7ExtensionContext.New();
-    if (albyCtx instanceof Error) {
-        return albyCtx;
-    }
-    if (albyCtx === undefined) {
-        open(AlbyURL);
-    }
-    return albyCtx;
-}
-
-export function signInWithPrivateKey(privateKey: PrivateKey) {
-    const ctx = InMemoryAccountContext.New(privateKey);
-    if (ctx instanceof Error) {
-        throw ctx;
-    }
-    localStorage.setItem("MPK", privateKey.hex);
-    setSignInState("local");
-    return ctx;
-}
-
 type Props = {
-    eventBus: EventEmitter<SignInEvent>;
-} & SignInModel;
-
-export type SignInModel = {
-    privateKey: string;
-    warningString?: string;
+    emit: emitFunc<SignInEvent>;
 };
 
-type State = { state: "newAccount" | "enterPrivateKey" };
+type State = {
+    state: "newAccount" | "enterPrivateKey";
+    privateKey: PrivateKey;
+    privateKeyError: string;
+    albyError: string;
+};
 export class SignIn extends Component<Props, State> {
-    render() {
-        const props = this.props;
+    styles = {
+        container:
+            tw`h-screen w-screen bg-[${PrimaryBackgroundColor}] flex items-center justify-center p-4 overflow-y-auto`,
+        form: tw`w-[30rem] flex flex-col h-full py-8`,
+        logo: tw`w-32 h-32 mx-auto`,
+        title: tw`text-[${PrimaryTextColor}] text-center text-4xl`,
+        subTitle: tw`text-[${HintTextColor}] text-center`,
+        input: tw`w-full px-4 py-2 focus-visible:outline-none rounded-lg mt-8`,
+        hint: tw`text-[${HintTextColor}] text-sm mt-2`,
+        block: tw`flex-1 desktop:hidden`,
+        signInButton:
+            tw`w-full mt-4 ${ButtonClass} ${LinearGradientsClass} hover:bg-gradient-to-l mobile:rounded-full font-bold`,
+        ablyButton:
+            tw`${ButtonClass} ${CenterClass} mt-4 bg-[#F8C455] text-[#313338] hover:bg-[#FFDF6F] py-0 mobile:hidden`,
+        cancelButton:
+            tw`${ButtonClass} ${CenterClass} mt-4 bg-[${SecondaryBackgroundColor}] text-[${PrimaryTextColor}] hover:bg-[${HoverButtonBackgroudColor}] mobile:rounded-full`,
+        ablyIcon: tw`h-10`,
+        isError: (error: string) => error ? tw`text-[${ErrorColor}]` : "",
+    };
 
+    signInWithPrivateKey = () => {
+        if (!this.state.privateKey && !this.state.privateKeyError) {
+            this.setState({
+                state: "newAccount",
+                privateKeyError: "",
+                privateKey: PrivateKey.Generate(),
+            });
+            return;
+        }
+
+        const ctx = InMemoryAccountContext.New(this.state.privateKey);
+        localStorage.setItem("MPK", this.state.privateKey.hex);
+        setSignInState("local");
+
+        this.props.emit({
+            type: "SignInEvent",
+            ctx: ctx,
+        });
+    };
+
+    signInWithExtension = async () => {
+        const albyCtx = await Nip7ExtensionContext.New();
+        if (albyCtx === undefined) {
+            open(AlbyURL);
+            return;
+        }
+        if (typeof albyCtx == "string") {
+            this.setState({
+                albyError: albyCtx,
+            });
+        } else if (albyCtx instanceof Error) {
+            this.setState({
+                albyError: albyCtx.message,
+            });
+        } else {
+            this.props.emit({
+                type: "SignInEvent",
+                ctx: albyCtx,
+            });
+        }
+    };
+
+    cancelNew = () => {
+        this.setState({
+            state: "enterPrivateKey",
+            privateKey: undefined,
+        });
+    };
+
+    inputPrivateKey = (privateKeyStr: string) => {
+        if (privateKeyStr != "") {
+            let privateKey = PrivateKey.FromHex(privateKeyStr);
+            if (privateKey instanceof Error) {
+                privateKey = PrivateKey.FromBech32(privateKeyStr);
+
+                if (privateKey instanceof Error) {
+                    this.setState({
+                        privateKeyError: "Invilid Private Key",
+                    });
+                    return;
+                }
+            }
+            this.setState({
+                privateKeyError: "",
+                privateKey: privateKey,
+            });
+        } else {
+            this.setState({
+                privateKeyError: "",
+            });
+        }
+    };
+
+    render() {
         if (this.state.state == "newAccount") {
-            const privateKey = PrivateKey.Generate();
             return (
-                <div
-                    class={tw`fixed inset-0 bg-[#313338] flex items-center justify-center px-4`}
-                >
-                    <div class={tw`flex flex-col w-[40rem]`}>
+                <div class={this.styles.container}>
+                    <div class={this.styles.form}>
                         <KeyView
-                            privateKey={privateKey}
-                            publicKey={privateKey.toPublicKey()}
+                            privateKey={this.state.privateKey}
+                            publicKey={this.state.privateKey.toPublicKey()}
                         />
+                        <p class={this.styles.hint}>
+                            Please back up your <strong>Private Key</strong>
+                        </p>
+                        <div class={this.styles.block}></div>
                         <button
-                            onClick={on_BackToSignInPage_click(this.setState.bind(this))}
-                            class={tw`w-full mt-8 bg-[#404249] hover:bg-[#2B2D31] ${ButtonClass}`}
+                            onClick={this.cancelNew}
+                            class={this.styles.cancelButton}
                         >
-                            Back
+                            Cancel
                         </button>
                         <button
-                            onClick={() => {
-                                props.eventBus.emit({
-                                    type: "signin",
-                                    privateKey: privateKey,
-                                });
-                            }}
-                            class={tw`w-full mt-8 bg-[#ED4545] hover:bg-[#E03030] ${ButtonClass}`}
+                            onClick={this.signInWithPrivateKey}
+                            class={this.styles.signInButton}
                         >
-                            Sign In
+                            Confirm
                         </button>
                     </div>
                 </div>
             );
         }
 
-        let privateKey = PrivateKey.FromHex(props.privateKey);
-        if (privateKey instanceof Error) {
-            privateKey = PrivateKey.FromBech32(props.privateKey);
-        }
-
         return (
-            <div
-                class={tw`h-screen w-screen bg-[#313338] flex items-center justify-center p-4 overflow-y-auto`}
-            >
-                <div class={tw`w-[40rem]`}>
-                    <img
-                        class={tw`w-32 h-32 mx-auto`}
-                        src="logo.png"
-                        alt="Logo"
-                    />
-                    <h1
-                        class={tw`text-[#F3F4EA] text-center text-[2rem]`}
-                    >
-                        Welcome to Blowater
-                    </h1>
+            <div class={this.styles.container}>
+                <div class={this.styles.form}>
+                    <img class={this.styles.logo} src="logo.png" alt="Logo" />
+                    <h1 class={this.styles.title}>Blowater</h1>
+                    <p class={this.styles.subTitle}>A delightful Nostr client that focuses on DM</p>
                     <input
-                        onInput={on_EditSignInPrivateKey_clicked(props.eventBus.emit)}
+                        onInput={(e) => this.inputPrivateKey(e.currentTarget.value)}
                         placeholder="Input your private key here"
                         type="password"
-                        class={tw`w-full px-4 py-2 focus-visible:outline-none rounded-lg mt-8`}
+                        class={this.styles.input}
+                        autofocus
                     />
-                    {privateKey instanceof Error
-                        ? (
-                            <p class={tw`text-[#F3F4EA] mt-2`}>
-                                Private Key has to be 64 letters hex-decimal or 63 letters nsec string
-                            </p>
-                        )
-                        : undefined}
+                    <p class={this.styles.hint}>
+                        <span class={this.styles.isError(this.state.privateKeyError)}>
+                            Private Key has to be <strong>64</strong> letters hex-decimal or{" "}
+                            <strong>63</strong>
+                            letters nsec string.
+                        </span>{" "}
+                        Or click the Sign-In button directly to create a <strong>new account</strong>
+                    </p>
+                    <div class={this.styles.block}></div>
                     <button
-                        onClick={on_SignIn_clicked(privateKey, props.eventBus.emit)}
-                        disabled={privateKey instanceof Error}
-                        class={tw`w-full bg-[#2B2D31] hover:bg-[#404249] mt-4 disabled:bg-[#404249] ${ButtonClass}`}
+                        onClick={this.signInWithPrivateKey}
+                        class={this.styles.signInButton}
                     >
                         Sign In
                     </button>
 
-                    <div class={tw`h-16 w-full relative ${CenterClass}`}>
-                        <div class={tw`${DividerClass}`}></div>
-                        <div class={tw`absolute w-full h-full ${CenterClass}`}>
-                            <span class={tw`bg-[#313338] px-2 text-[#F3F4EA]`}>Or you can</span>
-                        </div>
-                    </div>
-
                     <button
-                        onClick={() => {
-                            props.eventBus.emit({
-                                type: "signin",
-                            });
-                        }}
-                        class={tw`${ButtonClass} ${CenterClass} w-full bg-[#F8C455] text-[#313338] hover:bg-[#FFDF6F] py-0`}
+                        onClick={async () => await this.signInWithExtension()}
+                        class={this.styles.ablyButton}
                     >
-                        <img
-                            class={tw`h-10`}
-                            src="alby-logo.svg"
-                            alt="Alby Logo"
-                        />
+                        <img class={this.styles.ablyIcon} src="alby-logo.svg" alt="Alby Logo" />
                         Sign in with Alby
                     </button>
-                    <button
-                        onClick={on_CreateAccount_clicked(this.setState.bind(this))}
-                        class={tw`${ButtonClass} w-full bg-[#2B2D31] hover:bg-[#404249] mt-4`}
-                    >
-                        Create an account
-                    </button>
-
-                    {props.warningString
-                        ? <p class={tw`text-[#F3F4EA] mt-2`}>{props.warningString}</p>
-                        : undefined}
+                    <p class={this.styles.hint}>
+                        <span class={this.styles.isError(this.state.albyError)}>{this.state.albyError}</span>
+                    </p>
                 </div>
             </div>
         );
     }
 }
-
-const on_CreateAccount_clicked = (setState: (state: State) => void) => () => {
-    setState({ state: "newAccount" });
-};
-
-const on_SignIn_clicked = (privateKey: PrivateKey | Error, emit: emitFunc<SignInEvent>) => () => {
-    if (privateKey instanceof PrivateKey) {
-        emit({
-            type: "signin",
-            privateKey: privateKey,
-        });
-    }
-};
-
-const on_EditSignInPrivateKey_clicked =
-    (emit: emitFunc<SignInEvent>) => (e: h.JSX.TargetedEvent<HTMLInputElement, Event>) => {
-        emit({
-            type: "editSignInPrivateKey",
-            privateKey: e.currentTarget.value,
-        });
-    };
-
-const on_BackToSignInPage_click = (setState: (state: State) => void) => () => {
-    setState({ state: "enterPrivateKey" });
-};
