@@ -65,6 +65,7 @@ Deno.test("Relay Config", async () => {
 
     { // synchronize with connection pool
         const pool = new ConnectionPool();
+        // todo: bind relayConfig with pool
         {
             // add one relay to the pool directly
             assertNotInstanceOf(pool.addRelayURL("wss://relay.nostr.wirednet.jp"), Error);
