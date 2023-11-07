@@ -42,14 +42,14 @@ export function setSignInState(state: SignInState) {
 ////////////////////////
 export async function getCurrentSignInCtx() {
     if (getSignInState() === "nip07") {
-        const albyCtx = await Nip7ExtensionContext.New();
-        if (albyCtx instanceof Error) {
-            return albyCtx;
+        const nip07Ctx = await Nip7ExtensionContext.New();
+        if (nip07Ctx instanceof Error) {
+            return nip07Ctx;
         }
-        if (albyCtx === undefined) {
+        if (nip07Ctx === undefined) {
             setSignInState("none");
         }
-        return albyCtx;
+        return nip07Ctx;
     }
     if (getSignInState() === "local") {
         const ctx = GetLocalStorageAccountContext();
@@ -73,7 +73,7 @@ type State = {
     state: "newAccount" | "enterPrivateKey";
     privateKey: PrivateKey;
     privateKeyError: string;
-    albyError: string;
+    nip07Error: string;
 };
 export class SignIn extends Component<Props, State> {
     styles = {
@@ -117,23 +117,23 @@ export class SignIn extends Component<Props, State> {
     };
 
     signInWithExtension = async () => {
-        const albyCtx = await Nip7ExtensionContext.New();
-        if (albyCtx === undefined) {
+        const nip07Ctx = await Nip7ExtensionContext.New();
+        if (nip07Ctx === undefined) {
             open(AlbyURL);
             return;
         }
-        if (typeof albyCtx == "string") {
+        if (typeof nip07Ctx == "string") {
             this.setState({
-                albyError: albyCtx,
+                nip07Error: nip07Ctx,
             });
-        } else if (albyCtx instanceof Error) {
+        } else if (nip07Ctx instanceof Error) {
             this.setState({
-                albyError: albyCtx.message,
+                nip07Error: nip07Ctx.message,
             });
         } else {
             this.props.emit({
                 type: "SignInEvent",
-                ctx: albyCtx,
+                ctx: nip07Ctx,
             });
         }
     };
@@ -215,8 +215,7 @@ export class SignIn extends Component<Props, State> {
                     <p class={this.styles.hint}>
                         <span class={this.styles.isError(this.state.privateKeyError)}>
                             Private Key has to be <strong>64</strong> letters hex-decimal or{" "}
-                            <strong>63</strong>
-                            letters nsec string.
+                            <strong>63</strong> letters nsec string.
                         </span>{" "}
                         Or click the Sign-In button directly to create a <strong>new account</strong>
                     </p>
@@ -236,7 +235,9 @@ export class SignIn extends Component<Props, State> {
                         Sign in with Alby
                     </button>
                     <p class={this.styles.hint}>
-                        <span class={this.styles.isError(this.state.albyError)}>{this.state.albyError}</span>
+                        <span class={this.styles.isError(this.state.nip07Error)}>
+                            {this.state.nip07Error}
+                        </span>
                     </p>
                 </div>
             </div>
