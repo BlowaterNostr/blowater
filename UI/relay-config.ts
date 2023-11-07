@@ -41,6 +41,13 @@ export class RelayConfig {
         const config = Automerge.load<Config>(secp256k1.utils.hexToBytes(encodedConfigStr));
         const relayConfig = new RelayConfig(relayAdder);
         relayConfig.config = config;
+        for (const url of relayConfig.getRelayURLs()) {
+            relayConfig.relayAdder.addRelayURL(url).then((res) => {
+                if (res instanceof Error) {
+                    console.error(res); // todo: pipe to global error toast
+                }
+            });
+        }
         return relayConfig;
     }
     static localStorageKey(ctx: NostrAccountContext) {
@@ -103,9 +110,21 @@ export class RelayConfig {
     merge(bytes: Uint8Array) {
         const otherDoc = Automerge.load<Config>(bytes);
         this.config = Automerge.merge(this.config, otherDoc);
+        for (const url of this.getRelayURLs()) {
+            this.relayAdder.addRelayURL(url).then((res) => {
+                if (res instanceof Error) {
+                    console.error(res); // todo: pipe to global error toast
+                }
+            });
+        }
     }
 
     async add(url: string): Promise<RelayAlreadyRegistered | Error | void> {
+        console.log("add relay config", url);
+        const err = await this.relayAdder.addRelayURL(url);
+        if (err instanceof Error) {
+            console.error(err); // todo: use global error toast
+        }
         if (this.config[url] != undefined) {
             return;
         }
@@ -115,10 +134,6 @@ export class RelayConfig {
         this.config = Automerge.change(this.config, "add", (config) => {
             config[url] = true;
         });
-        const err = await this.relayAdder.addRelayURL(url);
-        if (err instanceof Error) {
-            console.error(err); // todo: use global error toast
-        }
     }
 
     async remove(url: string) {
