@@ -59,7 +59,7 @@ Deno.test("Relay Config", async () => {
     const event = await relayConfig.toNostrEvent(ctx);
     if (event instanceof Error) fail(event.message);
 
-    const relayConfig3 = await RelayConfig.FromNostrEvent(event, ctx);
+    const relayConfig3 = await RelayConfig.FromNostrEvent(event, ctx, fakeRelayAdder);
     if (relayConfig3 instanceof Error) fail(relayConfig3.message);
 
     assertEquals(relayConfig3.getRelayURLs(), relayConfig.getRelayURLs());
@@ -88,7 +88,7 @@ Deno.test("RelayConfig: Nostr Encoding Decoding", async () => {
     const event = await config.toNostrEvent(ctx);
     if (event instanceof Error) fail(event.message);
 
-    const config2 = await RelayConfig.FromNostrEvent(event, ctx);
+    const config2 = await RelayConfig.FromNostrEvent(event, ctx, fakeRelayAdder);
     if (config2 instanceof Error) fail(config2.message);
 
     console.log(config.getRelayURLs(), config2.getRelayURLs());

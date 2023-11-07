@@ -125,7 +125,7 @@ export class App {
     }) {
         const lamport = fromEvents(args.database.events);
         const eventSyncer = new EventSyncer(args.pool, args.database);
-        const relayConfig = RelayConfig.FromLocalStorage(args.ctx);
+        const relayConfig = RelayConfig.FromLocalStorage(args.ctx, args.pool);
         if (relayConfig.getRelayURLs().size == 0) {
             for (const url of defaultRelays) {
                 relayConfig.add(url);
@@ -229,10 +229,11 @@ export class App {
                 if (msg.res.type == "EOSE") {
                     continue;
                 }
-                RelayConfig.FromNostrEvent(msg.res.event, this.ctx);
+                RelayConfig.FromNostrEvent(msg.res.event, this.ctx, this.pool);
                 const _relayConfig = await RelayConfig.FromNostrEvent(
                     msg.res.event,
                     this.ctx,
+                    this.pool,
                 );
                 if (_relayConfig instanceof Error) {
                     console.log(_relayConfig.message);
