@@ -70,6 +70,7 @@ export class RelayConfig {
             return json;
         }
         const relayConfig = new RelayConfig(relayAdder);
+        console.log(json.data);
         relayConfig.merge(secp256k1.utils.hexToBytes(json.data));
         return relayConfig;
     }
@@ -109,6 +110,7 @@ export class RelayConfig {
 
     merge(bytes: Uint8Array) {
         const otherDoc = Automerge.load<Config>(bytes);
+        console.log(otherDoc);
         this.config = Automerge.merge(this.config, otherDoc);
         for (const url of this.getRelayURLs()) {
             this.relayAdder.addRelayURL(url).then((res) => {
@@ -119,11 +121,11 @@ export class RelayConfig {
         }
     }
 
-    async add(url: string): Promise<RelayAlreadyRegistered | Error | void> {
+    async add(url: string): Promise<Error | void> {
         console.log("add relay config", url);
         const err = await this.relayAdder.addRelayURL(url);
-        if (err instanceof Error) {
-            console.error(err); // todo: use global error toast
+        if (err instanceof Error && !(err instanceof RelayAlreadyRegistered)) {
+            return err;
         }
         if (this.config[url] != undefined) {
             return;

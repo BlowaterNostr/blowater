@@ -1,6 +1,7 @@
 import { EventsAdapter, Indices } from "../database.ts";
 import { EventBus } from "../event-bus.ts";
 import { NostrEvent } from "../lib/nostr-ts/nostr.ts";
+import { RelayAlreadyRegistered } from "../lib/nostr-ts/relay-pool.ts";
 import { UI_Interaction_Event } from "./app_update.tsx";
 import { RelayAdder } from "./relay-config.ts";
 
@@ -22,4 +23,10 @@ export const testEventsAdapter: EventsAdapter = {
         data.set(e.id, e);
     },
 };
-export const fakeRelayAdder: RelayAdder = { addRelayURL: async (_: string) => {} };
+export class MockRelayAdder implements RelayAdder {
+    relays = new Set();
+
+    async addRelayURL(url: string): Promise<void | RelayAlreadyRegistered | Error> {
+        this.relays.add(url);
+    }
+}

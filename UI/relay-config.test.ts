@@ -1,11 +1,13 @@
 import { PrivateKey } from "../lib/nostr-ts/key.ts";
 import { InMemoryAccountContext } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
-import { fakeRelayAdder } from "./_setup.test.ts";
+import { MockRelayAdder } from "./_setup.test.ts";
+
 import { RelayConfig } from "./relay-config.ts";
 import { assertEquals, assertNotInstanceOf, fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 
 Deno.test("Relay Config", async () => {
+    const fakeRelayAdder = new MockRelayAdder();
     const relayConfig = RelayConfig.Empty(fakeRelayAdder);
     {
         const urls = relayConfig.getRelayURLs();
@@ -81,16 +83,19 @@ Deno.test("Relay Config", async () => {
 });
 
 Deno.test("RelayConfig: Nostr Encoding Decoding", async () => {
-    const config = RelayConfig.Empty(fakeRelayAdder);
-    config.add("something");
-
+    const fakeRelayAdder = new MockRelayAdder();
     const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
-    const event = await config.toNostrEvent(ctx);
-    if (event instanceof Error) fail(event.message);
+    {
+        const config = RelayConfig.Empty(fakeRelayAdder);
+        const err = config.add("something");
+        if (err instanceof Error) fail(err.message);
 
-    const config2 = await RelayConfig.FromNostrEvent(event, ctx, fakeRelayAdder);
-    if (config2 instanceof Error) fail(config2.message);
+        const event = await config.toNostrEvent(ctx);
+        if (event instanceof Error) fail(event.message);
 
-    console.log(config.getRelayURLs(), config2.getRelayURLs());
-    assertEquals(config.getRelayURLs(), config2.getRelayURLs());
+        const config2 = await RelayConfig.FromNostrEvent(event, ctx, fakeRelayAdder);
+        if (config2 instanceof Error) fail(config2.message);
+
+        assertEquals(config.getRelayURLs(), config2.getRelayURLs());
+    }
 });
