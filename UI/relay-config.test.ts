@@ -1,11 +1,12 @@
 import { PrivateKey } from "../lib/nostr-ts/key.ts";
 import { InMemoryAccountContext } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
+import { fakeRelayAdder } from "./_setup.test.ts";
 import { RelayConfig } from "./relay-config.ts";
 import { assertEquals, assertNotInstanceOf, fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 
 Deno.test("Relay Config", async () => {
-    const relayConfig = RelayConfig.Empty();
+    const relayConfig = RelayConfig.Empty(fakeRelayAdder);
     {
         const urls = relayConfig.getRelayURLs();
         assertEquals(urls.size, 0);
@@ -18,7 +19,7 @@ Deno.test("Relay Config", async () => {
         assertEquals(relayConfig.getRelayURLs(), new Set(["wss://nos.lol"]));
     }
 
-    const relayConfig2 = RelayConfig.Empty();
+    const relayConfig2 = RelayConfig.Empty(fakeRelayAdder);
     {
         const urls = relayConfig2.getRelayURLs();
         assertEquals(urls.size, 0);
@@ -80,7 +81,7 @@ Deno.test("Relay Config", async () => {
 });
 
 Deno.test("RelayConfig: Nostr Encoding Decoding", async () => {
-    const config = RelayConfig.Empty();
+    const config = RelayConfig.Empty(fakeRelayAdder);
     config.add("something");
 
     const ctx = InMemoryAccountContext.New(PrivateKey.Generate());

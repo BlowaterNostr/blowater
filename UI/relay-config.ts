@@ -1,9 +1,10 @@
 import * as Automerge from "https://deno.land/x/automerge@2.1.0-alpha.12/index.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import * as secp256k1 from "../lib/nostr-ts/vendor/secp256k1.js";
-import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
+import { ConnectionPool, RelayAlreadyRegistered } from "../lib/nostr-ts/relay-pool.ts";
 import { prepareParameterizedEvent } from "../lib/nostr-ts/event.ts";
 import { parseJSON } from "../features/profile.ts";
+import { fakeRelayAdder } from "./_setup.test.ts";
 
 export const defaultRelays = [
     "wss://relay.blowater.app",
@@ -16,24 +17,30 @@ type Config = {
     [key: string]: boolean;
 };
 
+export interface RelayAdder {
+    addRelayURL(url: string): Promise<RelayAlreadyRegistered | Error | void>;
+}
+
 export class RelayConfig {
     // This is a state based CRDT based on Vector Clock
     // see https://www.youtube.com/watch?v=OOlnp2bZVRs
     private config: Automerge.next.Doc<Config> = Automerge.init();
-    private constructor() {}
+    private constructor(
+        private readonly relayAdder: RelayAdder,
+    ) {}
 
-    static Empty() {
-        return new RelayConfig();
+    static Empty(relayAdder: RelayAdder) {
+        return new RelayConfig(relayAdder);
     }
 
     // The the relay config of this account from local storage
     static FromLocalStorage(ctx: NostrAccountContext) {
         const encodedConfigStr = localStorage.getItem(this.localStorageKey(ctx));
         if (encodedConfigStr == null) {
-            return RelayConfig.Empty();
+            return RelayConfig.Empty(fakeRelayAdder);
         }
         const config = Automerge.load<Config>(secp256k1.utils.hexToBytes(encodedConfigStr));
-        const relayConfig = new RelayConfig();
+        const relayConfig = new RelayConfig(fakeRelayAdder);
         relayConfig.config = config;
         return relayConfig;
     }
@@ -56,7 +63,7 @@ export class RelayConfig {
         if (json instanceof Error) {
             return json;
         }
-        const relayConfig = new RelayConfig();
+        const relayConfig = new RelayConfig(fakeRelayAdder);
         relayConfig.merge(secp256k1.utils.hexToBytes(json.data));
         return relayConfig;
     }
