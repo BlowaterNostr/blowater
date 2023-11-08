@@ -143,7 +143,7 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
                 {!props.rightPanelModel.show
                     ? (
                         <button
-                            class={tw`absolute z-10 w-6 h-6 transition-transform duration-100 ease-in-out right-4 top-4${
+                            class={tw`absolute z-10 w-6 h-6 transition-transform duration-100 ease-in-out right-4 mobile:right-0 top-4${
                                 props.rightPanelModel.show ? " rotate-180" : ""
                             } ${IconButtonClass}`}
                             onClick={() => {
@@ -266,7 +266,7 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
                             });
                         }
                     }}
-                    class={tw`${IconButtonClass} fixed z-10 bottom-8 right-4 h-10 w-10 rotate-[-90deg] bg-[#42464D] hover:bg-[#2F3136]`}
+                    class={tw`${IconButtonClass} mobile:hidden fixed z-10 bottom-8 right-4 h-10 w-10 rotate-[-90deg] bg-[#42464D] hover:bg-[#2F3136]`}
                 >
                     <LeftArrowIcon
                         class={tw`w-6 h-6`}
@@ -276,7 +276,7 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
                     />
                 </button>
                 <ul
-                    class={tw`w-full h-full overflow-y-auto overflow-x-hidden py-9 px-2 flex flex-col-reverse`}
+                    class={tw`w-full h-full overflow-y-auto overflow-x-hidden py-9 mobile:py-2 px-2 mobile:px-0 flex flex-col-reverse`}
                     ref={this.messagesULElement}
                     onScroll={this.onScroll}
                 >
@@ -306,7 +306,7 @@ function MessageBoxGroup(props: {
     const rows = [];
     rows.push(
         <li
-            class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 group relative`}
+            class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 mobile:pr-4 group relative`}
         >
             {MessageActions(first_group, props.emit)}
             <Avatar
@@ -333,7 +333,7 @@ function MessageBoxGroup(props: {
                     first_group.created_at,
                 )}
                 <pre
-                    class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto`}
+                    class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto mobile:text-sm`}
                 >
                                 {ParseMessageContent(
                                     first_group,
@@ -363,7 +363,7 @@ function MessageBoxGroup(props: {
                     }}
                 >
                     <pre
-                        class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto`}
+                        class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto mobile:text-sm`}
                     >
                     {ParseMessageContent(
                         msg,
@@ -447,10 +447,10 @@ export function NameAndTime(
 
     return (
         <p class={tw`overflow-hidden flex`}>
-            <p class={tw`text-[#FFFFFF] text-[0.9rem] truncate`}>
+            <p class={tw`text-[#FFFFFF] text-[0.9rem] truncate mobile:hidden`}>
                 {show}
             </p>
-            <p class={tw`text-[#A3A6AA] ml-4 text-[0.8rem] whitespace-nowrap`}>
+            <p class={tw`text-[#A3A6AA] ml-4 text-[0.8rem] whitespace-nowrap mobile:ml-0 mobile:text-xs`}>
                 {created_at.toLocaleString()}
             </p>
         </p>

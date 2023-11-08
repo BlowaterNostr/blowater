@@ -94,9 +94,9 @@ export class Editor extends Component<EditorProps> {
         };
 
         return (
-            <div class={tw`flex mb-4 mx-5 items-end`}>
+            <div class={tw`flex mb-4 mx-5 mobile:mx-2 mobile:mb-2 items-end`}>
                 <button
-                    class={tw`min-w-[3rem] w-[3rem] h-[3rem] hover:bg-[${DividerBackgroundColor}] group ${CenterClass} rounded-[50%] ${NoOutlineClass}`}
+                    class={tw`min-w-[3rem] mobile:min-w-[2rem] w-[3rem] mobile:w-8 h-[3rem] mobile:h-8 hover:bg-[${DividerBackgroundColor}] group ${CenterClass} rounded-[50%] ${NoOutlineClass}`}
                     onClick={() => {
                         if (uploadFileInput.current) {
                             uploadFileInput.current.click();
@@ -104,7 +104,7 @@ export class Editor extends Component<EditorProps> {
                     }}
                 >
                     <ImageIcon
-                        class={tw`h-[2rem] w-[2rem] stroke-current text-[${PrimaryTextColor}4D] group-hover:text-[${PrimaryTextColor}]`}
+                        class={tw`h-[2rem] w-[2rem] mobile:w-6 mobile:h-6 stroke-current text-[${PrimaryTextColor}4D] group-hover:text-[${PrimaryTextColor}]`}
                         style={{
                             fill: "none",
                         }}
@@ -138,7 +138,7 @@ export class Editor extends Component<EditorProps> {
                     class={tw`hidden`}
                 />
                 <div
-                    class={tw`mx-2 p-[0.75rem] bg-[${DividerBackgroundColor}] rounded-lg flex flex-col flex-1 overflow-hidden`}
+                    class={tw`mx-2 p-[0.75rem] mobile:p-2 mobile:text-sm bg-[${DividerBackgroundColor}] rounded-lg flex flex-col flex-1 overflow-hidden`}
                 >
                     {props.files.length > 0
                         ? (
@@ -231,16 +231,16 @@ export class Editor extends Component<EditorProps> {
                     </textarea>
                 </div>
 
-                <div class={tw`w-[5rem] h-[2.5rem] rounded-lg ${LinearGradientsClass} ${CenterClass}`}>
+                <div class={tw`w-[5rem] h-[2.5rem] mobile:w-12 mobile:h-8 rounded-lg ${LinearGradientsClass} ${CenterClass}`}>
                     <button
-                        class={tw`w-[4.8rem] h-[2.3rem] text-[${PrimaryTextColor}] rounded-lg ${CenterClass} bg-[#36393F] hover:bg-transparent font-bold`}
+                        class={tw`w-[4.8rem] h-[2.3rem] mobile:w-[2.9rem] mobile:h-[1.9rem] mobile:text-sm text-[${PrimaryTextColor}] rounded-lg ${CenterClass} bg-[#36393F] hover:bg-transparent font-bold`}
                         onClick={async () => {
                             await sendMessage();
                             textareaElement.current?.focus();
                         }}
                     >
                         <SendIcon
-                            class={tw`h-[1.25rem] w-[1.25rem] mr-[0.1rem]`}
+                            class={tw`h-[1.25rem] w-[1.25rem] mr-[0.1rem] mobile:hidden`}
                             style={{
                                 stroke: PrimaryTextColor,
                                 fill: "none",
