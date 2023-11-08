@@ -2,13 +2,14 @@
 import { Component, h } from "https://esm.sh/preact@10.17.1";
 import { tw } from "https://esm.sh/twind@0.16.16";
 import { GetLocalStorageAccountContext, Nip7ExtensionContext } from "./account-context.ts";
-import { ButtonClass, CenterClass, LinearGradientsClass } from "./components/tw.ts";
+import { ButtonClass, CenterClass, LinearGradientsClass, NoOutlineClass } from "./components/tw.ts";
 import KeyView from "./key-view.tsx";
 import { PrivateKey } from "../lib/nostr-ts/key.ts";
 import { InMemoryAccountContext, NostrAccountContext } from "../lib/nostr-ts/nostr.ts";
 import { emitFunc } from "../event-bus.ts";
 import {
     ErrorColor,
+    HintLinkColor,
     HintTextColor,
     HoverButtonBackgroudColor,
     PrimaryBackgroundColor,
@@ -92,16 +93,16 @@ export class SignIn extends Component<Props, State> {
             tw`${ButtonClass} ${CenterClass} mt-4 bg-[#F8C455] text-[#313338] hover:bg-[#FFDF6F] py-0 mobile:hidden`,
         cancelButton:
             tw`${ButtonClass} ${CenterClass} mt-4 bg-[${SecondaryBackgroundColor}] text-[${PrimaryTextColor}] hover:bg-[${HoverButtonBackgroudColor}] mobile:rounded-full`,
+        newButton:
+            tw`text-[${HintLinkColor}] hover:underline mobile:text-[${PrimaryTextColor}] mobile:bg-[${HintLinkColor}] mobile:rounded mobile:px-2 mobile:py-1 ${NoOutlineClass}`,
         ablyIcon: tw`h-10`,
         isError: (error: string) => error ? tw`text-[${ErrorColor}]` : "",
     };
 
     signInWithPrivateKey = () => {
-        if (!this.state.privateKey && !this.state.privateKeyError) {
+        if (!this.state.privateKey) {
             this.setState({
-                state: "newAccount",
-                privateKeyError: "",
-                privateKey: PrivateKey.Generate(),
+                privateKeyError: "Invilid Private Key",
             });
             return;
         }
@@ -138,6 +139,14 @@ export class SignIn extends Component<Props, State> {
         }
     };
 
+    newAccount = () => {
+        this.setState({
+            privateKey: PrivateKey.Generate(),
+            privateKeyError: "",
+            state: "newAccount",
+        });
+    };
+
     cancelNew = () => {
         this.setState({
             state: "enterPrivateKey",
@@ -146,27 +155,21 @@ export class SignIn extends Component<Props, State> {
     };
 
     inputPrivateKey = (privateKeyStr: string) => {
-        if (privateKeyStr != "") {
-            let privateKey = PrivateKey.FromHex(privateKeyStr);
-            if (privateKey instanceof Error) {
-                privateKey = PrivateKey.FromBech32(privateKeyStr);
+        let privateKey = PrivateKey.FromHex(privateKeyStr);
+        if (privateKey instanceof Error) {
+            privateKey = PrivateKey.FromBech32(privateKeyStr);
 
-                if (privateKey instanceof Error) {
-                    this.setState({
-                        privateKeyError: "Invilid Private Key",
-                    });
-                    return;
-                }
+            if (privateKey instanceof Error) {
+                this.setState({
+                    privateKeyError: "Invilid Private Key",
+                });
+                return;
             }
-            this.setState({
-                privateKeyError: "",
-                privateKey: privateKey,
-            });
-        } else {
-            this.setState({
-                privateKeyError: "",
-            });
         }
+        this.setState({
+            privateKeyError: "",
+            privateKey: privateKey,
+        });
     };
 
     render() {
@@ -217,7 +220,8 @@ export class SignIn extends Component<Props, State> {
                             Private Key has to be <strong>64</strong> letters hex-decimal or{" "}
                             <strong>63</strong> letters nsec string.
                         </span>{" "}
-                        Or click the Sign-In button directly to create a <strong>new account</strong>
+                        Don't have an account yet?{" "}
+                        <button onClick={this.newAccount} class={this.styles.newButton}>create one!</button>
                     </p>
                     <div class={this.styles.block}></div>
                     <button
@@ -226,7 +230,6 @@ export class SignIn extends Component<Props, State> {
                     >
                         Sign In
                     </button>
-
                     <button
                         onClick={async () => await this.signInWithExtension()}
                         class={this.styles.ablyButton}
