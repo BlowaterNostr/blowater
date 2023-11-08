@@ -231,7 +231,9 @@ export class Editor extends Component<EditorProps> {
                     </textarea>
                 </div>
 
-                <div class={tw`w-[5rem] h-[2.5rem] mobile:w-12 mobile:h-8 rounded-lg ${LinearGradientsClass} ${CenterClass}`}>
+                <div
+                    class={tw`w-[5rem] h-[2.5rem] mobile:w-12 mobile:h-8 rounded-lg ${LinearGradientsClass} ${CenterClass}`}
+                >
                     <button
                         class={tw`w-[4.8rem] h-[2.3rem] mobile:w-[2.9rem] mobile:h-[1.9rem] mobile:text-sm text-[${PrimaryTextColor}] rounded-lg ${CenterClass} bg-[#36393F] hover:bg-transparent font-bold`}
                         onClick={async () => {

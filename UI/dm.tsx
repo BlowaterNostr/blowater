@@ -172,7 +172,9 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                                         }}
                                     />
                                 </button>
-                                <span class={tw`text-[#F3F4EA] text-[1.2rem] mobile:text-base whitespace-nowrap truncate`}>
+                                <span
+                                    class={tw`text-[#F3F4EA] text-[1.2rem] mobile:text-base whitespace-nowrap truncate`}
+                                >
                                     {props.profileGetter.getProfilesByPublicKey(props.currentEditor.pubkey)
                                         ?.profile.name ||
                                         props.currentEditor.pubkey.bech32()}
