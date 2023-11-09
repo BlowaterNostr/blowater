@@ -18,7 +18,7 @@ import { NavigationUpdate } from "./nav.tsx";
 import { Model } from "./app_model.ts";
 import { SearchUpdate, SelectConversation } from "./search_model.ts";
 import { LamportTime } from "../time.ts";
-import { SignInEvent, signInWithExtension, signInWithPrivateKey } from "./signIn.tsx";
+import { SignInEvent } from "./signIn.tsx";
 import {
     Encrypted_Event,
     getTags,
@@ -84,26 +84,8 @@ export async function* UI_Interaction_Update(args: {
     for await (const event of events) {
         console.log(event);
         switch (event.type) {
-            case "editSignInPrivateKey":
-                model.signIn.privateKey = event.privateKey;
-                yield model;
-                continue;
-                break;
-            case "signin":
-                let ctx;
-                if (event.privateKey) {
-                    ctx = signInWithPrivateKey(event.privateKey);
-                } else {
-                    const ctx2 = await signInWithExtension();
-                    console.log(ctx2);
-                    if (typeof ctx2 == "string") {
-                        model.signIn.warningString = ctx2;
-                    } else if (ctx2 instanceof Error) {
-                        model.signIn.warningString = ctx2.message;
-                    } else {
-                        ctx = ctx2;
-                    }
-                }
+            case "SignInEvent":
+                const ctx = event.ctx;
                 if (ctx) {
                     console.log("sign in as", ctx.publicKey.bech32());
                     const dbView = await Database_Contextual_View.New(dexieDB);

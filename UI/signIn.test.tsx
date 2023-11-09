@@ -7,8 +7,7 @@ import { SignIn } from "./signIn.tsx";
 
 render(
     <SignIn
-        eventBus={testEventBus}
-        privateKey={PrivateKey.Generate().hex}
+        emit={testEventBus.emit}
     />,
     document.body,
 );

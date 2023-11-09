@@ -43,7 +43,6 @@ export async function Start(database: DexieDatabase) {
     const ctx = await getCurrentSignInCtx();
     if (ctx instanceof Error) {
         console.error(ctx);
-        model.signIn.warningString = "Please add your private key to your NIP-7 extension";
     } else if (ctx) {
         const dbView = await Database_Contextual_View.New(database);
         if (dbView instanceof Error) {
@@ -386,13 +385,7 @@ export function AppComponent(props: {
 
     if (model.app == undefined) {
         console.log("render sign in page");
-        return (
-            <SignIn
-                eventBus={props.eventBus}
-                privateKey={model.signIn.privateKey}
-                warningString={model.signIn.warningString}
-            />
-        );
+        return <SignIn emit={props.eventBus.emit} />;
     }
 
     const app = model.app;
