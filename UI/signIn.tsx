@@ -90,7 +90,7 @@ export class SignIn extends Component<Props, State> {
         signInButton:
             tw`w-full mt-4 ${ButtonClass} ${LinearGradientsClass} hover:bg-gradient-to-l mobile:rounded-full font-bold`,
         ablyButton:
-            tw`${ButtonClass} ${CenterClass} mt-4 bg-[#F8C455] text-[#313338] hover:bg-[#FFDF6F] py-0 mobile:hidden`,
+            tw`${ButtonClass} ${CenterClass} mt-4 bg-[#F8C455] text-[#313338] hover:bg-[#FFDF6F] py-0 mobile:rounded-full`,
         cancelButton:
             tw`${ButtonClass} ${CenterClass} mt-4 bg-[${SecondaryBackgroundColor}] text-[${PrimaryTextColor}] hover:bg-[${HoverButtonBackgroudColor}] mobile:rounded-full`,
         newButton:
