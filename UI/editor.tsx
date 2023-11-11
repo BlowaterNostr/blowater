@@ -5,11 +5,11 @@ import { CenterClass, LinearGradientsClass, NoOutlineClass } from "./components/
 import { emitFunc } from "../event-bus.ts";
 
 import { PublicKey } from "../lib/nostr-ts/key.ts";
-import { ImageIcon } from "./icons2/image-icon.tsx";
+import { ImageIcon } from "./icons/image-icon.tsx";
 import { DividerBackgroundColor, PrimaryBackgroundColor, PrimaryTextColor } from "./style/colors.ts";
-import { SendIcon } from "./icons2/send-icon.tsx";
+import { SendIcon } from "./icons/send-icon.tsx";
 import { Component } from "https://esm.sh/preact@10.17.1";
-import { RemoveIcon } from "./icons2/remove-icon.tsx";
+import { RemoveIcon } from "./icons/remove-icon.tsx";
 
 export type EditorModel = {
     readonly pubkey: PublicKey;

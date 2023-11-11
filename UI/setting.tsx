@@ -22,8 +22,8 @@ import {
     TitleIconColor,
     WarnColor,
 } from "./style/colors.ts";
-import { RelayIcon } from "./icons2/relay-icon.tsx";
-import { DeleteIcon } from "./icons2/delete-icon.tsx";
+import { RelayIcon } from "./icons/relay-icon.tsx";
+import { DeleteIcon } from "./icons/delete-icon.tsx";
 import { RelayConfig } from "./relay-config.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
 import { emitFunc } from "../event-bus.ts";

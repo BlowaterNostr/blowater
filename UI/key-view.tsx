@@ -4,7 +4,7 @@ import { tw } from "https://esm.sh/twind@0.16.16";
 import { PrivateKey, PublicKey } from "../lib/nostr-ts/key.ts";
 import { InputClass } from "./components/tw.ts";
 import { PrimaryTextColor, TitleIconColor, WarnColor } from "./style/colors.ts";
-import { KeyIcon } from "./icons2/key-icon.tsx";
+import { KeyIcon } from "./icons/key-icon.tsx";
 import { OnFocusTransitionButton } from "./components/on-focus-transition-button.tsx";
 
 export default function KeyView(props: {

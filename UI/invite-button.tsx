@@ -1,7 +1,7 @@
 /** @jsx h */
 import { Component, h } from "https://esm.sh/preact@10.17.1";
 import { tw } from "https://esm.sh/twind@0.16.16";
-import { InviteIcon } from "./icons2/invite-icon.tsx";
+import { InviteIcon } from "./icons/invite-icon.tsx";
 import { DividerBackgroundColor, HoverButtonBackgroudColor, PrimaryTextColor } from "./style/colors.ts";
 import { NoOutlineClass } from "./components/tw.ts";
 import { GroupMessageController } from "../features/gm.ts";
