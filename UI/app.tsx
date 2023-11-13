@@ -455,7 +455,7 @@ export function AppComponent(props: {
                     </div>
 
                     <div
-                        class={tw`h-full px-[3rem] bg-[${SecondaryBackgroundColor}] flex-1 overflow-auto${
+                        class={tw`h-full px-[3rem] mobile:px-4 bg-[${SecondaryBackgroundColor}] flex-1 overflow-auto${
                             model.navigationModel.activeNav == "Profile" ? " block" : " hidden"
                         }`}
                     >

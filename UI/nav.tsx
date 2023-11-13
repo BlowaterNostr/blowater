@@ -61,7 +61,7 @@ export class NavBar extends Component<Props, State> {
             tw`rounded-lg w-10 h-10 ${
                 active ? `bg-[${SecondaryBackgroundColor}]` : ""
             } hover:bg-[${SecondaryBackgroundColor}] ${CenterClass} ${NoOutlineClass}`,
-        mobileContainer: tw`h-16 flex justify-evenly bg-[${PrimaryBackgroundColor}] items-center`,
+        mobileContainer: tw`h-[4.5rem] flex justify-evenly bg-[${PrimaryBackgroundColor}] items-start pt-2`,
     };
 
     myProfile: ProfileData | undefined;

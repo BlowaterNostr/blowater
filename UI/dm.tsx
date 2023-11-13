@@ -154,7 +154,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                 ? (
                     <div class={tw`flex-1 overflow-hidden flex-col flex`}>
                         <div
-                            class={tw`h-14 border-l border-b border-[#36393F] flex items-center justify-between px-5 bg-[#2F3136]`}
+                            class={tw`h-14 mobile:h-12 border-l border-b border-[#36393F] flex items-center justify-between px- mobile:px-2 bg-[#2F3136]`}
                         >
                             <div class={tw`flex items-center`}>
                                 <button
@@ -163,7 +163,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                                             type: "BackToContactList",
                                         });
                                     }}
-                                    class={tw`w-6 h-6 mr-4 desktop:hidden ${IconButtonClass}`}
+                                    class={tw`w-6 h-6 mr-4 mobile:mr-2 desktop:hidden ${IconButtonClass}`}
                                 >
                                     <LeftArrowIcon
                                         class={tw`w-4 h-4`}
@@ -172,7 +172,9 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                                         }}
                                     />
                                 </button>
-                                <span class={tw`text-[#F3F4EA] text-[1.2rem] whitespace-nowrap truncate`}>
+                                <span
+                                    class={tw`text-[#F3F4EA] text-[1.2rem] mobile:text-base whitespace-nowrap truncate`}
+                                >
                                     {props.profileGetter.getProfilesByPublicKey(props.currentEditor.pubkey)
                                         ?.profile.name ||
                                         props.currentEditor.pubkey.bech32()}
