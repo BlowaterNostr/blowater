@@ -27,6 +27,7 @@ import { DeleteIcon } from "./icons/delete-icon.tsx";
 import { RelayConfig } from "./relay-config.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
 import { emitFunc } from "../event-bus.ts";
+import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 
 export interface SettingProps {
     logout: () => void;
@@ -110,6 +111,21 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
         addRelayInput: "",
         relayStatus: [],
     };
+    private exit = false;
+
+    async componentDidMount() {
+        while (this.exit == false) {
+            await sleep(1000);
+            const status = this.computeRelayStatus(this.props);
+            this.setState({
+                relayStatus: status,
+            });
+        }
+    }
+
+    componentWillUnmount(): void {
+        this.exit == true;
+    }
 
     computeRelayStatus(props: RelaySettingProp) {
         const _relayStatus: { url: string; status: keyof typeof colors }[] = [];
