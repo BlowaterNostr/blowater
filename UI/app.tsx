@@ -24,7 +24,7 @@ import { DexieDatabase } from "./dexie-db.ts";
 import { About } from "./about.tsx";
 import { ProfileSyncer } from "../features/profile.ts";
 import { Popover, PopOverInputChannel } from "./components/popover.tsx";
-import { Channel, sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { group_GM_events, GroupChatSyncer, GroupMessageController } from "../features/gm.ts";
 import { OtherConfig } from "./config-other.ts";
 import { ProfileGetter } from "./search.tsx";
@@ -125,7 +125,7 @@ export class App {
     }) {
         const lamport = fromEvents(args.database.events);
         const eventSyncer = new EventSyncer(args.pool, args.database);
-        const relayConfig = RelayConfig.FromLocalStorage(args.ctx);
+        const relayConfig = await RelayConfig.FromLocalStorage(args.ctx, args.pool);
         if (relayConfig.getRelayURLs().size == 0) {
             for (const url of defaultRelays) {
                 relayConfig.add(url);
@@ -217,10 +217,6 @@ export class App {
         ///////////////////////////////////
         // relay config synchronization, need to refactor later
         (async () => {
-            const err = await this.relayConfig.syncWithPool(this.pool);
-            if (err instanceof Error) {
-                throw err; // don't know what to do, should crash the app
-            }
             const stream = await this.pool.newSub("relay config", {
                 "#d": ["RelayConfig"],
                 authors: [this.ctx.publicKey.hex],
@@ -233,10 +229,11 @@ export class App {
                 if (msg.res.type == "EOSE") {
                     continue;
                 }
-                RelayConfig.FromNostrEvent(msg.res.event, this.ctx);
+                RelayConfig.FromNostrEvent(msg.res.event, this.ctx, this.pool);
                 const _relayConfig = await RelayConfig.FromNostrEvent(
                     msg.res.event,
                     this.ctx,
+                    this.pool,
                 );
                 if (_relayConfig instanceof Error) {
                     console.log(_relayConfig.message);

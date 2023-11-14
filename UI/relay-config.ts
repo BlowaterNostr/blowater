@@ -16,25 +16,37 @@ type Config = {
     [key: string]: boolean;
 };
 
+export interface RelayAdder {
+    addRelayURL(url: string): Promise<RelayAlreadyRegistered | Error | void>;
+}
+
 export class RelayConfig {
     // This is a state based CRDT based on Vector Clock
     // see https://www.youtube.com/watch?v=OOlnp2bZVRs
     private config: Automerge.next.Doc<Config> = Automerge.init();
-    private constructor() {}
+    private constructor(
+        private readonly relayAdder: RelayAdder,
+    ) {}
 
-    static Empty() {
-        return new RelayConfig();
+    static Empty(relayAdder: RelayAdder) {
+        return new RelayConfig(relayAdder);
     }
 
     // The the relay config of this account from local storage
-    static FromLocalStorage(ctx: NostrAccountContext) {
+    static async FromLocalStorage(ctx: NostrAccountContext, relayAdder: RelayAdder) {
         const encodedConfigStr = localStorage.getItem(this.localStorageKey(ctx));
         if (encodedConfigStr == null) {
-            return RelayConfig.Empty();
+            return RelayConfig.Empty(relayAdder);
         }
         const config = Automerge.load<Config>(secp256k1.utils.hexToBytes(encodedConfigStr));
-        const relayConfig = new RelayConfig();
+        const relayConfig = new RelayConfig(relayAdder);
         relayConfig.config = config;
+        for (const url of relayConfig.getRelayURLs()) {
+            const res = await relayConfig.relayAdder.addRelayURL(url);
+            if (res instanceof Error) {
+                console.error(res); // todo: pipe to global error toast
+            }
+        }
         return relayConfig;
     }
     static localStorageKey(ctx: NostrAccountContext) {
@@ -44,7 +56,7 @@ export class RelayConfig {
     /////////////////////////////
     // Nostr Encoding Decoding //
     /////////////////////////////
-    static async FromNostrEvent(event: NostrEvent, ctx: NostrAccountContext) {
+    static async FromNostrEvent(event: NostrEvent, ctx: NostrAccountContext, relayAdder: RelayAdder) {
         const decrypted = await ctx.decrypt(ctx.publicKey.hex, event.content);
         if (decrypted instanceof Error) {
             return decrypted;
@@ -56,7 +68,8 @@ export class RelayConfig {
         if (json instanceof Error) {
             return json;
         }
-        const relayConfig = new RelayConfig();
+        const relayConfig = new RelayConfig(relayAdder);
+        console.log(json);
         relayConfig.merge(secp256k1.utils.hexToBytes(json.data));
         return relayConfig;
     }
@@ -96,10 +109,23 @@ export class RelayConfig {
 
     merge(bytes: Uint8Array) {
         const otherDoc = Automerge.load<Config>(bytes);
+        console.log(otherDoc);
         this.config = Automerge.merge(this.config, otherDoc);
+        for (const url of this.getRelayURLs()) {
+            this.relayAdder.addRelayURL(url).then((res) => {
+                if (res instanceof Error) {
+                    console.error(res); // todo: pipe to global error toast
+                }
+            });
+        }
     }
 
-    async add(url: string) {
+    async add(url: string): Promise<Error | void> {
+        console.log("add relay config", url);
+        const err = await this.relayAdder.addRelayURL(url);
+        if (err instanceof Error && !(err instanceof RelayAlreadyRegistered)) {
+            return err;
+        }
         if (this.config[url] != undefined) {
             return;
         }
@@ -115,22 +141,6 @@ export class RelayConfig {
         this.config = Automerge.change(this.config, "remove", (config) => {
             delete config[url];
         });
-    }
-
-    async syncWithPool(pool: ConnectionPool) {
-        for (const r of pool.getRelays()) {
-            if (this.config[r.url] == undefined) {
-                await pool.removeRelay(r.url);
-            }
-        }
-        for (const url of Object.keys(this.config)) {
-            const err = await pool.addRelayURL(url);
-            if (err instanceof RelayAlreadyRegistered) {
-                continue;
-            } else if (err instanceof Error) {
-                return err;
-            }
-        }
     }
 }
 
