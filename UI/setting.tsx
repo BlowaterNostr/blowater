@@ -41,8 +41,7 @@ const colors = {
     "Connecting": WarnColor,
     "Open": SuccessColor,
     "Closing": WarnColor,
-    "Closed": ErrorColor,
-    "Not In Pool": ErrorColor,
+    "Closed": ErrorColor
 };
 
 export const Setting = (props: SettingProps) => {
@@ -116,7 +115,7 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
         const _relayStatus: { url: string; status: keyof typeof colors }[] = [];
         for (const url of props.relayConfig.getRelayURLs()) {
             const relay = props.relayPool.getRelay(url);
-            let status: keyof typeof colors = "Not In Pool";
+            let status: keyof typeof colors = "Closed";
             if (relay) {
                 status = relay.ws.status();
             }

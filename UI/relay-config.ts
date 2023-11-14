@@ -33,7 +33,7 @@ export class RelayConfig {
     }
 
     // The the relay config of this account from local storage
-    static FromLocalStorage(ctx: NostrAccountContext, relayAdder: RelayAdder) {
+    static async FromLocalStorage(ctx: NostrAccountContext, relayAdder: RelayAdder) {
         const encodedConfigStr = localStorage.getItem(this.localStorageKey(ctx));
         if (encodedConfigStr == null) {
             return RelayConfig.Empty(relayAdder);
@@ -42,11 +42,10 @@ export class RelayConfig {
         const relayConfig = new RelayConfig(relayAdder);
         relayConfig.config = config;
         for (const url of relayConfig.getRelayURLs()) {
-            relayConfig.relayAdder.addRelayURL(url).then((res) => {
-                if (res instanceof Error) {
-                    console.error(res); // todo: pipe to global error toast
-                }
-            });
+            const res = await relayConfig.relayAdder.addRelayURL(url)
+            if (res instanceof Error) {
+                console.error(res); // todo: pipe to global error toast
+            }
         }
         return relayConfig;
     }
@@ -70,7 +69,6 @@ export class RelayConfig {
             return json;
         }
         const relayConfig = new RelayConfig(relayAdder);
-        console.log(json.data);
         relayConfig.merge(secp256k1.utils.hexToBytes(json.data));
         return relayConfig;
     }
