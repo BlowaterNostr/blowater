@@ -109,10 +109,12 @@ export class RelayConfig {
 
     merge(bytes: Uint8Array) {
         const otherDoc = Automerge.load<Config>(bytes);
-        console.log(otherDoc);
         this.config = Automerge.merge(this.config, otherDoc);
         for (const url of this.getRelayURLs()) {
             this.relayAdder.addRelayURL(url).then((res) => {
+                if(res instanceof RelayAlreadyRegistered) {
+                    return
+                }
                 if (res instanceof Error) {
                     console.error(res); // todo: pipe to global error toast
                 }
