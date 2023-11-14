@@ -158,7 +158,8 @@ export class ConversationList extends Component<Props, State> {
                                 ? "border-b-2 border-[#54D48C] bg-[#42464D] text-[#F7F7F7]"
                                 : ""
                         }`}
-                        onClick={() => this.setState({ selectedContactGroup: "Contacts" })}
+                        onClick={() =>
+                            this.setState({ selectedContactGroup: "Contacts" })}
                     >
                         Contacts: {contacts.length}
                     </li>
