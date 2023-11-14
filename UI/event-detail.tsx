@@ -3,9 +3,9 @@ import { Fragment, h } from "https://esm.sh/preact@10.11.3";
 import { tw } from "https://esm.sh/twind@0.16.16";
 import { CenterClass, InputClass } from "./components/tw.ts";
 import { PrimaryTextColor, SecondaryBackgroundColor, TitleIconColor } from "./style/colors.ts";
-import { OnFocusTransitionButton } from "./components/on-focus-transition-button.tsx";
 import { Component } from "https://esm.sh/preact@10.11.3";
 import { AboutIcon } from "./icons/about-icon.tsx";
+import { CopyButton } from "./components/copy-button.tsx";
 
 export type EventDetailItem = {
     title: string;
@@ -31,8 +31,6 @@ export class EventDetail extends Component<Props> {
         },
     };
 
-    copy = (text: string) => navigator.clipboard.writeText(text);
-
     render() {
         return (
             <div class={this.styles.container}>
@@ -48,7 +46,7 @@ export class EventDetail extends Component<Props> {
                             <div class={this.styles.field.container}>
                                 <pre class={this.styles.field.pre}>{field}</pre>
                                 <div class={this.styles.field.copyButton}>
-                                    <OnFocusTransitionButton onFocus={() => this.copy(field)} />
+                                    <CopyButton text={field} />
                                 </div>
                             </div>
                         ))}

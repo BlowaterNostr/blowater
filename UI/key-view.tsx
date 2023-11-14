@@ -5,7 +5,7 @@ import { PrivateKey, PublicKey } from "../lib/nostr-ts/key.ts";
 import { InputClass } from "./components/tw.ts";
 import { PrimaryTextColor, TitleIconColor, WarnColor } from "./style/colors.ts";
 import { KeyIcon } from "./icons/key-icon.tsx";
-import { OnFocusTransitionButton } from "./components/on-focus-transition-button.tsx";
+import { CopyButton } from "./components/copy-button.tsx";
 
 export default function KeyView(props: {
     publicKey: PublicKey;
@@ -14,7 +14,7 @@ export default function KeyView(props: {
     const privateKey = props.privateKey;
     return (
         <Fragment>
-            <p class={tw`text-[${PrimaryTextColor}] text-[1.3125rem] flex`}>
+            <p class={tw`text-[${PrimaryTextColor}] text-[1.3125rem] flex font-bold`}>
                 <KeyIcon
                     class={tw`w-[2rem] h-[2rem] mr-[1rem]`}
                     style={{
@@ -32,11 +32,9 @@ export default function KeyView(props: {
                     type="text"
                     class={tw`${InputClass} overflow-x-auto pr-[4rem]`}
                 />
-                <OnFocusTransitionButton
+                <CopyButton
                     class={tw`absolute right-4 top-4`}
-                    onFocus={async () => {
-                        await navigator.clipboard.writeText(props.publicKey.bech32());
-                    }}
+                    text={props.publicKey.bech32()}
                 />
             </div>
             <p class={tw`mt-[1.5rem] text-[${PrimaryTextColor}]`}>Private Key</p>
@@ -44,17 +42,15 @@ export default function KeyView(props: {
                 <input
                     value="●●●●●●"
                     disabled
-                    type="text"
+                    type="password"
                     class={tw`${InputClass} overflow-x-auto pr-[4rem]`}
                 />
 
                 {privateKey
                     ? (
-                        <OnFocusTransitionButton
+                        <CopyButton
                             class={tw`absolute right-4 top-4`}
-                            onFocus={async () => {
-                                await navigator.clipboard.writeText(privateKey.bech32);
-                            }}
+                            text={privateKey.bech32}
                         />
                     )
                     : undefined}
