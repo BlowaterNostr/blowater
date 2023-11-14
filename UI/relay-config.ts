@@ -42,7 +42,7 @@ export class RelayConfig {
         const relayConfig = new RelayConfig(relayAdder);
         relayConfig.config = config;
         for (const url of relayConfig.getRelayURLs()) {
-            const res = await relayConfig.relayAdder.addRelayURL(url)
+            const res = await relayConfig.relayAdder.addRelayURL(url);
             if (res instanceof Error) {
                 console.error(res); // todo: pipe to global error toast
             }
@@ -69,6 +69,7 @@ export class RelayConfig {
             return json;
         }
         const relayConfig = new RelayConfig(relayAdder);
+        console.log(json);
         relayConfig.merge(secp256k1.utils.hexToBytes(json.data));
         return relayConfig;
     }

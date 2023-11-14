@@ -41,7 +41,7 @@ const colors = {
     "Connecting": WarnColor,
     "Open": SuccessColor,
     "Closing": WarnColor,
-    "Closed": ErrorColor
+    "Closed": ErrorColor,
 };
 
 export const Setting = (props: SettingProps) => {
