@@ -395,7 +395,7 @@ export function AppComponent(props: {
     if (model.navigationModel.activeNav == "AppList") {
         appList = (
             <div
-                class={tw`flex-1 overflow-hidden overflow-y-auto bg-[#313338]`}
+                class={tw`flex-1 overflow-hidden overflow-y-auto bg-[${SecondaryBackgroundColor}]`}
             >
                 <AppList />
             </div>

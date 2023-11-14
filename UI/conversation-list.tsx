@@ -8,7 +8,7 @@ import { emitFunc, EventSubscriber } from "../event-bus.ts";
 import { SearchUpdate, SelectConversation } from "./search_model.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { PinConversation, UnpinConversation } from "../nostr.ts";
-import { PrimaryTextColor } from "./style/colors.ts";
+import { PrimaryTextColor, SecondaryBackgroundColor } from "./style/colors.ts";
 import { ButtonGroup } from "./components/button-group.tsx";
 import { ChatIcon } from "./icons/chat-icon.tsx";
 import { StartCreateGroupChat } from "./create-group.tsx";
@@ -107,7 +107,7 @@ export class ConversationList extends Component<Props, State> {
         }
 
         return (
-            <div class={tw`h-full flex flex-col mobile:w-full desktop:w-64 bg-[#2F3136]`}>
+            <div class={tw`h-full flex flex-col mobile:w-full desktop:w-64 bg-[${SecondaryBackgroundColor}]`}>
                 <div
                     class={tw`flex items-center gap-2 px-4 h-20 border-b border-[#36393F]`}
                 >
