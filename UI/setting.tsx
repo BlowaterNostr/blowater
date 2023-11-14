@@ -91,6 +91,8 @@ export const Setting = (props: SettingProps) => {
 
 export type RelayConfigChange = {
     type: "RelayConfigChange";
+    add: boolean; // false -> remove
+    url: string;
 };
 
 type RelaySettingProp = {
