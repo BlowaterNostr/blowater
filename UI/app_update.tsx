@@ -35,7 +35,7 @@ import { Search } from "./search.tsx";
 import { NoteID } from "../lib/nostr-ts/nip19.ts";
 import { EventDetail, EventDetailItem } from "./event-detail.tsx";
 import { CreateGroup, CreateGroupChat, StartCreateGroupChat } from "./create-group.tsx";
-import { prepareNormalNostrEvent } from "../lib/nostr-ts/event.ts";
+import { prepareEncryptedNostrEvent, prepareNormalNostrEvent } from "../lib/nostr-ts/event.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
@@ -374,12 +374,23 @@ export async function* UI_Interaction_Update(args: {
                 children: <div></div>,
             });
         } else if (event.type == "RelayConfigChange") {
-            const e = await app.relayConfig.toNostrEvent(app.ctx);
+            const e = await prepareEncryptedNostrEvent(app.ctx, {
+                kind: NostrKind.Custom_App_Data,
+                encryptKey: app.ctx.publicKey,
+                content: JSON.stringify(event),
+                tags: [],
+            });
             if (e instanceof Error) {
-                throw e; // impossible
+                console.error(e);
+                continue;
             }
-            pool.sendEvent(e);
-            app.relayConfig.saveToLocalStorage(app.ctx);
+            {
+                const err = await pool.sendEvent(e);
+                if (err instanceof Error) {
+                    console.error(err);
+                    continue;
+                }
+            }
         } else if (event.type == "ViewEventDetail") {
             const nostrEvent = event.message.event;
             const eventID = nostrEvent.id;

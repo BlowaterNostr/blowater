@@ -23,10 +23,3 @@ export const testEventsAdapter: EventsAdapter = {
         data.set(e.id, e);
     },
 };
-export class MockRelayAdder implements RelayAdder {
-    relays = new Set();
-
-    async addRelayURL(url: string): Promise<Error | SingleRelayConnection> {
-        this.relays.add(url);
-    }
-}

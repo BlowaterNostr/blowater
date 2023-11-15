@@ -10,8 +10,6 @@ export const defaultRelays = [
     "wss://relay.nostr.wirednet.jp",
 ];
 
-
-
 export class RelayConfig {
     private config = new Set();
     private constructor(

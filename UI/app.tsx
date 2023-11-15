@@ -229,17 +229,6 @@ export class App {
                 if (msg.res.type == "EOSE") {
                     continue;
                 }
-                RelayConfig.FromNostrEvent(msg.res.event, this.ctx, this.pool);
-                const _relayConfig = await RelayConfig.FromNostrEvent(
-                    msg.res.event,
-                    this.ctx,
-                    this.pool,
-                );
-                if (_relayConfig instanceof Error) {
-                    console.log(_relayConfig.message);
-                    continue;
-                }
-                this.relayConfig.merge(_relayConfig.save());
                 this.relayConfig.saveToLocalStorage(this.ctx);
             }
         })();
