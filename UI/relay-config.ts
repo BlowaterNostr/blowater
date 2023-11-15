@@ -1,5 +1,5 @@
-import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
-import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
+import { NostrAccountContext } from "../lib/nostr-ts/nostr.ts";
+import { ConnectionPool, RelayAdder, RelayGetter, RelayRemover } from "../lib/nostr-ts/relay-pool.ts";
 import { parseJSON } from "../features/profile.ts";
 import { SingleRelayConnection } from "../lib/nostr-ts/relay-single.ts";
 
@@ -10,21 +10,7 @@ export const defaultRelays = [
     "wss://relay.nostr.wirednet.jp",
 ];
 
-type Config = {
-    [key: string]: boolean;
-};
 
-export interface RelayAdder {
-    addRelayURL(url: string): Promise<Error | SingleRelayConnection>;
-}
-
-export interface RelayRemover {
-    removeRelay(url: string): Promise<void>;
-}
-
-export interface RelayGetter {
-    getRelay(url: string | URL): SingleRelayConnection | undefined;
-}
 
 export class RelayConfig {
     private config = new Set();
