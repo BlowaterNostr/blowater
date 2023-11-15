@@ -91,6 +91,8 @@ export const Setting = (props: SettingProps) => {
 
 export type RelayConfigChange = {
     type: "RelayConfigChange";
+    kind: "add" | "remove";
+    url: string;
 };
 
 type RelaySettingProp = {
@@ -133,7 +135,7 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
             const relay = props.relayPool.getRelay(url);
             let status: keyof typeof colors = "Closed";
             if (relay) {
-                status = relay.ws.status();
+                status = relay.status();
             }
             _relayStatus.push({
                 url,
@@ -152,14 +154,21 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
             // props.eventBus.emit({ type: "AddRelay" });
             console.log("add", addRelayInput);
             if (addRelayInput.length > 0) {
-                props.relayConfig.add(addRelayInput);
+                const p = props.relayConfig.add(addRelayInput);
                 this.setState({
                     addRelayInput: "",
-                });
-                this.setState({
                     relayStatus: this.computeRelayStatus(props),
                 });
-                props.emit({ type: "RelayConfigChange" });
+                const relay = await p;
+                if (relay instanceof Error) {
+                    console.error(relay);
+                    return;
+                }
+                props.emit({
+                    type: "RelayConfigChange",
+                    kind: "add",
+                    url: relay.url,
+                });
             }
         };
         return (
@@ -216,11 +225,16 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
                                 <button
                                     class={tw`w-[2rem] h-[2rem] rounded-lg bg-transparent hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
                                     onClick={async () => {
-                                        props.relayConfig.remove(r.url);
+                                        const p = props.relayConfig.remove(r.url);
                                         this.setState({
                                             relayStatus: this.computeRelayStatus(props),
                                         });
-                                        props.emit({ type: "RelayConfigChange" });
+                                        await p;
+                                        props.emit({
+                                            type: "RelayConfigChange",
+                                            kind: "remove",
+                                            url: r.url,
+                                        });
                                     }}
                                 >
                                     <DeleteIcon

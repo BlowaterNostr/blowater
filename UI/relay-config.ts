@@ -1,9 +1,8 @@
-import * as Automerge from "https://deno.land/x/automerge@2.1.0-alpha.12/index.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
-import * as secp256k1 from "../lib/nostr-ts/vendor/secp256k1.js";
-import { ConnectionPool, RelayAlreadyRegistered } from "../lib/nostr-ts/relay-pool.ts";
-import { prepareParameterizedEvent } from "../lib/nostr-ts/event.ts";
+import { ConnectionPool, RelayAdder, RelayGetter, RelayRemover } from "../lib/nostr-ts/relay-pool.ts";
 import { parseJSON } from "../features/profile.ts";
+import { SingleRelayConnection } from "../lib/nostr-ts/relay-single.ts";
+import { RelayConfigChange } from "./setting.tsx";
 
 export const defaultRelays = [
     "wss://relay.blowater.app",
@@ -12,40 +11,34 @@ export const defaultRelays = [
     "wss://relay.nostr.wirednet.jp",
 ];
 
-type Config = {
-    [key: string]: boolean;
-};
-
-export interface RelayAdder {
-    addRelayURL(url: string): Promise<RelayAlreadyRegistered | Error | void>;
-}
-
 export class RelayConfig {
-    // This is a state based CRDT based on Vector Clock
-    // see https://www.youtube.com/watch?v=OOlnp2bZVRs
-    private config: Automerge.next.Doc<Config> = Automerge.init();
+    private config = new Set<string>();
     private constructor(
-        private readonly relayAdder: RelayAdder,
+        private readonly ctx: NostrAccountContext,
+        private readonly relayPool: RelayAdder & RelayRemover & RelayGetter,
     ) {}
 
-    static Empty(relayAdder: RelayAdder) {
-        return new RelayConfig(relayAdder);
+    static Empty(ctx: NostrAccountContext, relayPool: RelayAdder & RelayRemover & RelayGetter) {
+        return new RelayConfig(ctx, relayPool);
     }
 
     // The the relay config of this account from local storage
-    static async FromLocalStorage(ctx: NostrAccountContext, relayAdder: RelayAdder) {
+    static async FromLocalStorage(
+        ctx: NostrAccountContext,
+        relayAdder: RelayAdder & RelayRemover & RelayGetter,
+    ) {
         const encodedConfigStr = localStorage.getItem(this.localStorageKey(ctx));
         if (encodedConfigStr == null) {
-            return RelayConfig.Empty(relayAdder);
+            return RelayConfig.Empty(ctx, relayAdder);
         }
-        const config = Automerge.load<Config>(secp256k1.utils.hexToBytes(encodedConfigStr));
-        const relayConfig = new RelayConfig(relayAdder);
-        relayConfig.config = config;
-        for (const url of relayConfig.getRelayURLs()) {
-            const res = await relayConfig.relayAdder.addRelayURL(url);
-            if (res instanceof Error) {
-                console.error(res); // todo: pipe to global error toast
-            }
+        let relayArray = parseJSON<string[]>(encodedConfigStr);
+        if (relayArray instanceof Error) {
+            console.log(relayArray.message);
+            relayArray = [];
+        }
+        const relayConfig = new RelayConfig(ctx, relayAdder);
+        for (const relay of relayArray) {
+            relayConfig.add(relay);
         }
         return relayConfig;
     }
@@ -53,96 +46,46 @@ export class RelayConfig {
         return `${RelayConfig.name}-${ctx.publicKey.bech32()}`;
     }
 
-    /////////////////////////////
-    // Nostr Encoding Decoding //
-    /////////////////////////////
-    static async FromNostrEvent(event: NostrEvent, ctx: NostrAccountContext, relayAdder: RelayAdder) {
-        const decrypted = await ctx.decrypt(ctx.publicKey.hex, event.content);
-        if (decrypted instanceof Error) {
-            return decrypted;
+    async addEvent(event: NostrEvent<NostrKind.Custom_App_Data>) {
+        const content = await this.ctx.encrypt(this.ctx.publicKey.hex, event.content);
+        if (content instanceof Error) {
+            return content;
         }
-
-        const json = parseJSON<{
-            data: Config;
-        }>(decrypted);
-        if (json instanceof Error) {
-            return json;
+        const configChange = parseJSON<RelayConfigChange>(content);
+        if (configChange instanceof Error) {
+            return configChange;
         }
-        const relayConfig = new RelayConfig(relayAdder);
-        console.log(json);
-        relayConfig.merge(secp256k1.utils.hexToBytes(json.data));
-        return relayConfig;
-    }
-
-    async toNostrEvent(ctx: NostrAccountContext) {
-        const configJSON = JSON.stringify({
-            type: RelayConfig.name,
-            data: this.saveAsHex(),
-        });
-        const encrypted = await ctx.encrypt(ctx.publicKey.hex, configJSON);
-        if (encrypted instanceof Error) {
-            return encrypted;
+        if (configChange.type != "RelayConfigChange") {
+            return; // ignore
         }
-        const event = await prepareParameterizedEvent(ctx, {
-            content: encrypted,
-            d: RelayConfig.name,
-            kind: NostrKind.Custom_App_Data,
-        });
-        return event;
+        if (configChange.kind == "add") {
+            this.config.add(configChange.url);
+        } else {
+            this.config.delete(configChange.url);
+        }
     }
 
     getRelayURLs() {
-        return new Set(Object.keys(this.config));
+        return this.config;
     }
 
-    save() {
-        return Automerge.save(this.config);
-    }
-    private saveAsHex() {
-        const bytes = this.save();
-        return secp256k1.utils.bytesToHex(bytes);
-    }
     saveToLocalStorage(ctx: NostrAccountContext) {
-        const hex = this.saveAsHex();
-        localStorage.setItem(RelayConfig.localStorageKey(ctx), hex);
+        localStorage.setItem(RelayConfig.localStorageKey(ctx), JSON.stringify(Array.from(this.config)));
     }
 
-    merge(bytes: Uint8Array) {
-        const otherDoc = Automerge.load<Config>(bytes);
-        this.config = Automerge.merge(this.config, otherDoc);
-        for (const url of this.getRelayURLs()) {
-            this.relayAdder.addRelayURL(url).then((res) => {
-                if (res instanceof RelayAlreadyRegistered) {
-                    return;
-                }
-                if (res instanceof Error) {
-                    console.error(res); // todo: pipe to global error toast
-                }
-            });
-        }
-    }
-
-    async add(url: string): Promise<Error | void> {
+    async add(url: string): Promise<Error | SingleRelayConnection> {
         console.log("add relay config", url);
-        const err = await this.relayAdder.addRelayURL(url);
-        if (err instanceof Error && !(err instanceof RelayAlreadyRegistered)) {
-            return err;
+        const relay = await this.relayPool.addRelayURL(url);
+        if (relay instanceof Error) {
+            return relay;
         }
-        if (this.config[url] != undefined) {
-            return;
-        }
-        if (!url.startsWith("wss://") && !url.startsWith("ws://")) {
-            url = "wss://" + url;
-        }
-        this.config = Automerge.change(this.config, "add", (config) => {
-            config[url] = true;
-        });
+        this.config.add(relay.url);
+        return relay;
     }
 
     async remove(url: string) {
-        this.config = Automerge.change(this.config, "remove", (config) => {
-            delete config[url];
-        });
+        this.relayPool.removeRelay(url);
+        return this.config.delete(url);
     }
 }
 
