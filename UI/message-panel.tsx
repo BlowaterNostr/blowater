@@ -352,7 +352,7 @@ function MessageBoxGroup(props: {
         const msg = messageGroups[i];
         rows.push(
             <li
-                class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 group relative`}
+                class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-center pr-8 group relative`}
             >
                 {MessageActions(msg, props.emit)}
                 {Time(msg.created_at)}

@@ -6,7 +6,12 @@ import { emitFunc } from "../event-bus.ts";
 
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { ImageIcon } from "./icons/image-icon.tsx";
-import { DividerBackgroundColor, PrimaryBackgroundColor, PrimaryTextColor } from "./style/colors.ts";
+import {
+    DividerBackgroundColor,
+    PrimaryBackgroundColor,
+    PrimaryTextColor,
+    SecondaryBackgroundColor,
+} from "./style/colors.ts";
 import { SendIcon } from "./icons/send-icon.tsx";
 import { Component } from "https://esm.sh/preact@10.17.1";
 import { RemoveIcon } from "./icons/remove-icon.tsx";
@@ -64,8 +69,13 @@ type EditorProps = {
 };
 
 export class Editor extends Component<EditorProps> {
+    textareaElement = createRef();
+
+    componentDidMount() {
+        this.textareaElement.current?.focus();
+    }
+
     render(props: EditorProps) {
-        const textareaElement = createRef();
         const uploadFileInput = createRef();
 
         const removeFile = (index: number) => {
@@ -87,14 +97,14 @@ export class Editor extends Component<EditorProps> {
                 text: props.text,
                 isGroupChat: props.isGroupChat,
             });
-            textareaElement.current.setAttribute(
+            this.textareaElement.current.setAttribute(
                 "rows",
                 "1",
             );
         };
 
         return (
-            <div class={tw`flex mb-4 mx-5 mobile:mx-2 mobile:mb-2 items-end`}>
+            <div class={tw`flex mb-4 mx-5 mobile:mx-2 mobile:mb-2 items-center`}>
                 <button
                     class={tw`min-w-[3rem] mobile:min-w-[2rem] w-[3rem] mobile:w-8 h-[3rem] mobile:h-8 hover:bg-[${DividerBackgroundColor}] group ${CenterClass} rounded-[50%] ${NoOutlineClass}`}
                     onClick={() => {
@@ -177,7 +187,7 @@ export class Editor extends Component<EditorProps> {
                         : undefined}
 
                     <textarea
-                        ref={textareaElement}
+                        ref={this.textareaElement}
                         style={{
                             maxHeight: props.maxHeight,
                         }}
@@ -232,17 +242,17 @@ export class Editor extends Component<EditorProps> {
                 </div>
 
                 <div
-                    class={tw`w-[5rem] h-[2.5rem] mobile:w-12 mobile:h-8 rounded-lg ${LinearGradientsClass} ${CenterClass}`}
+                    class={tw`w-[5rem] h-[2.5rem] rounded-lg mobile:hidden ${LinearGradientsClass} ${CenterClass}`}
                 >
                     <button
-                        class={tw`w-[4.8rem] h-[2.3rem] mobile:w-[2.9rem] mobile:h-[1.9rem] mobile:text-sm text-[${PrimaryTextColor}] rounded-lg ${CenterClass} bg-[#36393F] hover:bg-transparent font-bold`}
+                        class={tw`w-[4.8rem] h-[2.3rem] text-[${PrimaryTextColor}] rounded-lg ${CenterClass} bg-[#36393F] hover:bg-transparent font-bold`}
                         onClick={async () => {
                             await sendMessage();
-                            textareaElement.current?.focus();
+                            this.textareaElement.current?.focus();
                         }}
                     >
                         <SendIcon
-                            class={tw`h-[1.25rem] w-[1.25rem] mr-[0.1rem] mobile:hidden`}
+                            class={tw`h-[1.25rem] w-[1.25rem] mr-[0.1rem]`}
                             style={{
                                 stroke: PrimaryTextColor,
                                 fill: "none",
@@ -251,6 +261,22 @@ export class Editor extends Component<EditorProps> {
                         Send
                     </button>
                 </div>
+
+                <button
+                    class={tw`desktop:hidden w-12 h-8 ${CenterClass} ${LinearGradientsClass} rounded`}
+                    onClick={async () => {
+                        await sendMessage();
+                        this.textareaElement.current?.focus();
+                    }}
+                >
+                    <SendIcon
+                        class={tw`h-4 w-4`}
+                        style={{
+                            stroke: PrimaryTextColor,
+                            fill: "none",
+                        }}
+                    />
+                </button>
             </div>
         );
     }
