@@ -37,14 +37,10 @@ export class CopyButton extends Component<Props, State> {
             state: "check",
         });
 
-        (async function f(that: CopyButton) {
-            await sleep(2000);
-            if (that) {
-                that.setState({
-                    state: "copy",
-                });
-            }
-        })(this);
+        await sleep(2000);
+        this.setState({
+            state: "copy",
+        });
     };
 
     render() {
