@@ -1,7 +1,8 @@
-import { NostrAccountContext } from "../lib/nostr-ts/nostr.ts";
+import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool, RelayAdder, RelayGetter, RelayRemover } from "../lib/nostr-ts/relay-pool.ts";
 import { parseJSON } from "../features/profile.ts";
 import { SingleRelayConnection } from "../lib/nostr-ts/relay-single.ts";
+import { RelayConfigChange } from "./setting.tsx";
 
 export const defaultRelays = [
     "wss://relay.blowater.app",
@@ -13,11 +14,12 @@ export const defaultRelays = [
 export class RelayConfig {
     private config = new Set();
     private constructor(
+        private readonly ctx: NostrAccountContext,
         private readonly relayPool: RelayAdder & RelayRemover & RelayGetter,
     ) {}
 
-    static Empty(relayPool: RelayAdder & RelayRemover & RelayGetter) {
-        return new RelayConfig(relayPool);
+    static Empty(ctx: NostrAccountContext, relayPool: RelayAdder & RelayRemover & RelayGetter) {
+        return new RelayConfig(ctx, relayPool);
     }
 
     // The the relay config of this account from local storage
@@ -27,14 +29,14 @@ export class RelayConfig {
     ) {
         const encodedConfigStr = localStorage.getItem(this.localStorageKey(ctx));
         if (encodedConfigStr == null) {
-            return RelayConfig.Empty(relayAdder);
+            return RelayConfig.Empty(ctx, relayAdder);
         }
         let relayArray = parseJSON<string[]>(encodedConfigStr);
         if (relayArray instanceof Error) {
             console.log(relayArray.message);
             relayArray = [];
         }
-        const relayConfig = new RelayConfig(relayAdder);
+        const relayConfig = new RelayConfig(ctx, relayAdder);
         for (const relay of relayArray) {
             relayConfig.add(relay);
         }
@@ -42,6 +44,25 @@ export class RelayConfig {
     }
     static localStorageKey(ctx: NostrAccountContext) {
         return `${RelayConfig.name}-${ctx.publicKey.bech32()}`;
+    }
+
+    async addEvent(event: NostrEvent<NostrKind.Custom_App_Data>) {
+        const content = await this.ctx.encrypt(this.ctx.publicKey.hex, event.content);
+        if (content instanceof Error) {
+            return content;
+        }
+        const configChange = parseJSON<RelayConfigChange>(content);
+        if (configChange instanceof Error) {
+            return configChange;
+        }
+        if (configChange.type != "RelayConfigChange") {
+            return; // ignore
+        }
+        if (configChange.kind == "add") {
+            this.config.add(configChange.url);
+        } else {
+            this.config.delete(configChange.url);
+        }
     }
 
     /////////////////////////////
