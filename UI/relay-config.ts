@@ -12,7 +12,7 @@ export const defaultRelays = [
 ];
 
 export class RelayConfig {
-    private config = new Set();
+    private config = new Set<string>();
     private constructor(
         private readonly ctx: NostrAccountContext,
         private readonly relayPool: RelayAdder & RelayRemover & RelayGetter,
@@ -90,7 +90,7 @@ export class RelayConfig {
     // }
 
     getRelayURLs() {
-        return new Set(Object.keys(this.config));
+        return this.config
     }
 
     saveToLocalStorage(ctx: NostrAccountContext) {
@@ -103,7 +103,7 @@ export class RelayConfig {
         if (relay instanceof Error) {
             return relay;
         }
-        this.config.add(url);
+        this.config.add(relay.url);
         return relay;
     }
 
