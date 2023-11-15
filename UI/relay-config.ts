@@ -65,30 +65,6 @@ export class RelayConfig {
         }
     }
 
-    /////////////////////////////
-    // Nostr Encoding Decoding //
-    /////////////////////////////
-    // static async FromNostrEvent(
-    //     event: NostrEvent,
-    //     ctx: NostrAccountContext,
-    //     relayAdder: RelayAdder & RelayRemover,
-    // ) {
-    //     const decrypted = await ctx.decrypt(ctx.publicKey.hex, event.content);
-    //     if (decrypted instanceof Error) {
-    //         return decrypted;
-    //     }
-
-    //     const json = parseJSON<{
-    //         data: Config;
-    //     }>(decrypted);
-    //     if (json instanceof Error) {
-    //         return json;
-    //     }
-    //     const relayConfig = new RelayConfig(relayAdder);
-    //     console.log(json);
-    //     return relayConfig;
-    // }
-
     getRelayURLs() {
         return this.config;
     }
