@@ -69,14 +69,9 @@ type EditorProps = {
 };
 
 export class Editor extends Component<EditorProps> {
-    textareaElement = createRef();
-
-    componentDidMount() {
-        this.textareaElement.current?.focus();
-    }
-
     render(props: EditorProps) {
         const uploadFileInput = createRef();
+        const textareaElement = createRef();
 
         const removeFile = (index: number) => {
             props.emit({
@@ -97,7 +92,7 @@ export class Editor extends Component<EditorProps> {
                 text: props.text,
                 isGroupChat: props.isGroupChat,
             });
-            this.textareaElement.current.setAttribute(
+            textareaElement.current.setAttribute(
                 "rows",
                 "1",
             );
@@ -187,7 +182,7 @@ export class Editor extends Component<EditorProps> {
                         : undefined}
 
                     <textarea
-                        ref={this.textareaElement}
+                        ref={textareaElement}
                         style={{
                             maxHeight: props.maxHeight,
                         }}
@@ -248,7 +243,7 @@ export class Editor extends Component<EditorProps> {
                         class={tw`w-[4.8rem] h-[2.3rem] text-[${PrimaryTextColor}] rounded-lg ${CenterClass} bg-[#36393F] hover:bg-transparent font-bold`}
                         onClick={async () => {
                             await sendMessage();
-                            this.textareaElement.current?.focus();
+                            textareaElement.current?.focus();
                         }}
                     >
                         <SendIcon
@@ -266,7 +261,7 @@ export class Editor extends Component<EditorProps> {
                     class={tw`desktop:hidden w-12 h-8 ${CenterClass} ${LinearGradientsClass} rounded`}
                     onClick={async () => {
                         await sendMessage();
-                        this.textareaElement.current?.focus();
+                        textareaElement.current?.focus();
                     }}
                 >
                     <SendIcon
