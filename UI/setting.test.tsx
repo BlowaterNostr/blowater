@@ -18,10 +18,10 @@ render(
     Setting({
         emit: testEventBus.emit,
         myAccountContext: ctx,
-        logout: ()=>{},
+        logout: () => {},
         relayConfig: relayConfig,
         relayPool: pool,
-        show: true
+        show: true,
     }),
     document.body,
 );

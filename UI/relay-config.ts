@@ -90,7 +90,7 @@ export class RelayConfig {
     // }
 
     getRelayURLs() {
-        return this.config
+        return this.config;
     }
 
     saveToLocalStorage(ctx: NostrAccountContext) {

@@ -135,7 +135,7 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
             const relay = props.relayPool.getRelay(url);
             let status: keyof typeof colors = "Closed";
             if (relay) {
-                status = relay.ws.status();
+                status = relay.status();
             }
             _relayStatus.push({
                 url,
