@@ -62,6 +62,10 @@ export class Search extends Component<Props, State> {
         },
     };
 
+    componentDidMount() {
+        this.inputRef.current?.focus();
+    }
+
     search = (e: h.JSX.TargetedEvent<HTMLInputElement, Event>) => {
         const text = e.currentTarget.value;
         const pubkey = PublicKey.FromString(text);

@@ -483,14 +483,16 @@ export function AppComponent(props: {
                 </div>
 
                 <div class={tw`desktop:hidden`}>
-                    {
-                        <nav.NavBar
-                            publicKey={app.ctx.publicKey}
-                            profileGetter={app.database}
-                            emit={app.eventBus.emit}
-                            isMobile={true}
-                        />
-                    }
+                    {!model.dm.currentEditor
+                        ? (
+                            <nav.NavBar
+                                publicKey={app.ctx.publicKey}
+                                profileGetter={app.database}
+                                emit={app.eventBus.emit}
+                                isMobile={true}
+                            />
+                        )
+                        : <div class={tw`h-4 bg-[#36393F]`}></div>}
                 </div>
             </div>
         </div>
