@@ -6,7 +6,7 @@ import { App } from "./app.tsx";
 import { DM_List } from "./conversation-list.ts";
 
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { Database_Contextual_View } from "../database.ts";
+import { Datebase_View } from "../database.ts";
 
 import { DirectedMessageController, sendDMandImages } from "../features/dm.ts";
 import { notify } from "./notification.ts";
@@ -88,7 +88,7 @@ export async function* UI_Interaction_Update(args: {
                 const ctx = event.ctx;
                 if (ctx) {
                     console.log("sign in as", ctx.publicKey.bech32());
-                    const dbView = await Database_Contextual_View.New(dexieDB);
+                    const dbView = await Datebase_View.New(dexieDB, dexieDB);
                     if (dbView instanceof Error) {
                         throw dbView;
                     }
@@ -428,6 +428,10 @@ export async function* UI_Interaction_Update(args: {
                     ],
                 },
                 {
+                    title: "Relays",
+                    fields: await dexieDB.getRecordRelay(nostrEvent.id),
+                },
+                {
                     title: "Content",
                     fields: [
                         content,
@@ -480,7 +484,7 @@ export function updateConversation(
 //////////////
 export async function* Database_Update(
     ctx: NostrAccountContext,
-    database: Database_Contextual_View,
+    database: Datebase_View,
     model: Model,
     profileSyncer: ProfileSyncer,
     lamport: LamportTime,
@@ -639,7 +643,7 @@ export async function handle_SendMessage(
     pool: ConnectionPool,
     dmEditors: Map<string, EditorModel>,
     gmEditors: Map<string, EditorModel>,
-    db: Database_Contextual_View,
+    db: Datebase_View,
     groupControl: GroupMessageController,
 ) {
     if (event.isGroupChat) {

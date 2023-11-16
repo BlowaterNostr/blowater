@@ -36,27 +36,33 @@ export interface RecordRelay {
     recordRelay: (eventID: string, url: string) => Promise<void>;
 }
 
+export interface GetRecordRelay {
+    getRecordRelay: (eventID: string) => Promise<string[]>;
+}
+
+export type RelayAdapter = RecordRelay & GetRecordRelay;
+
 export type EventsAdapter =
     & EventsFilter
     & EventRemover
     & EventGetter
-    & EventPutter
-    & RecordRelay;
+    & EventPutter;
 
-export class Database_Contextual_View implements ProfileController, EventGetter, EventRemover {
+export class Datebase_View implements ProfileController, EventGetter, EventRemover {
     public readonly sourceOfChange = csp.chan<Parsed_Event | null>(buffer_size);
     private readonly caster = csp.multi<Parsed_Event | null>(this.sourceOfChange);
     public readonly profiles = new Map<string, Profile_Nostr_Event>();
 
     private constructor(
         private readonly eventsAdapter: EventsAdapter,
+        private readonly relayAdapter: RelayAdapter,
         public readonly events: Parsed_Event[],
     ) {}
 
-    static async New(eventsAdapter: EventsAdapter) {
+    static async New(eventsAdapter: EventsAdapter, relayAdapter: RelayAdapter) {
         const t = Date.now();
         const allEvents = await eventsAdapter.filter();
-        console.log("Database_Contextual_View:onload", Date.now() - t, allEvents.length);
+        console.log("Datebase_View:onload", Date.now() - t, allEvents.length);
 
         const initialEvents = [];
         for (const e of allEvents) {
@@ -74,14 +80,15 @@ export class Database_Contextual_View implements ProfileController, EventGetter,
             initialEvents.push(p);
         }
 
-        console.log("Database_Contextual_View:parsed", Date.now() - t);
+        console.log("Datebase_View:parsed", Date.now() - t);
 
         // Construct the View
-        const db = new Database_Contextual_View(
+        const db = new Datebase_View(
             eventsAdapter,
+            relayAdapter,
             initialEvents,
         );
-        console.log("Database_Contextual_View:New time spent", Date.now() - t);
+        console.log("Datebase_View:New time spent", Date.now() - t);
         for (const e of db.events) {
             if (e.kind == NostrKind.META_DATA) {
                 // @ts-ignore
@@ -144,7 +151,7 @@ export class Database_Contextual_View implements ProfileController, EventGetter,
         }
 
         if (url) {
-            await this.eventsAdapter.recordRelay(event.id, url);
+            await this.relayAdapter.recordRelay(event.id, url);
         }
 
         // check if the event exists

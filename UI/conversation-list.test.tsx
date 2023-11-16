@@ -2,7 +2,7 @@
 import { h, render } from "https://esm.sh/preact@10.17.1";
 import { ConversationList } from "./conversation-list.tsx";
 import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
-import { Database_Contextual_View } from "../database.ts";
+import { Datebase_View } from "../database.ts";
 import { PrivateKey } from "../lib/nostr-ts/key.ts";
 import { InMemoryAccountContext } from "../lib/nostr-ts/nostr.ts";
 import { testEventBus } from "./_setup.test.ts";
@@ -18,7 +18,7 @@ const db = NewIndexedDB();
 if (db instanceof Error) {
     fail(db.message);
 }
-const database = await Database_Contextual_View.New(db, ctx);
+const database = await Datebase_View.New(db, ctx);
 if (database instanceof Error) {
     fail(database.message);
 }

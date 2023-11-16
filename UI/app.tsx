@@ -7,7 +7,7 @@ import { EditProfile } from "./edit-profile.tsx";
 import * as nav from "./nav.tsx";
 import { EventBus } from "../event-bus.ts";
 import { Setting } from "./setting.tsx";
-import { Database_Contextual_View } from "../database.ts";
+import { Datebase_View } from "../database.ts";
 import { DM_List } from "./conversation-list.ts";
 import { new_DM_EditorModel } from "./editor.tsx";
 import { initialModel, Model } from "./app_model.ts";
@@ -44,7 +44,7 @@ export async function Start(database: DexieDatabase) {
     if (ctx instanceof Error) {
         console.error(ctx);
     } else if (ctx) {
-        const dbView = await Database_Contextual_View.New(database);
+        const dbView = await Datebase_View.New(database, database);
         if (dbView instanceof Error) {
             throw dbView;
         }
@@ -98,7 +98,7 @@ export async function Start(database: DexieDatabase) {
 
 export class App {
     private constructor(
-        public readonly database: Database_Contextual_View,
+        public readonly database: Datebase_View,
         public readonly model: Model,
         public readonly ctx: NostrAccountContext,
         public readonly eventBus: EventBus<UI_Interaction_Event>,
@@ -115,7 +115,7 @@ export class App {
     ) {}
 
     static async Start(args: {
-        database: Database_Contextual_View;
+        database: Datebase_View;
         model: Model;
         ctx: NostrAccountContext;
         eventBus: EventBus<UI_Interaction_Event>;
@@ -277,7 +277,7 @@ export class App {
 
         // Sync DM events
         (async function sync_dm_events(
-            database: Database_Contextual_View,
+            database: Datebase_View,
             ctx: NostrAccountContext,
             pool: ConnectionPool,
         ) {

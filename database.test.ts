@@ -1,5 +1,5 @@
-import { testEventsAdapter } from "./UI/_setup.test.ts";
-import { Database_Contextual_View } from "./database.ts";
+import { testEventsAdapter, testRelayAdapter } from "./UI/_setup.test.ts";
+import { Datebase_View } from "./database.ts";
 import { prepareNormalNostrEvent } from "./lib/nostr-ts/event.ts";
 import { PrivateKey } from "./lib/nostr-ts/key.ts";
 import { InMemoryAccountContext, NostrEvent, NostrKind } from "./lib/nostr-ts/nostr.ts";
@@ -8,7 +8,7 @@ import { assertEquals, fail } from "https://deno.land/std@0.176.0/testing/assert
 const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
 
 Deno.test("Database", async () => {
-    const db = await Database_Contextual_View.New(testEventsAdapter);
+    const db = await Datebase_View.New(testEventsAdapter, testRelayAdapter);
     if (db instanceof Error) fail(db.message);
 
     const stream = db.subscribe();
