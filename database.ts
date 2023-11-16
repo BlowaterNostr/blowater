@@ -32,15 +32,15 @@ export interface EventPutter {
     put(e: NostrEvent): Promise<void>;
 }
 
-export interface RecordRelay {
-    recordRelay: (eventID: string, url: string) => Promise<void>;
+export interface RelayRecordSetter {
+    relayRecordSetter: (eventID: string, url: string) => Promise<void>;
 }
 
-export interface GetRecordRelay {
-    getRecordRelay: (eventID: string) => Promise<string[]>;
+export interface RelayRecordGetter {
+    relayRecordGetter: (eventID: string) => Promise<string[]>;
 }
 
-export type RelayAdapter = RecordRelay & GetRecordRelay;
+export type RelayAdapter = RelayRecordSetter & RelayRecordGetter;
 
 export type EventsAdapter =
     & EventsFilter
@@ -151,7 +151,7 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
         }
 
         if (url) {
-            await this.relayAdapter.recordRelay(event.id, url);
+            await this.relayAdapter.relayRecordSetter(event.id, url);
         }
 
         // check if the event exists
