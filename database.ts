@@ -33,7 +33,7 @@ export interface EventPutter {
 }
 
 export interface RelaysPutter {
-    putRealy: (eventID: string, url: string) => Promise<void>;
+    putRelay: (eventID: string, url: string) => Promise<void>;
 }
 
 export type EventsAdapter =
@@ -144,7 +144,7 @@ export class Database_Contextual_View implements ProfileController, EventGetter,
         }
 
         if (url) {
-            await this.eventsAdapter.putRealy(event.id, url);
+            await this.eventsAdapter.putRelay(event.id, url);
         }
 
         // check if the event exists
