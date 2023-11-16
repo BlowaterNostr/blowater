@@ -6,7 +6,7 @@ import { App } from "./app.tsx";
 import { DM_List } from "./conversation-list.ts";
 
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { Database_Contextual_View } from "../database.ts";
+import { Datebase_View } from "../database.ts";
 
 import { DirectedMessageController, sendDMandImages } from "../features/dm.ts";
 import { notify } from "./notification.ts";
@@ -75,11 +75,11 @@ export type AppEventBus = EventBus<UI_Interaction_Event>;
 export async function* UI_Interaction_Update(args: {
     model: Model;
     eventBus: AppEventBus;
-    dexieDB: DexieDatabase;
+    dbView: Datebase_View;
     pool: ConnectionPool;
     popOver: PopOverInputChannel;
 }) {
-    const { model, eventBus, dexieDB, pool } = args;
+    const { model, dbView, eventBus, pool } = args;
     const events = eventBus.onChange();
     for await (const event of events) {
         console.log(event);
@@ -88,11 +88,6 @@ export async function* UI_Interaction_Update(args: {
                 const ctx = event.ctx;
                 if (ctx) {
                     console.log("sign in as", ctx.publicKey.bech32());
-                    const dbView = await Database_Contextual_View.New(dexieDB);
-                    if (dbView instanceof Error) {
-                        throw dbView;
-                    }
-
                     const otherConfig = await OtherConfig.FromLocalStorage(ctx);
                     const app = await App.Start({
                         database: dbView,
@@ -428,6 +423,10 @@ export async function* UI_Interaction_Update(args: {
                     ],
                 },
                 {
+                    title: "Relays",
+                    fields: await app.database.getRelayRecord(nostrEvent.id),
+                },
+                {
                     title: "Content",
                     fields: [
                         content,
@@ -480,7 +479,7 @@ export function updateConversation(
 //////////////
 export async function* Database_Update(
     ctx: NostrAccountContext,
-    database: Database_Contextual_View,
+    database: Datebase_View,
     model: Model,
     profileSyncer: ProfileSyncer,
     lamport: LamportTime,
@@ -639,7 +638,7 @@ export async function handle_SendMessage(
     pool: ConnectionPool,
     dmEditors: Map<string, EditorModel>,
     gmEditors: Map<string, EditorModel>,
-    db: Database_Contextual_View,
+    db: Datebase_View,
     groupControl: GroupMessageController,
 ) {
     if (event.isGroupChat) {

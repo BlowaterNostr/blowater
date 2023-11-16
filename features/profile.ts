@@ -1,4 +1,4 @@
-import { Database_Contextual_View } from "../database.ts";
+import { Datebase_View } from "../database.ts";
 import { NostrAccountContext, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { Parsed_Event, Profile_Nostr_Event } from "../nostr.ts";
 import { prepareNormalNostrEvent } from "../lib/nostr-ts/event.ts";
@@ -11,7 +11,7 @@ export class ProfileSyncer implements ProfileAdder {
     private readonly lock = semaphore(1);
 
     constructor(
-        private readonly database: Database_Contextual_View,
+        private readonly database: Datebase_View,
         private readonly pool: ConnectionPool,
     ) {
     }

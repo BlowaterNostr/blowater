@@ -1,9 +1,9 @@
 import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
-import { Database_Contextual_View } from "../database.ts";
+import { Datebase_View } from "../database.ts";
 import { NoteID } from "../lib/nostr-ts/nip19.ts";
 
 export class EventSyncer {
-    constructor(private readonly pool: ConnectionPool, private readonly db: Database_Contextual_View) {}
+    constructor(private readonly pool: ConnectionPool, private readonly db: Datebase_View) {}
 
     syncEvent(id: NoteID) {
         const subID = EventSyncer.name + ":syncEvent";

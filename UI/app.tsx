@@ -7,7 +7,7 @@ import { EditProfile } from "./edit-profile.tsx";
 import * as nav from "./nav.tsx";
 import { EventBus } from "../event-bus.ts";
 import { Setting } from "./setting.tsx";
-import { Database_Contextual_View } from "../database.ts";
+import { Datebase_View } from "../database.ts";
 import { DM_List } from "./conversation-list.ts";
 import { new_DM_EditorModel } from "./editor.tsx";
 import { initialModel, Model } from "./app_model.ts";
@@ -39,15 +39,12 @@ export async function Start(database: DexieDatabase) {
     const eventBus = new EventBus<UI_Interaction_Event>();
     const pool = new ConnectionPool();
     const popOverInputChan: PopOverInputChannel = new Channel();
+    const dbView = await Datebase_View.New(database, database);
 
     const ctx = await getCurrentSignInCtx();
     if (ctx instanceof Error) {
         console.error(ctx);
     } else if (ctx) {
-        const dbView = await Database_Contextual_View.New(database);
-        if (dbView instanceof Error) {
-            throw dbView;
-        }
         const otherConfig = await OtherConfig.FromLocalStorage(ctx);
         const app = await App.Start({
             database: dbView,
@@ -75,7 +72,7 @@ export async function Start(database: DexieDatabase) {
         let _ of UI_Interaction_Update({
             model,
             eventBus,
-            dexieDB: database,
+            dbView: dbView,
             pool,
             popOver: popOverInputChan,
         })
@@ -98,7 +95,7 @@ export async function Start(database: DexieDatabase) {
 
 export class App {
     private constructor(
-        public readonly database: Database_Contextual_View,
+        public readonly database: Datebase_View,
         public readonly model: Model,
         public readonly ctx: NostrAccountContext,
         public readonly eventBus: EventBus<UI_Interaction_Event>,
@@ -115,7 +112,7 @@ export class App {
     ) {}
 
     static async Start(args: {
-        database: Database_Contextual_View;
+        database: Datebase_View;
         model: Model;
         ctx: NostrAccountContext;
         eventBus: EventBus<UI_Interaction_Event>;
@@ -277,7 +274,7 @@ export class App {
 
         // Sync DM events
         (async function sync_dm_events(
-            database: Database_Contextual_View,
+            database: Datebase_View,
             ctx: NostrAccountContext,
             pool: ConnectionPool,
         ) {

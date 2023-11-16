@@ -1,15 +1,15 @@
-import { testEventsAdapter } from "./UI/_setup.test.ts";
-import { Database_Contextual_View } from "./database.ts";
+import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { testEventsAdapter, testRelayAdapter } from "./UI/_setup.test.ts";
+import { Datebase_View } from "./database.ts";
 import { prepareNormalNostrEvent } from "./lib/nostr-ts/event.ts";
 import { PrivateKey } from "./lib/nostr-ts/key.ts";
 import { InMemoryAccountContext, NostrEvent, NostrKind } from "./lib/nostr-ts/nostr.ts";
-import { assertEquals, fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
+import { assertEquals, assertFalse, fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 
 const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
 
 Deno.test("Database", async () => {
-    const db = await Database_Contextual_View.New(testEventsAdapter);
-    if (db instanceof Error) fail(db.message);
+    const db = await Datebase_View.New(testEventsAdapter, testRelayAdapter);
 
     const stream = db.subscribe();
     const event_to_add = await prepareNormalNostrEvent(ctx, { kind: NostrKind.TEXT_NOTE, content: "1" });
@@ -62,4 +62,29 @@ Deno.test("Database", async () => {
         sig: e2.sig,
         tags: e2.tags,
     }, event_to_add2);
+});
+
+Deno.test("Relay Record", async () => {
+    const db = await Datebase_View.New(testEventsAdapter, testRelayAdapter);
+
+    const stream = db.subscribe();
+    const event_to_add = await prepareNormalNostrEvent(ctx, { kind: NostrKind.TEXT_NOTE, content: "1" });
+    const event_to_add_2 = await prepareNormalNostrEvent(ctx, { kind: NostrKind.TEXT_NOTE, content: "2" });
+    await db.addEvent(event_to_add); // send by client
+    assertEquals(await db.getRelayRecord(event_to_add.id), []);
+
+    await db.addEvent(event_to_add_2, "wss://relay.blowater.app"); // receiver from relay
+    assertEquals(await db.getRelayRecord(event_to_add_2.id), ["wss://relay.blowater.app"]);
+
+    await db.addEvent(event_to_add_2, "wss://relay.test.app");
+    assertEquals(await db.getRelayRecord(event_to_add_2.id), [
+        "wss://relay.blowater.app",
+        "wss://relay.test.app",
+    ]);
+
+    stream.pop();
+    stream.pop();
+    // @ts-ignore
+    const isCanceled = await sleep(10, stream.pop());
+    assertFalse(isCanceled);
 });

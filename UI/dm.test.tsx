@@ -2,7 +2,7 @@
 import { h, render } from "https://esm.sh/preact@10.17.1";
 import { PrivateKey } from "../lib/nostr-ts/key.ts";
 import { InMemoryAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
-import { Database_Contextual_View } from "../database.ts";
+import { Datebase_View } from "../database.ts";
 import { testEventBus } from "./_setup.test.ts";
 import { prepareEncryptedNostrEvent } from "../lib/nostr-ts/event.ts";
 import { DM_List } from "./conversation-list.ts";
@@ -25,10 +25,8 @@ const indexedDB = NewIndexedDB();
 if (indexedDB instanceof Error) {
     fail(indexedDB.message);
 }
-const database = await Database_Contextual_View.New(indexedDB);
-if (database instanceof Error) {
-    fail(database.message);
-}
+const database = await Datebase_View.New(indexedDB, indexedDB);
+
 const lamport = new LamportTime(0);
 
 const e = await database.addEvent(

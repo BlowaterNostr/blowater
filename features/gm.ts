@@ -4,7 +4,7 @@ import { GroupMessageGetter } from "../UI/app_update.tsx";
 import { ConversationSummary } from "../UI/conversation-list.ts";
 import { GroupMessageListGetter } from "../UI/conversation-list.tsx";
 import { ChatMessage } from "../UI/message.ts";
-import { Database_Contextual_View } from "../database.ts";
+import { Datebase_View } from "../database.ts";
 import { prepareEncryptedNostrEvent } from "../lib/nostr-ts/event.ts";
 import { PrivateKey, PublicKey } from "../lib/nostr-ts/key.ts";
 import {
@@ -363,7 +363,7 @@ export class GroupChatSyncer implements GroupChatAdder {
     private readonly lock = semaphore(1);
 
     constructor(
-        private readonly database: Database_Contextual_View,
+        private readonly database: Datebase_View,
         private readonly pool: ConnectionPool,
     ) {
     }

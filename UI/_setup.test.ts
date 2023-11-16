@@ -1,13 +1,11 @@
-import { EventsAdapter, Indices } from "../database.ts";
+import { EventsAdapter, Indices, RelayAdapter } from "../database.ts";
 import { EventBus } from "../event-bus.ts";
 import { NostrEvent } from "../lib/nostr-ts/nostr.ts";
-import { RelayAdder } from "../lib/nostr-ts/relay-pool.ts";
-import { SingleRelayConnection } from "../lib/nostr-ts/relay-single.ts";
 import { UI_Interaction_Event } from "./app_update.tsx";
 
 export const testEventBus = new EventBus<UI_Interaction_Event>();
 export const data = new Map();
-export const relays = new Set();
+export const relays = new Map<string, string[]>();
 export const testEventsAdapter: EventsAdapter = {
     async remove() {},
     filter: async (f) => {
@@ -23,7 +21,19 @@ export const testEventsAdapter: EventsAdapter = {
     put: async (e: NostrEvent) => {
         data.set(e.id, e);
     },
-    recordRelay: async (eventID: string, url: string) => {
-        relays.add(`${eventID}${url}`);
+};
+
+export const testRelayAdapter: RelayAdapter = {
+    setRelayRecord: async (eventID: string, url: string) => {
+        const oldURLs = relays.get(eventID);
+        if (oldURLs) {
+            oldURLs.push(url);
+        } else {
+            relays.set(eventID, [url]);
+        }
+    },
+    getRelayRecord: async (eventID: string) => {
+        const res = relays.get(eventID);
+        return res ? res : [];
     },
 };
