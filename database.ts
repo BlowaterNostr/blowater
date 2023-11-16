@@ -5,7 +5,7 @@ import { parseContent } from "./UI/message.ts";
 import { NostrAccountContext, NostrEvent, NostrKind, Tag, Tags, verifyEvent } from "./lib/nostr-ts/nostr.ts";
 import { PublicKey } from "./lib/nostr-ts/key.ts";
 import { ProfileController } from "./UI/search.tsx";
-import { RelayTable } from "./UI/dexie-db.ts";
+import { RelayRecord } from "./UI/dexie-db.ts";
 
 const buffer_size = 2000;
 export interface Indices {
@@ -32,8 +32,8 @@ export interface EventPutter {
     put(e: NostrEvent): Promise<void>;
 }
 
-export interface RelaysPutter {
-    putRelay: (eventID: string, url: string) => Promise<void>;
+export interface RecordRelay {
+    recordRelay: (eventID: string, url: string) => Promise<void>;
 }
 
 export type EventsAdapter =
@@ -41,7 +41,7 @@ export type EventsAdapter =
     & EventRemover
     & EventGetter
     & EventPutter
-    & RelaysPutter;
+    & RecordRelay;
 
 export class Database_Contextual_View implements ProfileController, EventGetter, EventRemover {
     public readonly sourceOfChange = csp.chan<Parsed_Event | null>(buffer_size);
@@ -144,7 +144,7 @@ export class Database_Contextual_View implements ProfileController, EventGetter,
         }
 
         if (url) {
-            await this.eventsAdapter.putRelay(event.id, url);
+            await this.eventsAdapter.recordRelay(event.id, url);
         }
 
         // check if the event exists
