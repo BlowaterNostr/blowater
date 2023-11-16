@@ -25,5 +25,5 @@ export const testEventsAdapter: EventsAdapter = {
     },
     recordRelay: async (eventID: string, url: string) => {
         relays.add(`${eventID}${url}`);
-    }
+    },
 };
