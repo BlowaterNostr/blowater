@@ -2,7 +2,7 @@ import * as dexie from "https://esm.sh/dexie@3.2.4";
 import { NostrEvent, NostrKind, Tag } from "../lib/nostr-ts/nostr.ts";
 import { EventsAdapter, Indices } from "../database.ts";
 
-export type RelayTable = {
+export type RelayRecord = {
     url: string;
     event_id: string;
 };
@@ -11,13 +11,13 @@ export class DexieDatabase extends dexie.Dexie implements EventsAdapter {
     // 'events' is added by dexie when declaring the stores()
     // We just tell the typing system this is the case
     events!: dexie.Table<NostrEvent>;
-    relays!: dexie.Table<RelayTable>;
+    relayRecords!: dexie.Table<RelayRecord>;
 
     constructor() {
         super("Events");
-        this.version(8).stores({
+        this.version(9).stores({
             events: "&id, created_at, kind, tags, pubkey", // indices
-            relays: "[url+event_id]", // relayTable
+            relayRecords: "[url+event_id]", // relayTable
         });
     }
     filter(f?: (e: NostrEvent) => boolean): Promise<NostrEvent[]> {
@@ -33,8 +33,8 @@ export class DexieDatabase extends dexie.Dexie implements EventsAdapter {
         this.events.delete(id);
     }
 
-    putRelay = async (eventID: string, url: string): Promise<void> => {
-        this.relays.put({
+    recordRelay = async (eventID: string, url: string): Promise<void> => {
+        this.relayRecords.put({
             url: url,
             event_id: eventID,
         });
