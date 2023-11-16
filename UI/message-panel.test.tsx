@@ -22,22 +22,32 @@ const database = await Datebase_View.New(testEventsAdapter, testRelayAdapter);
 
 const lamport = new LamportTime(0);
 
-await database.addEvent(await prepareNormalNostrEvent(ctx, {
-    content: "hi",
-    kind: NostrKind.TEXT_NOTE
-}));
-await database.addEvent(await prepareNormalNostrEvent(ctx, {
-    content: "hi 2",
-    kind: NostrKind.TEXT_NOTE
-}));
-await database.addEvent(await prepareNormalNostrEvent(ctx, {
-    content: "hi 3",
-    kind: NostrKind.TEXT_NOTE
-}));
+await database.addEvent(
+    await prepareNormalNostrEvent(ctx, {
+        content: "hi",
+        kind: NostrKind.TEXT_NOTE,
+    }),
+);
+await database.addEvent(
+    await prepareNormalNostrEvent(ctx, {
+        content: "hi 2",
+        kind: NostrKind.TEXT_NOTE,
+    }),
+);
+await database.addEvent(
+    await prepareNormalNostrEvent(ctx, {
+        content: "hi 3",
+        kind: NostrKind.TEXT_NOTE,
+    }),
+);
 const pool = new ConnectionPool();
 const model = initialModel();
 pool.addRelayURL(relays[0]);
-const groupMessageController = new GroupMessageController(ctx, new GroupChatSyncer(database, pool), new ProfileSyncer(database, pool));
+const groupMessageController = new GroupMessageController(
+    ctx,
+    new GroupChatSyncer(database, pool),
+    new ProfileSyncer(database, pool),
+);
 
 const editor = model.dmEditors.get(ctx.publicKey.hex);
 

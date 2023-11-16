@@ -82,8 +82,10 @@ Deno.test("Relay Record", async () => {
     assertEquals(await db.getRelayRecord(event_to_add_2.id), ["wss://relay.blowater.app"]);
 
     await db.addEvent(event_to_add_2, "wss://relay.test.app");
-    assertEquals(await db.getRelayRecord(event_to_add_2.id), ["wss://relay.blowater.app", "wss://relay.test.app"]);
+    assertEquals(await db.getRelayRecord(event_to_add_2.id), [
+        "wss://relay.blowater.app",
+        "wss://relay.test.app",
+    ]);
 
     assertEquals(i, 2);
 });
-
