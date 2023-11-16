@@ -5,7 +5,7 @@ import { EventsAdapter, Indices } from "../database.ts";
 export type RelayTable = {
     url: string;
     event_id: string;
-}
+};
 
 export class DexieDatabase extends dexie.Dexie implements EventsAdapter {
     // 'events' is added by dexie when declaring the stores()
@@ -17,7 +17,7 @@ export class DexieDatabase extends dexie.Dexie implements EventsAdapter {
         super("Events");
         this.version(7).stores({
             events: "&id, created_at, kind, tags, pubkey", // indices
-            relays: "[url+event_id]" // relayTable
+            relays: "[url+event_id]", // relayTable
         });
     }
     filter(f?: (e: NostrEvent) => boolean): Promise<NostrEvent[]> {
@@ -35,21 +35,21 @@ export class DexieDatabase extends dexie.Dexie implements EventsAdapter {
 
     getRelaysByEvent = async (eventID: string) => {
         const relays = await (this.relays
-            .filter(relay => {
+            .filter((relay) => {
                 return relay.event_id == eventID;
             })
-            .toArray())
-        return relays.map(relay => relay.url);
+            .toArray());
+        return relays.map((relay) => relay.url);
     };
 
     getRealy = async (keys: RelayTable) => {
-       return (await this.relays.get(keys))?.url;
+        return (await this.relays.get(keys))?.url;
     };
 
     putRealy = async (eventID: string, url: string): Promise<void> => {
         this.relays.put({
             url: url,
-            event_id: eventID
+            event_id: eventID,
         });
     };
 }

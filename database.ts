@@ -41,7 +41,13 @@ export interface RelaysPutter {
     putRealy: (eventID: string, url: string) => Promise<void>;
 }
 
-export type EventsAdapter = EventsFilter & EventRemover & EventGetter & EventPutter & RelaysGetter & RelaysPutter;
+export type EventsAdapter =
+    & EventsFilter
+    & EventRemover
+    & EventGetter
+    & EventPutter
+    & RelaysGetter
+    & RelaysPutter;
 
 export class Database_Contextual_View implements ProfileController, EventGetter, EventRemover {
     public readonly sourceOfChange = csp.chan<Parsed_Event | null>(buffer_size);
@@ -149,7 +155,7 @@ export class Database_Contextual_View implements ProfileController, EventGetter,
             if (url) {
                 const relayURL = await this.eventsAdapter.getRealy({
                     event_id: event.id,
-                    url: url
+                    url: url,
                 });
                 if (!relayURL) { // relay not exist
                     await this.eventsAdapter.putRealy(event.id, url);
