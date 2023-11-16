@@ -1,14 +1,13 @@
-import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { not_cancelled, sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { testEventsAdapter, testRelayAdapter } from "./UI/_setup.test.ts";
 import { Datebase_View } from "./database.ts";
 import { prepareNormalNostrEvent } from "./lib/nostr-ts/event.ts";
 import { PrivateKey } from "./lib/nostr-ts/key.ts";
 import { InMemoryAccountContext, NostrEvent, NostrKind } from "./lib/nostr-ts/nostr.ts";
-import { assertEquals, assertFalse, fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
-
-const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
+import { assertEquals } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 
 Deno.test("Database", async () => {
+    const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
     const db = await Datebase_View.New(testEventsAdapter, testRelayAdapter);
 
     const stream = db.subscribe();
@@ -65,6 +64,7 @@ Deno.test("Database", async () => {
 });
 
 Deno.test("Relay Record", async () => {
+    const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
     const db = await Datebase_View.New(testEventsAdapter, testRelayAdapter);
 
     const stream = db.subscribe();
@@ -82,9 +82,9 @@ Deno.test("Relay Record", async () => {
         "wss://relay.test.app",
     ]);
 
-    stream.pop();
-    stream.pop();
-    // @ts-ignore
+    await stream.pop();
+    await stream.pop();
+
     const isCanceled = await sleep(10, stream.pop());
-    assertFalse(isCanceled);
+    assertEquals(isCanceled, not_cancelled);
 });

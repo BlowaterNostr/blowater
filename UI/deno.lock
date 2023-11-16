@@ -1,5 +1,5 @@
 {
-  "version": "2",
+  "version": "3",
   "remote": {
     "https://deno.land/std@0.140.0/_util/assert.ts": "e94f2eb37cebd7f199952e242c77654e43333c1ac4c5c700e929ea3aa5489f74",
     "https://deno.land/std@0.140.0/_util/os.ts": "3b4c6e27febd119d36a416d7a97bd3b0251b77c88942c8f16ee5953ea13e2e49",
@@ -79,6 +79,6 @@
     "https://esm.sh/v134/twind@0.16.16/denonext/twind.mjs": "40481be058673fa6fc4783083af4702c02441943d787c064c495d3d280aa2b51",
     "https://esm.sh/v134/zod@3.22.4/denonext/zod.mjs": "660128af5d1e921745c4d452472d103d9f2fc5afa508bbf233b83d35a272ad67",
     "https://esm.sh/zod@3.22.4": "572aa9978b65833a8ad4b21fb18f7552764464e4cfb8c790685bb235775a50ce",
-    "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts": "3e8eed3d933748d48c83e2ae583bf86748621bcd6e8f181bef8a6ae8e5a4bfac"
+    "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts": "4469313196bb1385ad38d13b72db0dbaf09a512c78d821144bc72b96c807417b"
   }
 }
