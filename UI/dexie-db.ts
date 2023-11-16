@@ -27,14 +27,14 @@ export class DexieDatabase extends dexie.Dexie implements EventsAdapter {
         return this.events.get(keys);
     }
     async put(e: NostrEvent<NostrKind, Tag>): Promise<void> {
-        this.events.put(e);
+        await this.events.put(e);
     }
     async remove(id: string) {
-        this.events.delete(id);
+        return this.events.delete(id);
     }
 
     recordRelay = async (eventID: string, url: string): Promise<void> => {
-        this.relayRecords.put({
+        await this.relayRecords.put({
             url: url,
             event_id: eventID,
         });
