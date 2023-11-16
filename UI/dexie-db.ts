@@ -15,7 +15,7 @@ export class DexieDatabase extends dexie.Dexie implements EventsAdapter {
 
     constructor() {
         super("Events");
-        this.version(7).stores({
+        this.version(8).stores({
             events: "&id, created_at, kind, tags, pubkey", // indices
             relays: "[url+event_id]", // relayTable
         });
