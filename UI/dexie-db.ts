@@ -33,19 +33,6 @@ export class DexieDatabase extends dexie.Dexie implements EventsAdapter {
         this.events.delete(id);
     }
 
-    getRelaysByEvent = async (eventID: string) => {
-        const relays = await (this.relays
-            .filter((relay) => {
-                return relay.event_id == eventID;
-            })
-            .toArray());
-        return relays.map((relay) => relay.url);
-    };
-
-    getRealy = async (keys: RelayTable) => {
-        return (await this.relays.get(keys))?.url;
-    };
-
     putRealy = async (eventID: string, url: string): Promise<void> => {
         this.relays.put({
             url: url,
