@@ -75,11 +75,11 @@ export type AppEventBus = EventBus<UI_Interaction_Event>;
 export async function* UI_Interaction_Update(args: {
     model: Model;
     eventBus: AppEventBus;
-    dexieDB: DexieDatabase;
+    dbView: Datebase_View;
     pool: ConnectionPool;
     popOver: PopOverInputChannel;
 }) {
-    const { model, eventBus, dexieDB, pool } = args;
+    const { model, dbView, eventBus, pool } = args;
     const events = eventBus.onChange();
     for await (const event of events) {
         console.log(event);
@@ -88,11 +88,6 @@ export async function* UI_Interaction_Update(args: {
                 const ctx = event.ctx;
                 if (ctx) {
                     console.log("sign in as", ctx.publicKey.bech32());
-                    const dbView = await Datebase_View.New(dexieDB, dexieDB);
-                    if (dbView instanceof Error) {
-                        throw dbView;
-                    }
-
                     const otherConfig = await OtherConfig.FromLocalStorage(ctx);
                     const app = await App.Start({
                         database: dbView,
@@ -429,7 +424,7 @@ export async function* UI_Interaction_Update(args: {
                 },
                 {
                     title: "Relays",
-                    fields: await dexieDB.relayRecordGetter(nostrEvent.id),
+                    fields: await app.database.relayRecordGetter(nostrEvent.id),
                 },
                 {
                     title: "Content",

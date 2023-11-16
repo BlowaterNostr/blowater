@@ -48,7 +48,7 @@ export type EventsAdapter =
     & EventGetter
     & EventPutter;
 
-export class Datebase_View implements ProfileController, EventGetter, EventRemover {
+export class Datebase_View implements ProfileController, EventGetter, EventRemover, RelayRecordGetter {
     public readonly sourceOfChange = csp.chan<Parsed_Event | null>(buffer_size);
     private readonly caster = csp.multi<Parsed_Event | null>(this.sourceOfChange);
     public readonly profiles = new Map<string, Profile_Nostr_Event>();
@@ -115,6 +115,10 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
     remove(id: string): Promise<void> {
         return this.eventsAdapter.remove(id);
     }
+
+    relayRecordGetter = (eventID: string) => {
+        return this.relayAdapter.relayRecordGetter(eventID);
+    };
 
     getProfilesByText(name: string): Profile_Nostr_Event[] {
         const result = [];

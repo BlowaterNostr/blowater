@@ -39,15 +39,15 @@ export async function Start(database: DexieDatabase) {
     const eventBus = new EventBus<UI_Interaction_Event>();
     const pool = new ConnectionPool();
     const popOverInputChan: PopOverInputChannel = new Channel();
+    const dbView = await Datebase_View.New(database, database);
+    if (dbView instanceof Error) {
+        throw dbView;
+    }
 
     const ctx = await getCurrentSignInCtx();
     if (ctx instanceof Error) {
         console.error(ctx);
     } else if (ctx) {
-        const dbView = await Datebase_View.New(database, database);
-        if (dbView instanceof Error) {
-            throw dbView;
-        }
         const otherConfig = await OtherConfig.FromLocalStorage(ctx);
         const app = await App.Start({
             database: dbView,
@@ -75,7 +75,7 @@ export async function Start(database: DexieDatabase) {
         let _ of UI_Interaction_Update({
             model,
             eventBus,
-            dexieDB: database,
+            dbView: dbView,
             pool,
             popOver: popOverInputChan,
         })
