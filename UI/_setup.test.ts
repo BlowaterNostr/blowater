@@ -5,7 +5,7 @@ import { UI_Interaction_Event } from "./app_update.tsx";
 
 export const testEventBus = new EventBus<UI_Interaction_Event>();
 export const data = new Map();
-export const relays: string[] = [];
+export const relays = new Map<string, string[]>();
 export const testEventsAdapter: EventsAdapter = {
     async remove() {},
     filter: async (f) => {
@@ -24,10 +24,16 @@ export const testEventsAdapter: EventsAdapter = {
 };
 
 export const testRelayAdapter: RelayAdapter = {
-    relayRecordSetter: async (eventID: string, url: string) => {
-        relays.push(`${eventID}${url}`);
+    setRelayRecord: async (eventID: string, url: string) => {
+        const oldURLs = relays.get(eventID);
+        if (oldURLs) {
+            oldURLs.push(url);
+        } else {
+            relays.set(eventID, [url]);
+        }
     },
-    relayRecordGetter: async (eventID: string) => {
-        return relays.filter((relay) => relay.includes(eventID));
+    getRelayRecord: async (eventID: string) => {
+        const res = relays.get(eventID);
+        return res ? res : [];
     },
 };

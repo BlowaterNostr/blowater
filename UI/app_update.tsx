@@ -424,7 +424,7 @@ export async function* UI_Interaction_Update(args: {
                 },
                 {
                     title: "Relays",
-                    fields: await app.database.relayRecordGetter(nostrEvent.id),
+                    fields: await app.database.getRelayRecord(nostrEvent.id),
                 },
                 {
                     title: "Content",

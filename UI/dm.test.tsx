@@ -26,9 +26,7 @@ if (indexedDB instanceof Error) {
     fail(indexedDB.message);
 }
 const database = await Datebase_View.New(indexedDB, indexedDB);
-if (database instanceof Error) {
-    fail(database.message);
-}
+
 const lamport = new LamportTime(0);
 
 const e = await database.addEvent(

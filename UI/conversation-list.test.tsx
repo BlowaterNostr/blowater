@@ -12,18 +12,19 @@ import { NewIndexedDB } from "./dexie-db.ts";
 import { ProfileSyncer } from "../features/profile.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
 import { OtherConfig } from "./config-other.ts";
+import { GroupChatSyncer, GroupMessageController } from "../features/gm.ts";
 
 const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
 const db = NewIndexedDB();
 if (db instanceof Error) {
     fail(db.message);
 }
-const database = await Datebase_View.New(db, ctx);
-if (database instanceof Error) {
-    fail(database.message);
-}
+const database = await Datebase_View.New(db, db);
 
-const convoLists = new DM_List(ctx, new ProfileSyncer(database, new ConnectionPool()));
+const pool = new ConnectionPool();
+const profileSyncer = new ProfileSyncer(database, pool);
+const convoLists = new DM_List(ctx, profileSyncer);
+const gmc = new GroupMessageController(ctx, new GroupChatSyncer(database, pool), profileSyncer);
 convoLists.addEvents(database.events);
 
 const model = initialModel();
@@ -37,6 +38,7 @@ const view = () =>
             eventBus={testEventBus}
             emit={testEventBus.emit}
             profileGetter={database}
+            groupChatListGetter={gmc}
         />,
         document.body,
     );

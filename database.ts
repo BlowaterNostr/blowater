@@ -33,11 +33,11 @@ export interface EventPutter {
 }
 
 export interface RelayRecordSetter {
-    relayRecordSetter: (eventID: string, url: string) => Promise<void>;
+    setRelayRecord: (eventID: string, url: string) => Promise<void>;
 }
 
 export interface RelayRecordGetter {
-    relayRecordGetter: (eventID: string) => Promise<string[]>;
+    getRelayRecord: (eventID: string) => Promise<string[]>;
 }
 
 export type RelayAdapter = RelayRecordSetter & RelayRecordGetter;
@@ -94,7 +94,8 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
                 // @ts-ignore
                 const pEvent = parseProfileEvent(e);
                 if (pEvent instanceof Error) {
-                    return pEvent;
+                    console.error(pEvent);
+                    continue;
                 }
                 db.setProfile(pEvent);
             }
@@ -116,8 +117,8 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
         return this.eventsAdapter.remove(id);
     }
 
-    relayRecordGetter = (eventID: string) => {
-        return this.relayAdapter.relayRecordGetter(eventID);
+    getRelayRecord = (eventID: string) => {
+        return this.relayAdapter.getRelayRecord(eventID);
     };
 
     getProfilesByText(name: string): Profile_Nostr_Event[] {
@@ -155,7 +156,7 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
         }
 
         if (url) {
-            await this.relayAdapter.relayRecordSetter(event.id, url);
+            await this.relayAdapter.setRelayRecord(event.id, url);
         }
 
         // check if the event exists

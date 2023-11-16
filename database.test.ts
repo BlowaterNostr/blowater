@@ -9,7 +9,6 @@ const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
 
 Deno.test("Database", async () => {
     const db = await Datebase_View.New(testEventsAdapter, testRelayAdapter);
-    if (db instanceof Error) fail(db.message);
 
     const stream = db.subscribe();
     const event_to_add = await prepareNormalNostrEvent(ctx, { kind: NostrKind.TEXT_NOTE, content: "1" });
@@ -63,3 +62,28 @@ Deno.test("Database", async () => {
         tags: e2.tags,
     }, event_to_add2);
 });
+
+Deno.test("Relay Record", async () => {
+    const db = await Datebase_View.New(testEventsAdapter, testRelayAdapter);
+
+    const stream = db.subscribe();
+    let i = 0;
+    (async function f() { // only twice
+        for await (const _ of stream) {
+            i++;
+        }
+    })();
+    const event_to_add = await prepareNormalNostrEvent(ctx, { kind: NostrKind.TEXT_NOTE, content: "1" });
+    const event_to_add_2 = await prepareNormalNostrEvent(ctx, { kind: NostrKind.TEXT_NOTE, content: "2" });
+    await db.addEvent(event_to_add); // send by client
+    assertEquals(await db.getRelayRecord(event_to_add.id), []);
+
+    await db.addEvent(event_to_add_2, "wss://relay.blowater.app"); // receiver from relay
+    assertEquals(await db.getRelayRecord(event_to_add_2.id), ["wss://relay.blowater.app"]);
+
+    await db.addEvent(event_to_add_2, "wss://relay.test.app");
+    assertEquals(await db.getRelayRecord(event_to_add_2.id), ["wss://relay.blowater.app", "wss://relay.test.app"]);
+
+    assertEquals(i, 2);
+});
+

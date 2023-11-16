@@ -13,9 +13,6 @@ const ctx = InMemoryAccountContext.New(
 const pool = new ConnectionPool();
 pool.addRelayURLs(relays);
 const database = await Datebase_View.New(testEventsAdapter, testRelayAdapter);
-if (database instanceof Error) {
-    fail(database.message);
-}
 
 const messageStream = getAllEncryptedMessagesOf(
     ctx.publicKey,
