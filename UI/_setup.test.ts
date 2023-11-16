@@ -24,10 +24,10 @@ export const testEventsAdapter: EventsAdapter = {
 };
 
 export const testRelayAdapter: RelayAdapter = {
-    recordRelay: async (eventID: string, url: string) => {
+    relayRecordSetter: async (eventID: string, url: string) => {
         relays.push(`${eventID}${url}`);
     },
-    getRecordRelay: async (eventID: string) => {
+    relayRecordGetter: async (eventID: string) => {
         return relays.filter((relay) => relay.includes(eventID));
     },
 };

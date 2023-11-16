@@ -429,7 +429,7 @@ export async function* UI_Interaction_Update(args: {
                 },
                 {
                     title: "Relays",
-                    fields: await dexieDB.getRecordRelay(nostrEvent.id),
+                    fields: await dexieDB.relayRecordGetter(nostrEvent.id),
                 },
                 {
                     title: "Content",
