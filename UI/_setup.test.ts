@@ -7,6 +7,7 @@ import { UI_Interaction_Event } from "./app_update.tsx";
 
 export const testEventBus = new EventBus<UI_Interaction_Event>();
 export const data = new Map();
+export const relays = new Set();
 export const testEventsAdapter: EventsAdapter = {
     async remove() {},
     filter: async (f) => {
@@ -21,5 +22,8 @@ export const testEventsAdapter: EventsAdapter = {
     },
     put: async (e: NostrEvent) => {
         data.set(e.id, e);
+    },
+    recordRelay: async (eventID: string, url: string) => {
+        relays.add(`${eventID}${url}`);
     },
 };

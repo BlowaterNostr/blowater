@@ -4,8 +4,8 @@ import { parseJSON, ProfileData } from "./features/profile.ts";
 import { parseContent } from "./UI/message.ts";
 import { NostrAccountContext, NostrEvent, NostrKind, Tag, Tags, verifyEvent } from "./lib/nostr-ts/nostr.ts";
 import { PublicKey } from "./lib/nostr-ts/key.ts";
-import { NoteID } from "./lib/nostr-ts/nip19.ts";
 import { ProfileController } from "./UI/search.tsx";
+import { RelayRecord } from "./UI/dexie-db.ts";
 
 const buffer_size = 2000;
 export interface Indices {
@@ -32,7 +32,16 @@ export interface EventPutter {
     put(e: NostrEvent): Promise<void>;
 }
 
-export type EventsAdapter = EventsFilter & EventRemover & EventGetter & EventPutter;
+export interface RecordRelay {
+    recordRelay: (eventID: string, url: string) => Promise<void>;
+}
+
+export type EventsAdapter =
+    & EventsFilter
+    & EventRemover
+    & EventGetter
+    & EventPutter
+    & RecordRelay;
 
 export class Database_Contextual_View implements ProfileController, EventGetter, EventRemover {
     public readonly sourceOfChange = csp.chan<Parsed_Event | null>(buffer_size);
@@ -128,16 +137,20 @@ export class Database_Contextual_View implements ProfileController, EventGetter,
         }
     }
 
-    async addEvent(event: NostrEvent) {
+    async addEvent(event: NostrEvent, url?: string) {
+        const ok = await verifyEvent(event);
+        if (!ok) {
+            return ok;
+        }
+
+        if (url) {
+            await this.eventsAdapter.recordRelay(event.id, url);
+        }
+
         // check if the event exists
         const storedEvent = await this.eventsAdapter.get({ id: event.id });
         if (storedEvent) { // event exist
             return false;
-        }
-
-        const ok = await verifyEvent(event);
-        if (!ok) {
-            return ok;
         }
 
         // parse the event to desired format
