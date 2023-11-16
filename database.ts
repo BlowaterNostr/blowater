@@ -4,8 +4,8 @@ import { parseJSON, ProfileData } from "./features/profile.ts";
 import { parseContent } from "./UI/message.ts";
 import { NostrAccountContext, NostrEvent, NostrKind, Tag, Tags, verifyEvent } from "./lib/nostr-ts/nostr.ts";
 import { PublicKey } from "./lib/nostr-ts/key.ts";
-import { NoteID } from "./lib/nostr-ts/nip19.ts";
 import { ProfileController } from "./UI/search.tsx";
+import { RelayTable } from "./UI/dexie-db.ts";
 
 const buffer_size = 2000;
 export interface Indices {
@@ -32,7 +32,16 @@ export interface EventPutter {
     put(e: NostrEvent): Promise<void>;
 }
 
-export type EventsAdapter = EventsFilter & EventRemover & EventGetter & EventPutter;
+export interface RelaysGetter {
+    getRelaysByEvent: (eventID: string) => Promise<string[] | undefined>;
+    getRealy: (keys: RelayTable) => Promise<string | undefined>;
+}
+
+export interface RelaysPutter {
+    putRealy: (eventID: string, url: string) => Promise<void>;
+}
+
+export type EventsAdapter = EventsFilter & EventRemover & EventGetter & EventPutter & RelaysGetter & RelaysPutter;
 
 export class Database_Contextual_View implements ProfileController, EventGetter, EventRemover {
     public readonly sourceOfChange = csp.chan<Parsed_Event | null>(buffer_size);
@@ -128,16 +137,26 @@ export class Database_Contextual_View implements ProfileController, EventGetter,
         }
     }
 
-    async addEvent(event: NostrEvent) {
-        // check if the event exists
-        const storedEvent = await this.eventsAdapter.get({ id: event.id });
-        if (storedEvent) { // event exist
-            return false;
-        }
-
+    async addEvent(event: NostrEvent, url?: string) {
         const ok = await verifyEvent(event);
         if (!ok) {
             return ok;
+        }
+
+        // check if the event exists
+        const storedEvent = await this.eventsAdapter.get({ id: event.id });
+        if (storedEvent) { // event exist
+            if (url) {
+                const relayURL = await this.eventsAdapter.getRealy({
+                    event_id: event.id,
+                    url: url
+                });
+                if (!relayURL) { // relay not exist
+                    await this.eventsAdapter.putRealy(event.id, url);
+                }
+            }
+
+            return false;
         }
 
         // parse the event to desired format
@@ -167,6 +186,9 @@ export class Database_Contextual_View implements ProfileController, EventGetter,
         }
 
         await this.eventsAdapter.put(event);
+        if (url) {
+            await this.eventsAdapter.putRealy(event.id, url);
+        }
         /* not await */ this.sourceOfChange.put(parsedEvent);
         return parsedEvent;
     }

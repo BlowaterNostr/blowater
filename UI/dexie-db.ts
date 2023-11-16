@@ -2,15 +2,22 @@ import * as dexie from "https://esm.sh/dexie@3.2.4";
 import { NostrEvent, NostrKind, Tag } from "../lib/nostr-ts/nostr.ts";
 import { EventsAdapter, Indices } from "../database.ts";
 
+export type RelayTable = {
+    url: string;
+    event_id: string;
+}
+
 export class DexieDatabase extends dexie.Dexie implements EventsAdapter {
     // 'events' is added by dexie when declaring the stores()
     // We just tell the typing system this is the case
     events!: dexie.Table<NostrEvent>;
+    relays!: dexie.Table<RelayTable>;
 
     constructor() {
         super("Events");
-        this.version(6).stores({
+        this.version(7).stores({
             events: "&id, created_at, kind, tags, pubkey", // indices
+            relays: "[url+event_id]" // relayTable
         });
     }
     filter(f?: (e: NostrEvent) => boolean): Promise<NostrEvent[]> {
@@ -22,10 +29,29 @@ export class DexieDatabase extends dexie.Dexie implements EventsAdapter {
     async put(e: NostrEvent<NostrKind, Tag>): Promise<void> {
         this.events.put(e);
     }
-
     async remove(id: string) {
         this.events.delete(id);
     }
+
+    getRelaysByEvent = async (eventID: string) => {
+        const relays = await (this.relays
+            .filter(relay => {
+                return relay.event_id == eventID;
+            })
+            .toArray())
+        return relays.map(relay => relay.url);
+    };
+
+    getRealy = async (keys: RelayTable) => {
+       return (await this.relays.get(keys))?.url;
+    };
+
+    putRealy = async (eventID: string, url: string): Promise<void> => {
+        this.relays.put({
+            url: url,
+            event_id: eventID
+        });
+    };
 }
 
 export function NewIndexedDB(): DexieDatabase | Error {

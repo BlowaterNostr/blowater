@@ -21,7 +21,7 @@ export class EventSyncer {
                 if (res.type != "EVENT") {
                     continue;
                 }
-                await this.db.addEvent(res.event);
+                await this.db.addEvent(res.event, url);
                 return; // just need to read from 1 relay
             }
         })();

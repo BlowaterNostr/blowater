@@ -248,7 +248,7 @@ export class App {
                 if (msg.res.type == "EOSE") {
                     continue;
                 }
-                const ok = await this.database.addEvent(msg.res.event);
+                const ok = await this.database.addEvent(msg.res.event, msg.url);
                 if (ok instanceof Error) {
                     console.error(msg.res.event);
                     console.error(ok);
@@ -267,7 +267,7 @@ export class App {
                 if (msg.res.type == "EOSE") {
                     continue;
                 }
-                const ok = await this.database.addEvent(msg.res.event);
+                const ok = await this.database.addEvent(msg.res.event, msg.url);
                 if (ok instanceof Error) {
                     console.error(msg.res.event);
                     console.error(ok);
@@ -287,7 +287,7 @@ export class App {
             );
             for await (const msg of messageStream) {
                 if (msg.res.type == "EVENT") {
-                    const err = await database.addEvent(msg.res.event);
+                    const err = await database.addEvent(msg.res.event, msg.url);
                     if (err instanceof Error) {
                         console.log(err);
                     }

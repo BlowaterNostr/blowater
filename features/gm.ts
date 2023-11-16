@@ -390,7 +390,7 @@ export class GroupChatSyncer implements GroupChatAdder {
         }
         for await (let { res: nostrMessage, url: relayUrl } of resp.chan) {
             if (nostrMessage.type === "EVENT" && nostrMessage.event.content) {
-                this.database.addEvent(nostrMessage.event);
+                this.database.addEvent(nostrMessage.event, relayUrl);
             }
         }
     }

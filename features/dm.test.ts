@@ -25,7 +25,7 @@ const messageStream = getAllEncryptedMessagesOf(
 (async () => {
     for await (const msg of messageStream) {
         if (msg.res.type == "EVENT") {
-            const err = await database.addEvent(msg.res.event);
+            const err = await database.addEvent(msg.res.event, msg.url);
             if (err instanceof Error) {
                 console.log(err);
             }
