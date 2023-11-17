@@ -1,5 +1,5 @@
 import { not_cancelled, sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { testEventsAdapter, testRelayAdapter, testRemovedAdapter } from "./UI/_setup.test.ts";
+import { testEventMarker, testEventsAdapter, testRelayAdapter } from "./UI/_setup.test.ts";
 import { Datebase_View } from "./database.ts";
 import { prepareNormalNostrEvent } from "./lib/nostr-ts/event.ts";
 import { PrivateKey } from "./lib/nostr-ts/key.ts";
@@ -8,7 +8,7 @@ import { assertEquals, fail } from "https://deno.land/std@0.176.0/testing/assert
 
 Deno.test("Database", async () => {
     const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
-    const db = await Datebase_View.New(testEventsAdapter, testRelayAdapter, testRemovedAdapter);
+    const db = await Datebase_View.New(testEventsAdapter, testRelayAdapter, testEventMarker);
 
     const stream = db.subscribe();
     const event_to_add = await prepareNormalNostrEvent(ctx, { kind: NostrKind.TEXT_NOTE, content: "1" });
@@ -65,7 +65,7 @@ Deno.test("Database", async () => {
 
 Deno.test("Relay Record", async () => {
     const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
-    const db = await Datebase_View.New(testEventsAdapter, testRelayAdapter, testRemovedAdapter);
+    const db = await Datebase_View.New(testEventsAdapter, testRelayAdapter, testEventMarker);
 
     const stream = db.subscribe();
     const event_to_add = await prepareNormalNostrEvent(ctx, { kind: NostrKind.TEXT_NOTE, content: "1" });
@@ -89,31 +89,25 @@ Deno.test("Relay Record", async () => {
     assertEquals(isCanceled, not_cancelled);
 });
 
-Deno.test("mark remove event", async () => {
+Deno.test("mark removed event", async () => {
     const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
-    const db = await Datebase_View.New(testEventsAdapter, testRelayAdapter, testRemovedAdapter);
+    const db = await Datebase_View.New(testEventsAdapter, testRelayAdapter, testEventMarker);
     const event_to_add = await prepareNormalNostrEvent(ctx, { kind: NostrKind.TEXT_NOTE, content: "1" });
 
-    await db.addEvent(event_to_add);
-    const e = db.get({ id: event_to_add.id });
-    if (!e) {
-        fail();
-    }
-    assertEquals({
-        content: e.content,
-        created_at: e.created_at,
-        id: e.id,
-        kind: e.kind,
-        pubkey: e.pubkey,
-        sig: e.sig,
-        tags: e.tags,
-    }, event_to_add);
+    const parsed_event = await db.addEvent(event_to_add);
+    const retrieved_event = db.get({ id: event_to_add.id });
+    if (retrieved_event == undefined) fail();
+
+    assertEquals(parsed_event, retrieved_event);
+    assertEquals(retrieved_event.id, event_to_add.id);
 
     await db.remove(event_to_add.id);
-    const e2 = db.get({ id: event_to_add.id });
-    assertEquals(e2, undefined);
+    const retrieved_event_2 = db.get({ id: event_to_add.id });
+    assertEquals(retrieved_event_2, undefined);
 
-    await db.addEvent(event_to_add);
-    const e3 = db.get({ id: event_to_add.id });
-    assertEquals(e3, undefined);
+    const added_event = await db.addEvent(event_to_add);
+    assertEquals(added_event, false);
+
+    const retrieved_event_3 = db.get({ id: event_to_add.id });
+    assertEquals(retrieved_event_3, undefined);
 });

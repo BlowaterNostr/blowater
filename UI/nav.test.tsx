@@ -4,10 +4,10 @@ import { NavBar } from "./nav.tsx";
 import { InMemoryAccountContext } from "../lib/nostr-ts/nostr.ts";
 import { Datebase_View } from "../database.ts";
 import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
-import { testEventBus, testEventsAdapter, testRelayAdapter, testRemovedAdapter } from "./_setup.test.ts";
+import { testEventBus, testEventMarker, testEventsAdapter, testRelayAdapter } from "./_setup.test.ts";
 import { tw } from "https://esm.sh/twind@0.16.16";
 
-const db = await Datebase_View.New(testEventsAdapter, testRelayAdapter, testRemovedAdapter);
+const db = await Datebase_View.New(testEventsAdapter, testRelayAdapter, testEventMarker);
 
 const ctx = InMemoryAccountContext.Generate();
 

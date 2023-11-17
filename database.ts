@@ -5,7 +5,7 @@ import { parseContent } from "./UI/message.ts";
 import { NostrAccountContext, NostrEvent, NostrKind, Tag, Tags, verifyEvent } from "./lib/nostr-ts/nostr.ts";
 import { PublicKey } from "./lib/nostr-ts/key.ts";
 import { ProfileController } from "./UI/search.tsx";
-import { RelayRecord, RemovedRecords } from "./UI/dexie-db.ts";
+import { EventMark, RelayRecord } from "./UI/dexie-db.ts";
 
 const buffer_size = 2000;
 export interface Indices {
@@ -40,13 +40,12 @@ export interface RelayRecordGetter {
     getRelayRecord: (eventID: string) => Promise<string[]>;
 }
 
-export interface RemovedRecordGetter {
-    getRemovedRecord: (eventID: string) => Promise<RemovedRecords | undefined>;
+export interface EventMarker {
+    getMark(eventID: string): Promise<EventMark | undefined>;
+    markEvent(eventID: string, reason: "removed"): Promise<void>;
 }
 
-export type RemovedAdapter = RemovedRecordGetter;
-
-export type RelayAdapter = RelayRecordSetter & RelayRecordGetter;
+export type RelayRecorder = RelayRecordSetter & RelayRecordGetter;
 
 export type EventsAdapter =
     & EventsFilter
@@ -61,15 +60,15 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
 
     private constructor(
         private readonly eventsAdapter: EventsAdapter,
-        private readonly relayAdapter: RelayAdapter,
-        private readonly removedAdapter: RemovedAdapter,
+        private readonly relayAdapter: RelayRecorder,
+        private readonly eventMarker: EventMarker,
         public readonly events: Map<string, Parsed_Event>,
     ) {}
 
     static async New(
         eventsAdapter: EventsAdapter,
-        relayAdapter: RelayAdapter,
-        removedAdapter: RemovedAdapter,
+        relayAdapter: RelayRecorder,
+        eventMarker: EventMarker,
     ) {
         const t = Date.now();
         const allEvents = await eventsAdapter.filter();
@@ -97,7 +96,7 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
         const db = new Datebase_View(
             eventsAdapter,
             relayAdapter,
-            removedAdapter,
+            eventMarker,
             initialEvents,
         );
         console.log("Datebase_View:New time spent", Date.now() - t);
@@ -120,7 +119,6 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
         if (!keys.id) {
             return;
         }
-
         return this.events.get(keys.id);
     }
 
@@ -167,8 +165,8 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
             return ok;
         }
 
-        const removedEvent = await this.removedAdapter.getRemovedRecord(event.id);
-        if (removedEvent) {
+        const mark = await this.eventMarker.getMark(event.id);
+        if (mark != undefined && mark.reason == "removed") {
             return false;
         }
 
