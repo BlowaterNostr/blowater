@@ -5,7 +5,7 @@ import { parseContent } from "./UI/message.ts";
 import { NostrAccountContext, NostrEvent, NostrKind, Tag, Tags, verifyEvent } from "./lib/nostr-ts/nostr.ts";
 import { PublicKey } from "./lib/nostr-ts/key.ts";
 import { ProfileController } from "./UI/search.tsx";
-import { EventMark, RelayRecord } from "./UI/dexie-db.ts";
+import { EventMark } from "./UI/dexie-db.ts";
 
 const buffer_size = 2000;
 export interface Indices {
@@ -49,7 +49,6 @@ export type RelayRecorder = RelayRecordSetter & RelayRecordGetter;
 
 export type EventsAdapter =
     & EventsFilter
-    & EventRemover
     & EventGetter
     & EventPutter;
 
@@ -79,7 +78,7 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
             const pubkey = PublicKey.FromHex(e.pubkey);
             if (pubkey instanceof Error) {
                 console.error("impossible state");
-                await eventsAdapter.remove(e.id);
+                await eventMarker.markEvent(e.id, "removed");
                 continue;
             }
             const p: Parsed_Event = {
@@ -124,7 +123,6 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
 
     async remove(id: string): Promise<void> {
         this.events.delete(id);
-        await this.eventsAdapter.remove(id);
         await this.eventMarker.markEvent(id, "removed");
     }
 
