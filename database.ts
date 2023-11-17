@@ -5,7 +5,6 @@ import { parseContent } from "./UI/message.ts";
 import { NostrAccountContext, NostrEvent, NostrKind, Tag, Tags, verifyEvent } from "./lib/nostr-ts/nostr.ts";
 import { PublicKey } from "./lib/nostr-ts/key.ts";
 import { ProfileController } from "./UI/search.tsx";
-import { EventMark } from "./UI/dexie-db.ts";
 
 const buffer_size = 2000;
 export interface Indices {
@@ -40,9 +39,15 @@ export interface RelayRecordGetter {
     getRelayRecord: (eventID: string) => Promise<string[]>;
 }
 
+export type EventMark = {
+    event_id: string;
+    reason: "removed";
+};
+
 export interface EventMarker {
     getMark(eventID: string): Promise<EventMark | undefined>;
     markEvent(eventID: string, reason: "removed"): Promise<void>;
+    getAll(): Promise<EventMark[]>;
 }
 
 export type RelayRecorder = RelayRecordSetter & RelayRecordGetter;
@@ -61,7 +66,8 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
         private readonly eventsAdapter: EventsAdapter,
         private readonly relayAdapter: RelayRecorder,
         private readonly eventMarker: EventMarker,
-        public readonly events: Map<string, Parsed_Event>,
+        private readonly events: Map<string, Parsed_Event>,
+        private readonly removedEvents: Set<string>,
     ) {}
 
     static async New(
@@ -91,12 +97,14 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
 
         console.log("Datebase_View:parsed", Date.now() - t);
 
+        const all_removed_events = await eventMarker.getAll();
         // Construct the View
         const db = new Datebase_View(
             eventsAdapter,
             relayAdapter,
             eventMarker,
             initialEvents,
+            new Set(all_removed_events.map((mark) => mark.event_id)),
         );
         console.log("Datebase_View:New time spent", Date.now() - t);
         for (const e of db.events.values()) {
@@ -121,8 +129,18 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
         return this.events.get(keys.id);
     }
 
+    *getAllEvents() {
+        for (const event of this.events.values()) {
+            if (this.removedEvents.has(event.id)) {
+                continue;
+            }
+            yield event;
+        }
+    }
+
     async remove(id: string): Promise<void> {
         this.events.delete(id);
+        this.removedEvents.add(id);
         await this.eventMarker.markEvent(id, "removed");
     }
 
