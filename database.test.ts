@@ -1,14 +1,13 @@
 import { not_cancelled, sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { testEventMarker, testEventsAdapter, testRelayAdapter } from "./UI/_setup.test.ts";
-import { Datebase_View } from "./database.ts";
 import { prepareNormalNostrEvent } from "./lib/nostr-ts/event.ts";
 import { PrivateKey } from "./lib/nostr-ts/key.ts";
 import { InMemoryAccountContext, NostrEvent, NostrKind } from "./lib/nostr-ts/nostr.ts";
 import { assertEquals, fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
+import { test_db_view } from "./UI/_setup.test.ts";
 
 Deno.test("Database", async () => {
     const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
-    const db = await Datebase_View.New(testEventsAdapter, testRelayAdapter, testEventMarker);
+    const db = await test_db_view();
 
     const stream = db.subscribe();
     const event_to_add = await prepareNormalNostrEvent(ctx, { kind: NostrKind.TEXT_NOTE, content: "1" });
@@ -65,7 +64,7 @@ Deno.test("Database", async () => {
 
 Deno.test("Relay Record", async () => {
     const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
-    const db = await Datebase_View.New(testEventsAdapter, testRelayAdapter, testEventMarker);
+    const db = await test_db_view();
 
     const stream = db.subscribe();
     const event_to_add = await prepareNormalNostrEvent(ctx, { kind: NostrKind.TEXT_NOTE, content: "1" });
@@ -91,7 +90,7 @@ Deno.test("Relay Record", async () => {
 
 Deno.test("mark removed event", async () => {
     const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
-    const db = await Datebase_View.New(testEventsAdapter, testRelayAdapter, testEventMarker);
+    const db = await test_db_view();
     const event_to_add = await prepareNormalNostrEvent(ctx, { kind: NostrKind.TEXT_NOTE, content: "1" });
 
     const parsed_event = await db.addEvent(event_to_add);
@@ -110,4 +109,18 @@ Deno.test("mark removed event", async () => {
 
     const retrieved_event_3 = db.get({ id: event_to_add.id });
     assertEquals(retrieved_event_3, undefined);
+});
+
+Deno.test("getAllEvents", async () => {
+    const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
+    const db = await test_db_view();
+    const event_to_add = await prepareNormalNostrEvent(ctx, { kind: NostrKind.TEXT_NOTE, content: "1" });
+
+    assertEquals(Array.from(db.getAllEvents()), []);
+
+    await db.addEvent(event_to_add);
+    assertEquals(Array.from(db.getAllEvents()).length == 1, true);
+
+    await db.remove(event_to_add.id);
+    assertEquals(Array.from(db.getAllEvents()), []);
 });

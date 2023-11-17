@@ -11,7 +11,7 @@ import { CenterClass } from "./components/tw.ts";
 import { getTags } from "../nostr.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 
-const database = await Datebase_View.New(testEventsAdapter, testRelayAdapter, testEventMarker);
+const database = await test_db_view();
 
 const user_A = InMemoryAccountContext.Generate();
 const user_B = InMemoryAccountContext.Generate();

@@ -7,7 +7,7 @@ import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { testEventBus, testEventMarker, testEventsAdapter, testRelayAdapter } from "./_setup.test.ts";
 import { tw } from "https://esm.sh/twind@0.16.16";
 
-const db = await Datebase_View.New(testEventsAdapter, testRelayAdapter, testEventMarker);
+const db = await test_db_view();
 
 const ctx = InMemoryAccountContext.Generate();
 

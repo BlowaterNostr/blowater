@@ -1,12 +1,11 @@
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { decryptNostrEvent, NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
+import { NostrAccountContext, NostrEvent, NostrKind, Tags } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
-import { compare, getTags, Parsed_Event, prepareNostrImageEvent, Tag } from "../nostr.ts";
+import { compare, Encrypted_Event, getTags, Parsed_Event, prepareNostrImageEvent, Tag } from "../nostr.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { prepareEncryptedNostrEvent } from "../lib/nostr-ts/event.ts";
 import { DirectMessageGetter } from "../UI/app_update.tsx";
-import { parseDM } from "../database.ts";
-import { ChatMessage } from "../UI/message.ts";
+import { ChatMessage, parseContent } from "../UI/message.ts";
 import { decodeInvitation, gmEventType } from "./gm.ts";
 
 export async function sendDMandImages(args: {
@@ -231,4 +230,70 @@ function is_DM_between(event: NostrEvent, myPubkey: string, theirPubKey: string)
     } else {
         return false;
     }
+}
+
+async function parseDM(
+    event: NostrEvent<NostrKind.DIRECT_MESSAGE>,
+    ctx: NostrAccountContext,
+    parsedTags: Tags,
+    publicKey: PublicKey,
+): Promise<Encrypted_Event | Error> {
+    const theOther = whoIamTalkingTo(event, ctx.publicKey);
+    if (theOther instanceof Error) {
+        return theOther;
+    }
+    const decrypted = await ctx.decrypt(theOther, event.content);
+    if (decrypted instanceof Error) {
+        return decrypted;
+    }
+    return {
+        ...event,
+        kind: event.kind,
+        parsedTags,
+        publicKey,
+        decryptedContent: decrypted,
+        parsedContentItems: Array.from(parseContent(decrypted)),
+    };
+}
+
+export function whoIamTalkingTo(event: NostrEvent, myPublicKey: PublicKey) {
+    if (event.kind !== NostrKind.DIRECT_MESSAGE) {
+        console.log(event);
+        return new Error(`event ${event.id} is not a DM`);
+    }
+    // first asuming the other user is the sender
+    let whoIAmTalkingTo = event.pubkey;
+    const tags = getTags(event).p;
+    // if I am the sender
+    if (event.pubkey === myPublicKey.hex) {
+        if (tags.length === 1) {
+            const theirPubKey = tags[0];
+            whoIAmTalkingTo = theirPubKey;
+            return whoIAmTalkingTo;
+        } else if (tags.length === 0) {
+            console.log(event);
+            return Error(
+                `No p tag is found - Not a valid DM - id ${event.id}, kind ${event.kind}`,
+            );
+        } else {
+            return Error(`Multiple tag p: ${event}`);
+        }
+    } else {
+        if (tags.length === 1) {
+            const receiverPubkey = tags[0];
+            if (receiverPubkey !== myPublicKey.hex) {
+                return Error(
+                    `Not my message, receiver is ${receiverPubkey}, sender is ${event.pubkey}, my key is ${myPublicKey}`,
+                );
+            }
+        } else if (tags.length === 0) {
+            return Error(
+                `This is not a valid DM, id ${event.id}, kind ${event.kind}`,
+            );
+        } else {
+            return Error(`Multiple tag p: ${event}`);
+        }
+    }
+    // I am the receiver
+    return whoIAmTalkingTo;
 }

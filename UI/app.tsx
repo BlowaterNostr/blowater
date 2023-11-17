@@ -120,7 +120,7 @@ export class App {
         popOverInputChan: PopOverInputChannel;
         otherConfig: OtherConfig;
     }) {
-        const lamport = fromEvents(args.database.events.values());
+        const lamport = fromEvents(args.database.getAllEvents());
         const eventSyncer = new EventSyncer(args.pool, args.database);
         const relayConfig = await RelayConfig.FromLocalStorage(args.ctx, args.pool);
         if (relayConfig.getRelayURLs().size == 0) {
@@ -132,7 +132,7 @@ export class App {
         profileSyncer.add(args.ctx.publicKey.hex);
 
         const conversationLists = new DM_List(args.ctx, profileSyncer);
-        conversationLists.addEvents(Array.from(args.database.events.values()));
+        conversationLists.addEvents(Array.from(args.database.getAllEvents()));
 
         const dmController = new DirectedMessageController(args.ctx);
         const groupSyncer = new GroupChatSyncer(args.database, args.pool);
@@ -144,7 +144,7 @@ export class App {
 
         (async () => {
             // load DMs
-            for (const e of args.database.events.values()) {
+            for (const e of args.database.getAllEvents()) {
                 if (e.kind == NostrKind.DIRECT_MESSAGE) {
                     const error = await dmController.addEvent({
                         ...e,
@@ -162,7 +162,7 @@ export class App {
                 args.database.sourceOfChange.put(null);
             }
             // load GMs
-            const group_events = await group_GM_events(args.ctx, Array.from(args.database.events.values()));
+            const group_events = await group_GM_events(args.ctx, Array.from(args.database.getAllEvents()));
             for (const e of group_events.creataions) {
                 const error = await groupChatController.addEvent(e);
                 if (error instanceof Error) {

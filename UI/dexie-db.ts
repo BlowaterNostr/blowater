@@ -1,15 +1,10 @@
 import * as dexie from "https://esm.sh/dexie@3.2.4";
 import { NostrEvent, NostrKind, Tag } from "../lib/nostr-ts/nostr.ts";
-import { EventMarker, EventRemover, EventsAdapter, Indices, RelayRecorder } from "../database.ts";
+import { EventMark, EventMarker, EventRemover, EventsAdapter, Indices, RelayRecorder } from "../database.ts";
 
 export type RelayRecord = {
     url: string;
     event_id: string;
-};
-
-export type EventMark = {
-    event_id: string;
-    reason: "removed";
 };
 
 export class DexieDatabase extends dexie.Dexie
@@ -62,6 +57,9 @@ export class DexieDatabase extends dexie.Dexie
             event_id: eventID,
             reason: reason,
         });
+    }
+    async getAllMarks(): Promise<EventMark[]> {
+        return this.eventMarks.toArray();
     }
 }
 

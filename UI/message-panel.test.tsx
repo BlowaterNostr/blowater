@@ -18,7 +18,7 @@ import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { GroupChatSyncer, GroupMessageController } from "../features/gm.ts";
 
 const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
-const database = await Datebase_View.New(testEventsAdapter, testRelayAdapter, testEventMarker);
+const database = await test_db_view();
 
 const lamport = new LamportTime(0);
 
