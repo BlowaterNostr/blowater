@@ -60,7 +60,7 @@ export type EventsAdapter =
 export class Datebase_View implements ProfileController, EventGetter, EventRemover, RelayRecordGetter {
     public readonly sourceOfChange = csp.chan<Parsed_Event | null>(buffer_size);
     private readonly caster = csp.multi<Parsed_Event | null>(this.sourceOfChange);
-    public readonly profiles = new Map<string, Profile_Nostr_Event>();
+    private readonly profiles = new Map<string, Profile_Nostr_Event>();
 
     private constructor(
         private readonly eventsAdapter: EventsAdapter,
