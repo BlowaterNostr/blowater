@@ -28,7 +28,6 @@ import {
     UnpinConversation,
 } from "../nostr.ts";
 import { StartInvite } from "./dm.tsx";
-import { DexieDatabase } from "./dexie-db.ts";
 import { RelayConfigChange } from "./setting.tsx";
 import { PopOverInputChannel } from "./components/popover.tsx";
 import { Search } from "./search.tsx";
