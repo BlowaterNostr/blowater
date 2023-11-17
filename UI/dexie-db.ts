@@ -7,30 +7,53 @@ export type RelayRecord = {
     event_id: string;
 };
 
+export type RemovedRecords = {
+    event_id: string;
+    reason: string;
+}
+
 export class DexieDatabase extends dexie.Dexie implements EventsAdapter, RelayAdapter {
     // 'events' is added by dexie when declaring the stores()
     // We just tell the typing system this is the case
     events!: dexie.Table<NostrEvent>;
     relayRecords!: dexie.Table<RelayRecord>;
+    removedRecords!: dexie.Table<RemovedRecords>;
 
     constructor() {
         super("Events");
-        this.version(9).stores({
+        this.version(19).stores({
             events: "&id, created_at, kind, tags, pubkey", // indices
-            relayRecords: "[url+event_id]", // relayTable
+            relayRecords: "[url+event_id]", // RelayRecord
+            removedRecords: "&event_id, reason", // RemoveRecords
         });
     }
-    filter(f?: (e: NostrEvent) => boolean): Promise<NostrEvent[]> {
-        return this.events.toArray();
+    async filter(f?: (e: NostrEvent) => boolean): Promise<NostrEvent[]> {
+        const events =  await this.events.toArray();
+        return events.filter(async event => {
+            const removed = await this.removedRecords.get({event_id: event.id});
+            return !removed;
+        });
     }
-    get(keys: Indices) {
-        return this.events.get(keys);
+    async get(keys: Indices) {
+        const event = await this.events.get(keys);
+        if (!event) {
+            return;
+        }
+        const removed = await this.removedRecords.get({event_id: event.id});
+        if (removed) {
+            return;
+        }
+        
+        return event;
     }
     async put(e: NostrEvent<NostrKind, Tag>): Promise<void> {
         await this.events.put(e);
     }
-    async remove(id: string) {
-        return this.events.delete(id);
+    async remove(id: string, reason?: string) {
+        this.removedRecords.put({
+            event_id: id,
+            reason: reason || ""
+        });
     }
 
     setRelayRecord = async (eventID: string, url: string): Promise<void> => {

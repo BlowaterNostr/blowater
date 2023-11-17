@@ -150,50 +150,49 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
     }
 
     async addEvent(event: NostrEvent, url?: string) {
-        const ok = await verifyEvent(event);
-        if (!ok) {
-            return ok;
-        }
-
-        if (url) {
-            await this.relayAdapter.setRelayRecord(event.id, url);
-        }
-
         // check if the event exists
         const storedEvent = await this.eventsAdapter.get({ id: event.id });
-        if (storedEvent) { // event exist
-            return false;
-        }
+        if (!storedEvent) { // event not exist
 
-        // parse the event to desired format
-        const pubkey = PublicKey.FromHex(event.pubkey);
-        if (pubkey instanceof Error) {
-            console.error("impossible state");
-            return pubkey;
-        }
-        const parsedEvent: Parsed_Event = {
-            ...event,
-            parsedTags: getTags(event),
-            publicKey: pubkey,
-        };
-
-        // add event to database and notify subscribers
-        console.log("Database.addEvent", event);
-
-        this.events.push(parsedEvent);
-
-        if (parsedEvent.kind == NostrKind.META_DATA) {
-            // @ts-ignore
-            const pEvent = parseProfileEvent(parsedEvent);
-            if (pEvent instanceof Error) {
-                return pEvent;
+            const ok = await verifyEvent(event);
+            if (!ok) {
+                return ok;
             }
-            this.setProfile(pEvent);
-        }
 
-        await this.eventsAdapter.put(event);
-        /* not await */ this.sourceOfChange.put(parsedEvent);
-        return parsedEvent;
+            if (url) {
+                await this.relayAdapter.setRelayRecord(event.id, url);
+            }
+
+            // parse the event to desired format
+            const pubkey = PublicKey.FromHex(event.pubkey);
+            if (pubkey instanceof Error) {
+                console.error("impossible state");
+                return pubkey;
+            }
+            const parsedEvent: Parsed_Event = {
+                ...event,
+                parsedTags: getTags(event),
+                publicKey: pubkey,
+            };
+
+            // add event to database and notify subscribers
+            console.log("Database.addEvent", event);
+
+            this.events.push(parsedEvent);
+
+            if (parsedEvent.kind == NostrKind.META_DATA) {
+                // @ts-ignore
+                const pEvent = parseProfileEvent(parsedEvent);
+                if (pEvent instanceof Error) {
+                    return pEvent;
+                }
+                this.setProfile(pEvent);
+            }
+
+            await this.eventsAdapter.put(event);
+            /* not await */ this.sourceOfChange.put(parsedEvent);
+            return parsedEvent;
+        }
     }
 
     //////////////////
