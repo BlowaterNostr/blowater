@@ -1,5 +1,5 @@
 import { not_cancelled, sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { testEventsAdapter, testRelayAdapter } from "./UI/_setup.test.ts";
+import { testEventsAdapter, testRelayAdapter, testRemovedAdapter } from "./UI/_setup.test.ts";
 import { Datebase_View } from "./database.ts";
 import { prepareNormalNostrEvent } from "./lib/nostr-ts/event.ts";
 import { PrivateKey } from "./lib/nostr-ts/key.ts";
@@ -8,7 +8,7 @@ import { assertEquals, fail } from "https://deno.land/std@0.176.0/testing/assert
 
 Deno.test("Database", async () => {
     const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
-    const db = await Datebase_View.New(testEventsAdapter, testRelayAdapter);
+    const db = await Datebase_View.New(testEventsAdapter, testRelayAdapter, testRemovedAdapter);
 
     const stream = db.subscribe();
     const event_to_add = await prepareNormalNostrEvent(ctx, { kind: NostrKind.TEXT_NOTE, content: "1" });
@@ -65,7 +65,7 @@ Deno.test("Database", async () => {
 
 Deno.test("Relay Record", async () => {
     const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
-    const db = await Datebase_View.New(testEventsAdapter, testRelayAdapter);
+    const db = await Datebase_View.New(testEventsAdapter, testRelayAdapter, testRemovedAdapter);
 
     const stream = db.subscribe();
     const event_to_add = await prepareNormalNostrEvent(ctx, { kind: NostrKind.TEXT_NOTE, content: "1" });
@@ -91,7 +91,7 @@ Deno.test("Relay Record", async () => {
 
 Deno.test("mark remove event", async () => {
     const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
-    const db = await Datebase_View.New(testEventsAdapter, testRelayAdapter);
+    const db = await Datebase_View.New(testEventsAdapter, testRelayAdapter, testRemovedAdapter);
     const event_to_add = await prepareNormalNostrEvent(ctx, { kind: NostrKind.TEXT_NOTE, content: "1" });
 
     await db.addEvent(event_to_add);

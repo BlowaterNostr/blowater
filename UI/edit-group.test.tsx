@@ -1,12 +1,12 @@
 /** @jsx h */
 import { h, render } from "https://esm.sh/preact@10.17.1";
-import { testEventBus, testEventsAdapter, testRelayAdapter } from "./_setup.test.ts";
+import { testEventBus, testEventsAdapter, testRelayAdapter, testRemovedAdapter } from "./_setup.test.ts";
 import { EditGroup } from "./edit-group.tsx";
 import { InMemoryAccountContext } from "../lib/nostr-ts/nostr.ts";
 import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { Datebase_View } from "../database.ts";
 
-const database = await Datebase_View.New(testEventsAdapter, testRelayAdapter);
+const database = await Datebase_View.New(testEventsAdapter, testRelayAdapter, testRemovedAdapter);
 
 const ctx = InMemoryAccountContext.Generate();
 

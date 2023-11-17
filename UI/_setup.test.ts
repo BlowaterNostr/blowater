@@ -1,14 +1,20 @@
-import { EventsAdapter, Indices, RelayAdapter } from "../database.ts";
+import { EventsAdapter, Indices, RelayAdapter, RemovedAdapter } from "../database.ts";
 import { EventBus } from "../event-bus.ts";
 import { NostrEvent } from "../lib/nostr-ts/nostr.ts";
 import { UI_Interaction_Event } from "./app_update.tsx";
+import { RemovedRecords } from "./dexie-db.ts";
 
 export const testEventBus = new EventBus<UI_Interaction_Event>();
 export const data = new Map();
 export const relays = new Map<string, string[]>();
+export const removed = new Map<string, RemovedRecords>();
 export const testEventsAdapter: EventsAdapter = {
     async remove(id: string) {
         data.delete(id);
+        removed.set(id, {
+            event_id: id,
+            reason: ""
+        });
     },
     filter: async (f) => {
         const events = [];
@@ -39,3 +45,9 @@ export const testRelayAdapter: RelayAdapter = {
         return res ? res : [];
     },
 };
+
+export const testRemovedAdapter: RemovedAdapter = {
+    getRemovedRecord: async (eventID: string) => {
+        return removed.get(eventID);
+    }
+}

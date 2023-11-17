@@ -5,7 +5,7 @@ import { parseContent } from "./UI/message.ts";
 import { NostrAccountContext, NostrEvent, NostrKind, Tag, Tags, verifyEvent } from "./lib/nostr-ts/nostr.ts";
 import { PublicKey } from "./lib/nostr-ts/key.ts";
 import { ProfileController } from "./UI/search.tsx";
-import { RelayRecord } from "./UI/dexie-db.ts";
+import { RelayRecord, RemovedRecords } from "./UI/dexie-db.ts";
 
 const buffer_size = 2000;
 export interface Indices {
@@ -40,6 +40,12 @@ export interface RelayRecordGetter {
     getRelayRecord: (eventID: string) => Promise<string[]>;
 }
 
+export interface RemovedRecordGetter {
+    getRemovedRecord: (eventID: string) => Promise<RemovedRecords | undefined>;
+}
+
+export type RemovedAdapter = RemovedRecordGetter;
+
 export type RelayAdapter = RelayRecordSetter & RelayRecordGetter;
 
 export type EventsAdapter =
@@ -56,10 +62,11 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
     private constructor(
         private readonly eventsAdapter: EventsAdapter,
         private readonly relayAdapter: RelayAdapter,
+        private readonly removedAdapter: RemovedAdapter,
         public readonly events: Map<string, Parsed_Event>,
     ) {}
 
-    static async New(eventsAdapter: EventsAdapter, relayAdapter: RelayAdapter) {
+    static async New(eventsAdapter: EventsAdapter, relayAdapter: RelayAdapter, removedAdapter: RemovedAdapter) {
         const t = Date.now();
         const allEvents = await eventsAdapter.filter();
         console.log("Datebase_View:onload", Date.now() - t, allEvents.length);
@@ -86,6 +93,7 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
         const db = new Datebase_View(
             eventsAdapter,
             relayAdapter,
+            removedAdapter,
             initialEvents,
         );
         console.log("Datebase_View:New time spent", Date.now() - t);
@@ -153,6 +161,11 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
         const ok = await verifyEvent(event);
         if (!ok) {
             return ok;
+        }
+
+        const removedEvent = await this.removedAdapter.getRemovedRecord(event.id);
+        if (removedEvent) {
+            return false;
         }
 
         if (url) {

@@ -39,7 +39,7 @@ export async function Start(database: DexieDatabase) {
     const eventBus = new EventBus<UI_Interaction_Event>();
     const pool = new ConnectionPool();
     const popOverInputChan: PopOverInputChannel = new Channel();
-    const dbView = await Datebase_View.New(database, database);
+    const dbView = await Datebase_View.New(database, database, database);
 
     const ctx = await getCurrentSignInCtx();
     if (ctx instanceof Error) {

@@ -19,7 +19,7 @@ const db = NewIndexedDB();
 if (db instanceof Error) {
     fail(db.message);
 }
-const database = await Datebase_View.New(db, db);
+const database = await Datebase_View.New(db, db, db);
 
 const pool = new ConnectionPool();
 const profileSyncer = new ProfileSyncer(database, pool);

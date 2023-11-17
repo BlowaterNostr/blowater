@@ -4,7 +4,7 @@ import { MessagePanel } from "./message-panel.tsx";
 import { InvalidKey, PrivateKey } from "../lib/nostr-ts/key.ts";
 import { InMemoryAccountContext, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { Datebase_View } from "../database.ts";
-import { testEventBus, testEventsAdapter, testRelayAdapter } from "./_setup.test.ts";
+import { testEventBus, testEventsAdapter, testRelayAdapter, testRemovedAdapter } from "./_setup.test.ts";
 import { prepareNormalNostrEvent } from "../lib/nostr-ts/event.ts";
 import { DM_List } from "./conversation-list.ts";
 import { EventSyncer } from "./event_syncer.ts";
@@ -18,7 +18,7 @@ import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { GroupChatSyncer, GroupMessageController } from "../features/gm.ts";
 
 const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
-const database = await Datebase_View.New(testEventsAdapter, testRelayAdapter);
+const database = await Datebase_View.New(testEventsAdapter, testRelayAdapter, testRemovedAdapter);
 
 const lamport = new LamportTime(0);
 
