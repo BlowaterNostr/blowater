@@ -13,7 +13,7 @@ export const testEventsAdapter: EventsAdapter = {
         data.delete(id);
         removed.set(id, {
             event_id: id,
-            reason: ""
+            reason: "",
         });
     },
     filter: async (f) => {
@@ -49,5 +49,5 @@ export const testRelayAdapter: RelayAdapter = {
 export const testRemovedAdapter: RemovedAdapter = {
     getRemovedRecord: async (eventID: string) => {
         return removed.get(eventID);
-    }
-}
+    },
+};

@@ -57,7 +57,7 @@ export class DexieDatabase extends dexie.Dexie implements EventsAdapter, RelayAd
     };
 
     getRemovedRecord = (eventID: string) => {
-        return this.removedRecords.get({event_id: eventID});
+        return this.removedRecords.get({ event_id: eventID });
     };
 }
 

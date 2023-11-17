@@ -66,12 +66,16 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
         public readonly events: Map<string, Parsed_Event>,
     ) {}
 
-    static async New(eventsAdapter: EventsAdapter, relayAdapter: RelayAdapter, removedAdapter: RemovedAdapter) {
+    static async New(
+        eventsAdapter: EventsAdapter,
+        relayAdapter: RelayAdapter,
+        removedAdapter: RemovedAdapter,
+    ) {
         const t = Date.now();
         const allEvents = await eventsAdapter.filter();
         console.log("Datebase_View:onload", Date.now() - t, allEvents.length);
 
-        const initialEvents = new Map<string, Parsed_Event>;
+        const initialEvents = new Map<string, Parsed_Event>();
         for (const e of allEvents) {
             const pubkey = PublicKey.FromHex(e.pubkey);
             if (pubkey instanceof Error) {

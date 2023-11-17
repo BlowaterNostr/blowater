@@ -13,7 +13,7 @@ Deno.test("Database", async () => {
     const stream = db.subscribe();
     const event_to_add = await prepareNormalNostrEvent(ctx, { kind: NostrKind.TEXT_NOTE, content: "1" });
     await db.addEvent(event_to_add);
-    const e1 = db.get({id: event_to_add.id});
+    const e1 = db.get({ id: event_to_add.id });
     if (!e1) {
         fail();
     }
@@ -95,7 +95,7 @@ Deno.test("mark remove event", async () => {
     const event_to_add = await prepareNormalNostrEvent(ctx, { kind: NostrKind.TEXT_NOTE, content: "1" });
 
     await db.addEvent(event_to_add);
-    const e = db.get({id: event_to_add.id});
+    const e = db.get({ id: event_to_add.id });
     if (!e) {
         fail();
     }
@@ -110,10 +110,10 @@ Deno.test("mark remove event", async () => {
     }, event_to_add);
 
     await db.remove(event_to_add.id);
-    const e2 = db.get({id: event_to_add.id});
+    const e2 = db.get({ id: event_to_add.id });
     assertEquals(e2, undefined);
 
     await db.addEvent(event_to_add);
-    const e3 = db.get({id: event_to_add.id});
+    const e3 = db.get({ id: event_to_add.id });
     assertEquals(e3, undefined);
 });
