@@ -28,23 +28,10 @@ export class DexieDatabase extends dexie.Dexie implements EventsAdapter, RelayAd
         });
     }
     async filter(f?: (e: NostrEvent) => boolean): Promise<NostrEvent[]> {
-        const events = await this.events.toArray();
-        return events.filter(async (event) => {
-            const removed = await this.removedRecords.get({ event_id: event.id });
-            return !removed;
-        });
+        return this.events.toArray();
     }
     async get(keys: Indices) {
-        const event = await this.events.get(keys);
-        if (!event) {
-            return;
-        }
-        const removed = await this.removedRecords.get({ event_id: event.id });
-        if (removed) {
-            return;
-        }
-
-        return event;
+        return this.events.get(keys);
     }
     async put(e: NostrEvent<NostrKind, Tag>): Promise<void> {
         await this.events.put(e);
