@@ -111,3 +111,14 @@ Deno.test("mark removed event", async () => {
     const retrieved_event_3 = db.get({ id: event_to_add.id });
     assertEquals(retrieved_event_3, undefined);
 });
+
+Deno.test("getAllEvents", async () => {
+    const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
+    const db = await Datebase_View.New(testEventsAdapter, testRelayAdapter, testEventMarker);
+    const event_to_add = await prepareNormalNostrEvent(ctx, { kind: NostrKind.TEXT_NOTE, content: "1" });
+
+    assertEquals(Array.from(db.getAllEvents()), []);
+
+    await db.addEvent(event_to_add);
+    assertEquals(Array.from(db.getAllEvents()).length == 1, true);
+});

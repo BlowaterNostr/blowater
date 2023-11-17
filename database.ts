@@ -251,48 +251,6 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
     }
 }
 
-export function whoIamTalkingTo(event: NostrEvent, myPublicKey: PublicKey) {
-    if (event.kind !== NostrKind.DIRECT_MESSAGE) {
-        console.log(event);
-        return new Error(`event ${event.id} is not a DM`);
-    }
-    // first asuming the other user is the sender
-    let whoIAmTalkingTo = event.pubkey;
-    const tags = getTags(event).p;
-    // if I am the sender
-    if (event.pubkey === myPublicKey.hex) {
-        if (tags.length === 1) {
-            const theirPubKey = tags[0];
-            whoIAmTalkingTo = theirPubKey;
-            return whoIAmTalkingTo;
-        } else if (tags.length === 0) {
-            console.log(event);
-            return Error(
-                `No p tag is found - Not a valid DM - id ${event.id}, kind ${event.kind}`,
-            );
-        } else {
-            return Error(`Multiple tag p: ${event}`);
-        }
-    } else {
-        if (tags.length === 1) {
-            const receiverPubkey = tags[0];
-            if (receiverPubkey !== myPublicKey.hex) {
-                return Error(
-                    `Not my message, receiver is ${receiverPubkey}, sender is ${event.pubkey}, my key is ${myPublicKey}`,
-                );
-            }
-        } else if (tags.length === 0) {
-            return Error(
-                `This is not a valid DM, id ${event.id}, kind ${event.kind}`,
-            );
-        } else {
-            return Error(`Multiple tag p: ${event}`);
-        }
-    }
-    // I am the receiver
-    return whoIAmTalkingTo;
-}
-
 export function parseProfileEvent(
     event: NostrEvent<NostrKind.META_DATA>,
 ): Profile_Nostr_Event | Error {
@@ -310,29 +268,5 @@ export function parseProfileEvent(
         profile: profileData,
         parsedTags,
         publicKey,
-    };
-}
-
-export async function parseDM(
-    event: NostrEvent<NostrKind.DIRECT_MESSAGE>,
-    ctx: NostrAccountContext,
-    parsedTags: Tags,
-    publicKey: PublicKey,
-): Promise<Encrypted_Event | Error> {
-    const theOther = whoIamTalkingTo(event, ctx.publicKey);
-    if (theOther instanceof Error) {
-        return theOther;
-    }
-    const decrypted = await ctx.decrypt(theOther, event.content);
-    if (decrypted instanceof Error) {
-        return decrypted;
-    }
-    return {
-        ...event,
-        kind: event.kind,
-        parsedTags,
-        publicKey,
-        decryptedContent: decrypted,
-        parsedContentItems: Array.from(parseContent(decrypted)),
     };
 }
