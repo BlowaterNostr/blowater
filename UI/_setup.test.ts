@@ -10,10 +10,6 @@ const data = new Map();
 export const testEventsAdapter: EventsAdapter = {
     async remove(id: string) {
         data.delete(id);
-        marks.set(id, {
-            event_id: id,
-            reason: "removed",
-        });
     },
     filter: async (f) => {
         const events = [];
@@ -51,6 +47,10 @@ export const testEventMarker: EventMarker = {
     getMark: async (eventID: string) => {
         return marks.get(eventID);
     },
-    async markEvent() {
+    async markEvent(eventID: string, reason: "removed") {
+        marks.set(eventID, {
+            event_id: eventID,
+            reason: reason,
+        });
     },
 };

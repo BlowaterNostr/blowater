@@ -122,9 +122,10 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
         return this.events.get(keys.id);
     }
 
-    remove(id: string): Promise<void> {
+    async remove(id: string): Promise<void> {
         this.events.delete(id);
-        return this.eventsAdapter.remove(id);
+        await this.eventsAdapter.remove(id);
+        await this.eventMarker.markEvent(id, "removed");
     }
 
     getRelayRecord = (eventID: string) => {
