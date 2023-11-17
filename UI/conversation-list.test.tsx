@@ -25,7 +25,7 @@ const pool = new ConnectionPool();
 const profileSyncer = new ProfileSyncer(database, pool);
 const convoLists = new DM_List(ctx, profileSyncer);
 const gmc = new GroupMessageController(ctx, new GroupChatSyncer(database, pool), profileSyncer);
-convoLists.addEvents(database.events);
+convoLists.addEvents(Array.from(database.events.values()));
 
 const model = initialModel();
 

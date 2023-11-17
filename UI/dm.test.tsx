@@ -43,7 +43,7 @@ if (!e || e instanceof Error) {
 
 const allUserInfo = new DM_List(ctx, new ProfileSyncer(database, new ConnectionPool()));
 allUserInfo.addEvents([e]);
-allUserInfo.addEvents(database.events);
+allUserInfo.addEvents(Array.from(database.events.values()));
 console.log(database.events);
 const pool = new ConnectionPool();
 const model = initialModel();

@@ -56,7 +56,7 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
     private constructor(
         private readonly eventsAdapter: EventsAdapter,
         private readonly relayAdapter: RelayAdapter,
-        private readonly events: Map<string, Parsed_Event>,
+        public readonly events: Map<string, Parsed_Event>,
     ) {}
 
     static async New(eventsAdapter: EventsAdapter, relayAdapter: RelayAdapter) {
