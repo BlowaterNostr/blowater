@@ -7,7 +7,9 @@ export const testEventBus = new EventBus<UI_Interaction_Event>();
 export const data = new Map();
 export const relays = new Map<string, string[]>();
 export const testEventsAdapter: EventsAdapter = {
-    async remove() {},
+    async remove(id: string) {
+        data.delete(id);
+    },
     filter: async (f) => {
         const events = [];
         for (const [k, v] of data) {
