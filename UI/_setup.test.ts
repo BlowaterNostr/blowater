@@ -8,9 +8,6 @@ export const testEventBus = new EventBus<UI_Interaction_Event>();
 
 const data = new Map();
 export const testEventsAdapter: EventsAdapter = {
-    async remove(id: string) {
-        data.delete(id);
-    },
     filter: async (f) => {
         const events = [];
         for (const [k, v] of data) {

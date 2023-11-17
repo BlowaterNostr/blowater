@@ -1,6 +1,6 @@
 import * as dexie from "https://esm.sh/dexie@3.2.4";
 import { NostrEvent, NostrKind, Tag } from "../lib/nostr-ts/nostr.ts";
-import { EventMarker, EventsAdapter, Indices, RelayRecorder } from "../database.ts";
+import { EventMarker, EventRemover, EventsAdapter, Indices, RelayRecorder } from "../database.ts";
 
 export type RelayRecord = {
     url: string;
@@ -12,7 +12,8 @@ export type EventMark = {
     reason: "removed";
 };
 
-export class DexieDatabase extends dexie.Dexie implements EventsAdapter, RelayRecorder, EventMarker {
+export class DexieDatabase extends dexie.Dexie
+    implements EventsAdapter, RelayRecorder, EventMarker, EventRemover {
     // 'events' is added by dexie when declaring the stores()
     // We just tell the typing system this is the case
     events!: dexie.Table<NostrEvent>;
@@ -41,12 +42,12 @@ export class DexieDatabase extends dexie.Dexie implements EventsAdapter, RelayRe
         return this.markEvent(id, "removed");
     }
 
-    setRelayRecord = async (eventID: string, url: string): Promise<void> => {
+    async setRelayRecord(eventID: string, url: string): Promise<void> {
         await this.relayRecords.put({
             url: url,
             event_id: eventID,
         });
-    };
+    }
 
     async getRelayRecord(eventID: string): Promise<string[]> {
         const array = await this.relayRecords.where("event_id").equals(eventID).toArray();
@@ -56,8 +57,11 @@ export class DexieDatabase extends dexie.Dexie implements EventsAdapter, RelayRe
     getMark(eventID: string): Promise<EventMark | undefined> {
         return this.eventMarks.get(eventID);
     }
-    markEvent(eventID: string, reason: "removed"): Promise<void> {
-        throw new Error("Method not implemented.");
+    async markEvent(eventID: string, reason: "removed"): Promise<void> {
+        await this.eventMarks.put({
+            event_id: eventID,
+            reason: reason,
+        });
     }
 }
 
