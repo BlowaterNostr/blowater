@@ -10,7 +10,7 @@ export type RelayRecord = {
 export type RemovedRecords = {
     event_id: string;
     reason: string;
-}
+};
 
 export class DexieDatabase extends dexie.Dexie implements EventsAdapter, RelayAdapter {
     // 'events' is added by dexie when declaring the stores()
@@ -28,9 +28,9 @@ export class DexieDatabase extends dexie.Dexie implements EventsAdapter, RelayAd
         });
     }
     async filter(f?: (e: NostrEvent) => boolean): Promise<NostrEvent[]> {
-        const events =  await this.events.toArray();
-        return events.filter(async event => {
-            const removed = await this.removedRecords.get({event_id: event.id});
+        const events = await this.events.toArray();
+        return events.filter(async (event) => {
+            const removed = await this.removedRecords.get({ event_id: event.id });
             return !removed;
         });
     }
@@ -39,11 +39,11 @@ export class DexieDatabase extends dexie.Dexie implements EventsAdapter, RelayAd
         if (!event) {
             return;
         }
-        const removed = await this.removedRecords.get({event_id: event.id});
+        const removed = await this.removedRecords.get({ event_id: event.id });
         if (removed) {
             return;
         }
-        
+
         return event;
     }
     async put(e: NostrEvent<NostrKind, Tag>): Promise<void> {
@@ -52,7 +52,7 @@ export class DexieDatabase extends dexie.Dexie implements EventsAdapter, RelayAd
     async remove(id: string, reason?: string) {
         this.removedRecords.put({
             event_id: id,
-            reason: reason || ""
+            reason: reason || "",
         });
     }
 

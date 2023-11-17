@@ -153,7 +153,6 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
         // check if the event exists
         const storedEvent = await this.eventsAdapter.get({ id: event.id });
         if (!storedEvent) { // event not exist
-
             const ok = await verifyEvent(event);
             if (!ok) {
                 return ok;
