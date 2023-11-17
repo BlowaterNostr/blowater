@@ -56,7 +56,7 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
     private constructor(
         private readonly eventsAdapter: EventsAdapter,
         private readonly relayAdapter: RelayAdapter,
-        public readonly events: Parsed_Event[],
+        private readonly events: Map<string, Parsed_Event>,
     ) {}
 
     static async New(eventsAdapter: EventsAdapter, relayAdapter: RelayAdapter) {
@@ -64,7 +64,7 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
         const allEvents = await eventsAdapter.filter();
         console.log("Datebase_View:onload", Date.now() - t, allEvents.length);
 
-        const initialEvents = [];
+        const initialEvents = new Map<string, Parsed_Event>;
         for (const e of allEvents) {
             const pubkey = PublicKey.FromHex(e.pubkey);
             if (pubkey instanceof Error) {
@@ -77,7 +77,7 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
                 parsedTags: getTags(e),
                 publicKey: pubkey,
             };
-            initialEvents.push(p);
+            initialEvents.set(p.id, p);
         }
 
         console.log("Datebase_View:parsed", Date.now() - t);
@@ -89,7 +89,7 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
             initialEvents,
         );
         console.log("Datebase_View:New time spent", Date.now() - t);
-        for (const e of db.events) {
+        for (const e of db.events.values()) {
             if (e.kind == NostrKind.META_DATA) {
                 // @ts-ignore
                 const pEvent = parseProfileEvent(e);
@@ -105,15 +105,15 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
     }
 
     get(keys: Indices): Parsed_Event | undefined {
-        for (const e of this.events) {
-            if (e.id == keys.id) {
-                return e;
-            }
+        if (!keys.id) {
+            return;
         }
-        return undefined;
+
+        return this.events.get(keys.id);
     }
 
     remove(id: string): Promise<void> {
+        this.events.delete(id);
         return this.eventsAdapter.remove(id);
     }
 
@@ -150,48 +150,50 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
     }
 
     async addEvent(event: NostrEvent, url?: string) {
+        const ok = await verifyEvent(event);
+        if (!ok) {
+            return ok;
+        }
+
+        if (url) {
+            await this.relayAdapter.setRelayRecord(event.id, url);
+        }
+
         // check if the event exists
         const storedEvent = await this.eventsAdapter.get({ id: event.id });
-        if (!storedEvent) { // event not exist
-            const ok = await verifyEvent(event);
-            if (!ok) {
-                return ok;
-            }
-
-            if (url) {
-                await this.relayAdapter.setRelayRecord(event.id, url);
-            }
-
-            // parse the event to desired format
-            const pubkey = PublicKey.FromHex(event.pubkey);
-            if (pubkey instanceof Error) {
-                console.error("impossible state");
-                return pubkey;
-            }
-            const parsedEvent: Parsed_Event = {
-                ...event,
-                parsedTags: getTags(event),
-                publicKey: pubkey,
-            };
-
-            // add event to database and notify subscribers
-            console.log("Database.addEvent", event);
-
-            this.events.push(parsedEvent);
-
-            if (parsedEvent.kind == NostrKind.META_DATA) {
-                // @ts-ignore
-                const pEvent = parseProfileEvent(parsedEvent);
-                if (pEvent instanceof Error) {
-                    return pEvent;
-                }
-                this.setProfile(pEvent);
-            }
-
-            await this.eventsAdapter.put(event);
-            /* not await */ this.sourceOfChange.put(parsedEvent);
-            return parsedEvent;
+        if (storedEvent) { // event exist
+            return false;
         }
+
+        // parse the event to desired format
+        const pubkey = PublicKey.FromHex(event.pubkey);
+        if (pubkey instanceof Error) {
+            console.error("impossible state");
+            return pubkey;
+        }
+        const parsedEvent: Parsed_Event = {
+            ...event,
+            parsedTags: getTags(event),
+            publicKey: pubkey,
+        };
+
+        // add event to database and notify subscribers
+        console.log("Database.addEvent", event);
+
+        this.events.set(parsedEvent.id, parsedEvent);
+
+        if (parsedEvent.kind == NostrKind.META_DATA) {
+            // @ts-ignore
+            const pEvent = parseProfileEvent(parsedEvent);
+            if (pEvent instanceof Error) {
+                return pEvent;
+            }
+            this.setProfile(pEvent);
+        }
+
+        await this.eventsAdapter.put(event);
+        /* not await */ this.sourceOfChange.put(parsedEvent);
+        return parsedEvent;
     }
 
     //////////////////
