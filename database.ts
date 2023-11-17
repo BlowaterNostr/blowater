@@ -1,14 +1,13 @@
-import { Encrypted_Event, getTags, Parsed_Event, Profile_Nostr_Event } from "./nostr.ts";
+import { getTags, Parsed_Event, Profile_Nostr_Event } from "./nostr.ts";
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { parseJSON, ProfileData } from "./features/profile.ts";
-import { parseContent } from "./UI/message.ts";
-import { NostrAccountContext, NostrEvent, NostrKind, Tag, Tags, verifyEvent } from "./lib/nostr-ts/nostr.ts";
+import { NostrEvent, NostrKind, Tag, verifyEvent } from "./lib/nostr-ts/nostr.ts";
 import { PublicKey } from "./lib/nostr-ts/key.ts";
 import { ProfileController } from "./UI/search.tsx";
 
 const buffer_size = 2000;
 export interface Indices {
-    readonly id?: string;
+    readonly id: string;
     readonly create_at?: number;
     readonly kind?: NostrKind;
     readonly tags?: Tag[];
@@ -123,7 +122,7 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
     }
 
     get(keys: Indices): Parsed_Event | undefined {
-        if (!keys.id) {
+        if (this.removedEvents.has(keys.id)) {
             return;
         }
         return this.events.get(keys.id);
@@ -139,7 +138,6 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
     }
 
     async remove(id: string): Promise<void> {
-        this.events.delete(id);
         this.removedEvents.add(id);
         await this.eventMarker.markEvent(id, "removed");
     }

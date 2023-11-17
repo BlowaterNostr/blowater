@@ -6,7 +6,7 @@ import { InMemoryAccountContext } from "../lib/nostr-ts/nostr.ts";
 import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { Datebase_View } from "../database.ts";
 
-const database = await Datebase_View.New(testEventsAdapter, testRelayAdapter, testEventMarker);
+const database = await test_db_view();
 
 const ctx = InMemoryAccountContext.Generate();
 
