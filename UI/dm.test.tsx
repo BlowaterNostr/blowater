@@ -25,7 +25,7 @@ const indexedDB = NewIndexedDB();
 if (indexedDB instanceof Error) {
     fail(indexedDB.message);
 }
-const database = await Datebase_View.New(indexedDB, indexedDB);
+const database = await Datebase_View.New(indexedDB, indexedDB, indexedDB);
 
 const lamport = new LamportTime(0);
 
@@ -43,7 +43,7 @@ if (!e || e instanceof Error) {
 
 const allUserInfo = new DM_List(ctx, new ProfileSyncer(database, new ConnectionPool()));
 allUserInfo.addEvents([e]);
-allUserInfo.addEvents(database.events);
+allUserInfo.addEvents(Array.from(database.events.values()));
 console.log(database.events);
 const pool = new ConnectionPool();
 const model = initialModel();

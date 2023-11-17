@@ -5,7 +5,7 @@ import { parseContent } from "./UI/message.ts";
 import { NostrAccountContext, NostrEvent, NostrKind, Tag, Tags, verifyEvent } from "./lib/nostr-ts/nostr.ts";
 import { PublicKey } from "./lib/nostr-ts/key.ts";
 import { ProfileController } from "./UI/search.tsx";
-import { RelayRecord } from "./UI/dexie-db.ts";
+import { EventMark } from "./UI/dexie-db.ts";
 
 const buffer_size = 2000;
 export interface Indices {
@@ -40,11 +40,15 @@ export interface RelayRecordGetter {
     getRelayRecord: (eventID: string) => Promise<string[]>;
 }
 
-export type RelayAdapter = RelayRecordSetter & RelayRecordGetter;
+export interface EventMarker {
+    getMark(eventID: string): Promise<EventMark | undefined>;
+    markEvent(eventID: string, reason: "removed"): Promise<void>;
+}
+
+export type RelayRecorder = RelayRecordSetter & RelayRecordGetter;
 
 export type EventsAdapter =
     & EventsFilter
-    & EventRemover
     & EventGetter
     & EventPutter;
 
@@ -55,21 +59,26 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
 
     private constructor(
         private readonly eventsAdapter: EventsAdapter,
-        private readonly relayAdapter: RelayAdapter,
-        public readonly events: Parsed_Event[],
+        private readonly relayAdapter: RelayRecorder,
+        private readonly eventMarker: EventMarker,
+        public readonly events: Map<string, Parsed_Event>,
     ) {}
 
-    static async New(eventsAdapter: EventsAdapter, relayAdapter: RelayAdapter) {
+    static async New(
+        eventsAdapter: EventsAdapter,
+        relayAdapter: RelayRecorder,
+        eventMarker: EventMarker,
+    ) {
         const t = Date.now();
         const allEvents = await eventsAdapter.filter();
         console.log("Datebase_View:onload", Date.now() - t, allEvents.length);
 
-        const initialEvents = [];
+        const initialEvents = new Map<string, Parsed_Event>();
         for (const e of allEvents) {
             const pubkey = PublicKey.FromHex(e.pubkey);
             if (pubkey instanceof Error) {
                 console.error("impossible state");
-                await eventsAdapter.remove(e.id);
+                await eventMarker.markEvent(e.id, "removed");
                 continue;
             }
             const p: Parsed_Event = {
@@ -77,7 +86,7 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
                 parsedTags: getTags(e),
                 publicKey: pubkey,
             };
-            initialEvents.push(p);
+            initialEvents.set(p.id, p);
         }
 
         console.log("Datebase_View:parsed", Date.now() - t);
@@ -86,10 +95,11 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
         const db = new Datebase_View(
             eventsAdapter,
             relayAdapter,
+            eventMarker,
             initialEvents,
         );
         console.log("Datebase_View:New time spent", Date.now() - t);
-        for (const e of db.events) {
+        for (const e of db.events.values()) {
             if (e.kind == NostrKind.META_DATA) {
                 // @ts-ignore
                 const pEvent = parseProfileEvent(e);
@@ -105,16 +115,15 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
     }
 
     get(keys: Indices): Parsed_Event | undefined {
-        for (const e of this.events) {
-            if (e.id == keys.id) {
-                return e;
-            }
+        if (!keys.id) {
+            return;
         }
-        return undefined;
+        return this.events.get(keys.id);
     }
 
-    remove(id: string): Promise<void> {
-        return this.eventsAdapter.remove(id);
+    async remove(id: string): Promise<void> {
+        this.events.delete(id);
+        await this.eventMarker.markEvent(id, "removed");
     }
 
     getRelayRecord = (eventID: string) => {
@@ -155,6 +164,11 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
             return ok;
         }
 
+        const mark = await this.eventMarker.getMark(event.id);
+        if (mark != undefined && mark.reason == "removed") {
+            return false;
+        }
+
         if (url) {
             await this.relayAdapter.setRelayRecord(event.id, url);
         }
@@ -180,7 +194,7 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
         // add event to database and notify subscribers
         console.log("Database.addEvent", event);
 
-        this.events.push(parsedEvent);
+        this.events.set(parsedEvent.id, parsedEvent);
 
         if (parsedEvent.kind == NostrKind.META_DATA) {
             // @ts-ignore

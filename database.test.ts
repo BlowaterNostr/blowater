@@ -1,31 +1,33 @@
 import { not_cancelled, sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { testEventsAdapter, testRelayAdapter } from "./UI/_setup.test.ts";
+import { testEventMarker, testEventsAdapter, testRelayAdapter } from "./UI/_setup.test.ts";
 import { Datebase_View } from "./database.ts";
 import { prepareNormalNostrEvent } from "./lib/nostr-ts/event.ts";
 import { PrivateKey } from "./lib/nostr-ts/key.ts";
 import { InMemoryAccountContext, NostrEvent, NostrKind } from "./lib/nostr-ts/nostr.ts";
-import { assertEquals } from "https://deno.land/std@0.176.0/testing/asserts.ts";
+import { assertEquals, fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 
 Deno.test("Database", async () => {
     const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
-    const db = await Datebase_View.New(testEventsAdapter, testRelayAdapter);
+    const db = await Datebase_View.New(testEventsAdapter, testRelayAdapter, testEventMarker);
 
     const stream = db.subscribe();
     const event_to_add = await prepareNormalNostrEvent(ctx, { kind: NostrKind.TEXT_NOTE, content: "1" });
     await db.addEvent(event_to_add);
+    const e1 = db.get({ id: event_to_add.id });
+    if (!e1) {
+        fail();
+    }
     assertEquals(
-        db.events.map((e): NostrEvent => {
-            return {
-                content: e.content,
-                created_at: e.created_at,
-                id: e.id,
-                kind: e.kind,
-                pubkey: e.pubkey,
-                sig: e.sig,
-                tags: e.tags,
-            };
-        }),
-        [event_to_add],
+        {
+            content: e1.content,
+            created_at: e1.created_at,
+            id: e1.id,
+            kind: e1.kind,
+            pubkey: e1.pubkey,
+            sig: e1.sig,
+            tags: e1.tags,
+        },
+        event_to_add,
     );
 
     const e = await stream.pop() as NostrEvent;
@@ -45,8 +47,6 @@ Deno.test("Database", async () => {
     const stream2 = db.subscribe();
 
     await db.addEvent(event_to_add); //   add a duplicated event
-    assertEquals(db.events.length, 1); // no changes
-
     const event_to_add2 = await prepareNormalNostrEvent(ctx, { kind: NostrKind.TEXT_NOTE, content: "2" });
     // console.log(event_to_add2.id, event_to_add.id)
     await db.addEvent(event_to_add2);
@@ -65,7 +65,7 @@ Deno.test("Database", async () => {
 
 Deno.test("Relay Record", async () => {
     const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
-    const db = await Datebase_View.New(testEventsAdapter, testRelayAdapter);
+    const db = await Datebase_View.New(testEventsAdapter, testRelayAdapter, testEventMarker);
 
     const stream = db.subscribe();
     const event_to_add = await prepareNormalNostrEvent(ctx, { kind: NostrKind.TEXT_NOTE, content: "1" });
@@ -87,4 +87,27 @@ Deno.test("Relay Record", async () => {
 
     const isCanceled = await sleep(10, stream.pop());
     assertEquals(isCanceled, not_cancelled);
+});
+
+Deno.test("mark removed event", async () => {
+    const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
+    const db = await Datebase_View.New(testEventsAdapter, testRelayAdapter, testEventMarker);
+    const event_to_add = await prepareNormalNostrEvent(ctx, { kind: NostrKind.TEXT_NOTE, content: "1" });
+
+    const parsed_event = await db.addEvent(event_to_add);
+    const retrieved_event = db.get({ id: event_to_add.id });
+    if (retrieved_event == undefined) fail();
+
+    assertEquals(parsed_event, retrieved_event);
+    assertEquals(retrieved_event.id, event_to_add.id);
+
+    await db.remove(event_to_add.id);
+    const retrieved_event_2 = db.get({ id: event_to_add.id });
+    assertEquals(retrieved_event_2, undefined);
+
+    const added_event = await db.addEvent(event_to_add);
+    assertEquals(added_event, false);
+
+    const retrieved_event_3 = db.get({ id: event_to_add.id });
+    assertEquals(retrieved_event_3, undefined);
 });

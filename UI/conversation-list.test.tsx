@@ -19,13 +19,13 @@ const db = NewIndexedDB();
 if (db instanceof Error) {
     fail(db.message);
 }
-const database = await Datebase_View.New(db, db);
+const database = await Datebase_View.New(db, db, db);
 
 const pool = new ConnectionPool();
 const profileSyncer = new ProfileSyncer(database, pool);
 const convoLists = new DM_List(ctx, profileSyncer);
 const gmc = new GroupMessageController(ctx, new GroupChatSyncer(database, pool), profileSyncer);
-convoLists.addEvents(database.events);
+convoLists.addEvents(Array.from(database.events.values()));
 
 const model = initialModel();
 

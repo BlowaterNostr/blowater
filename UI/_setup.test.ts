@@ -1,13 +1,13 @@
-import { EventsAdapter, Indices, RelayAdapter } from "../database.ts";
+import { EventMarker, EventsAdapter, Indices, RelayRecorder } from "../database.ts";
 import { EventBus } from "../event-bus.ts";
 import { NostrEvent } from "../lib/nostr-ts/nostr.ts";
 import { UI_Interaction_Event } from "./app_update.tsx";
+import { EventMark } from "./dexie-db.ts";
 
 export const testEventBus = new EventBus<UI_Interaction_Event>();
-export const data = new Map();
-export const relays = new Map<string, string[]>();
+
+const data = new Map();
 export const testEventsAdapter: EventsAdapter = {
-    async remove() {},
     filter: async (f) => {
         const events = [];
         for (const [k, v] of data) {
@@ -23,7 +23,8 @@ export const testEventsAdapter: EventsAdapter = {
     },
 };
 
-export const testRelayAdapter: RelayAdapter = {
+const relays = new Map<string, string[]>();
+export const testRelayAdapter: RelayRecorder = {
     setRelayRecord: async (eventID: string, url: string) => {
         const oldURLs = relays.get(eventID);
         if (oldURLs) {
@@ -35,5 +36,18 @@ export const testRelayAdapter: RelayAdapter = {
     getRelayRecord: async (eventID: string) => {
         const res = relays.get(eventID);
         return res ? res : [];
+    },
+};
+
+const marks = new Map<string, EventMark>();
+export const testEventMarker: EventMarker = {
+    getMark: async (eventID: string) => {
+        return marks.get(eventID);
+    },
+    async markEvent(eventID: string, reason: "removed") {
+        marks.set(eventID, {
+            event_id: eventID,
+            reason: reason,
+        });
     },
 };

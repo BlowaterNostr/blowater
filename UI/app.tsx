@@ -39,7 +39,7 @@ export async function Start(database: DexieDatabase) {
     const eventBus = new EventBus<UI_Interaction_Event>();
     const pool = new ConnectionPool();
     const popOverInputChan: PopOverInputChannel = new Channel();
-    const dbView = await Datebase_View.New(database, database);
+    const dbView = await Datebase_View.New(database, database, database);
 
     const ctx = await getCurrentSignInCtx();
     if (ctx instanceof Error) {
@@ -120,7 +120,7 @@ export class App {
         popOverInputChan: PopOverInputChannel;
         otherConfig: OtherConfig;
     }) {
-        const lamport = fromEvents(args.database.events);
+        const lamport = fromEvents(args.database.events.values());
         const eventSyncer = new EventSyncer(args.pool, args.database);
         const relayConfig = await RelayConfig.FromLocalStorage(args.ctx, args.pool);
         if (relayConfig.getRelayURLs().size == 0) {
@@ -132,7 +132,7 @@ export class App {
         profileSyncer.add(args.ctx.publicKey.hex);
 
         const conversationLists = new DM_List(args.ctx, profileSyncer);
-        conversationLists.addEvents(args.database.events);
+        conversationLists.addEvents(Array.from(args.database.events.values()));
 
         const dmController = new DirectedMessageController(args.ctx);
         const groupSyncer = new GroupChatSyncer(args.database, args.pool);
@@ -144,7 +144,7 @@ export class App {
 
         (async () => {
             // load DMs
-            for (const e of args.database.events) {
+            for (const e of args.database.events.values()) {
                 if (e.kind == NostrKind.DIRECT_MESSAGE) {
                     const error = await dmController.addEvent({
                         ...e,
@@ -162,7 +162,7 @@ export class App {
                 args.database.sourceOfChange.put(null);
             }
             // load GMs
-            const group_events = await group_GM_events(args.ctx, args.database.events);
+            const group_events = await group_GM_events(args.ctx, Array.from(args.database.events.values()));
             for (const e of group_events.creataions) {
                 const error = await groupChatController.addEvent(e);
                 if (error instanceof Error) {

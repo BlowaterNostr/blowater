@@ -1,5 +1,5 @@
 import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
-import { testEventsAdapter, testRelayAdapter } from "../UI/_setup.test.ts";
+import { testEventMarker, testEventsAdapter, testRelayAdapter } from "../UI/_setup.test.ts";
 import { Datebase_View } from "../database.ts";
 import { PrivateKey } from "../lib/nostr-ts/key.ts";
 import { InMemoryAccountContext } from "../lib/nostr-ts/nostr.ts";
@@ -12,7 +12,7 @@ const ctx = InMemoryAccountContext.New(
 );
 const pool = new ConnectionPool();
 pool.addRelayURLs(relays);
-const database = await Datebase_View.New(testEventsAdapter, testRelayAdapter);
+const database = await Datebase_View.New(testEventsAdapter, testRelayAdapter, testEventMarker);
 
 const messageStream = getAllEncryptedMessagesOf(
     ctx.publicKey,
