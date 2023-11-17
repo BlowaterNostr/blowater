@@ -58,7 +58,7 @@ export class DexieDatabase extends dexie.Dexie
             reason: reason,
         });
     }
-    async getAll(): Promise<EventMark[]> {
+    async getAllMarks(): Promise<EventMark[]> {
         return this.eventMarks.toArray();
     }
 }

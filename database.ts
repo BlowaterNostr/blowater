@@ -47,7 +47,7 @@ export type EventMark = {
 export interface EventMarker {
     getMark(eventID: string): Promise<EventMark | undefined>;
     markEvent(eventID: string, reason: "removed"): Promise<void>;
-    getAll(): Promise<EventMark[]>;
+    getAllMarks(): Promise<EventMark[]>;
 }
 
 export type RelayRecorder = RelayRecordSetter & RelayRecordGetter;
@@ -97,7 +97,7 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
 
         console.log("Datebase_View:parsed", Date.now() - t);
 
-        const all_removed_events = await eventMarker.getAll();
+        const all_removed_events = await eventMarker.getAllMarks();
         // Construct the View
         const db = new Datebase_View(
             eventsAdapter,

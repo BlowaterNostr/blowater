@@ -49,7 +49,7 @@ export const testEventMarker: EventMarker = {
             reason: reason,
         });
     },
-    async getAll() {
+    async getAllMarks() {
         return Array.from(marks.values());
     },
 };
