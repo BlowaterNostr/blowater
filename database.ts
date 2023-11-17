@@ -4,6 +4,7 @@ import { parseJSON, ProfileData } from "./features/profile.ts";
 import { NostrEvent, NostrKind, Tag, verifyEvent } from "./lib/nostr-ts/nostr.ts";
 import { PublicKey } from "./lib/nostr-ts/key.ts";
 import { ProfileController } from "./UI/search.tsx";
+import { RelayRecord } from "./UI/dexie-db.ts";
 
 const buffer_size = 2000;
 export interface Indices {
@@ -35,7 +36,11 @@ export interface RelayRecordSetter {
 }
 
 export interface RelayRecordGetter {
-    getRelayRecord: (eventID: string) => Promise<string[]>;
+    getRelayRecord: (eventID: string) => Promise<string[]> | string[];
+}
+
+export interface RelayRecordAll {
+    getAllRelayRecords: () => Promise<RelayRecord[]>;
 }
 
 export type EventMark = {
@@ -49,7 +54,7 @@ export interface EventMarker {
     getAllMarks(): Promise<EventMark[]>;
 }
 
-export type RelayRecorder = RelayRecordSetter & RelayRecordGetter;
+export type RelayRecorder = RelayRecordSetter & RelayRecordGetter & RelayRecordAll;
 
 export type EventsAdapter =
     & EventsFilter
@@ -67,6 +72,7 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
         private readonly eventMarker: EventMarker,
         private readonly events: Map<string, Parsed_Event>,
         private readonly removedEvents: Set<string>,
+        private readonly relayEvents: Map<string, string[]>,
     ) {}
 
     static async New(
@@ -97,6 +103,15 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
         console.log("Datebase_View:parsed", Date.now() - t);
 
         const all_removed_events = await eventMarker.getAllMarks();
+        const all_relay_map = new Map<string, string[]>();
+        for (const relay of await relayAdapter.getAllRelayRecords()) {
+            const old = all_relay_map.get(relay.event_id);
+            if (old && !old.includes(relay.url)) {
+                all_relay_map.set(relay.event_id, [...old, relay.url]);
+            } else {
+                all_relay_map.set(relay.event_id, [relay.url]);
+            }
+        }
         // Construct the View
         const db = new Datebase_View(
             eventsAdapter,
@@ -104,6 +119,7 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
             eventMarker,
             initialEvents,
             new Set(all_removed_events.map((mark) => mark.event_id)),
+            all_relay_map,
         );
         console.log("Datebase_View:New time spent", Date.now() - t);
         for (const e of db.events.values()) {
@@ -143,7 +159,7 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
     }
 
     getRelayRecord = (eventID: string) => {
-        return this.relayAdapter.getRelayRecord(eventID);
+        return this.relayEvents.get(eventID) || [];
     };
 
     getProfilesByText(name: string): Profile_Nostr_Event[] {
@@ -186,7 +202,7 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
         }
 
         if (url) {
-            await this.relayAdapter.setRelayRecord(event.id, url);
+            await this.recordRelay(event.id, url);
         }
 
         // check if the event exists
@@ -246,6 +262,16 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
             );
         })();
         return res;
+    }
+
+    private async recordRelay(eventID: string, url: string) {
+        const old = this.relayEvents.get(eventID);
+        if (old && !old.includes(url)) {
+            this.relayEvents.set(eventID, [...old, url]);
+        } else {
+            this.relayEvents.set(eventID, [url]);
+        }
+        await this.relayAdapter.setRelayRecord(eventID, url);
     }
 }
 

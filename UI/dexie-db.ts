@@ -49,6 +49,10 @@ export class DexieDatabase extends dexie.Dexie
         return array.map((record) => record.url);
     }
 
+    getAllRelayRecords = () => {
+        return this.relayRecords.toArray();
+    };
+
     getMark(eventID: string): Promise<EventMark | undefined> {
         return this.eventMarks.get(eventID);
     }
