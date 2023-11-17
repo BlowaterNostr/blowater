@@ -45,7 +45,7 @@ export class DexieDatabase extends dexie.Dexie
     }
 
     async getRelayRecord(eventID: string): Promise<string[]> {
-        const array = await this.relayRecords.where("event_id").equals(eventID).toArray();
+        const array = await this.relayRecords.filter(relay => relay.event_id == eventID).toArray();
         return array.map((record) => record.url);
     }
 
