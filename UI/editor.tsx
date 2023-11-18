@@ -204,7 +204,8 @@ export class Editor extends Component<EditorProps> {
                             );
                         }}
                         onKeyDown={async (e) => {
-                            if (e.code === "Enter" && e.ctrlKey) {
+                            // https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/metaKey
+                            if (e.code === "Enter" && (e.ctrlKey || e.metaKey)) {
                                 await sendMessage();
                             }
                         }}
