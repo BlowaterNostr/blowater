@@ -65,8 +65,8 @@ export class OtherConfig implements PinListGetter {
         try {
             pinList = new Set<string>(pinListArray);
         } catch (e) {
-            console.error(pinListArray, e)
-            pinList = []
+            console.error(pinListArray, e);
+            pinList = [];
         }
 
         // pinList.fromHex(decrypted);
