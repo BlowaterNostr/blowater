@@ -306,7 +306,7 @@ function MessageBoxGroup(props: {
     const rows = [];
     rows.push(
         <li
-            class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 mobile:pr-4 group relative`}
+            class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 mobile:pr-4 group relative mobile:select-none`}
         >
             {MessageActions(first_group, props.emit)}
             <Avatar
@@ -333,7 +333,7 @@ function MessageBoxGroup(props: {
                     first_group.created_at,
                 )}
                 <pre
-                    class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto mobile:text-sm`}
+                    class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto text-sm`}
                 >
                                 {ParseMessageContent(
                                     first_group,
@@ -352,7 +352,7 @@ function MessageBoxGroup(props: {
         const msg = messageGroups[i];
         rows.push(
             <li
-                class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-center pr-8 group relative`}
+                class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-center pr-8 group relative text-sm mobile:select-none`}
             >
                 {MessageActions(msg, props.emit)}
                 {Time(msg.created_at)}
@@ -363,7 +363,7 @@ function MessageBoxGroup(props: {
                     }}
                 >
                     <pre
-                        class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto mobile:text-sm`}
+                        class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto`}
                     >
                     {ParseMessageContent(
                         msg,
@@ -424,7 +424,7 @@ export function Time(created_at: Date) {
     return (
         <div class={tw`w-8 mr-2`}>
             <span
-                class={tw`text-[#A3A6AA] text-[0.8rem] hidden group-hover:inline-block`}
+                class={tw`text-[#A3A6AA] text-xs hidden group-hover:inline-block`}
             >
                 {created_at.toTimeString().slice(0, 5)}
             </span>
