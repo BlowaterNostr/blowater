@@ -1,4 +1,4 @@
-import { prepareEncryptedNostrEvent, prepareParameterizedEvent } from "../lib/nostr-ts/event.ts";
+import { prepareEncryptedNostrEvent } from "../lib/nostr-ts/event.ts";
 import { NostrAccountContext, NostrEvent, NostrKind, verifyEvent } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
 import { PinListGetter } from "./conversation-list.tsx";
