@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
-    "name": "Hello Extensions",
-    "description": "Base Level Extension",
+    "name": "Blowater",
+    "description": "Blowater is a Nostr DM client",
     "version": "1.0",
     "action": {
         "default_popup": "index.html",
