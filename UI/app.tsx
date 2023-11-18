@@ -213,8 +213,6 @@ export class App {
     private initApp = async () => {
         console.log("App.initApp");
 
-        this.otherConfig.syncFromRelay(this.pool, this.ctx);
-
         // group chat synchronization
         (async () => {
             const stream = await this.pool.newSub("gm_send", {
