@@ -122,7 +122,10 @@ export class App {
     }) {
         const lamport = fromEvents(args.database.getAllEvents());
         const eventSyncer = new EventSyncer(args.pool, args.database);
-        const relayConfig = await RelayConfig.FromLocalStorage(args.ctx, args.pool);
+        const relayConfig = await RelayConfig.FromLocalStorage({
+            ctx: args.ctx,
+            relayPool: args.pool
+        });
         if (relayConfig.getRelayURLs().size == 0) {
             for (const url of defaultRelays) {
                 relayConfig.add(url);
@@ -226,7 +229,7 @@ export class App {
                 if (msg.res.type == "EOSE") {
                     continue;
                 }
-                this.relayConfig.saveToLocalStorage(this.ctx);
+                this.relayConfig.saveToLocalStorage();
             }
         })();
 

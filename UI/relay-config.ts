@@ -13,30 +13,38 @@ export const defaultRelays = [
 
 export class RelayConfig {
     private config = new Set<string>();
-    private constructor(
-        private readonly ctx: NostrAccountContext,
-        private readonly relayPool: RelayAdder & RelayRemover & RelayGetter,
-    ) {}
+    private readonly ctx: NostrAccountContext;
+    private readonly relayPool: RelayAdder & RelayRemover & RelayGetter;
 
-    static Empty(ctx: NostrAccountContext, relayPool: RelayAdder & RelayRemover & RelayGetter) {
-        return new RelayConfig(ctx, relayPool);
+    private constructor(
+        args: {
+            ctx: NostrAccountContext;
+            relayPool: RelayAdder & RelayRemover & RelayGetter;
+        },
+    ) {
+        this.ctx = args.ctx;
+        this.relayPool = args.relayPool;
+    }
+
+    static Empty(args: { ctx: NostrAccountContext; relayPool: RelayAdder & RelayRemover & RelayGetter }) {
+        return new RelayConfig(args);
     }
 
     // The the relay config of this account from local storage
-    static async FromLocalStorage(
-        ctx: NostrAccountContext,
-        relayAdder: RelayAdder & RelayRemover & RelayGetter,
-    ) {
-        const encodedConfigStr = localStorage.getItem(this.localStorageKey(ctx));
+    static async FromLocalStorage(args: {
+        ctx: NostrAccountContext;
+        relayPool: RelayAdder & RelayRemover & RelayGetter;
+    }) {
+        const encodedConfigStr = localStorage.getItem(this.localStorageKey(args.ctx));
         if (encodedConfigStr == null) {
-            return RelayConfig.Empty(ctx, relayAdder);
+            return RelayConfig.Empty(args);
         }
         let relayArray = parseJSON<string[]>(encodedConfigStr);
         if (relayArray instanceof Error) {
             console.log(relayArray.message);
             relayArray = [];
         }
-        const relayConfig = new RelayConfig(ctx, relayAdder);
+        const relayConfig = new RelayConfig(args);
         for (const relay of relayArray) {
             relayConfig.add(relay);
         }
@@ -69,8 +77,8 @@ export class RelayConfig {
         return this.config;
     }
 
-    saveToLocalStorage(ctx: NostrAccountContext) {
-        localStorage.setItem(RelayConfig.localStorageKey(ctx), JSON.stringify(Array.from(this.config)));
+    saveToLocalStorage() {
+        localStorage.setItem(RelayConfig.localStorageKey(this.ctx), JSON.stringify(Array.from(this.config)));
     }
 
     async add(url: string): Promise<Error | SingleRelayConnection> {
