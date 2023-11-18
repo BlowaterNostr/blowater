@@ -28,9 +28,9 @@ import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/mas
 import { group_GM_events, GroupChatSyncer, GroupMessageController } from "../features/gm.ts";
 import { OtherConfig } from "./config-other.ts";
 import { ProfileGetter } from "./search.tsx";
-import { fromEvents } from "../time.ts";
 import { DirectedMessageController } from "../features/dm.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
+import { LamportTime } from "../time.ts";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
@@ -120,17 +120,21 @@ export class App {
         popOverInputChan: PopOverInputChannel;
         otherConfig: OtherConfig;
     }) {
-        const lamport = fromEvents(args.database.getAllEvents());
+        const lamport = LamportTime.FromEvents(args.database.getAllEvents());
         const eventSyncer = new EventSyncer(args.pool, args.database);
-        const relayConfig = await RelayConfig.FromLocalStorage(args.ctx, args.pool);
-        if (relayConfig.getRelayURLs().size == 0) {
-            for (const url of defaultRelays) {
-                relayConfig.add(url);
-            }
-        }
+
+        // init relay config
+        const relayConfig = await RelayConfig.FromLocalStorage({
+            ctx: args.ctx,
+            relayPool: args.pool,
+        });
+        console.log(relayConfig.getRelayURLs());
+
+        // init profile syncer
         const profileSyncer = new ProfileSyncer(args.database, args.pool);
         profileSyncer.add(args.ctx.publicKey.hex);
 
+        // init conversation list
         const conversationLists = new DM_List(args.ctx, profileSyncer);
         conversationLists.addEvents(Array.from(args.database.getAllEvents()));
 
@@ -208,27 +212,6 @@ export class App {
 
     private initApp = async () => {
         console.log("App.initApp");
-
-        ///////////////////////////////////
-        // Add relays to Connection Pool //
-        ///////////////////////////////////
-        // relay config synchronization, need to refactor later
-        (async () => {
-            const stream = await this.pool.newSub("relay config", {
-                "#d": ["RelayConfig"],
-                authors: [this.ctx.publicKey.hex],
-                kinds: [NostrKind.Custom_App_Data],
-            });
-            if (stream instanceof Error) {
-                throw stream; // impossible
-            }
-            for await (const msg of stream.chan) {
-                if (msg.res.type == "EOSE") {
-                    continue;
-                }
-                this.relayConfig.saveToLocalStorage(this.ctx);
-            }
-        })();
 
         this.otherConfig.syncFromRelay(this.pool, this.ctx);
 
