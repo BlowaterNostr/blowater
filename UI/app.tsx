@@ -128,11 +128,7 @@ export class App {
             ctx: args.ctx,
             relayPool: args.pool,
         });
-        if (relayConfig.getRelayURLs().size == 0) {
-            for (const url of defaultRelays) {
-                relayConfig.add(url);
-            }
-        }
+        console.log(relayConfig.getRelayURLs());
 
         // init profile syncer
         const profileSyncer = new ProfileSyncer(args.database, args.pool);
@@ -216,27 +212,6 @@ export class App {
 
     private initApp = async () => {
         console.log("App.initApp");
-
-        ///////////////////////////////////
-        // Add relays to Connection Pool //
-        ///////////////////////////////////
-        // relay config synchronization, need to refactor later
-        (async () => {
-            const stream = await this.pool.newSub("relay config", {
-                "#d": ["RelayConfig"],
-                authors: [this.ctx.publicKey.hex],
-                kinds: [NostrKind.Custom_App_Data],
-            });
-            if (stream instanceof Error) {
-                throw stream; // impossible
-            }
-            for await (const msg of stream.chan) {
-                if (msg.res.type == "EOSE") {
-                    continue;
-                }
-                this.relayConfig.saveToLocalStorage();
-            }
-        })();
 
         this.otherConfig.syncFromRelay(this.pool, this.ctx);
 

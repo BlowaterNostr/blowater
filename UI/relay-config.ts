@@ -46,7 +46,10 @@ export class RelayConfig {
         }
         const relayConfig = new RelayConfig(args);
         for (const relay of relayArray) {
-            relayConfig.add(relay);
+            const err = await relayConfig.add(relay);
+            if (err instanceof Error) {
+                console.error(err);
+            }
         }
         return relayConfig;
     }
@@ -78,22 +81,25 @@ export class RelayConfig {
     }
 
     saveToLocalStorage() {
+        console.log(RelayConfig.name, ":: saveToLocalStorage");
         localStorage.setItem(RelayConfig.localStorageKey(this.ctx), JSON.stringify(Array.from(this.config)));
     }
 
     async add(url: string): Promise<Error | SingleRelayConnection> {
-        console.log("add relay config", url);
+        console.log(RelayConfig.name, ":: add relay config", url);
         const relay = await this.relayPool.addRelayURL(url);
         if (relay instanceof Error) {
             return relay;
         }
         this.config.add(relay.url);
+        this.saveToLocalStorage();
         return relay;
     }
 
     async remove(url: string) {
-        this.relayPool.removeRelay(url);
-        return this.config.delete(url);
+        await this.relayPool.removeRelay(url);
+        this.config.delete(url);
+        this.saveToLocalStorage();
     }
 }
 
