@@ -22,11 +22,11 @@ permissions:
 
 jobs:
   test:
-    timeout-minutes: 15
+    timeout-minutes: 3
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        deno-version: [1.36.4]
+        deno-version: [1.38.2]
 
     steps:
       - name: Setup repo

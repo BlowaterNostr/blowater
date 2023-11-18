@@ -11,3 +11,4 @@ DevOps/stats.sqlite
 .DS_Store
 build-pwa
 build-extension
+*.zip
