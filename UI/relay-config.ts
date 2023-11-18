@@ -98,8 +98,9 @@ export class RelayConfig {
 
     async remove(url: string) {
         await this.relayPool.removeRelay(url);
-        this.config.delete(url);
+        const ok = this.config.delete(url);
         this.saveToLocalStorage();
+        return ok;
     }
 }
 
