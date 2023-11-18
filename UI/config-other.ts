@@ -60,7 +60,15 @@ export class OtherConfig implements PinListGetter {
         if (pinListArray instanceof Error) {
             return pinListArray;
         }
-        const pinList = new Set<string>(pinListArray);
+
+        let pinList;
+        try {
+            pinList = new Set<string>(pinListArray);
+        } catch (e) {
+            console.error(pinListArray, e)
+            pinList = []
+        }
+
         // pinList.fromHex(decrypted);
         const c = new OtherConfig();
         // c.pinList.merge(pinList);
