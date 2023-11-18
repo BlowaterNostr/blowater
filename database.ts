@@ -262,7 +262,7 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
         if (old) {
             old.add(url);
         } else {
-            this.relayEvents.set(eventID, new Set(url));
+            this.relayEvents.set(eventID, new Set<string>().add(url));
         }
         await this.relayAdapter.setRelayRecord(eventID, url);
     }
