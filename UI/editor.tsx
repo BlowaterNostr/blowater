@@ -204,7 +204,7 @@ export class Editor extends Component<EditorProps> {
                             );
                         }}
                         onKeyDown={async (e) => {
-                            if (e.code === "Enter" && e.ctrlKey) {
+                            if (e.code === "Enter" && (e.ctrlKey || e.metaKey)) {
                                 await sendMessage();
                             }
                         }}
