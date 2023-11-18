@@ -1,4 +1,4 @@
-import { prepareParameterizedEvent } from "../lib/nostr-ts/event.ts";
+import { prepareEncryptedNostrEvent, prepareParameterizedEvent } from "../lib/nostr-ts/event.ts";
 import { NostrAccountContext, NostrEvent, NostrKind, verifyEvent } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
 import { PinListGetter } from "./conversation-list.tsx";
@@ -70,18 +70,12 @@ export class OtherConfig implements PinListGetter {
         return c;
     }
 
-    async toNostrEvent(ctx: NostrAccountContext) {
-        const encryptedContent = await ctx.encrypt(
-            ctx.publicKey.hex,
-            JSON.stringify(this.pinList),
-        );
-        if (encryptedContent instanceof Error) {
-            return encryptedContent;
-        }
-        const event = await prepareParameterizedEvent(ctx, {
-            content: encryptedContent,
-            d: OtherConfig.name,
+    private async toNostrEvent(ctx: NostrAccountContext) {
+        const event = await prepareEncryptedNostrEvent(ctx, {
+            encryptKey: ctx.publicKey,
+            content: JSON.stringify(Array.from(this.pinList)),
             kind: NostrKind.Custom_App_Data,
+            tags: [],
         });
         return event;
     }
