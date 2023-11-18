@@ -40,7 +40,7 @@ export interface RelayRecordGetter {
 }
 
 export interface RelayRecordAll {
-    getAllRelayRecords: () => Promise<RelayRecord[]>;
+    getAllRelayRecords: () => Promise<Map<string, Set<string>>>;
 }
 
 export type EventMark = {
@@ -72,7 +72,7 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
         private readonly eventMarker: EventMarker,
         private readonly events: Map<string, Parsed_Event>,
         private readonly removedEvents: Set<string>,
-        private readonly relayEvents: Map<string, string[]>,
+        private readonly relayEvents: Map<string, Set<string>>,
     ) {}
 
     static async New(
@@ -103,15 +103,7 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
         console.log("Datebase_View:parsed", Date.now() - t);
 
         const all_removed_events = await eventMarker.getAllMarks();
-        const all_relay_map = new Map<string, string[]>();
-        for (const relay of await relayAdapter.getAllRelayRecords()) {
-            const old = all_relay_map.get(relay.event_id);
-            if (old && !old.includes(relay.url)) {
-                all_relay_map.set(relay.event_id, [...old, relay.url]);
-            } else {
-                all_relay_map.set(relay.event_id, [relay.url]);
-            }
-        }
+        const all_relay_map = await relayAdapter.getAllRelayRecords();
         // Construct the View
         const db = new Datebase_View(
             eventsAdapter,
@@ -159,7 +151,8 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
     }
 
     getRelayRecord = (eventID: string) => {
-        return this.relayEvents.get(eventID) || [];
+        const relays = this.relayEvents.get(eventID);
+        return relays ? Array.from(relays) : [];
     };
 
     getProfilesByText(name: string): Profile_Nostr_Event[] {
@@ -266,10 +259,10 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
 
     private async recordRelay(eventID: string, url: string) {
         const old = this.relayEvents.get(eventID);
-        if (old && !old.includes(url)) {
-            this.relayEvents.set(eventID, [...old, url]);
+        if (old) {
+            old.add(url);
         } else {
-            this.relayEvents.set(eventID, [url]);
+            this.relayEvents.set(eventID, new Set(url));
         }
         await this.relayAdapter.setRelayRecord(eventID, url);
     }

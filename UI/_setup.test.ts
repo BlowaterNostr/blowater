@@ -24,32 +24,22 @@ export async function test_db_view() {
         },
     };
 
-    const relays = new Map<string, string[]>();
+    const relays = new Map<string, Set<string>>();
     const testRelayRecorder: RelayRecorder = {
         setRelayRecord: async (eventID: string, url: string) => {
             const old = relays.get(eventID);
-            if (old && !old.includes(url)) {
-                relays.set(eventID, [...old, url]);
+            if (old) {
+                old.add(url);
             } else {
-                relays.set(eventID, [url]);
+                relays.set(eventID, new Set(url));
             }
         },
         getRelayRecord: async (eventID: string) => {
             const res = relays.get(eventID);
-            return res ? res : [];
+            return res ? Array.from(res) : [];
         },
         getAllRelayRecords: async () => {
-            const relayRecords: RelayRecord[] = [];
-            for (const [event_id, urls] of relays.entries()) {
-                for (const url of urls) {
-                    relayRecords.push({
-                        event_id: event_id,
-                        url: url,
-                    });
-                }
-            }
-
-            return relayRecords;
+            return relays;
         },
     };
 

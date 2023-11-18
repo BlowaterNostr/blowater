@@ -49,8 +49,18 @@ export class DexieDatabase extends dexie.Dexie
         return array.map((record) => record.url);
     }
 
-    getAllRelayRecords = () => {
-        return this.relayRecords.toArray();
+    getAllRelayRecords = async () => {
+        const resMap = new Map<string, Set<string>>();
+        for (const relay of await this.relayRecords.toArray()) {
+            const old = resMap.get(relay.event_id);
+            if (old) {
+                old.add(relay.url);
+            } else {
+                resMap.set(relay.event_id, new Set(relay.url));
+            }
+        }
+
+        return resMap;
     };
 
     getMark(eventID: string): Promise<EventMark | undefined> {
