@@ -3,6 +3,18 @@ import { getTags } from "./nostr.ts";
 
 export class LamportTime {
     constructor(private time: number) {}
+
+    static FromEvents(events: Iterable<NostrEvent>) {
+        let time = 0;
+        for (const event of events) {
+            const ts = getTags(event).lamport_timestamp;
+            if (ts && ts > time) {
+                time = ts;
+            }
+        }
+        return new LamportTime(time);
+    }
+
     now() {
         this.time++;
         return this.time;
@@ -10,15 +22,4 @@ export class LamportTime {
     set(t: number) {
         this.time = Math.max(this.time, t);
     }
-}
-
-export function fromEvents(events: Iterable<NostrEvent>): LamportTime {
-    let time = 0;
-    for (const event of events) {
-        const ts = getTags(event).lamport_timestamp;
-        if (ts && ts > time) {
-            time = ts;
-        }
-    }
-    return new LamportTime(time);
 }
