@@ -31,7 +31,7 @@ export async function test_db_view() {
             if (old) {
                 old.add(url);
             } else {
-                relays.set(eventID, new Set(url));
+                relays.set(eventID, new Set<string>().add(url));
             }
         },
         getRelayRecord: async (eventID: string) => {
