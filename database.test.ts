@@ -70,16 +70,21 @@ Deno.test("Relay Record", async () => {
     const event_to_add = await prepareNormalNostrEvent(ctx, { kind: NostrKind.TEXT_NOTE, content: "1" });
     const event_to_add_2 = await prepareNormalNostrEvent(ctx, { kind: NostrKind.TEXT_NOTE, content: "2" });
     await db.addEvent(event_to_add); // send by client
-    assertEquals(await db.getRelayRecord(event_to_add.id), []);
+    assertEquals(db.getRelayRecord(event_to_add.id), new Set<string>());
 
     await db.addEvent(event_to_add_2, "wss://relay.blowater.app"); // receiver from relay
-    assertEquals(await db.getRelayRecord(event_to_add_2.id), ["wss://relay.blowater.app"]);
+    assertEquals(db.getRelayRecord(event_to_add_2.id), new Set(["wss://relay.blowater.app"]));
 
     await db.addEvent(event_to_add_2, "wss://relay.test.app");
-    assertEquals(await db.getRelayRecord(event_to_add_2.id), [
-        "wss://relay.blowater.app",
-        "wss://relay.test.app",
-    ]);
+    assertEquals(
+        db.getRelayRecord(event_to_add_2.id),
+        new Set(
+            [
+                "wss://relay.blowater.app",
+                "wss://relay.test.app",
+            ],
+        ),
+    );
 
     await stream.pop();
     await stream.pop();
