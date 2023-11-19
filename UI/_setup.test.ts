@@ -28,9 +28,9 @@ export async function test_db_view() {
     const relays = new Map<string, Set<string>>();
     const testRelayRecorder: RelayRecorder = {
         setRelayRecord: async (eventID: string, url: string) => {
-            const old = relays.get(eventID);
-            if (old) {
-                old.add(url);
+            const records = relays.get(eventID);
+            if (records) {
+                records.add(url);
             } else {
                 relays.set(eventID, new Set([url]));
             }

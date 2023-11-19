@@ -52,11 +52,11 @@ export class DexieDatabase extends dexie.Dexie
     getAllRelayRecords = async () => {
         const resMap = new Map<string, Set<string>>();
         for (const relay of await this.relayRecords.toArray()) {
-            const old = resMap.get(relay.event_id);
-            if (old) {
-                old.add(relay.url);
+            const records = resMap.get(relay.event_id);
+            if (records) {
+                records.add(relay.url);
             } else {
-                resMap.set(relay.event_id, new Set(relay.url));
+                resMap.set(relay.event_id, new Set([relay.url]));
             }
         }
 
