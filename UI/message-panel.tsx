@@ -5,13 +5,13 @@ import { Editor, EditorEvent, EditorModel } from "./editor.tsx";
 
 import { Avatar } from "./components/avatar.tsx";
 import { IconButtonClass } from "./components/tw.ts";
-import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { Channel, sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { emitFunc } from "../event-bus.ts";
 
 import { ChatMessage, groupContinuousMessages, parseContent, sortMessage, urlIsImage } from "./message.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
-import { Parsed_Event, PinConversation, Profile_Nostr_Event, UnpinConversation } from "../nostr.ts";
+import { Parsed_Event, PinConversation, UnpinConversation } from "../nostr.ts";
 import { ProfileData, ProfileSyncer } from "../features/profile.ts";
 
 import { UserDetail } from "./user-detail.tsx";
@@ -27,6 +27,8 @@ import { SelectConversation } from "./search_model.ts";
 import { AboutIcon } from "./icons/about-icon.tsx";
 import { CloseIcon } from "./icons/close-icon.tsx";
 import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
+import { getConversationMessages } from "./dm.tsx";
+import { DirectMessageGetter, GroupMessageGetter } from "./app_update.tsx";
 
 export type RightPanelModel = {
     show: boolean;
@@ -63,10 +65,9 @@ export type ViewUserDetail = {
 interface DirectMessagePanelProps {
     myPublicKey: PublicKey;
 
-    isGroupChat: boolean;
+    isGroupMessage: boolean;
     editorModel: EditorModel;
 
-    messages: ChatMessage[];
     focusedContent: {
         type: "ProfileData";
         data?: ProfileData;
@@ -81,12 +82,78 @@ interface DirectMessagePanelProps {
     profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
     profileGetter: ProfileGetter;
+
+    dmGetter: DirectMessageGetter;
+    gmGetter: GroupMessageGetter;
 }
 
-export class MessagePanel extends Component<DirectMessagePanelProps> {
+type MessagePanelState = {
+    messages: Set<ChatMessage>;
+};
+
+export class MessagePanel extends Component<DirectMessagePanelProps, MessagePanelState> {
+    private message_channel?: Channel<ChatMessage>;
+
+    state: MessagePanelState = {
+        // use a set so that we don't get duplications
+        // In JavaScript, set is reference only
+        // but since we know that every ChatMessage comes from DirectMessageGetter & GroupMessageGetter
+        // which guarantee that an unique event only gets a single ChatMessage instance,
+        // it's safe to use reference only set instead of Map<eventID, ChatMessage>
+        // Of course, it's much nicer to have a hash value based set,
+        // but we don't have it in JavaScript
+        messages: new Set(),
+    };
+
+    async componentDidMount() {
+        // initial load
+        {
+            let messages: ChatMessage[];
+            if (this.props.isGroupMessage) {
+                messages = this.props.gmGetter.getGroupMessages(this.props.editorModel.pubkey.hex);
+            } else {
+                messages = this.props.dmGetter.getDirectMessages(this.props.editorModel.pubkey.hex);
+            }
+            this.setState({
+                messages: new Set(messages),
+            });
+        }
+        // observing changes
+        {
+            const messages = getConversationMessages({
+                targetPubkey: this.props.editorModel.pubkey.hex,
+                isGroupChat: this.props.isGroupMessage,
+                dmGetter: this.props.dmGetter,
+                gmGetter: this.props.gmGetter,
+            });
+            if (messages instanceof Channel) {
+                this.message_channel = messages;
+                for await (const message of messages) {
+                    // here we set the state on every new message
+                    // we can add a sleep to buffer messages a bit
+                    // so that we don't render too much
+                    // but since render is fast, we don't have to do it yet
+                    this.setState({
+                        messages: this.state.messages.add(message),
+                    });
+                }
+            } else {
+                this.setState({
+                    messages: new Set(messages),
+                });
+            }
+        }
+    }
+
+    async componentWillUnmount() {
+        console.log("MessagePanel:componentWillUnmount");
+        if (this.message_channel) {
+            await this.message_channel.close();
+        }
+    }
+
     render() {
         const props = this.props;
-        const t = Date.now();
 
         let rightPanel;
         if (props.rightPanelModel.show) {
@@ -123,7 +190,7 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
 
                     <MessageList
                         myPublicKey={props.myPublicKey}
-                        messages={props.messages}
+                        messages={Array.from(this.state.messages)}
                         emit={props.emit}
                         profilesSyncer={props.profilesSyncer}
                         eventSyncer={props.eventSyncer}
@@ -133,7 +200,7 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
                     <Editor
                         maxHeight="30vh"
                         emit={props.emit}
-                        isGroupChat={props.isGroupChat}
+                        isGroupChat={props.isGroupMessage}
                         targetNpub={props.editorModel.pubkey}
                         text={props.editorModel.text}
                         files={props.editorModel.files}
@@ -232,7 +299,6 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
             return sameAuthor && _66sec;
         });
         const messageBoxGroups = [];
-        let i = 0;
         for (const messages of groups) {
             const profileEvent = this.props.profileGetter.getProfilesByPublicKey(messages[0].author);
             messageBoxGroups.push(
@@ -247,7 +313,6 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
                 }),
             );
         }
-        console.log(`MessageList:elements ${i}`, Date.now() - t);
 
         const vNode = (
             <div
