@@ -423,7 +423,7 @@ export async function* UI_Interaction_Update(args: {
                 },
                 {
                     title: "Relays",
-                    fields: app.database.getRelayRecord(nostrEvent.id),
+                    fields: Array.from(app.database.getRelayRecord(nostrEvent.id)),
                 },
                 {
                     title: "Content",
