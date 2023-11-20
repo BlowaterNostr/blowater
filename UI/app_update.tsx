@@ -449,7 +449,7 @@ export async function* UI_Interaction_Update(args: {
 
 export type DirectMessageGetter = {
     getDirectMessages(publicKey: string): ChatMessage[];
-    getDirectMessagesAsync(publicKey: string): Channel<ChatMessage>;
+    getDirectMessageStream(publicKey: string): Channel<ChatMessage>;
 };
 
 export type GroupMessageGetter = {

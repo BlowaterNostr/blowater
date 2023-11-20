@@ -198,6 +198,6 @@ export function getConversationMessages(args: {
         return args.gmGetter.getGroupMessages(args.targetPubkey);
     }
 
-    let messages = args.dmGetter.getDirectMessagesAsync(targetPubkey);
+    let messages = args.dmGetter.getDirectMessageStream(targetPubkey);
     return messages;
 }

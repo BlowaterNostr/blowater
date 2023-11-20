@@ -165,7 +165,7 @@ export class DirectedMessageController implements DirectMessageGetter {
         return messages;
     }
 
-    public getDirectMessagesAsync(pubkey: string): Channel<ChatMessage> {
+    public getDirectMessageStream(pubkey: string): Channel<ChatMessage> {
         const messages = new Channel<ChatMessage>();
         (async () => {
             for await (const message of this.new_message_chan) {
