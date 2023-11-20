@@ -44,6 +44,7 @@ import { GroupMessageController } from "../features/gm.ts";
 import { ChatMessage } from "./message.ts";
 import { InviteUsersToGroup } from "./invite-button.tsx";
 import { SaveProfile } from "./edit-profile.tsx";
+import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -448,6 +449,7 @@ export async function* UI_Interaction_Update(args: {
 
 export type DirectMessageGetter = {
     getDirectMessages(publicKey: string): ChatMessage[];
+    getDirectMessageStream(publicKey: string): Channel<ChatMessage>;
 };
 
 export type GroupMessageGetter = {
@@ -491,7 +493,6 @@ export async function* Database_Update(
     while (true) {
         await csp.sleep(333);
         await changes.ready();
-        const t = Date.now();
         const changes_events: (Encrypted_Event | Profile_Nostr_Event | Parsed_Event)[] = [];
         while (true) {
             if (!changes.isReadyToPop()) {
@@ -501,9 +502,6 @@ export async function* Database_Update(
             if (e == csp.closed) {
                 console.error("unreachable: db changes channel should never close");
                 break;
-            }
-            if (e == null) {
-                continue;
             }
             changes_events.push(e);
         }

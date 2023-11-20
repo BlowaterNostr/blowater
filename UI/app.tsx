@@ -161,9 +161,6 @@ export class App {
                 } else {
                     continue;
                 }
-                // notify update loop to render
-                // todo: directly call render instead of go through database update loop
-                args.database.sourceOfChange.put(null);
             }
             // load GMs
             const group_events = await group_GM_events(args.ctx, Array.from(args.database.getAllEvents()));
