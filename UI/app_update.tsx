@@ -447,8 +447,7 @@ export async function* UI_Interaction_Update(args: {
     }
 }
 
-export type DirectMessageGetter = {
-    getChatMessages(publicKey: string): ChatMessage[];
+export type DirectMessageGetter = ChatMessagesGetter & {
     getDirectMessageStream(publicKey: string): Channel<ChatMessage>;
 };
 
