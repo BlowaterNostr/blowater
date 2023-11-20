@@ -4,6 +4,7 @@ import { RelayDetail } from "./relay-detail.tsx";
 import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { Datebase_View } from "../database.ts";
 import { NewIndexedDB } from "./dexie-db.ts";
+import { testEventBus } from "./_setup.test.ts";
 
 const db = NewIndexedDB();
 if (db instanceof Error) {
@@ -11,4 +12,9 @@ if (db instanceof Error) {
 }
 const database = await Datebase_View.New(db, db, db);
 
-render(<RelayDetail relayUrl="wss://relay.damus.io" profileGetter={database} />, document.body);
+render(<RelayDetail relayUrl="wss://relay.damus.io" profileGetter={database} emit={testEventBus.emit} />, document.body);
+
+
+for await (const event of testEventBus.onChange()) {
+    console.log(event);
+}

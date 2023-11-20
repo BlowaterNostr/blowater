@@ -13,6 +13,8 @@ import { Avatar } from "./components/avatar.tsx";
 import { ProfileGetter } from "./search.tsx";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
+import { SelectConversation } from "./search_model.ts";
+import { emitFunc } from "../event-bus.ts";
 
 type Detail = {
     name?: string;
@@ -32,6 +34,7 @@ type State = {
 type Props = {
     relayUrl: string;
     profileGetter: ProfileGetter;
+    emit: emitFunc<SelectConversation>;
 };
 
 export type RelayDetailItem = {
@@ -103,6 +106,7 @@ export class RelayDetail extends Component<Props, State> {
                     <AuthorField
                         publicKey={this.state.detail.pubkey}
                         profileGetter={this.props.profileGetter}
+                        emit={this.props.emit}
                     />
                 ),
             },
@@ -152,6 +156,7 @@ export class RelayDetail extends Component<Props, State> {
 function AuthorField(props: {
     publicKey: string;
     profileGetter: ProfileGetter;
+    emit: emitFunc<SelectConversation>;
 }) {
     const styles = {
         container:
@@ -167,8 +172,16 @@ function AuthorField(props: {
     }
     const profileData = props.profileGetter.getProfilesByPublicKey(pubkey);
 
+    const onClick = () => {
+        props.emit({
+            type: "SelectConversation",
+            pubkey: pubkey,
+            isGroupChat: false, // todo
+        });
+    }
+
     return (
-        <div class={styles.container}>
+        <div class={styles.container} onClick={onClick}>
             <div class={styles.leftContainer}>
                 <Avatar picture={profileData?.profile.picture} class={styles.avatar} />
                 {profileData?.profile.name || pubkey.bech32()}
