@@ -170,7 +170,7 @@ export class DirectedMessageController implements DirectMessageGetter, NewMessag
     public getDirectMessageStream(pubkey: string): Channel<ChatMessage> {
         const messages = new Channel<ChatMessage>();
         (async () => {
-            for await (const message of this.new_message_chan) {
+            for await (const message of this.caster.copy()) {
                 if (is_DM_between(message.event, this.ctx.publicKey.hex, pubkey)) {
                     const err = await messages.put(message);
                     if (err instanceof csp.PutToClosedChannelError) {
