@@ -78,7 +78,6 @@ export async function Start(database: DexieDatabase) {
         })
     ) {
         const t = Date.now();
-        console.log("rener");
         {
             render(
                 AppComponent({
