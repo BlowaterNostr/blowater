@@ -43,7 +43,8 @@ export interface ProfileAdder {
     add(key: string): void;
 }
 
-export class GroupMessageController implements ChatMessagesGetter, GroupMessageListGetter, NewMessageListener {
+export class GroupMessageController
+    implements ChatMessagesGetter, GroupMessageListGetter, NewMessageListener {
     private created_groups = new Map<string, gm_Creation>();
     private invitations = new Map<string, gm_Invitation>();
     private messages = new Map<string, ChatMessage[]>();

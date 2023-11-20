@@ -81,13 +81,13 @@ interface DirectMessagePanelProps {
     profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
     profileGetter: ProfileGetter;
-    newMessageListener: NewMessageListener
+    newMessageListener: NewMessageListener;
     messageGetter: ChatMessagesGetter;
 }
 
 export type NewMessageListener = {
-    onChange(): Channel<ChatMessage>
-}
+    onChange(): Channel<ChatMessage>;
+};
 
 export class MessagePanel extends Component<DirectMessagePanelProps> {
     private message_channel?: Channel<ChatMessage>;

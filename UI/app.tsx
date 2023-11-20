@@ -388,7 +388,9 @@ export function AppComponent(props: {
                         groupChatController: app.groupChatController,
                         newMessageChecker: app.conversationLists,
                         messageGetter: model.dm.isGroupMessage ? app.groupChatController : app.dmController,
-                        newMessageListener: model.dm.isGroupMessage ? app.groupChatController : app.dmController,
+                        newMessageListener: model.dm.isGroupMessage
+                            ? app.groupChatController
+                            : app.dmController,
                     })}
                 </div>
             );

@@ -208,7 +208,7 @@ export class DirectedMessageController implements DirectMessageGetter, NewMessag
                     created_at: new Date(gmEvent.created_at * 1000),
                     lamport: gmEvent.parsedTags.lamport_timestamp,
                     content: gmEvent.content,
-                }
+                };
                 this.directed_messages.set(gmEvent.id, message);
                 /* do not await */ this.new_message_chan.put(message);
             }
