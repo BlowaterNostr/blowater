@@ -5,14 +5,14 @@ import { ProfileData } from "../features/profile.ts";
 import { Avatar } from "./components/avatar.tsx";
 import { HoverButtonBackgroudColor, PrimaryTextColor } from "./style/colors.ts";
 import { emitFunc } from "../event-bus.ts";
-import { ViewNoteThread } from "./message-panel.tsx";
+import { OpenNote } from "./message-panel.tsx";
 import { NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 
 export function NoteCard(props: {
     profileData?: ProfileData;
     event: NostrEvent;
-    emit: emitFunc<ViewNoteThread>;
+    emit: emitFunc<OpenNote>;
 }) {
     const { profileData, event, emit } = props;
     const styles = {
@@ -28,7 +28,7 @@ export function NoteCard(props: {
 
     const onClick = () =>
         emit({
-            type: "ViewNoteThread",
+            type: "OpenNote",
             event: event,
         });
 
