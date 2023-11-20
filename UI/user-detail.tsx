@@ -9,6 +9,7 @@ import { DirectMessagePanelUpdate } from "./message-panel.tsx";
 import { HomeIcon } from "./icons/home-icon.tsx";
 import { KeyIcon } from "./icons/key-icon.tsx";
 import { UserIcon } from "./icons/user-icon.tsx";
+import { CopyButton } from "./components/copy-button.tsx";
 
 type UserDetailProps = {
     targetUserProfile: ProfileData;
@@ -38,6 +39,7 @@ export function UserDetail(props: UserDetailProps) {
                 >
                     {props.pubkey.bech32()}
                 </p>
+                <CopyButton text={props.pubkey.bech32()} />
             </div>
             <div class={tw`flex items-start overflow-hidden w-full mt-1 group`}>
                 <KeyIcon
@@ -51,6 +53,7 @@ export function UserDetail(props: UserDetailProps) {
                 >
                     {props.pubkey.hex}
                 </p>
+                <CopyButton text={props.pubkey.hex} />
             </div>
             {props.targetUserProfile.about
                 ? (
