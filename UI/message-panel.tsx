@@ -6,7 +6,7 @@ import { Editor, EditorEvent, EditorModel } from "./editor.tsx";
 import { Avatar } from "./components/avatar.tsx";
 import { IconButtonClass } from "./components/tw.ts";
 import { Channel, sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { emitFunc, EventSubscriber } from "../event-bus.ts";
+import { emitFunc } from "../event-bus.ts";
 
 import { ChatMessage, groupContinuousMessages, parseContent, sortMessage, urlIsImage } from "./message.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
@@ -27,7 +27,7 @@ import { SelectConversation } from "./search_model.ts";
 import { AboutIcon } from "./icons/about-icon.tsx";
 import { CloseIcon } from "./icons/close-icon.tsx";
 import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
-import { ChatMessagesGetter, UI_Interaction_Event } from "./app_update.tsx";
+import { ChatMessagesGetter } from "./app_update.tsx";
 
 export type RightPanelModel = {
     show: boolean;
@@ -90,8 +90,6 @@ export type NewMessageListener = {
 };
 
 export class MessagePanel extends Component<DirectMessagePanelProps> {
-    private message_channel?: Channel<ChatMessage>;
-
     async componentDidMount() {
         const changes = this.props.newMessageListener.onChange();
         for (;;) {
@@ -105,13 +103,6 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
                 break;
             }
             this.setState({});
-        }
-    }
-
-    async componentWillUnmount() {
-        console.log("MessagePanel:componentWillUnmount");
-        if (this.message_channel) {
-            await this.message_channel.close();
         }
     }
 
