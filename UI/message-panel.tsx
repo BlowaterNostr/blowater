@@ -41,14 +41,14 @@ export type DirectMessagePanelUpdate =
     }
     | ViewThread
     | ViewUserDetail
-    | ViewNoteThread
+    | OpenNote
     | {
         type: "ViewEventDetail";
         message: ChatMessage;
     };
 
-export type ViewNoteThread = {
-    type: "ViewNoteThread";
+export type OpenNote = {
+    type: "OpenNote";
     event: NostrEvent;
 };
 
@@ -482,7 +482,7 @@ export function ParseMessageContent(
     authorProfile: ProfileData | undefined,
     profilesSyncer: ProfileSyncer,
     eventSyncer: EventSyncer,
-    emit: emitFunc<ViewUserDetail | ViewThread | ViewNoteThread | SelectConversation>,
+    emit: emitFunc<ViewUserDetail | ViewThread | OpenNote | SelectConversation>,
     profileGetter: ProfileGetter,
 ) {
     if (message.type == "image") {
@@ -578,7 +578,7 @@ export function ParseMessageContent(
 function Card(
     event: Parsed_Event,
     authorProfile: ProfileData | undefined,
-    emit: emitFunc<ViewThread | ViewUserDetail | ViewNoteThread>,
+    emit: emitFunc<ViewThread | ViewUserDetail | OpenNote>,
 ) {
     switch (event.kind) {
         case NostrKind.META_DATA:

@@ -286,42 +286,8 @@ export async function* UI_Interaction_Update(args: {
                     model.rightPanelModel.show = true;
                 }
             }
-        } else if (event.type == "ViewNoteThread") {
-            let root: NostrEvent = event.event;
-            const tags = getTags(event.event);
-            if (tags.root && tags.root[0]) {
-                const res = app.eventSyncer.syncEvent(NoteID.FromHex(tags.root[0]));
-                if (res instanceof Promise) {
-                    continue;
-                }
-                root = res;
-            } else if (tags.e && tags.e.length) {
-                const res = app.eventSyncer.syncEvent(NoteID.FromHex(tags.e[0]));
-                if (res instanceof Promise) {
-                    continue;
-                }
-                root = res;
-            }
-
-            if (root.kind == NostrKind.DIRECT_MESSAGE) {
-                const myPubkey = app.ctx.publicKey.hex;
-                if (root.pubkey != myPubkey && !getTags(root).p.includes(myPubkey)) {
-                    continue; // if no conversation
-                }
-                const pubkey = PublicKey.FromHex(root.pubkey);
-                if (pubkey instanceof Error) {
-                    console.error(pubkey.message);
-                    continue;
-                }
-                updateConversation(model, pubkey, false);
-                if (model.dm.currentEditor) {
-                    model.dm.focusedContent.set(
-                        model.dm.currentEditor.pubkey.hex,
-                        root,
-                    );
-                }
-            }
-            model.rightPanelModel.show = true;
+        } else if (event.type == "OpenNote") {
+            open(`https://nostrapp.link/#${NoteID.FromHex(event.event.id).bech32()}?select=true`);
         } else if (event.type == "StartCreateGroupChat") {
             app.popOverInputChan.put({
                 children: <CreateGroup emit={eventBus.emit} />,
