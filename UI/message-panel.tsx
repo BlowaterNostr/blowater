@@ -100,6 +100,7 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
             for (;;) {
                 if (changes.isReadyToPop()) {
                     await changes.pop();
+                    continue;
                 }
                 break;
             }
