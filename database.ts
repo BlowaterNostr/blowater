@@ -36,7 +36,7 @@ export interface RelayRecordSetter {
 }
 
 export interface RelayRecordGetter {
-    getRelayRecord: (eventID: string) => Promise<string[]> | Set<string>;
+    getRelayRecord: (eventID: string) => Promise<Set<string>>;
 }
 
 export interface AllRelayRecordGetter {
@@ -150,7 +150,7 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
         await this.eventMarker.markEvent(id, "removed");
     }
 
-    getRelayRecord(eventID: string) {
+    async getRelayRecord(eventID: string) {
         const relays = this.relayRecords.get(eventID);
         if (relays == undefined) {
             return new Set<string>();
