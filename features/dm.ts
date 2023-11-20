@@ -154,7 +154,7 @@ export class DirectedMessageController implements DirectMessageGetter {
     private readonly new_message_chan = new Channel<ChatMessage>();
 
     // get the direct messages between me and this pubkey
-    public getDirectMessages(pubkey: string): ChatMessage[] {
+    public getChatMessages(pubkey: string): ChatMessage[] {
         const messages = [];
         for (const message of this.directed_messages.values()) {
             if (is_DM_between(message.event, this.ctx.publicKey.hex, pubkey)) {

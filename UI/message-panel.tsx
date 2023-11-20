@@ -28,7 +28,7 @@ import { AboutIcon } from "./icons/about-icon.tsx";
 import { CloseIcon } from "./icons/close-icon.tsx";
 import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
 import { getConversationMessages } from "./dm.tsx";
-import { DirectMessageGetter, GroupMessageGetter, UI_Interaction_Event } from "./app_update.tsx";
+import { ChatMessagesGetter, DirectMessageGetter, UI_Interaction_Event } from "./app_update.tsx";
 
 export type RightPanelModel = {
     show: boolean;
@@ -85,7 +85,7 @@ interface DirectMessagePanelProps {
     profileGetter: ProfileGetter;
 
     dmGetter: DirectMessageGetter;
-    gmGetter: GroupMessageGetter;
+    gmGetter: ChatMessagesGetter;
 }
 
 type MessagePanelState = {
@@ -113,11 +113,11 @@ export class MessagePanel extends Component<DirectMessagePanelProps, MessagePane
             {
                 let messages: ChatMessage[];
                 if (this.props.isGroupMessage) {
-                    messages = this.props.gmGetter.getGroupMessages(
+                    messages = this.props.gmGetter.getChatMessages(
                         target_pubkey.hex,
                     );
                 } else {
-                    messages = this.props.dmGetter.getDirectMessages(
+                    messages = this.props.dmGetter.getChatMessages(
                         target_pubkey.hex,
                     );
                 }

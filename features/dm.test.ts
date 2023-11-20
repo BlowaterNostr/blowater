@@ -9,7 +9,7 @@ Deno.test("DirectedMessageController", async () => {
     const dmController = new DirectedMessageController(ctx);
     {
         // empty at first
-        const messages = dmController.getDirectMessages(ctx.publicKey.hex);
+        const messages = dmController.getChatMessages(ctx.publicKey.hex);
         assertEquals(messages, []);
 
         // get an observable channel before adding events
@@ -34,7 +34,7 @@ Deno.test("DirectedMessageController", async () => {
             await dmController.addEvent(events[1]);
 
             // get 2 events
-            const new_messages = dmController.getDirectMessages(ctx.publicKey.hex);
+            const new_messages = dmController.getChatMessages(ctx.publicKey.hex);
             assertEquals(new_messages.map((m) => m.content), ["test:1", "test:2"]);
 
             // the channel is able to retrieve all events
@@ -48,7 +48,7 @@ Deno.test("DirectedMessageController", async () => {
             {
                 await dmController.addEvent(events[2]);
 
-                const new_messages = dmController.getDirectMessages(ctx.publicKey.hex);
+                const new_messages = dmController.getChatMessages(ctx.publicKey.hex);
                 assertEquals(new_messages.map((m) => m.content), ["test:1", "test:2", "test:3"]);
 
                 assertEquals((await chan.pop() as ChatMessage).content, "test:3");

@@ -1,6 +1,6 @@
 import { z } from "https://esm.sh/zod@3.22.4";
 import { semaphore } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { GroupMessageGetter } from "../UI/app_update.tsx";
+import { ChatMessagesGetter } from "../UI/app_update.tsx";
 import { ConversationSummary } from "../UI/conversation-list.ts";
 import { GroupMessageListGetter } from "../UI/conversation-list.tsx";
 import { ChatMessage } from "../UI/message.ts";
@@ -42,7 +42,7 @@ export interface ProfileAdder {
     add(key: string): void;
 }
 
-export class GroupMessageController implements GroupMessageGetter, GroupMessageListGetter {
+export class GroupMessageController implements ChatMessagesGetter, GroupMessageListGetter {
     private created_groups = new Map<string, gm_Creation>();
     private invitations = new Map<string, gm_Invitation>();
     private messages = new Map<string, ChatMessage[]>();
@@ -68,7 +68,7 @@ export class GroupMessageController implements GroupMessageGetter, GroupMessageL
         return Array.from(conversations.values());
     }
 
-    getGroupMessages(publicKey: string): ChatMessage[] {
+    getChatMessages(publicKey: string): ChatMessage[] {
         const msgs = this.messages.get(publicKey);
         return msgs ? msgs : [];
     }

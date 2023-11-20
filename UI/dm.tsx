@@ -5,7 +5,7 @@ import * as cl from "./conversation-list.tsx";
 import { MessagePanel, RightPanelModel } from "./message-panel.tsx";
 import { EventBus } from "../event-bus.ts";
 import { CenterClass, IconButtonClass } from "./components/tw.ts";
-import { DirectMessageGetter, GroupMessageGetter, UI_Interaction_Event } from "./app_update.tsx";
+import { ChatMessagesGetter, DirectMessageGetter, UI_Interaction_Event } from "./app_update.tsx";
 import { NostrAccountContext, NostrEvent } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
 import { ProfileSyncer } from "../features/profile.ts";
@@ -41,7 +41,7 @@ type DirectMessageContainerProps = {
     // getters
     profileGetter: ProfileGetter;
     dmGetter: DirectMessageGetter;
-    gmGetter: GroupMessageGetter;
+    gmGetter: ChatMessagesGetter;
     pinListGetter: cl.PinListGetter;
     conversationLists: cl.ConversationListRetriever;
     newMessageChecker: cl.NewMessageChecker;
@@ -192,11 +192,11 @@ export function getConversationMessages(args: {
     targetPubkey: string;
     isGroupChat: boolean;
     dmGetter: DirectMessageGetter;
-    gmGetter: GroupMessageGetter;
+    gmGetter: ChatMessagesGetter;
 }) {
     const { targetPubkey } = args;
     if (args.isGroupChat) {
-        return args.gmGetter.getGroupMessages(args.targetPubkey);
+        return args.gmGetter.getChatMessages(args.targetPubkey);
     }
 
     let messages = args.dmGetter.getDirectMessageStream(targetPubkey);
