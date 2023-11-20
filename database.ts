@@ -37,6 +37,9 @@ export interface RelayRecordSetter {
 
 export interface RelayRecordGetter {
     getRelayRecord: (eventID: string) => Promise<string[]> | Set<string>;
+}
+
+export interface AllRelayRecordGetter {
     getAllRelayRecords: () => Promise<Map<string, Set<string>>>;
 }
 
@@ -51,7 +54,7 @@ export interface EventMarker {
     getAllMarks(): Promise<EventMark[]>;
 }
 
-export type RelayRecorder = RelayRecordSetter & RelayRecordGetter;
+export type RelayRecorder = RelayRecordSetter & RelayRecordGetter & AllRelayRecordGetter;
 
 export type EventsAdapter =
     & EventsFilter
@@ -153,10 +156,6 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
             return new Set<string>();
         }
         return relays;
-    }
-
-    async getAllRelayRecords() {
-        return this.relayRecords;
     }
 
     getProfilesByText(name: string): Profile_Nostr_Event[] {
