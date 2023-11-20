@@ -12,8 +12,10 @@ if (db instanceof Error) {
 }
 const database = await Datebase_View.New(db, db, db);
 
-render(<RelayDetail relayUrl="wss://relay.damus.io" profileGetter={database} emit={testEventBus.emit} />, document.body);
-
+render(
+    <RelayDetail relayUrl="wss://relay.damus.io" profileGetter={database} emit={testEventBus.emit} />,
+    document.body,
+);
 
 for await (const event of testEventBus.onChange()) {
     console.log(event);

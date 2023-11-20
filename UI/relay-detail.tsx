@@ -178,7 +178,7 @@ function AuthorField(props: {
             pubkey: pubkey,
             isGroupChat: false, // todo
         });
-    }
+    };
 
     return (
         <div class={styles.container} onClick={onClick}>
