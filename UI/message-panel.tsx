@@ -104,60 +104,6 @@ export class MessagePanel extends Component<DirectMessagePanelProps, MessagePane
         messages: new Set(),
     };
 
-    async componentDidMount() {
-        const refresh_state = async (target_pubkey: PublicKey) => {
-            console.log(this.props.editorModel.pubkey.hex);
-            // initial load
-            {
-                let messages: ChatMessage[];
-                if (this.props.isGroupMessage) {
-                    messages = this.props.messageGetter.getChatMessages(
-                        target_pubkey.hex,
-                    );
-                } else {
-                    messages = this.props.messageGetter.getChatMessages(
-                        target_pubkey.hex,
-                    );
-                }
-                this.setState({
-                    messages: new Set(messages),
-                });
-            }
-            // observing changes
-            {
-                const messages = this.props.messageGetter.getChatMessages(target_pubkey.hex);
-                if (messages instanceof Channel) {
-                    this.message_channel = messages;
-                    for await (const message of messages) {
-                        // here we set the state on every new message
-                        // we can add a sleep to buffer messages a bit
-                        // so that we don't render too much
-                        // but since render is fast, we don't have to do it yet
-                        this.setState({
-                            messages: this.state.messages.add(message),
-                        });
-                    }
-                } else {
-                    this.setState({
-                        messages: new Set(messages),
-                    });
-                }
-            }
-        };
-
-        refresh_state(this.props.editorModel.pubkey);
-        // for await (const ui_event of this.props.listenTo.onChange()) {
-        //     if (this.message_channel) {
-        //         await this.message_channel.close();
-        //         this.message_channel = undefined;
-        //     }
-        //     if (ui_event.type != "SelectConversation") {
-        //         continue;
-        //     }
-        //     refresh_state(ui_event.pubkey);
-        // }
-    }
-
     async componentWillUnmount() {
         console.log("MessagePanel:componentWillUnmount");
         if (this.message_channel) {
