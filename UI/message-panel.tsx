@@ -27,6 +27,7 @@ import { SelectConversation } from "./search_model.ts";
 import { AboutIcon } from "./icons/about-icon.tsx";
 import { CloseIcon } from "./icons/close-icon.tsx";
 import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
+import { NoteID } from "../lib/nostr-ts/nip19.ts";
 import { ChatMessagesGetter } from "./app_update.tsx";
 
 export type RightPanelModel = {
@@ -354,14 +355,14 @@ function MessageBoxGroup(props: {
                 <pre
                     class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto text-sm`}
                 >
-                                {ParseMessageContent(
-                                    first_group,
-                                    props.authorProfile,
-                                    props.profilesSyncer,
-                                    props.eventSyncer,
-                                    props.emit,
-                                    props.profileGetter,
-                                    )}
+                    {ParseMessageContent(
+                        first_group,
+                        props.authorProfile,
+                        props.profilesSyncer,
+                        props.eventSyncer,
+                        props.emit,
+                        props.profileGetter,
+                        )}
                 </pre>
             </div>
         </li>,
@@ -551,6 +552,17 @@ export function ParseMessageContent(
                     vnode.push(Card(event, profile ? profile.profile : undefined, emit));
                 }
                 break;
+            case "nevent": {
+                const event = eventSyncer.syncEvent(NoteID.FromString(item.event.pointer.id));
+                if (
+                    event instanceof Promise || event.kind == NostrKind.DIRECT_MESSAGE
+                ) {
+                    vnode.push(itemStr);
+                    break;
+                }
+                const profile = profileGetter.getProfilesByPublicKey(event.publicKey);
+                vnode.push(Card(event, profile ? profile.profile : undefined, emit));
+            }
             case "tag":
                 // todo
                 break;
