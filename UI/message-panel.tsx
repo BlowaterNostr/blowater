@@ -93,7 +93,16 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
     private message_channel?: Channel<ChatMessage>;
 
     async componentDidMount() {
-        for await (const _ of this.props.newMessageListener.onChange()) {
+        const changes = this.props.newMessageListener.onChange();
+        for (;;) {
+            await sleep(333);
+            await changes.ready();
+            for (;;) {
+                if (changes.isReadyToPop()) {
+                    await changes.pop();
+                }
+                break;
+            }
             this.setState({});
         }
     }
