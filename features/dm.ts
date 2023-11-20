@@ -8,6 +8,7 @@ import { DirectMessageGetter } from "../UI/app_update.tsx";
 import { ChatMessage, parseContent } from "../UI/message.ts";
 import { decodeInvitation, gmEventType } from "./gm.ts";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { NewMessageListener } from "../UI/message-panel.tsx";
 
 export async function sendDMandImages(args: {
     sender: NostrAccountContext;
@@ -145,13 +146,14 @@ function merge<T>(...iters: AsyncIterable<T>[]) {
     return merged;
 }
 
-export class DirectedMessageController implements DirectMessageGetter {
+export class DirectedMessageController implements DirectMessageGetter, NewMessageListener {
     constructor(
         public readonly ctx: NostrAccountContext,
     ) {}
 
     private readonly directed_messages = new Map<string, ChatMessage>();
     private readonly new_message_chan = new Channel<ChatMessage>();
+    private readonly caster = new csp.Multicaster(this.new_message_chan);
 
     // get the direct messages between me and this pubkey
     public getChatMessages(pubkey: string): ChatMessage[] {
@@ -198,7 +200,7 @@ export class DirectedMessageController implements DirectMessageGetter {
                 if (invitation instanceof Error) {
                     return invitation;
                 }
-                this.directed_messages.set(gmEvent.id, {
+                const message: ChatMessage = {
                     type: "gm_invitation",
                     event: gmEvent,
                     invitation: invitation,
@@ -206,7 +208,9 @@ export class DirectedMessageController implements DirectMessageGetter {
                     created_at: new Date(gmEvent.created_at * 1000),
                     lamport: gmEvent.parsedTags.lamport_timestamp,
                     content: gmEvent.content,
-                });
+                }
+                this.directed_messages.set(gmEvent.id, message);
+                /* do not await */ this.new_message_chan.put(message);
             }
             // else ignore
         } else {
@@ -262,6 +266,10 @@ export class DirectedMessageController implements DirectMessageGetter {
             this.directed_messages.set(event.id, chatMessage);
             /* do not await */ this.new_message_chan.put(chatMessage);
         }
+    }
+
+    onChange() {
+        return this.caster.copy();
     }
 }
 

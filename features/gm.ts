@@ -1,5 +1,5 @@
 import { z } from "https://esm.sh/zod@3.22.4";
-import { semaphore } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { Channel, semaphore } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { ChatMessagesGetter } from "../UI/app_update.tsx";
 import { ConversationSummary } from "../UI/conversation-list.ts";
 import { GroupMessageListGetter } from "../UI/conversation-list.tsx";
@@ -17,6 +17,7 @@ import {
 import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
 import { getTags, Parsed_Event, Tag } from "../nostr.ts";
 import { parseJSON } from "./profile.ts";
+import { NewMessageListener } from "../UI/message-panel.tsx";
 
 export type GM_Types = "gm_creation" | "gm_message" | "gm_invitation";
 
@@ -42,7 +43,7 @@ export interface ProfileAdder {
     add(key: string): void;
 }
 
-export class GroupMessageController implements ChatMessagesGetter, GroupMessageListGetter {
+export class GroupMessageController implements ChatMessagesGetter, GroupMessageListGetter, NewMessageListener {
     private created_groups = new Map<string, gm_Creation>();
     private invitations = new Map<string, gm_Invitation>();
     private messages = new Map<string, ChatMessage[]>();
@@ -307,6 +308,12 @@ export class GroupMessageController implements ChatMessagesGetter, GroupMessageL
             ],
         });
         return event;
+    }
+
+    onChange(): Channel<ChatMessage> {
+        // todo: Group Chat is currently disabled
+        // so no implementation in this method yet
+        return new Channel();
     }
 }
 

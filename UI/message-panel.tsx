@@ -78,31 +78,25 @@ interface DirectMessagePanelProps {
     emit: emitFunc<
         EditorEvent | DirectMessagePanelUpdate | PinConversation | UnpinConversation | SelectConversation
     >;
-    listenTo: EventSubscriber<UI_Interaction_Event>;
     profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
     profileGetter: ProfileGetter;
-
+    newMessageListener: NewMessageListener
     messageGetter: ChatMessagesGetter;
 }
 
-type MessagePanelState = {
-    messages: Set<ChatMessage>;
-};
+export type NewMessageListener = {
+    onChange(): Channel<ChatMessage>
+}
 
-export class MessagePanel extends Component<DirectMessagePanelProps, MessagePanelState> {
+export class MessagePanel extends Component<DirectMessagePanelProps> {
     private message_channel?: Channel<ChatMessage>;
 
-    state: MessagePanelState = {
-        // use a set so that we don't get duplications
-        // In JavaScript, set is reference only
-        // but since we know that every ChatMessage comes from DirectMessageGetter & GroupMessageGetter
-        // which guarantee that an unique event only gets a single ChatMessage instance,
-        // it's safe to use reference only set instead of Map<eventID, ChatMessage>
-        // Of course, it's much nicer to have a hash value based set,
-        // but we don't have it in JavaScript
-        messages: new Set(),
-    };
+    async componentDidMount() {
+        for await (const _ of this.props.newMessageListener.onChange()) {
+            this.setState({});
+        }
+    }
 
     async componentWillUnmount() {
         console.log("MessagePanel:componentWillUnmount");

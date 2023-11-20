@@ -2,7 +2,7 @@
 import { h } from "https://esm.sh/preact@10.17.1";
 import { tw } from "https://esm.sh/twind@0.16.16";
 import * as cl from "./conversation-list.tsx";
-import { MessagePanel, RightPanelModel } from "./message-panel.tsx";
+import { MessagePanel, NewMessageListener, RightPanelModel } from "./message-panel.tsx";
 import { EventBus } from "../event-bus.ts";
 import { CenterClass, IconButtonClass } from "./components/tw.ts";
 import { ChatMessagesGetter, DirectMessageGetter, UI_Interaction_Event } from "./app_update.tsx";
@@ -40,6 +40,7 @@ type DirectMessageContainerProps = {
     // getters
     profileGetter: ProfileGetter;
     messageGetter: ChatMessagesGetter;
+    newMessageListener: NewMessageListener;
     pinListGetter: cl.PinListGetter;
     conversationLists: cl.ConversationListRetriever;
     newMessageChecker: cl.NewMessageChecker;
@@ -161,7 +162,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                                         myPublicKey={props.ctx.publicKey}
                                         rightPanelModel={props.rightPanelModel}
                                         emit={props.bus.emit}
-                                        listenTo={props.bus}
+                                        newMessageListener={props.newMessageListener}
                                         focusedContent={getFocusedContent(
                                             props.focusedContent.get(props.currentEditor.pubkey.hex),
                                             props.profileGetter,
