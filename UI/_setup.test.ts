@@ -1,7 +1,9 @@
 import { Datebase_View, EventMark, EventMarker, EventsAdapter, Indices, RelayRecorder } from "../database.ts";
 import { EventBus } from "../event-bus.ts";
 import { NostrEvent } from "../lib/nostr-ts/nostr.ts";
+import { relays } from "../lib/nostr-ts/relay-list.test.ts";
 import { UI_Interaction_Event } from "./app_update.tsx";
+import { RelayRecord } from "./dexie-db.ts";
 
 export const testEventBus = new EventBus<UI_Interaction_Event>();
 
@@ -23,19 +25,18 @@ export async function test_db_view() {
         },
     };
 
-    const relays = new Map<string, string[]>();
+    const relays = new Map<string, Set<string>>();
     const testRelayRecorder: RelayRecorder = {
         setRelayRecord: async (eventID: string, url: string) => {
-            const oldURLs = relays.get(eventID);
-            if (oldURLs) {
-                oldURLs.push(url);
+            const records = relays.get(eventID);
+            if (records) {
+                records.add(url);
             } else {
-                relays.set(eventID, [url]);
+                relays.set(eventID, new Set([url]));
             }
         },
-        getRelayRecord: async (eventID: string) => {
-            const res = relays.get(eventID);
-            return res ? res : [];
+        getAllRelayRecords: async () => {
+            return relays;
         },
     };
 

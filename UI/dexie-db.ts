@@ -44,10 +44,24 @@ export class DexieDatabase extends dexie.Dexie
         });
     }
 
-    async getRelayRecord(eventID: string): Promise<string[]> {
+    async getRelayRecord(eventID: string): Promise<Set<string>> {
         const array = await this.relayRecords.filter((relay) => relay.event_id == eventID).toArray();
-        return array.map((record) => record.url);
+        return new Set(array.map((record) => record.url));
     }
+
+    getAllRelayRecords = async () => {
+        const resMap = new Map<string, Set<string>>();
+        for (const relay of await this.relayRecords.toArray()) {
+            const records = resMap.get(relay.event_id);
+            if (records) {
+                records.add(relay.url);
+            } else {
+                resMap.set(relay.event_id, new Set([relay.url]));
+            }
+        }
+
+        return resMap;
+    };
 
     getMark(eventID: string): Promise<EventMark | undefined> {
         return this.eventMarks.get(eventID);

@@ -4,6 +4,7 @@ import { parseJSON, ProfileData } from "./features/profile.ts";
 import { NostrEvent, NostrKind, Tag, verifyEvent } from "./lib/nostr-ts/nostr.ts";
 import { PublicKey } from "./lib/nostr-ts/key.ts";
 import { ProfileController } from "./UI/search.tsx";
+import { RelayRecord } from "./UI/dexie-db.ts";
 
 const buffer_size = 2000;
 export interface Indices {
@@ -34,8 +35,8 @@ export interface RelayRecordSetter {
     setRelayRecord: (eventID: string, url: string) => Promise<void>;
 }
 
-export interface RelayRecordGetter {
-    getRelayRecord: (eventID: string) => Promise<string[]>;
+export interface AllRelayRecordGetter {
+    getAllRelayRecords: () => Promise<Map<string, Set<string>>>;
 }
 
 export type EventMark = {
@@ -49,24 +50,25 @@ export interface EventMarker {
     getAllMarks(): Promise<EventMark[]>;
 }
 
-export type RelayRecorder = RelayRecordSetter & RelayRecordGetter;
+export type RelayRecorder = RelayRecordSetter & AllRelayRecordGetter;
 
 export type EventsAdapter =
     & EventsFilter
     & EventGetter
     & EventPutter;
 
-export class Datebase_View implements ProfileController, EventGetter, EventRemover, RelayRecordGetter {
+export class Datebase_View implements ProfileController, EventGetter, EventRemover {
     public readonly sourceOfChange = csp.chan<Parsed_Event | null>(buffer_size);
     private readonly caster = csp.multi<Parsed_Event | null>(this.sourceOfChange);
     private readonly profiles = new Map<string, Profile_Nostr_Event>();
 
     private constructor(
         private readonly eventsAdapter: EventsAdapter,
-        private readonly relayAdapter: RelayRecorder,
+        private readonly relayRecorder: RelayRecorder,
         private readonly eventMarker: EventMarker,
         private readonly events: Map<string, Parsed_Event>,
         private readonly removedEvents: Set<string>,
+        private readonly relayRecords: Map<string, Set<string>>,
     ) {}
 
     static async New(
@@ -97,6 +99,7 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
         console.log("Datebase_View:parsed", Date.now() - t);
 
         const all_removed_events = await eventMarker.getAllMarks();
+        const all_relay_records = await relayAdapter.getAllRelayRecords();
         // Construct the View
         const db = new Datebase_View(
             eventsAdapter,
@@ -104,6 +107,7 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
             eventMarker,
             initialEvents,
             new Set(all_removed_events.map((mark) => mark.event_id)),
+            all_relay_records,
         );
         console.log("Datebase_View:New time spent", Date.now() - t);
         for (const e of db.events.values()) {
@@ -142,9 +146,13 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
         await this.eventMarker.markEvent(id, "removed");
     }
 
-    getRelayRecord = (eventID: string) => {
-        return this.relayAdapter.getRelayRecord(eventID);
-    };
+    getRelayRecord(eventID: string) {
+        const relays = this.relayRecords.get(eventID);
+        if (relays == undefined) {
+            return new Set<string>();
+        }
+        return relays;
+    }
 
     getProfilesByText(name: string): Profile_Nostr_Event[] {
         const result = [];
@@ -186,7 +194,7 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
         }
 
         if (url) {
-            await this.relayAdapter.setRelayRecord(event.id, url);
+            await this.recordRelay(event.id, url);
         }
 
         // check if the event exists
@@ -246,6 +254,16 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
             );
         })();
         return res;
+    }
+
+    private async recordRelay(eventID: string, url: string) {
+        const records = this.relayRecords.get(eventID);
+        if (records) {
+            records.add(url);
+        } else {
+            this.relayRecords.set(eventID, new Set([url]));
+        }
+        await this.relayRecorder.setRelayRecord(eventID, url);
     }
 }
 
