@@ -379,7 +379,6 @@ export function AppComponent(props: {
                         rightPanelModel: model.rightPanelModel,
                         bus: app.eventBus,
                         ctx: myAccountCtx,
-                        dmGetter: app.dmController,
                         profileGetter: app.database,
                         pool: props.pool,
                         conversationLists: app.conversationLists,
@@ -388,7 +387,7 @@ export function AppComponent(props: {
                         pinListGetter: app.otherConfig,
                         groupChatController: app.groupChatController,
                         newMessageChecker: app.conversationLists,
-                        gmGetter: app.groupChatController,
+                        messageGetter: model.dm.isGroupMessage ? app.groupChatController : app.dmController,
                     })}
                 </div>
             );

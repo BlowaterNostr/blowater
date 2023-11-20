@@ -27,8 +27,7 @@ import { SelectConversation } from "./search_model.ts";
 import { AboutIcon } from "./icons/about-icon.tsx";
 import { CloseIcon } from "./icons/close-icon.tsx";
 import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
-import { getConversationMessages } from "./dm.tsx";
-import { ChatMessagesGetter, DirectMessageGetter, UI_Interaction_Event } from "./app_update.tsx";
+import { ChatMessagesGetter, UI_Interaction_Event } from "./app_update.tsx";
 
 export type RightPanelModel = {
     show: boolean;
@@ -84,8 +83,7 @@ interface DirectMessagePanelProps {
     eventSyncer: EventSyncer;
     profileGetter: ProfileGetter;
 
-    dmGetter: DirectMessageGetter;
-    gmGetter: ChatMessagesGetter;
+    messageGetter: ChatMessagesGetter;
 }
 
 type MessagePanelState = {
@@ -113,11 +111,11 @@ export class MessagePanel extends Component<DirectMessagePanelProps, MessagePane
             {
                 let messages: ChatMessage[];
                 if (this.props.isGroupMessage) {
-                    messages = this.props.gmGetter.getChatMessages(
+                    messages = this.props.messageGetter.getChatMessages(
                         target_pubkey.hex,
                     );
                 } else {
-                    messages = this.props.dmGetter.getChatMessages(
+                    messages = this.props.messageGetter.getChatMessages(
                         target_pubkey.hex,
                     );
                 }
@@ -127,12 +125,7 @@ export class MessagePanel extends Component<DirectMessagePanelProps, MessagePane
             }
             // observing changes
             {
-                const messages = getConversationMessages({
-                    targetPubkey: target_pubkey.hex,
-                    isGroupChat: this.props.isGroupMessage,
-                    dmGetter: this.props.dmGetter,
-                    gmGetter: this.props.gmGetter,
-                });
+                const messages = this.props.messageGetter.getChatMessages(target_pubkey.hex);
                 if (messages instanceof Channel) {
                     this.message_channel = messages;
                     for await (const message of messages) {
@@ -153,16 +146,16 @@ export class MessagePanel extends Component<DirectMessagePanelProps, MessagePane
         };
 
         refresh_state(this.props.editorModel.pubkey);
-        for await (const ui_event of this.props.listenTo.onChange()) {
-            if (this.message_channel) {
-                await this.message_channel.close();
-                this.message_channel = undefined;
-            }
-            if (ui_event.type != "SelectConversation") {
-                continue;
-            }
-            refresh_state(ui_event.pubkey);
-        }
+        // for await (const ui_event of this.props.listenTo.onChange()) {
+        //     if (this.message_channel) {
+        //         await this.message_channel.close();
+        //         this.message_channel = undefined;
+        //     }
+        //     if (ui_event.type != "SelectConversation") {
+        //         continue;
+        //     }
+        //     refresh_state(ui_event.pubkey);
+        // }
     }
 
     async componentWillUnmount() {
@@ -210,7 +203,7 @@ export class MessagePanel extends Component<DirectMessagePanelProps, MessagePane
 
                     <MessageList
                         myPublicKey={props.myPublicKey}
-                        messages={Array.from(this.state.messages)}
+                        messages={props.messageGetter.getChatMessages(props.editorModel.pubkey.hex)}
                         emit={props.emit}
                         profilesSyncer={props.profilesSyncer}
                         eventSyncer={props.eventSyncer}

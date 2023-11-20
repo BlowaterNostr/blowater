@@ -17,7 +17,6 @@ import { SettingIcon } from "./icons/setting-icon.tsx";
 import { GroupMessageController } from "../features/gm.ts";
 import { ProfileGetter } from "./search.tsx";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
-import { ChatMessage } from "./message.ts";
 import { EditorModel } from "./editor.tsx";
 import { InviteButton } from "./invite-button.tsx";
 import { IS_BETA_VERSION } from "./config.js";
@@ -40,8 +39,7 @@ type DirectMessageContainerProps = {
     groupChatController: GroupMessageController;
     // getters
     profileGetter: ProfileGetter;
-    dmGetter: DirectMessageGetter;
-    gmGetter: ChatMessagesGetter;
+    messageGetter: ChatMessagesGetter;
     pinListGetter: cl.PinListGetter;
     conversationLists: cl.ConversationListRetriever;
     newMessageChecker: cl.NewMessageChecker;
@@ -173,8 +171,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                                         isGroupMessage={props.isGroupMessage}
                                         profileGetter={props.profileGetter}
                                         editorModel={props.currentEditor}
-                                        dmGetter={props.dmGetter}
-                                        gmGetter={props.gmGetter}
+                                        messageGetter={props.messageGetter}
                                     />
                                 )
                                 : undefined}
@@ -186,19 +183,4 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
     );
     console.debug("DirectMessageContainer:end", Date.now() - t);
     return vDom;
-}
-
-export function getConversationMessages(args: {
-    targetPubkey: string;
-    isGroupChat: boolean;
-    dmGetter: DirectMessageGetter;
-    gmGetter: ChatMessagesGetter;
-}) {
-    const { targetPubkey } = args;
-    if (args.isGroupChat) {
-        return args.gmGetter.getChatMessages(args.targetPubkey);
-    }
-
-    let messages = args.dmGetter.getDirectMessageStream(targetPubkey);
-    return messages;
 }

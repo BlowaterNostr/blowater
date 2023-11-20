@@ -71,7 +71,7 @@ const view = () => {
             profileGetter={database}
             dmGetter={new DirectedMessageController(ctx)}
             groupChatController={gmControl}
-            gmGetter={gmControl}
+            messageGetter={gmControl}
             newMessageChecker={allUserInfo}
         />
     );
