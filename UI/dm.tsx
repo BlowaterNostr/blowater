@@ -163,6 +163,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                                         myPublicKey={props.ctx.publicKey}
                                         rightPanelModel={props.rightPanelModel}
                                         emit={props.bus.emit}
+                                        listenTo={props.bus}
                                         focusedContent={getFocusedContent(
                                             props.focusedContent.get(props.currentEditor.pubkey.hex),
                                             props.profileGetter,

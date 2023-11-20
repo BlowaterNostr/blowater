@@ -6,7 +6,7 @@ import { Editor, EditorEvent, EditorModel } from "./editor.tsx";
 import { Avatar } from "./components/avatar.tsx";
 import { IconButtonClass } from "./components/tw.ts";
 import { Channel, sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { emitFunc } from "../event-bus.ts";
+import { emitFunc, EventSubscriber } from "../event-bus.ts";
 
 import { ChatMessage, groupContinuousMessages, parseContent, sortMessage, urlIsImage } from "./message.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
@@ -28,7 +28,7 @@ import { AboutIcon } from "./icons/about-icon.tsx";
 import { CloseIcon } from "./icons/close-icon.tsx";
 import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
 import { getConversationMessages } from "./dm.tsx";
-import { DirectMessageGetter, GroupMessageGetter } from "./app_update.tsx";
+import { DirectMessageGetter, GroupMessageGetter, UI_Interaction_Event } from "./app_update.tsx";
 
 export type RightPanelModel = {
     show: boolean;
@@ -79,6 +79,7 @@ interface DirectMessagePanelProps {
     emit: emitFunc<
         EditorEvent | DirectMessagePanelUpdate | PinConversation | UnpinConversation | SelectConversation
     >;
+    listenTo: EventSubscriber<UI_Interaction_Event>;
     profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
     profileGetter: ProfileGetter;
@@ -106,42 +107,61 @@ export class MessagePanel extends Component<DirectMessagePanelProps, MessagePane
     };
 
     async componentDidMount() {
-        // initial load
-        {
-            let messages: ChatMessage[];
-            if (this.props.isGroupMessage) {
-                messages = this.props.gmGetter.getGroupMessages(this.props.editorModel.pubkey.hex);
-            } else {
-                messages = this.props.dmGetter.getDirectMessages(this.props.editorModel.pubkey.hex);
-            }
-            this.setState({
-                messages: new Set(messages),
-            });
-        }
-        // observing changes
-        {
-            const messages = getConversationMessages({
-                targetPubkey: this.props.editorModel.pubkey.hex,
-                isGroupChat: this.props.isGroupMessage,
-                dmGetter: this.props.dmGetter,
-                gmGetter: this.props.gmGetter,
-            });
-            if (messages instanceof Channel) {
-                this.message_channel = messages;
-                for await (const message of messages) {
-                    // here we set the state on every new message
-                    // we can add a sleep to buffer messages a bit
-                    // so that we don't render too much
-                    // but since render is fast, we don't have to do it yet
-                    this.setState({
-                        messages: this.state.messages.add(message),
-                    });
+        const refresh_state = async (target_pubkey: PublicKey) => {
+            console.log(this.props.editorModel.pubkey.hex);
+            // initial load
+            {
+                let messages: ChatMessage[];
+                if (this.props.isGroupMessage) {
+                    messages = this.props.gmGetter.getGroupMessages(
+                        target_pubkey.hex,
+                    );
+                } else {
+                    messages = this.props.dmGetter.getDirectMessages(
+                        target_pubkey.hex,
+                    );
                 }
-            } else {
                 this.setState({
                     messages: new Set(messages),
                 });
             }
+            // observing changes
+            {
+                const messages = getConversationMessages({
+                    targetPubkey: target_pubkey.hex,
+                    isGroupChat: this.props.isGroupMessage,
+                    dmGetter: this.props.dmGetter,
+                    gmGetter: this.props.gmGetter,
+                });
+                if (messages instanceof Channel) {
+                    this.message_channel = messages;
+                    for await (const message of messages) {
+                        // here we set the state on every new message
+                        // we can add a sleep to buffer messages a bit
+                        // so that we don't render too much
+                        // but since render is fast, we don't have to do it yet
+                        this.setState({
+                            messages: this.state.messages.add(message),
+                        });
+                    }
+                } else {
+                    this.setState({
+                        messages: new Set(messages),
+                    });
+                }
+            }
+        };
+
+        refresh_state(this.props.editorModel.pubkey);
+        for await (const ui_event of this.props.listenTo.onChange()) {
+            if (this.message_channel) {
+                await this.message_channel.close();
+                this.message_channel = undefined;
+            }
+            if (ui_event.type != "SelectConversation") {
+                continue;
+            }
+            refresh_state(ui_event.pubkey);
         }
     }
 
