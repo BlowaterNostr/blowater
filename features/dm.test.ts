@@ -16,7 +16,8 @@ Deno.test("DirectedMessageController", async () => {
         const chan = dmController.getDirectMessageStream(ctx.publicKey.hex);
         {
             // add events
-            for (let i = 1; i <= 2; i++) {
+            const events = [];
+            for (let i = 1; i <= 3; i++) {
                 const event = await prepareEncryptedNostrEvent(ctx, {
                     content: `test:${i}`,
                     encryptKey: ctx.publicKey,
@@ -27,9 +28,10 @@ Deno.test("DirectedMessageController", async () => {
                 });
                 if (event instanceof Error) fail(event.message);
 
-                const err = await dmController.addEvent(event);
-                if (err instanceof Error) fail(err.message);
+                events.push(event);
             }
+            await dmController.addEvent(events[0]);
+            await dmController.addEvent(events[1]);
 
             // get 2 events
             const new_messages = dmController.getDirectMessages(ctx.publicKey.hex);
@@ -41,6 +43,16 @@ Deno.test("DirectedMessageController", async () => {
 
             const message2 = await chan.pop() as ChatMessage;
             assertEquals(message2.content, "test:2");
+
+            // get 3 events
+            {
+                await dmController.addEvent(events[2]);
+
+                const new_messages = dmController.getDirectMessages(ctx.publicKey.hex);
+                assertEquals(new_messages.map((m) => m.content), ["test:1", "test:2", "test:3"]);
+
+                assertEquals((await chan.pop() as ChatMessage).content, "test:3");
+            }
         }
         await chan.close(); // not necessary
     }
