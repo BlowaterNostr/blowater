@@ -35,10 +35,6 @@ export interface RelayRecordSetter {
     setRelayRecord: (eventID: string, url: string) => Promise<void>;
 }
 
-export interface RelayRecordGetter {
-    getRelayRecord: (eventID: string) => Promise<Set<string>>;
-}
-
 export interface AllRelayRecordGetter {
     getAllRelayRecords: () => Promise<Map<string, Set<string>>>;
 }
@@ -54,14 +50,14 @@ export interface EventMarker {
     getAllMarks(): Promise<EventMark[]>;
 }
 
-export type RelayRecorder = RelayRecordSetter & RelayRecordGetter & AllRelayRecordGetter;
+export type RelayRecorder = RelayRecordSetter & AllRelayRecordGetter;
 
 export type EventsAdapter =
     & EventsFilter
     & EventGetter
     & EventPutter;
 
-export class Datebase_View implements ProfileController, EventGetter, EventRemover, RelayRecordGetter {
+export class Datebase_View implements ProfileController, EventGetter, EventRemover {
     public readonly sourceOfChange = csp.chan<Parsed_Event | null>(buffer_size);
     private readonly caster = csp.multi<Parsed_Event | null>(this.sourceOfChange);
     private readonly profiles = new Map<string, Profile_Nostr_Event>();
@@ -150,7 +146,7 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
         await this.eventMarker.markEvent(id, "removed");
     }
 
-    async getRelayRecord(eventID: string) {
+    getRelayRecord(eventID: string) {
         const relays = this.relayRecords.get(eventID);
         if (relays == undefined) {
             return new Set<string>();

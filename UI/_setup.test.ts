@@ -35,13 +35,6 @@ export async function test_db_view() {
                 relays.set(eventID, new Set([url]));
             }
         },
-        getRelayRecord: async (eventID: string) => {
-            const res = relays.get(eventID);
-            if (res == undefined) {
-                return new Set();
-            }
-            return res;
-        },
         getAllRelayRecords: async () => {
             return relays;
         },
