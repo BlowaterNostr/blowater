@@ -1,11 +1,11 @@
 /** @jsx h */
-import { h, JSX, VNode } from "https://esm.sh/preact@10.17.1";
+import { h } from "https://esm.sh/preact@10.17.1";
 import { tw } from "https://esm.sh/twind@0.16.16";
 import * as cl from "./conversation-list.tsx";
-import { MessagePanel, RightPanelModel } from "./message-panel.tsx";
+import { MessagePanel, NewMessageListener, RightPanelModel } from "./message-panel.tsx";
 import { EventBus } from "../event-bus.ts";
 import { CenterClass, IconButtonClass } from "./components/tw.ts";
-import { DirectMessageGetter, GroupMessageGetter, UI_Interaction_Event } from "./app_update.tsx";
+import { ChatMessagesGetter, DirectMessageGetter, UI_Interaction_Event } from "./app_update.tsx";
 import { NostrAccountContext, NostrEvent } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
 import { ProfileSyncer } from "../features/profile.ts";
@@ -16,9 +16,7 @@ import { PrimaryTextColor } from "./style/colors.ts";
 import { SettingIcon } from "./icons/setting-icon.tsx";
 import { GroupMessageController } from "../features/gm.ts";
 import { ProfileGetter } from "./search.tsx";
-import { InviteIcon } from "./icons/invite-icon.tsx";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
-import { ChatMessage } from "./message.ts";
 import { EditorModel } from "./editor.tsx";
 import { InviteButton } from "./invite-button.tsx";
 import { IS_BETA_VERSION } from "./config.js";
@@ -41,8 +39,8 @@ type DirectMessageContainerProps = {
     groupChatController: GroupMessageController;
     // getters
     profileGetter: ProfileGetter;
-    dmGetter: DirectMessageGetter;
-    gmGetter: GroupMessageGetter;
+    messageGetter: ChatMessagesGetter;
+    newMessageListener: NewMessageListener;
     pinListGetter: cl.PinListGetter;
     conversationLists: cl.ConversationListRetriever;
     newMessageChecker: cl.NewMessageChecker;
@@ -55,33 +53,6 @@ export type StartInvite = {
 
 export function DirectMessageContainer(props: DirectMessageContainerProps) {
     const t = Date.now();
-
-    let messagePanel: VNode | undefined;
-    if (props.currentEditor && props.currentEditor) {
-        const convoMsgs = getConversationMessages({
-            targetPubkey: props.currentEditor.pubkey.hex,
-            isGroupChat: props.isGroupMessage,
-            dmGetter: props.dmGetter,
-            gmGetter: props.gmGetter,
-        });
-
-        const focusedContent = getFocusedContent(
-            props.focusedContent.get(props.currentEditor.pubkey.hex),
-            props.profileGetter,
-        );
-        messagePanel = new MessagePanel({
-            myPublicKey: props.ctx.publicKey,
-            messages: convoMsgs,
-            rightPanelModel: props.rightPanelModel,
-            emit: props.bus.emit,
-            focusedContent: focusedContent,
-            profilesSyncer: props.profilesSyncer,
-            eventSyncer: props.eventSyncer,
-            isGroupChat: props.isGroupMessage,
-            profileGetter: props.profileGetter,
-            editorModel: props.currentEditor,
-        }).render();
-    }
 
     const currentEditor = props.currentEditor;
     let buttons = [];
@@ -185,7 +156,26 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                             </ButtonGroup>
                         </div>
                         <div class={tw`flex-1 overflow-x-auto`}>
-                            {messagePanel}
+                            {props.currentEditor
+                                ? (
+                                    <MessagePanel
+                                        myPublicKey={props.ctx.publicKey}
+                                        rightPanelModel={props.rightPanelModel}
+                                        emit={props.bus.emit}
+                                        newMessageListener={props.newMessageListener}
+                                        focusedContent={getFocusedContent(
+                                            props.focusedContent.get(props.currentEditor.pubkey.hex),
+                                            props.profileGetter,
+                                        )}
+                                        profilesSyncer={props.profilesSyncer}
+                                        eventSyncer={props.eventSyncer}
+                                        isGroupMessage={props.isGroupMessage}
+                                        profileGetter={props.profileGetter}
+                                        editorModel={props.currentEditor}
+                                        messageGetter={props.messageGetter}
+                                    />
+                                )
+                                : undefined}
                         </div>
                     </div>
                 )
@@ -194,19 +184,4 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
     );
     console.debug("DirectMessageContainer:end", Date.now() - t);
     return vDom;
-}
-
-export function getConversationMessages(args: {
-    targetPubkey: string;
-    isGroupChat: boolean;
-    dmGetter: DirectMessageGetter;
-    gmGetter: GroupMessageGetter;
-}): ChatMessage[] {
-    const { targetPubkey } = args;
-    if (args.isGroupChat) {
-        return args.gmGetter.getGroupMessages(args.targetPubkey);
-    }
-
-    let messages = args.dmGetter.getDirectMessages(targetPubkey);
-    return messages;
 }

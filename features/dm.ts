@@ -7,6 +7,8 @@ import { prepareEncryptedNostrEvent } from "../lib/nostr-ts/event.ts";
 import { DirectMessageGetter } from "../UI/app_update.tsx";
 import { ChatMessage, parseContent } from "../UI/message.ts";
 import { decodeInvitation, gmEventType } from "./gm.ts";
+import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { NewMessageListener } from "../UI/message-panel.tsx";
 
 export async function sendDMandImages(args: {
     sender: NostrAccountContext;
@@ -144,15 +146,17 @@ function merge<T>(...iters: AsyncIterable<T>[]) {
     return merged;
 }
 
-export class DirectedMessageController implements DirectMessageGetter {
+export class DirectedMessageController implements DirectMessageGetter, NewMessageListener {
     constructor(
         public readonly ctx: NostrAccountContext,
     ) {}
 
-    public readonly directed_messages = new Map<string, ChatMessage>();
+    private readonly directed_messages = new Map<string, ChatMessage>();
+    private readonly new_message_chan = new Channel<ChatMessage>();
+    private readonly caster = new csp.Multicaster(this.new_message_chan);
 
     // get the direct messages between me and this pubkey
-    public getDirectMessages(pubkey: string): ChatMessage[] {
+    public getChatMessages(pubkey: string): ChatMessage[] {
         const messages = [];
         for (const message of this.directed_messages.values()) {
             if (is_DM_between(message.event, this.ctx.publicKey.hex, pubkey)) {
@@ -163,7 +167,30 @@ export class DirectedMessageController implements DirectMessageGetter {
         return messages;
     }
 
-    async addEvent(event: Parsed_Event<NostrKind.DIRECT_MESSAGE | NostrKind.Group_Message>) {
+    public getDirectMessageStream(pubkey: string): Channel<ChatMessage> {
+        const messages = new Channel<ChatMessage>();
+        (async () => {
+            for await (const message of this.caster.copy()) {
+                if (is_DM_between(message.event, this.ctx.publicKey.hex, pubkey)) {
+                    const err = await messages.put(message);
+                    if (err instanceof csp.PutToClosedChannelError) {
+                        // the channel is closed by external code, most likely the caller
+                        return;
+                    }
+                }
+            }
+            // should never reach here, but doesn't matter
+            // because messages does not need to be closed
+            await messages.close();
+        })();
+        return messages;
+    }
+
+    async addEvent(
+        event:
+            | Parsed_Event<NostrKind.DIRECT_MESSAGE | NostrKind.Group_Message>
+            | NostrEvent<NostrKind.DIRECT_MESSAGE>,
+    ) {
         const kind = event.kind;
         if (kind == NostrKind.Group_Message) {
             const gmEvent = { ...event, kind };
@@ -173,7 +200,7 @@ export class DirectedMessageController implements DirectMessageGetter {
                 if (invitation instanceof Error) {
                     return invitation;
                 }
-                this.directed_messages.set(gmEvent.id, {
+                const message: ChatMessage = {
                     type: "gm_invitation",
                     event: gmEvent,
                     invitation: invitation,
@@ -181,44 +208,68 @@ export class DirectedMessageController implements DirectMessageGetter {
                     created_at: new Date(gmEvent.created_at * 1000),
                     lamport: gmEvent.parsedTags.lamport_timestamp,
                     content: gmEvent.content,
-                });
+                };
+                this.directed_messages.set(gmEvent.id, message);
+                /* do not await */ this.new_message_chan.put(message);
             }
             // else ignore
         } else {
+            let parsedTags;
+            if ("parsedTags" in event) {
+                parsedTags = event.parsedTags;
+            } else {
+                parsedTags = getTags(event);
+            }
+            let publicKey;
+            if ("publicKey" in event) {
+                publicKey = event.publicKey;
+            } else {
+                publicKey = PublicKey.FromHex(event.pubkey);
+                if (publicKey instanceof Error) {
+                    return publicKey;
+                }
+            }
             const dmEvent = await parseDM(
                 {
                     ...event,
                     kind,
                 },
                 this.ctx,
-                event.parsedTags,
-                event.publicKey,
+                parsedTags,
+                publicKey,
             );
             if (dmEvent instanceof Error) {
                 return dmEvent;
             }
             const isImage = dmEvent.parsedTags.image;
+            let chatMessage: ChatMessage;
             if (isImage) {
                 const imageBase64 = dmEvent.decryptedContent;
-                this.directed_messages.set(event.id, {
+                chatMessage = {
                     event: dmEvent,
                     author: dmEvent.publicKey,
                     content: imageBase64,
                     type: "image",
                     created_at: new Date(dmEvent.created_at * 1000),
                     lamport: dmEvent.parsedTags.lamport_timestamp,
-                });
+                };
             } else {
-                this.directed_messages.set(event.id, {
+                chatMessage = {
                     event: dmEvent,
                     author: dmEvent.publicKey,
                     content: dmEvent.decryptedContent,
                     type: "text",
                     created_at: new Date(dmEvent.created_at * 1000),
                     lamport: dmEvent.parsedTags.lamport_timestamp,
-                });
+                };
             }
+            this.directed_messages.set(event.id, chatMessage);
+            /* do not await */ this.new_message_chan.put(chatMessage);
         }
+    }
+
+    onChange() {
+        return this.caster.copy();
     }
 }
 
@@ -256,6 +307,13 @@ async function parseDM(
     };
 }
 
+export class InvalidEvent extends Error {
+    constructor(kind: NostrKind, message: string) {
+        super(`invliad event, expecting kind:${kind}, ${message}`);
+        this.name = "InvalidEvent";
+    }
+}
+
 export function whoIamTalkingTo(event: NostrEvent, myPublicKey: PublicKey) {
     if (event.kind !== NostrKind.DIRECT_MESSAGE) {
         console.log(event);
@@ -272,7 +330,8 @@ export function whoIamTalkingTo(event: NostrEvent, myPublicKey: PublicKey) {
             return whoIAmTalkingTo;
         } else if (tags.length === 0) {
             console.log(event);
-            return Error(
+            return new InvalidEvent(
+                NostrKind.DIRECT_MESSAGE,
                 `No p tag is found - Not a valid DM - id ${event.id}, kind ${event.kind}`,
             );
         } else {

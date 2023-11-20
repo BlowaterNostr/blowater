@@ -58,8 +58,8 @@ export type EventsAdapter =
     & EventPutter;
 
 export class Datebase_View implements ProfileController, EventGetter, EventRemover {
-    public readonly sourceOfChange = csp.chan<Parsed_Event | null>(buffer_size);
-    private readonly caster = csp.multi<Parsed_Event | null>(this.sourceOfChange);
+    public readonly sourceOfChange = csp.chan<Parsed_Event>(buffer_size);
+    private readonly caster = csp.multi<Parsed_Event>(this.sourceOfChange);
     private readonly profiles = new Map<string, Profile_Nostr_Event>();
 
     private constructor(
@@ -239,7 +239,7 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
     //////////////////
     subscribe() {
         const c = this.caster.copy();
-        const res = csp.chan<Parsed_Event | null>(buffer_size);
+        const res = csp.chan<Parsed_Event>(buffer_size);
         (async () => {
             for await (const newE of c) {
                 const err = await res.put(newE);

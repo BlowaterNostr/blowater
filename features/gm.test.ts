@@ -132,7 +132,7 @@ Deno.test("test invitation that I sent", async () => {
         const dm_A_addEvent_res = await dm_A.addEvent(parsedEvent);
         assertNotInstanceOf(dm_A_addEvent_res, Error);
 
-        const messages = dm_A.getDirectMessages(user_B.publicKey.hex);
+        const messages = dm_A.getChatMessages(user_B.publicKey.hex);
         assertEquals(messages.length, 1);
         assertEquals(messages[0].event, parsedEvent);
     }
@@ -254,7 +254,7 @@ Deno.test("should be able to handle the correct message type", async () => {
             publicKey: PublicKey.FromHex(blobMessageEvent.pubkey) as PublicKey,
         });
 
-        const message = gm_A.getGroupMessages(groupChat.groupKey.publicKey.hex);
+        const message = gm_A.getChatMessages(groupChat.groupKey.publicKey.hex);
         assertEquals(message.length, 1);
         assertEquals(message[0].type, "image");
         assertEquals(message[0].content, await blobToBase64(blob));
@@ -270,7 +270,7 @@ Deno.test("should be able to handle the correct message type", async () => {
             publicKey: PublicKey.FromHex(textMessageEvent.pubkey) as PublicKey,
         });
 
-        const message = gm_A.getGroupMessages(groupChat.groupKey.publicKey.hex);
+        const message = gm_A.getChatMessages(groupChat.groupKey.publicKey.hex);
         assertEquals(message.length, 2);
         assertEquals(message[1].type, "text");
         assertEquals(message[1].content, "hi");
