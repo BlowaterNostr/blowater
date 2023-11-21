@@ -32,7 +32,7 @@ export function NoteCard(props: {
             event: event,
         });
 
-    const content = event.content;
+    const content = event.content.slice(0, 200);
 
     return (
         <div class={styles.container} onClick={onClick}>
@@ -41,7 +41,7 @@ export function NoteCard(props: {
                 <p class={styles.information.name}>
                     {profileData?.name || PublicKey.FromHex(event.pubkey)}
                 </p>
-                <p class={styles.information.content}>{content}</p>
+                <p class={styles.information.content}>{content}{event.content.length > 200 ? "..." : ""}</p>
             </div>
         </div>
     );
