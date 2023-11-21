@@ -15,6 +15,7 @@ import {
 import { SendIcon } from "./icons/send-icon.tsx";
 import { Component } from "https://esm.sh/preact@10.17.1";
 import { RemoveIcon } from "./icons/remove-icon.tsx";
+import { isMobile } from "./_helper.ts";
 
 export type EditorModel = {
     readonly pubkey: PublicKey;
@@ -69,9 +70,16 @@ type EditorProps = {
 };
 
 export class Editor extends Component<EditorProps> {
+    componentWillReceiveProps(nextProps: Readonly<EditorProps>, nextContext: any): void {
+        if (!isMobile()) {
+            this.textareaElement.current.focus();
+        }
+    }
+
+    textareaElement = createRef();
+    
     render(props: EditorProps) {
         const uploadFileInput = createRef();
-        const textareaElement = createRef();
 
         const removeFile = (index: number) => {
             props.emit({
@@ -92,7 +100,7 @@ export class Editor extends Component<EditorProps> {
                 text: props.text,
                 isGroupChat: props.isGroupChat,
             });
-            textareaElement.current.setAttribute(
+            this.textareaElement.current.setAttribute(
                 "rows",
                 "1",
             );
@@ -182,7 +190,7 @@ export class Editor extends Component<EditorProps> {
                         : undefined}
 
                     <textarea
-                        ref={textareaElement}
+                        ref={this.textareaElement}
                         style={{
                             maxHeight: props.maxHeight,
                         }}
@@ -244,7 +252,7 @@ export class Editor extends Component<EditorProps> {
                         class={tw`w-[4.8rem] h-[2.3rem] text-[${PrimaryTextColor}] rounded-lg ${CenterClass} bg-[#36393F] hover:bg-transparent font-bold`}
                         onClick={async () => {
                             await sendMessage();
-                            textareaElement.current?.focus();
+                            this.textareaElement.current?.focus();
                         }}
                     >
                         <SendIcon
@@ -262,7 +270,7 @@ export class Editor extends Component<EditorProps> {
                     class={tw`desktop:hidden w-12 h-8 ${CenterClass} ${LinearGradientsClass} rounded`}
                     onClick={async () => {
                         await sendMessage();
-                        textareaElement.current?.focus();
+                        this.textareaElement.current?.focus();
                     }}
                 >
                     <SendIcon
