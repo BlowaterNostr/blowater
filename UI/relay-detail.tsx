@@ -90,13 +90,12 @@ export class RelayDetail extends Component<Props, State> {
         try {
             const httpURL = new URL(url);
             httpURL.protocol = "https";
-            const request = fetch(httpURL, {
+            const res = await fetch(httpURL, {
                 headers: {
                     "Accept": "application/nostr+json",
                 },
             });
 
-            const res = await request;
             if (!res.ok) {
                 return new Error(`Faild to get detail from relay: ${httpURL}`);
             }
