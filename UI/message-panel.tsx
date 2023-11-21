@@ -554,7 +554,7 @@ export function ParseMessageContent(
                         break;
                     }
                     const profile = profileGetter.getProfilesByPublicKey(event.publicKey);
-                    vnode.push(Card(event, profile ? profile.profile : undefined, emit));
+                    vnode.push(Card(event, profile?.profile, emit));
                 }
                 break;
             case "nevent": {
@@ -589,6 +589,7 @@ function Card(
         case NostrKind.META_DATA:
             return <ProfileCard emit={emit} publicKey={event.publicKey} profileData={authorProfile} />;
         case NostrKind.TEXT_NOTE:
+        case NostrKind.Long_Form:
             return <NoteCard emit={emit} event={event} profileData={authorProfile} />;
     }
 }
