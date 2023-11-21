@@ -113,29 +113,24 @@ export class RelayDetail extends Component<Props, State> {
     };
 
     render() {
-        let publicKey = this.state.detail.pubkey && PublicKey.FromString(this.state.detail.pubkey);
-
         const items: RelayDetailItem[] = [
             {
                 title: "Admin",
-                field: publicKey && !(publicKey instanceof Error) && (
-                    <AuthorField
-                        publicKey={publicKey}
-                        profileGetter={this.props.profileGetter}
-                    />
-                ),
-            },
-            {
-                title: "PublicKey",
-                field: publicKey && !(publicKey instanceof Error) && <TextField text={publicKey.bech32()} />,
-            },
-            {
-                title: "Description",
-                field: this.state.detail.description && <TextField text={this.state.detail.description} />,
+                field: this.state.detail.pubkey &&
+                    (
+                        <AuthorField
+                            publicKey={this.state.detail.pubkey}
+                            profileGetter={this.props.profileGetter}
+                        />
+                    ),
             },
             {
                 title: "Contact",
                 field: this.state.detail.contact && <TextField text={this.state.detail.contact} />,
+            },
+            {
+                title: "Description",
+                field: this.state.detail.description && <TextField text={this.state.detail.description} />,
             },
             {
                 title: "Software",
@@ -184,7 +179,7 @@ export class RelayDetail extends Component<Props, State> {
 }
 
 function AuthorField(props: {
-    publicKey: PublicKey;
+    publicKey: string;
     profileGetter: ProfileGetter;
 }) {
     const styles = {
@@ -194,13 +189,21 @@ function AuthorField(props: {
         name: tw`overflow-x-auto flex-1`,
     };
 
-    const profileData = props.profileGetter.getProfilesByPublicKey(props.publicKey);
+    const pubkey = PublicKey.FromString(props.publicKey);
+    if (pubkey instanceof Error) {
+        return null;
+    }
+    const profileData = props.profileGetter.getProfilesByPublicKey(pubkey);
 
     return (
-        <div class={styles.container}>
-            <Avatar picture={profileData?.profile.picture} class={styles.avatar} />
-            <p class={styles.name}>{profileData?.profile.name || props.publicKey.bech32()}</p>
-        </div>
+        <Fragment>
+            <div class={styles.container}>
+                <Avatar picture={profileData?.profile.picture} class={styles.avatar} />
+                <p class={styles.name}>{profileData?.profile.name || pubkey.bech32()}</p>
+            </div>
+
+            <TextField text={pubkey.bech32()} />
+        </Fragment>
     );
 }
 
