@@ -87,29 +87,29 @@ export class RelayDetail extends Component<Props, State> {
 
     fetchData = async () => {
         const url = this.props.relayUrl;
-        const regex = /(^ws:\/\/|^wss:\/\/)([\S+\.]\S+\.\S+)/gm;
-        const match = regex.exec(url);
-        if (match?.length != 3) {
-            return new Error("Invalid URL.");
+        try {
+            const wsURL = new URL(this.props.relayUrl);
+
+            const httpURL = `https://${wsURL.host}${wsURL.pathname}`;
+            const request = fetch(httpURL, {
+                headers: {
+                    "Accept": "application/nostr+json",
+                },
+            });
+            request.catch((_) => {
+                return new Error(`Faild to get detail from relay: ${url}`);
+            });
+
+            const res = await request;
+            if (!res.ok) {
+                return new Error(`Faild to get detail from relay: ${httpURL}`);
+            }
+
+            const detail: Detail = await res.json();
+            return detail;
+        } catch (e) {
+            return e;
         }
-
-        const httpURL = `https://${match[2]}`;
-        const request = fetch(httpURL, {
-            headers: {
-                "Accept": "application/nostr+json",
-            },
-        });
-        request.catch((_) => {
-            return new Error(`Faild to get detail from relay: ${url}`);
-        });
-
-        const res = await request;
-        if (!res.ok) {
-            return new Error(`Faild to get detail from relay: ${httpURL}`);
-        }
-
-        const detail: Detail = await res.json();
-        return detail;
     };
 
     render() {
