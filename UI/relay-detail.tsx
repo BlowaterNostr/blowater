@@ -4,18 +4,17 @@ import { tw } from "https://esm.sh/twind@0.16.16";
 import { CopyButton } from "./components/copy-button.tsx";
 import { CenterClass, InputClass } from "./components/tw.ts";
 import {
+    ErrorColor,
     HintTextColor,
-    HoverButtonBackgroudColor,
     PrimaryTextColor,
     SecondaryBackgroundColor,
+    TitleIconColor,
 } from "./style/colors.ts";
 import { Avatar } from "./components/avatar.tsx";
 import { ProfileGetter } from "./search.tsx";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
-import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
-import { SelectConversation } from "./search_model.ts";
-import { emitFunc } from "../event-bus.ts";
 import { Loading } from "./components/loading.tsx";
+import { RelayIcon } from "./icons/relay-icon.tsx";
 
 type Detail = {
     name?: string;
@@ -36,7 +35,6 @@ type State = {
 type Props = {
     relayUrl: string;
     profileGetter: ProfileGetter;
-    emit: emitFunc<SelectConversation>;
 };
 
 export type RelayDetailItem = {
@@ -46,8 +44,13 @@ export type RelayDetailItem = {
 
 export class RelayDetail extends Component<Props, State> {
     styles = {
-        container: tw`bg-[${SecondaryBackgroundColor}] pb-7`,
-        title: tw`pt-7 text-[${PrimaryTextColor}]`,
+        container: tw`bg-[${SecondaryBackgroundColor}] p-8`,
+        title: tw`pt-8 text-[${PrimaryTextColor}]`,
+        error: tw`text-[${ErrorColor}] ${CenterClass}`,
+        header: {
+            container: tw`text-lg flex text-[${PrimaryTextColor}] pb-4`,
+            icon: tw`w-8 h-8 mr-4 text-[${TitleIconColor}] stroke-current`,
+        },
     };
 
     state: State = {
@@ -110,16 +113,21 @@ export class RelayDetail extends Component<Props, State> {
     };
 
     render() {
+        let publicKey = this.state.detail.pubkey && PublicKey.FromString(this.state.detail.pubkey);
+
         const items: RelayDetailItem[] = [
             {
                 title: "Admin",
-                field: this.state.detail.pubkey && (
+                field: publicKey && !(publicKey instanceof Error) && (
                     <AuthorField
-                        publicKey={this.state.detail.pubkey}
+                        publicKey={publicKey}
                         profileGetter={this.props.profileGetter}
-                        emit={this.props.emit}
                     />
                 ),
+            },
+            {
+                title: "PublicKey",
+                field: publicKey && !(publicKey instanceof Error) && <TextField text={publicKey.bech32()} />,
             },
             {
                 title: "Description",
@@ -140,7 +148,7 @@ export class RelayDetail extends Component<Props, State> {
             {
                 title: "Supported Nips",
                 field: this.state.detail.supported_nips && (
-                    <TextField text={this.state.detail.supported_nips?.join(",")} />
+                    <TextField text={this.state.detail.supported_nips.join(",")} />
                 ),
             },
         ];
@@ -149,7 +157,7 @@ export class RelayDetail extends Component<Props, State> {
         if (this.state.isLoading) {
             vNode = <Loading />;
         } else if (this.state.error) {
-            vNode = <p class={this.styles.title}>{this.state.error}</p>;
+            vNode = <p class={this.styles.error}>{this.state.error}</p>;
         } else {
             vNode = items.map((item) => {
                 if (item.field) {
@@ -165,6 +173,10 @@ export class RelayDetail extends Component<Props, State> {
 
         return (
             <div class={this.styles.container}>
+                <p class={this.styles.header.container}>
+                    <RelayIcon class={this.styles.header.icon} />
+                    Relay Detail -- {this.props.relayUrl}
+                </p>
                 {vNode}
             </div>
         );
@@ -172,40 +184,22 @@ export class RelayDetail extends Component<Props, State> {
 }
 
 function AuthorField(props: {
-    publicKey: string;
+    publicKey: PublicKey;
     profileGetter: ProfileGetter;
-    emit: emitFunc<SelectConversation>;
 }) {
     const styles = {
-        container:
-            tw`flex items-center justify-between ${InputClass} cursor-pointer hover:bg-[${HoverButtonBackgroudColor}]`,
-        leftContainer: tw`flex items-center text-[${PrimaryTextColor}]`,
+        container: tw`flex items-center ${InputClass}`,
         avatar: tw`h-8 w-8 mr-2`,
         icon: tw`w-4 h-4 text-[${HintTextColor}] fill-current rotate-180`,
+        name: tw`overflow-x-auto flex-1`,
     };
 
-    const pubkey = PublicKey.FromString(props.publicKey);
-    if (pubkey instanceof Error) {
-        return null;
-    }
-    const profileData = props.profileGetter.getProfilesByPublicKey(pubkey);
-
-    const onClick = () => {
-        props.emit({
-            type: "SelectConversation",
-            pubkey: pubkey,
-            isGroupChat: false, // todo
-        });
-    };
+    const profileData = props.profileGetter.getProfilesByPublicKey(props.publicKey);
 
     return (
-        <div class={styles.container} onClick={onClick}>
-            <div class={styles.leftContainer}>
-                <Avatar picture={profileData?.profile.picture} class={styles.avatar} />
-                {profileData?.profile.name || pubkey.bech32()}
-            </div>
-
-            <LeftArrowIcon class={styles.icon} />
+        <div class={styles.container}>
+            <Avatar picture={profileData?.profile.picture} class={styles.avatar} />
+            <p class={styles.name}>{profileData?.profile.name || props.publicKey.bech32()}</p>
         </div>
     );
 }

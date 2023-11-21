@@ -137,9 +137,7 @@ export async function* UI_Interaction_Update(args: {
         //
         else if (event.type == "ViewRelayDetail") {
             app.popOverInputChan.put({
-                children: (
-                    <RelayDetail relayUrl={event.url} profileGetter={app.database} emit={eventBus.emit} />
-                ),
+                children: <RelayDetail relayUrl={event.url} profileGetter={app.database} />,
             });
         } //
         //
