@@ -34,7 +34,7 @@ export interface SettingProps {
     relayConfig: RelayConfig;
     relayPool: ConnectionPool;
     myAccountContext: NostrAccountContext;
-    emit: emitFunc<RelayConfigChange>;
+    emit: emitFunc<RelayConfigChange | ViewRelayDetail>;
     show: boolean;
 }
 
@@ -95,10 +95,15 @@ export type RelayConfigChange = {
     url: string;
 };
 
+export type ViewRelayDetail = {
+    type: "ViewRelayDetail";
+    url: string;
+};
+
 type RelaySettingProp = {
     relayConfig: RelayConfig;
     relayPool: ConnectionPool;
-    emit: emitFunc<RelayConfigChange>;
+    emit: emitFunc<RelayConfigChange | ViewRelayDetail>;
 };
 
 type RelaySettingState = {
@@ -145,6 +150,13 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
         return _relayStatus;
     }
 
+    showRelayDetail = (url: string) => {
+        this.props.emit({
+            type: "ViewRelayDetail",
+            url: url,
+        });
+    };
+
     render(props: RelaySettingProp) {
         const addRelayInput = this.state.addRelayInput;
 
@@ -171,6 +183,7 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
                 });
             }
         };
+
         return (
             <Fragment>
                 <p class={tw`text-[1.3125rem] flex text-[${PrimaryTextColor}]`}>
@@ -209,7 +222,8 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
                     {relayStatus.map((r) => {
                         return (
                             <li
-                                class={tw`w-full px-[1rem] py-[0.75rem] rounded-lg bg-[${DividerBackgroundColor}80] mb-[0.5rem]  flex items-center justify-between`}
+                                onClick={() => this.showRelayDetail(r.url)}
+                                class={tw`w-full px-[1rem] py-[0.75rem] rounded-lg bg-[${DividerBackgroundColor}80] mb-[0.5rem]  flex items-center justify-between cursor-pointer hover:bg-[${HoverButtonBackgroudColor}]`}
                             >
                                 <div class={tw`flex items-center flex-1 overflow-hidden`}>
                                     <span
@@ -224,7 +238,8 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
 
                                 <button
                                     class={tw`w-[2rem] h-[2rem] rounded-lg bg-transparent hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
-                                    onClick={async () => {
+                                    onClick={async (e) => {
+                                        e.stopPropagation();
                                         const p = props.relayConfig.remove(r.url);
                                         this.setState({
                                             relayStatus: this.computeRelayStatus(props),

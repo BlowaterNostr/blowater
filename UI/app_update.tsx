@@ -28,7 +28,7 @@ import {
     UnpinConversation,
 } from "../nostr.ts";
 import { StartInvite } from "./dm.tsx";
-import { RelayConfigChange } from "./setting.tsx";
+import { RelayConfigChange, ViewRelayDetail } from "./setting.tsx";
 import { PopOverInputChannel } from "./components/popover.tsx";
 import { Search } from "./search.tsx";
 import { NoteID } from "../lib/nostr-ts/nip19.ts";
@@ -45,6 +45,7 @@ import { ChatMessage } from "./message.ts";
 import { InviteUsersToGroup } from "./invite-button.tsx";
 import { SaveProfile } from "./edit-profile.tsx";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { RelayDetail } from "./relay-detail.tsx";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -62,7 +63,8 @@ export type UI_Interaction_Event =
     | StartCreateGroupChat
     | StartEditGroupChatProfile
     | StartInvite
-    | InviteUsersToGroup;
+    | InviteUsersToGroup
+    | ViewRelayDetail;
 
 type BackToContactList = {
     type: "BackToContactList";
@@ -129,6 +131,14 @@ export async function* UI_Interaction_Update(args: {
                 />
             );
             args.popOver.put({ children: search });
+        } //
+        //
+        // Setting
+        //
+        else if (event.type == "ViewRelayDetail") {
+            app.popOverInputChan.put({
+                children: <RelayDetail relayUrl={event.url} profileGetter={app.database} />,
+            });
         } //
         //
         // Contacts
