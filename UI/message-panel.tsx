@@ -326,7 +326,9 @@ function MessageBoxGroup(props: {
     const rows = [];
     rows.push(
         <li
-            class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 mobile:pr-4 group relative mobile:select-none`}
+            class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 mobile:pr-4 group relative ${
+                mobileCheck() ? "select-none" : ""
+            }`}
         >
             {MessageActions(first_group, props.emit)}
             <Avatar
@@ -372,7 +374,9 @@ function MessageBoxGroup(props: {
         const msg = messageGroups[i];
         rows.push(
             <li
-                class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-center pr-8 group relative text-sm mobile:select-none`}
+                class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-center pr-8 group relative text-sm ${
+                    mobileCheck() ? "select-none" : ""
+                }`}
             >
                 {MessageActions(msg, props.emit)}
                 {Time(msg.created_at)}
@@ -637,4 +641,8 @@ class JitterPrevention {
         const cancelled = await sleep(this.duration, p);
         return !cancelled;
     }
+}
+
+function mobileCheck() {
+    return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 }
