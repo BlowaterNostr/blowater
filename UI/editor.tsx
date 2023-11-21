@@ -77,7 +77,7 @@ export class Editor extends Component<EditorProps> {
     }
 
     textareaElement = createRef();
-    
+
     render(props: EditorProps) {
         const uploadFileInput = createRef();
 
