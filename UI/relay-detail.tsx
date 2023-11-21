@@ -15,6 +15,7 @@ import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
 import { SelectConversation } from "./search_model.ts";
 import { emitFunc } from "../event-bus.ts";
+import { Loading } from "./components/loading.tsx";
 
 type Detail = {
     name?: string;
@@ -29,6 +30,7 @@ type Detail = {
 type State = {
     detail: Detail;
     error: string;
+    isLoading: boolean;
 };
 
 type Props = {
@@ -59,17 +61,33 @@ export class RelayDetail extends Component<Props, State> {
             version: undefined,
         },
         error: "",
+        isLoading: false,
     };
 
     async componentWillMount() {
+        this.setState({
+            isLoading: true,
+        });
+        const res = await this.fetchData();
+        if (res instanceof Error) {
+            this.setState({
+                isLoading: false,
+                error: res.message,
+            });
+        } else {
+            this.setState({
+                isLoading: false,
+                detail: res,
+            });
+        }
+    }
+
+    fetchData = async () => {
         const url = this.props.relayUrl;
-        const regex = /(^ws:\/\/|^wss:\/\/)(\S+\.\S+\.\S+)/gm;
+        const regex = /(^ws:\/\/|^wss:\/\/)([\S+\.]\S+\.\S+)/gm;
         const match = regex.exec(url);
         if (match?.length != 3) {
-            this.setState({
-                error: "Invalid URL.",
-            });
-            return;
+            return new Error("Invalid URL.");
         }
 
         const httpURL = `https://${match[2]}`;
@@ -79,24 +97,17 @@ export class RelayDetail extends Component<Props, State> {
             },
         });
         request.catch((_) => {
-            this.setState({
-                error: `Faild to get detail from relay: ${url}`,
-            });
+            return new Error(`Faild to get detail from relay: ${url}`);
         });
 
         const res = await request;
         if (!res.ok) {
-            this.setState({
-                error: `Faild to get detail from relay: ${httpURL}`,
-            });
-            return;
+            return new Error(`Faild to get detail from relay: ${httpURL}`);
         }
 
         const detail: Detail = await res.json();
-        this.setState({
-            detail: detail,
-        });
-    }
+        return detail;
+    };
 
     render() {
         const items: RelayDetailItem[] = [
@@ -134,20 +145,27 @@ export class RelayDetail extends Component<Props, State> {
             },
         ];
 
+        let vNode;
+        if (this.state.isLoading) {
+            vNode = <Loading />;
+        } else if (this.state.error) {
+            vNode = <p class={this.styles.title}>{this.state.error}</p>;
+        } else {
+            vNode = items.map((item) => {
+                if (item.field) {
+                    return (
+                        <Fragment>
+                            <p class={this.styles.title}>{item.title}</p>
+                            {item.field}
+                        </Fragment>
+                    );
+                }
+            });
+        }
+
         return (
             <div class={this.styles.container}>
-                {this.state.error
-                    ? <p class={this.styles.title}>{this.state.error}</p>
-                    : items.map((item) => {
-                        if (item.field) {
-                            return (
-                                <Fragment>
-                                    <p class={this.styles.title}>{item.title}</p>
-                                    {item.field}
-                                </Fragment>
-                            );
-                        }
-                    })}
+                {vNode}
             </div>
         );
     }
