@@ -29,6 +29,7 @@ import { CloseIcon } from "./icons/close-icon.tsx";
 import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
 import { NoteID } from "../lib/nostr-ts/nip19.ts";
 import { ChatMessagesGetter } from "./app_update.tsx";
+import { isMobile } from "./_helper.ts";
 
 export type RightPanelModel = {
     show: boolean;
@@ -327,7 +328,7 @@ function MessageBoxGroup(props: {
     rows.push(
         <li
             class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 mobile:pr-4 group relative ${
-                mobileCheck() ? "select-none" : ""
+                isMobile() ? "select-none" : ""
             }`}
         >
             {MessageActions(first_group, props.emit)}
@@ -375,7 +376,7 @@ function MessageBoxGroup(props: {
         rows.push(
             <li
                 class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-center pr-8 group relative text-sm ${
-                    mobileCheck() ? "select-none" : ""
+                    isMobile() ? "select-none" : ""
                 }`}
             >
                 {MessageActions(msg, props.emit)}
@@ -641,8 +642,4 @@ class JitterPrevention {
         const cancelled = await sleep(this.duration, p);
         return !cancelled;
     }
-}
-
-function mobileCheck() {
-    return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 }
