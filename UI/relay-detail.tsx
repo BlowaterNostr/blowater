@@ -88,16 +88,12 @@ export class RelayDetail extends Component<Props, State> {
     fetchData = async () => {
         const url = this.props.relayUrl;
         try {
-            const wsURL = new URL(this.props.relayUrl);
-
-            const httpURL = `https://${wsURL.host}${wsURL.pathname}`;
+            const httpURL = new URL(url);
+            httpURL.protocol = "https";
             const request = fetch(httpURL, {
                 headers: {
                     "Accept": "application/nostr+json",
                 },
-            });
-            request.catch((_) => {
-                return new Error(`Faild to get detail from relay: ${url}`);
             });
 
             const res = await request;
