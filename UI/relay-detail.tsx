@@ -97,7 +97,7 @@ export class RelayDetail extends Component<Props, State> {
             });
 
             if (!res.ok) {
-                return new Error(`Faild to get detail from relay: ${httpURL}`);
+                return new Error(`Faild to get detail, ${res.status}: ${res.body}`);
             }
 
             const detail: Detail = await res.json();
