@@ -183,9 +183,15 @@ export type ChatMessage = {
 };
 
 export function urlIsImage(url: string) {
-    const trimmed = url.trim();
+    const trimmed = url.trim().toLocaleLowerCase();
     const parts = trimmed.split(".");
     return ["png", "jpg", "jpeg", "gif", "webp"].includes(parts[parts.length - 1]);
+}
+
+export function urlIsVideo(url: string) {
+    const trimmed = url.trim().toLocaleLowerCase();
+    const parts = trimmed.split(".");
+    return ["mov", "mp4", "wmv", "flv", "avi", "webm", "mkv"].includes(parts[parts.length - 1]);
 }
 
 export function* groupContinuousMessages<T>(

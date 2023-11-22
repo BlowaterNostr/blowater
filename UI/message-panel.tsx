@@ -8,7 +8,14 @@ import { IconButtonClass } from "./components/tw.ts";
 import { Channel, sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { emitFunc } from "../event-bus.ts";
 
-import { ChatMessage, groupContinuousMessages, parseContent, sortMessage, urlIsImage } from "./message.ts";
+import {
+    ChatMessage,
+    groupContinuousMessages,
+    parseContent,
+    sortMessage,
+    urlIsImage,
+    urlIsVideo,
+} from "./message.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { Parsed_Event, PinConversation, UnpinConversation } from "../nostr.ts";
@@ -491,7 +498,7 @@ export function ParseMessageContent(
     profileGetter: ProfileGetter,
 ) {
     if (message.type == "image") {
-        return <img src={message.content} />;
+        return <img class={tw`w-96 p-1`} src={message.content} />;
     }
 
     let parsedContentItems;
@@ -514,7 +521,9 @@ export function ParseMessageContent(
             case "url":
                 {
                     if (urlIsImage(itemStr)) {
-                        vnode.push(<img src={itemStr} />);
+                        vnode.push(<img class={tw`w-96 p-1`} src={itemStr} />);
+                    } else if (urlIsVideo(itemStr)) {
+                        vnode.push(<video class={tw`w-96 p-1`} controls src={itemStr}></video>);
                     } else {
                         vnode.push(
                             <a target="_blank" class={tw`hover:underline text-[${LinkColor}]`} href={itemStr}>
