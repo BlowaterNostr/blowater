@@ -498,7 +498,7 @@ export function ParseMessageContent(
     profileGetter: ProfileGetter,
 ) {
     if (message.type == "image") {
-        return <img src={message.content} />;
+        return <img class={tw`w-96 p-1`} src={message.content} />;
     }
 
     let parsedContentItems;
@@ -521,9 +521,9 @@ export function ParseMessageContent(
             case "url":
                 {
                     if (urlIsImage(itemStr)) {
-                        vnode.push(<img src={itemStr} />);
+                        vnode.push(<img class={tw`w-96 p-1`} src={itemStr} />);
                     } else if (urlIsVideo(itemStr)) {
-                        vnode.push(<video width="400" controls src={itemStr}></video>);
+                        vnode.push(<video class={tw`w-96 p-1`} controls src={itemStr}></video>);
                     } else {
                         vnode.push(
                             <a target="_blank" class={tw`hover:underline text-[${LinkColor}]`} href={itemStr}>
