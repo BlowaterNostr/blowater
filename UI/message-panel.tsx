@@ -8,7 +8,14 @@ import { IconButtonClass } from "./components/tw.ts";
 import { Channel, sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { emitFunc } from "../event-bus.ts";
 
-import { ChatMessage, groupContinuousMessages, parseContent, sortMessage, urlIsImage, urlIsVideo } from "./message.ts";
+import {
+    ChatMessage,
+    groupContinuousMessages,
+    parseContent,
+    sortMessage,
+    urlIsImage,
+    urlIsVideo,
+} from "./message.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { Parsed_Event, PinConversation, UnpinConversation } from "../nostr.ts";
