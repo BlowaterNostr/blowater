@@ -13,7 +13,7 @@ Deno.test("DirectedMessageController", async () => {
         assertEquals(messages, []);
 
         // get an observable channel before adding events
-        const chan = dmController.getDirectMessageStream(ctx.publicKey.hex);
+        const chan = dmController.onChange();
         {
             // prepare events
             const events = [];
@@ -55,7 +55,6 @@ Deno.test("DirectedMessageController", async () => {
 
             // retrieve the 3rd event
             assertEquals((await chan.pop() as ChatMessage).content, "test:3");
-
         }
         await chan.close(); // not necessary
     }

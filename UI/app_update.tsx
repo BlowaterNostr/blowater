@@ -423,10 +423,6 @@ export async function* UI_Interaction_Update(args: {
     }
 }
 
-export type DirectMessageGetter = ChatMessagesGetter & {
-    getDirectMessageStream(publicKey: string): Channel<ChatMessage>;
-};
-
 export type ChatMessagesGetter = {
     getChatMessages(publicKey: string): ChatMessage[];
 };

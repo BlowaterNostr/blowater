@@ -4,11 +4,11 @@ import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
 import { compare, Encrypted_Event, getTags, Parsed_Event, prepareNostrImageEvent, Tag } from "../nostr.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { prepareEncryptedNostrEvent } from "../lib/nostr-ts/event.ts";
-import { DirectMessageGetter } from "../UI/app_update.tsx";
 import { ChatMessage, parseContent } from "../UI/message.ts";
 import { decodeInvitation, gmEventType } from "./gm.ts";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { NewMessageListener } from "../UI/message-panel.tsx";
+import { ChatMessagesGetter } from "../UI/app_update.tsx";
 
 export async function sendDMandImages(args: {
     sender: NostrAccountContext;
@@ -146,14 +146,15 @@ function merge<T>(...iters: AsyncIterable<T>[]) {
     return merged;
 }
 
-export class DirectedMessageController implements DirectMessageGetter, NewMessageListener {
+export class DirectedMessageController implements ChatMessagesGetter, NewMessageListener {
     constructor(
         public readonly ctx: NostrAccountContext,
     ) {}
 
     private readonly directed_messages = new Map<string, ChatMessage>();
+    private readonly new_event_chat = new Channel<NostrEvent<NostrKind.DIRECT_MESSAGE>>();
     private readonly new_message_chan = new Channel<ChatMessage>();
-    private readonly caster = new csp.Multicaster(this.new_message_chan);
+    private readonly caster = new csp.Multicaster<ChatMessage>(this.new_message_chan);
 
     // get the direct messages between me and this pubkey
     public getChatMessages(pubkey: string): ChatMessage[] {
@@ -164,24 +165,54 @@ export class DirectedMessageController implements DirectMessageGetter, NewMessag
             }
         }
         messages.sort((a, b) => compare(a.event, b.event));
-        return messages;
-    }
-
-    public getDirectMessageStream(pubkey: string): Channel<ChatMessage> {
-        const messages = new Channel<ChatMessage>();
         (async () => {
-            for await (const message of this.caster.copy()) {
-                if (is_DM_between(message.event, this.ctx.publicKey.hex, pubkey)) {
-                    const err = await messages.put(message);
-                    if (err instanceof csp.PutToClosedChannelError) {
-                        // the channel is closed by external code, most likely the caller
-                        return;
-                    }
+            for(;;) {
+                if(!this.new_event_chat.isReadyToPop()) {
+                    break;
                 }
+                const event = await this.new_event_chat.pop();
+                if(event == csp.closed) {
+                    break;
+                }
+                // await csp.sleep(500);
+                if(getTags(event).image) {
+                    continue;
+                }
+                const dmEvent = await parseDM(
+                    {
+                        ...event,
+                       kind: event.kind,
+                    },
+                    this.ctx,
+                );
+                if (dmEvent instanceof Error) {
+                    return dmEvent;
+                }
+                const isImage = dmEvent.parsedTags.image;
+                let chatMessage: ChatMessage;
+                if (isImage) {
+                    const imageBase64 = dmEvent.decryptedContent;
+                    chatMessage = {
+                        event: dmEvent,
+                        author: dmEvent.publicKey,
+                        content: imageBase64,
+                        type: "image",
+                        created_at: new Date(dmEvent.created_at * 1000),
+                        lamport: dmEvent.parsedTags.lamport_timestamp,
+                    };
+                } else {
+                    chatMessage = {
+                        event: dmEvent,
+                        author: dmEvent.publicKey,
+                        content: dmEvent.decryptedContent,
+                        type: "text",
+                        created_at: new Date(dmEvent.created_at * 1000),
+                        lamport: dmEvent.parsedTags.lamport_timestamp,
+                    };
+                }
+                this.directed_messages.set(event.id, chatMessage);
+                this.new_message_chan.put(chatMessage)
             }
-            // should never reach here, but doesn't matter
-            // because messages does not need to be closed
-            await messages.close();
         })();
         return messages;
     }
@@ -214,57 +245,10 @@ export class DirectedMessageController implements DirectMessageGetter, NewMessag
             }
             // else ignore
         } else {
-            let parsedTags;
-            if ("parsedTags" in event) {
-                parsedTags = event.parsedTags;
-            } else {
-                parsedTags = getTags(event);
-            }
-            let publicKey;
-            if ("publicKey" in event) {
-                publicKey = event.publicKey;
-            } else {
-                publicKey = PublicKey.FromHex(event.pubkey);
-                if (publicKey instanceof Error) {
-                    return publicKey;
-                }
-            }
-            const dmEvent = await parseDM(
-                {
-                    ...event,
-                    kind,
-                },
-                this.ctx,
-                parsedTags,
-                publicKey,
-            );
-            if (dmEvent instanceof Error) {
-                return dmEvent;
-            }
-            const isImage = dmEvent.parsedTags.image;
-            let chatMessage: ChatMessage;
-            if (isImage) {
-                const imageBase64 = dmEvent.decryptedContent;
-                chatMessage = {
-                    event: dmEvent,
-                    author: dmEvent.publicKey,
-                    content: imageBase64,
-                    type: "image",
-                    created_at: new Date(dmEvent.created_at * 1000),
-                    lamport: dmEvent.parsedTags.lamport_timestamp,
-                };
-            } else {
-                chatMessage = {
-                    event: dmEvent,
-                    author: dmEvent.publicKey,
-                    content: dmEvent.decryptedContent,
-                    type: "text",
-                    created_at: new Date(dmEvent.created_at * 1000),
-                    lamport: dmEvent.parsedTags.lamport_timestamp,
-                };
-            }
-            this.directed_messages.set(event.id, chatMessage);
-            /* do not await */ this.new_message_chan.put(chatMessage);
+            /* do not await */ this.new_event_chat.put({
+                ...event,
+                kind: kind,
+            });
         }
     }
 
@@ -284,10 +268,8 @@ function is_DM_between(event: NostrEvent, myPubkey: string, theirPubKey: string)
 }
 
 async function parseDM(
-    event: NostrEvent<NostrKind.DIRECT_MESSAGE>,
+    event: NostrEvent<NostrKind.DIRECT_MESSAGE> | Parsed_Event<NostrKind.DIRECT_MESSAGE>,
     ctx: NostrAccountContext,
-    parsedTags: Tags,
-    publicKey: PublicKey,
 ): Promise<Encrypted_Event | Error> {
     const theOther = whoIamTalkingTo(event, ctx.publicKey);
     if (theOther instanceof Error) {
@@ -296,6 +278,23 @@ async function parseDM(
     const decrypted = await ctx.decrypt(theOther, event.content);
     if (decrypted instanceof Error) {
         return decrypted;
+    }
+    //
+    let parsedTags;
+    if ("parsedTags" in event) {
+        parsedTags = event.parsedTags;
+    } else {
+        parsedTags = getTags(event);
+    }
+    //
+    let publicKey;
+    if ("publicKey" in event) {
+        publicKey = event.publicKey;
+    } else {
+        publicKey = PublicKey.FromHex(event.pubkey);
+        if (publicKey instanceof Error) {
+            return publicKey;
+        }
     }
     return {
         ...event,
