@@ -23,7 +23,13 @@ import { ProfileData, ProfileSyncer } from "../features/profile.ts";
 
 import { UserDetail } from "./user-detail.tsx";
 
-import { LinkColor, PrimaryTextColor } from "./style/colors.ts";
+import {
+    DividerBackgroundColor,
+    ErrorColor,
+    HintTextColor,
+    LinkColor,
+    PrimaryTextColor,
+} from "./style/colors.ts";
 import { EventSyncer } from "./event_syncer.ts";
 import { ButtonGroup } from "./components/button-group.tsx";
 import { ProfileCard } from "./profile-card.tsx";
@@ -37,6 +43,7 @@ import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
 import { NoteID } from "../lib/nostr-ts/nip19.ts";
 import { ChatMessagesGetter } from "./app_update.tsx";
 import { isMobile } from "./_helper.ts";
+import { RelayRecordGetter } from "../database.ts";
 
 export type RightPanelModel = {
     show: boolean;
@@ -92,6 +99,7 @@ interface DirectMessagePanelProps {
     profileGetter: ProfileGetter;
     newMessageListener: NewMessageListener;
     messageGetter: ChatMessagesGetter;
+    relayRecordGetter: RelayRecordGetter;
 }
 
 export type NewMessageListener = {
@@ -158,6 +166,7 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
                         profilesSyncer={props.profilesSyncer}
                         eventSyncer={props.eventSyncer}
                         profileGetter={props.profileGetter}
+                        relayRecordGetter={props.relayRecordGetter}
                     />
 
                     <Editor
@@ -205,6 +214,7 @@ interface MessageListProps {
     profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
     profileGetter: ProfileGetter;
+    relayRecordGetter: RelayRecordGetter;
 }
 
 interface MessageListState {
@@ -273,6 +283,7 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
                     eventSyncer: this.props.eventSyncer,
                     authorProfile: profileEvent ? profileEvent.profile : undefined,
                     profileGetter: this.props.profileGetter,
+                    relayRecordGetter: this.props.relayRecordGetter,
                 }),
             );
         }
@@ -325,6 +336,7 @@ function MessageBoxGroup(props: {
     profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
     profileGetter: ProfileGetter;
+    relayRecordGetter: RelayRecordGetter;
 }) {
     const messageGroups = props.messages.reverse();
     if (messageGroups.length == 0) {
@@ -382,7 +394,7 @@ function MessageBoxGroup(props: {
         const msg = messageGroups[i];
         rows.push(
             <li
-                class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-center pr-8 group relative text-sm ${
+                class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-center pr-8 mobile:pr-4 group relative text-sm ${
                     isMobile() ? "select-none" : ""
                 }`}
             >
@@ -498,7 +510,12 @@ export function ParseMessageContent(
     profileGetter: ProfileGetter,
 ) {
     if (message.type == "image") {
-        return <img class={tw`w-96 p-1`} src={message.content} />;
+        return (
+            <img
+                class={tw`w-96 p-1 rounded-lg border-2 border-[${DividerBackgroundColor}]`}
+                src={message.content}
+            />
+        );
     }
 
     let parsedContentItems;
@@ -521,9 +538,21 @@ export function ParseMessageContent(
             case "url":
                 {
                     if (urlIsImage(itemStr)) {
-                        vnode.push(<img class={tw`w-96 p-1`} src={itemStr} />);
+                        vnode.push(
+                            <img
+                                class={tw`w-96 p-1 rounded-lg border-2 border-[${DividerBackgroundColor}]`}
+                                src={itemStr}
+                            />,
+                        );
                     } else if (urlIsVideo(itemStr)) {
-                        vnode.push(<video class={tw`w-96 p-1`} controls src={itemStr}></video>);
+                        vnode.push(
+                            <video
+                                class={tw`w-96 p-1 rounded-lg border-2 border-[${DividerBackgroundColor}]`}
+                                controls
+                                src={itemStr}
+                            >
+                            </video>,
+                        );
                     } else {
                         vnode.push(
                             <a target="_blank" class={tw`hover:underline text-[${LinkColor}]`} href={itemStr}>
@@ -563,7 +592,7 @@ export function ParseMessageContent(
                         break;
                     }
                     const profile = profileGetter.getProfilesByPublicKey(event.publicKey);
-                    vnode.push(Card(event, profile?.profile, emit));
+                    vnode.push(Card(event, profile?.profile, emit, event.publicKey));
                 }
                 break;
             case "nevent": {
@@ -575,7 +604,7 @@ export function ParseMessageContent(
                     break;
                 }
                 const profile = profileGetter.getProfilesByPublicKey(event.publicKey);
-                vnode.push(Card(event, profile ? profile.profile : undefined, emit));
+                vnode.push(Card(event, profile ? profile.profile : undefined, emit, event.publicKey));
             }
             case "tag":
                 // todo
@@ -593,14 +622,30 @@ function Card(
     event: Parsed_Event,
     authorProfile: ProfileData | undefined,
     emit: emitFunc<ViewThread | ViewUserDetail | OpenNote>,
+    publicKey: PublicKey,
 ) {
     switch (event.kind) {
         case NostrKind.META_DATA:
             return <ProfileCard emit={emit} publicKey={event.publicKey} profileData={authorProfile} />;
         case NostrKind.TEXT_NOTE:
         case NostrKind.Long_Form:
-            return <NoteCard emit={emit} event={event} profileData={authorProfile} />;
+            return <NoteCard emit={emit} event={event} profileData={authorProfile} publicKey={publicKey} />;
     }
+}
+
+function ReSent() {
+    const styles = {
+        container: tw`flex items-center cursor-pointer`,
+        icon: tw`w-2 h-2 text-[${ErrorColor}] fill-current mr-2`,
+        text: tw`text-xs text-[${ErrorColor}]`,
+    };
+
+    return (
+        <div class={styles.container}>
+            <AboutIcon class={styles.icon} />
+            <p class={styles.text}>Failed to send message</p>
+        </div>
+    );
 }
 
 type RightPanelProps = {
