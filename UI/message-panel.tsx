@@ -343,7 +343,6 @@ function MessageBoxGroup(props: {
         return;
     }
     const first_group = messageGroups[0];
-    const firstGroupSent = props.relayRecordGetter.getRelayRecord(first_group.event.id);
     const rows = [];
     rows.push(
         <li
@@ -387,14 +386,12 @@ function MessageBoxGroup(props: {
                         props.profileGetter,
                         )}
                 </pre>
-                {firstGroupSent.size == 0 ? <ReSent /> : ""}
             </div>
         </li>,
     );
 
     for (let i = 1; i < messageGroups.length; i++) {
         const msg = messageGroups[i];
-        const sent = props.relayRecordGetter.getRelayRecord(msg.event.id);
         rows.push(
             <li
                 class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-center pr-8 mobile:pr-4 group relative text-sm ${
@@ -421,7 +418,6 @@ function MessageBoxGroup(props: {
                         props.profileGetter
                         )}
                     </pre>
-                    {sent.size == 0 ? <ReSent /> : ""}
                 </div>
             </li>,
         );
