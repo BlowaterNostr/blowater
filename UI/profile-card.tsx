@@ -1,5 +1,4 @@
 /** @jsx h */
-import { Component } from "https://esm.sh/preact@10.17.1";
 import { h } from "https://esm.sh/preact@10.17.1";
 import { tw } from "https://esm.sh/twind@0.16.16";
 import { emitFunc } from "../event-bus.ts";
@@ -8,7 +7,7 @@ import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { Avatar } from "./components/avatar.tsx";
 import { DividerClass } from "./components/tw.ts";
 import { ViewUserDetail } from "./message-panel.tsx";
-import { HoverButtonBackgroudColor, PrimaryTextColor } from "./style/colors.ts";
+import { cardBackgroundColor, HintLinkColor, HintTextColor, LinkColor } from "./style/colors.ts";
 
 export function ProfileCard(props: {
     profileData?: ProfileData;
@@ -18,14 +17,14 @@ export function ProfileCard(props: {
     const { profileData, publicKey, emit } = props;
     const styles = {
         container:
-            tw`px-4 py-2 my-1 text-[${PrimaryTextColor}] border-2 border-[${PrimaryTextColor}4D] rounded-lg hover:bg-[${HoverButtonBackgroudColor}] cursor-pointer py-1 bg-[#36393F] max-w-sm`,
+            tw`px-4 mb-1 mobile:px-2 py-1 text-[${HintTextColor}] hover:underline rounded bg-[${cardBackgroundColor}] border-l-2 border-[${HintLinkColor}] max-w-sm cursor-pointer gorup`,
         profile: {
-            container: tw`flex`,
-            avatar: tw`w-10 h-10`,
-            name: tw`text-[1.2rem] font-bold leading-10 truncate ml-2`,
+            container: tw`flex items-center`,
+            avatar: tw`w-8 h-8`,
+            name: tw`text-base font-bold truncate ml-2 text-[${LinkColor}]`,
         },
         divider: tw`${DividerClass} my-[0.5rem]`,
-        about: tw`text-[0.8rem]`,
+        about: tw`text-sm`,
     };
 
     const onClick = () =>

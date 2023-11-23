@@ -12,3 +12,4 @@ export const WarnColor = "#EAB308";
 export const ErrorColor = "#EF4444";
 export const TitleIconColor = "#FF772B";
 export const LinkColor = "#24ADEB";
+export const cardBackgroundColor = "#202225";

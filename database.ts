@@ -4,7 +4,6 @@ import { parseJSON, ProfileData } from "./features/profile.ts";
 import { NostrEvent, NostrKind, Tag, verifyEvent } from "./lib/nostr-ts/nostr.ts";
 import { PublicKey } from "./lib/nostr-ts/key.ts";
 import { ProfileController } from "./UI/search.tsx";
-import { RelayRecord } from "./UI/dexie-db.ts";
 
 const buffer_size = 2000;
 export interface Indices {
@@ -57,7 +56,11 @@ export type EventsAdapter =
     & EventGetter
     & EventPutter;
 
-export class Datebase_View implements ProfileController, EventGetter, EventRemover {
+export interface RelayRecordGetter {
+    getRelayRecord: (eventID: string) => Set<string>;
+}
+
+export class Datebase_View implements ProfileController, EventGetter, EventRemover, RelayRecordGetter {
     public readonly sourceOfChange = csp.chan<Parsed_Event>(buffer_size);
     private readonly caster = csp.multi<Parsed_Event>(this.sourceOfChange);
     private readonly profiles = new Map<string, Profile_Nostr_Event>();

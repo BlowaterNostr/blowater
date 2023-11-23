@@ -22,6 +22,7 @@ import { InviteButton } from "./invite-button.tsx";
 import { IS_BETA_VERSION } from "./config.js";
 import { UserIcon } from "./icons/user-icon.tsx";
 import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
+import { RelayRecordGetter } from "../database.ts";
 
 export type DM_Model = {
     currentEditor: EditorModel | undefined;
@@ -44,6 +45,7 @@ type DirectMessageContainerProps = {
     pinListGetter: cl.PinListGetter;
     conversationLists: cl.ConversationListRetriever;
     newMessageChecker: cl.NewMessageChecker;
+    relayRecordGetter: RelayRecordGetter;
 } & DM_Model;
 
 export type StartInvite = {
@@ -173,6 +175,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                                         profileGetter={props.profileGetter}
                                         editorModel={props.currentEditor}
                                         messageGetter={props.messageGetter}
+                                        relayRecordGetter={props.relayRecordGetter}
                                     />
                                 )
                                 : undefined}
