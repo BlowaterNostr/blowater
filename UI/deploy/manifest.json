@@ -1,4 +1,6 @@
 {
+    "manifest_version": 3,
+    "version": "1.0",
     "id": "Blowater2.0",
     "name": "Blowater",
     "short_name": "Blowater",

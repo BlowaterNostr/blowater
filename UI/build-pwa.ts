@@ -28,3 +28,4 @@ await Deno.copyFile("./deploy/logo-white.png", `./${folderName}/logo-white.png`)
 await Deno.copyFile("./deploy/logo.ico", `./${folderName}/logo.ico`);
 await Deno.copyFile("./deploy/logo.png", `./${folderName}/logo.png`);
 await Deno.copyFile("./deploy/manifest.json", `./${folderName}/manifest.json`);
+await Deno.copyFile("./deploy/sw.js", `./${folderName}/sw.js`);
