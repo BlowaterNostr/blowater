@@ -20,7 +20,7 @@ type RelayURL = string;
 
 export type Tag = nostr.Tag | TagImage | TagClient | TagLamportTimestamp | TagReply;
 
-type Tags = {
+export type Tags = {
     image?: [GroupLeadEventID, TotolChunks, ChunkIndex];
     lamport_timestamp?: number;
     reply?: [nostr.EventID, RelayURL, "reply"];
