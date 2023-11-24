@@ -40,7 +40,7 @@ type State = {
     activeIndex: number;
 };
 
-type NavTabID = "DM" | "Profile" | "About" | "AppList" | "Setting";
+type NavTabID = "DM" | "Profile" | "About" | "Setting";
 type NavTab = {
     icon: (active: boolean) => ComponentChild;
     id: NavTabID;
@@ -77,10 +77,6 @@ export class NavBar extends Component<Props, State> {
         {
             icon: (active: boolean) => <AboutIcon class={this.styles.icons(active, true)} />,
             id: "About",
-        },
-        {
-            icon: (active: boolean) => <AppListIcon class={this.styles.icons(active, true)} />,
-            id: "AppList",
         },
         {
             icon: (active: boolean) => <SettingIcon class={this.styles.icons(active)} />,
