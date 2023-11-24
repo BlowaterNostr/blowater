@@ -3,7 +3,7 @@ import { ConnectionPool, RelayAdder, RelayGetter, RelayRemover } from "../lib/no
 import { parseJSON } from "../features/profile.ts";
 import { SingleRelayConnection } from "../lib/nostr-ts/relay-single.ts";
 import { RelayConfigChange } from "./setting.tsx";
-import { blowater } from "../lib/nostr-ts/relay-list.test.ts";
+import { blowater, damus } from "../lib/nostr-ts/relay-list.test.ts";
 
 export const defaultRelays = [
     "wss://relay.blowater.app",
@@ -30,6 +30,11 @@ export class RelayConfig {
     static Default(args: { ctx: NostrAccountContext; relayPool: RelayAdder & RelayRemover & RelayGetter }) {
         const config = new RelayConfig(args);
         config.add(blowater).then((res) => {
+            if (res instanceof Error) {
+                console.error(res);
+            }
+        });
+        config.add(damus).then((res) => {
             if (res instanceof Error) {
                 console.error(res);
             }
