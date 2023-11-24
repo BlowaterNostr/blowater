@@ -342,7 +342,7 @@ export function whoIamTalkingTo(event: NostrEvent, myPublicKey: PublicKey) {
             const receiverPubkey = tags[0];
             if (receiverPubkey !== myPublicKey.hex) {
                 return Error(
-                    `Not my message, receiver is ${receiverPubkey}, sender is ${event.pubkey}, my key is ${myPublicKey}`,
+                    `Not my message, receiver is ${receiverPubkey}, sender is ${event.pubkey}, my key is ${myPublicKey.bech32()}`,
                 );
             }
         } else if (tags.length === 0) {

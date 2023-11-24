@@ -10,7 +10,7 @@ Deno.test("relay config", async () => {
 
     // load one instance
     {
-        const config = RelayConfig.Empty({
+        const config = RelayConfig.Default({
             ctx,
             relayPool: pool,
         });

@@ -16,7 +16,7 @@ import { Component } from "https://esm.sh/preact@10.17.1";
 import { ProfileGetter } from "./search.tsx";
 import { ProfileData } from "../features/profile.ts";
 import { AboutIcon } from "./icons/about-icon.tsx";
-import { AppListIcon } from "./icons/app-list-icon.tsx";
+
 import { CenterClass, NoOutlineClass } from "./components/tw.ts";
 import { emitFunc } from "../event-bus.ts";
 
