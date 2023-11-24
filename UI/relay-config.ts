@@ -99,11 +99,11 @@ export class RelayConfig {
 
     async add(url: string): Promise<Error | SingleRelayConnection> {
         console.log(RelayConfig.name, ":: add relay config", url);
+        this.config.add(url);
         const relay = await this.relayPool.addRelayURL(url);
         if (relay instanceof Error) {
             return relay;
         }
-        this.config.add(relay.url);
         this.saveToLocalStorage();
         return relay;
     }

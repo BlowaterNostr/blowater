@@ -1,7 +1,7 @@
-import { assertEquals, fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
+import { assertEquals, assertInstanceOf, fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { InMemoryAccountContext } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
-import { RelayConfig } from "./relay-config.ts";
+import { RelayConfig, RemoveBlowaterRelay } from "./relay-config.ts";
 import { blowater, damus } from "../lib/nostr-ts/relay-list.test.ts";
 
 Deno.test("relay config", async () => {
@@ -17,12 +17,12 @@ Deno.test("relay config", async () => {
 
         // new
         const urls = config.getRelayURLs();
-        assertEquals(urls, new Set());
+        assertEquals(urls, new Set([blowater, damus])); // defaults
 
         // add
         const err = await config.add(blowater);
         if (err instanceof Error) fail(err.message);
-        assertEquals(config.getRelayURLs(), new Set([blowater]));
+        assertEquals(config.getRelayURLs(), new Set([blowater, damus]));
 
         // add
         {
@@ -33,7 +33,7 @@ Deno.test("relay config", async () => {
 
         // remove
         const ok = await config.remove(blowater);
-        assertEquals(ok, true);
+        assertInstanceOf(ok, RemoveBlowaterRelay);
 
         // save
         config.saveToLocalStorage();
@@ -45,7 +45,7 @@ Deno.test("relay config", async () => {
             ctx,
             relayPool: pool,
         });
-        assertEquals(config.getRelayURLs(), new Set([damus]));
+        assertEquals(config.getRelayURLs(), new Set([damus, blowater]));
     }
     await pool.close();
 });
