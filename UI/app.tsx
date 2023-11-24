@@ -352,17 +352,6 @@ export function AppComponent(props: {
     const app = model.app;
     const myAccountCtx = model.app.ctx;
 
-    let appList;
-    if (model.navigationModel.activeNav == "AppList") {
-        appList = (
-            <div
-                class={tw`flex-1 overflow-hidden overflow-y-auto bg-[${SecondaryBackgroundColor}]`}
-            >
-                <AppList />
-            </div>
-        );
-    }
-
     let dmVNode;
     let aboutNode;
     if (
@@ -443,7 +432,6 @@ export function AppComponent(props: {
                         relayPool: props.pool,
                         emit: props.eventBus.emit,
                     })}
-                    {appList}
                     <Popover
                         inputChan={props.popOverInputChan}
                     />
