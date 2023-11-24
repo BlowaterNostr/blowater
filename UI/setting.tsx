@@ -24,10 +24,11 @@ import {
 } from "./style/colors.ts";
 import { RelayIcon } from "./icons/relay-icon.tsx";
 import { DeleteIcon } from "./icons/delete-icon.tsx";
-import { RelayConfig } from "./relay-config.ts";
+import { RelayConfig, RemoveBlowaterRelay } from "./relay-config.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
 import { emitFunc } from "../event-bus.ts";
 import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { blowater } from "../lib/nostr-ts/relay-list.test.ts";
 
 export interface SettingProps {
     logout: () => void;
@@ -122,7 +123,7 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
 
     async componentDidMount() {
         while (this.exit == false) {
-            await sleep(1000);
+            await sleep(333);
             const status = this.computeRelayStatus(this.props);
             this.setState({
                 relayStatus: status,
@@ -235,30 +236,38 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
                                     </span>
                                     <span class={tw`truncate`}>{r.url}</span>
                                 </div>
-
-                                <button
-                                    class={tw`w-[2rem] h-[2rem] rounded-lg bg-transparent hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
-                                    onClick={async (e) => {
-                                        e.stopPropagation();
-                                        const p = props.relayConfig.remove(r.url);
-                                        this.setState({
-                                            relayStatus: this.computeRelayStatus(props),
-                                        });
-                                        await p;
-                                        props.emit({
-                                            type: "RelayConfigChange",
-                                            kind: "remove",
-                                            url: r.url,
-                                        });
-                                    }}
-                                >
-                                    <DeleteIcon
-                                        class={tw`w-[1rem] h-[1rem]`}
-                                        style={{
-                                            stroke: ErrorColor,
-                                        }}
-                                    />
-                                </button>
+                                {r.url != blowater
+                                    ? (
+                                        <button
+                                            class={tw`w-[2rem] h-[2rem] rounded-lg bg-transparent hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
+                                            onClick={async (e) => {
+                                                e.stopPropagation();
+                                                const p = props.relayConfig.remove(r.url);
+                                                this.setState({
+                                                    relayStatus: this.computeRelayStatus(props),
+                                                });
+                                                props.emit({
+                                                    type: "RelayConfigChange",
+                                                    kind: "remove",
+                                                    url: r.url,
+                                                });
+                                                const err = await p;
+                                                if (err instanceof RemoveBlowaterRelay) {
+                                                    this.setState({
+                                                        error: "blowater relay is not allowed to be removed",
+                                                    });
+                                                }
+                                            }}
+                                        >
+                                            <DeleteIcon
+                                                class={tw`w-[1rem] h-[1rem]`}
+                                                style={{
+                                                    stroke: ErrorColor,
+                                                }}
+                                            />
+                                        </button>
+                                    )
+                                    : undefined}
                             </li>
                         );
                     })}

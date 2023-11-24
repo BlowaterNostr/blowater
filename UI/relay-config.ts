@@ -3,6 +3,7 @@ import { ConnectionPool, RelayAdder, RelayGetter, RelayRemover } from "../lib/no
 import { parseJSON } from "../features/profile.ts";
 import { SingleRelayConnection } from "../lib/nostr-ts/relay-single.ts";
 import { RelayConfigChange } from "./setting.tsx";
+import { blowater, damus } from "../lib/nostr-ts/relay-list.test.ts";
 
 export const defaultRelays = [
     "wss://relay.blowater.app",
@@ -26,8 +27,19 @@ export class RelayConfig {
         this.relayPool = args.relayPool;
     }
 
-    static Empty(args: { ctx: NostrAccountContext; relayPool: RelayAdder & RelayRemover & RelayGetter }) {
-        return new RelayConfig(args);
+    static Default(args: { ctx: NostrAccountContext; relayPool: RelayAdder & RelayRemover & RelayGetter }) {
+        const config = new RelayConfig(args);
+        config.add(blowater).then((res) => {
+            if (res instanceof Error) {
+                console.error(res);
+            }
+        });
+        config.add(damus).then((res) => {
+            if (res instanceof Error) {
+                console.error(res);
+            }
+        });
+        return config;
     }
 
     // The the relay config of this account from local storage
@@ -37,7 +49,7 @@ export class RelayConfig {
     }) {
         const encodedConfigStr = localStorage.getItem(this.localStorageKey(args.ctx));
         if (encodedConfigStr == null) {
-            return RelayConfig.Empty(args);
+            return RelayConfig.Default(args);
         }
         let relayArray = parseJSON<string[]>(encodedConfigStr);
         if (relayArray instanceof Error) {
@@ -87,16 +99,19 @@ export class RelayConfig {
 
     async add(url: string): Promise<Error | SingleRelayConnection> {
         console.log(RelayConfig.name, ":: add relay config", url);
+        this.config.add(url);
         const relay = await this.relayPool.addRelayURL(url);
         if (relay instanceof Error) {
             return relay;
         }
-        this.config.add(relay.url);
         this.saveToLocalStorage();
         return relay;
     }
 
     async remove(url: string) {
+        if (url == blowater) {
+            return new RemoveBlowaterRelay();
+        }
         await this.relayPool.removeRelay(url);
         const ok = this.config.delete(url);
         this.saveToLocalStorage();
@@ -109,3 +124,5 @@ export function applyPoolToRelayConfig(pool: ConnectionPool, relayConfig: RelayC
         relayConfig.add(relay.url);
     }
 }
+
+export class RemoveBlowaterRelay extends Error {}
