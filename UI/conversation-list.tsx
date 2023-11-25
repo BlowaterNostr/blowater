@@ -213,7 +213,7 @@ export class ConversationList extends Component<Props, State> {
 }
 
 export interface PinListGetter {
-    getPinList(): Set<string>;
+    getPinList(): Set<string>; // get a set of npubs that are pinned
 }
 
 type ConversationListProps = {

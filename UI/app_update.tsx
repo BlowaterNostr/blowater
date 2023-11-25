@@ -80,6 +80,7 @@ export async function* UI_Interaction_Update(args: {
     dbView: Datebase_View;
     pool: ConnectionPool;
     popOver: PopOverInputChannel;
+    newNostrEventChannel: Channel<NostrEvent>;
 }) {
     const { model, dbView, eventBus, pool } = args;
     const events = eventBus.onChange();
@@ -90,7 +91,7 @@ export async function* UI_Interaction_Update(args: {
                 const ctx = event.ctx;
                 if (ctx) {
                     console.log("sign in as", ctx.publicKey.bech32());
-                    const otherConfig = await OtherConfig.FromLocalStorage(ctx);
+                    const otherConfig = await OtherConfig.FromLocalStorage(ctx, args.newNostrEventChannel);
                     const app = await App.Start({
                         database: dbView,
                         model,
@@ -158,27 +159,15 @@ export async function* UI_Interaction_Update(args: {
         } else if (event.type == "BackToContactList") {
             model.dm.currentEditor = undefined;
         } else if (event.type == "PinConversation") {
-            app.otherConfig.addPin(event.pubkey);
-            let err = await app.otherConfig.saveToLocalStorage(app.ctx);
-            if (err instanceof Error) {
-                console.error(err);
-                continue;
-            }
-            err = await app.otherConfig.saveToRelay(pool, app.ctx);
-            if (err instanceof Error) {
-                console.error(err);
+            const err1 = await app.otherConfig.addPin(event.pubkey);
+            if (err1 instanceof Error) {
+                console.error(err1);
                 continue;
             }
         } else if (event.type == "UnpinConversation") {
-            app.otherConfig.removePin(event.pubkey);
-            let err = await app.otherConfig.saveToLocalStorage(app.ctx);
-            if (err instanceof Error) {
-                console.error(err);
-                continue;
-            }
-            err = await app.otherConfig.saveToRelay(pool, app.ctx);
-            if (err instanceof Error) {
-                console.error(err);
+            const err1 = await app.otherConfig.removePin(event.pubkey);
+            if (err1 instanceof Error) {
+                console.error(err1);
                 continue;
             }
         } //
@@ -463,6 +452,9 @@ export async function* Database_Update(
     groupController: GroupMessageController,
     dmController: DirectedMessageController,
     emit: emitFunc<SelectConversation>,
+    args: {
+        otherConfig: OtherConfig;
+    },
 ) {
     const changes = database.subscribe();
     while (true) {
@@ -552,6 +544,12 @@ export async function* Database_Update(
                         console.error(err);
                         await database.remove(e.id);
                     }
+                }
+            } else if (e.kind == NostrKind.Custom_App_Data) {
+                console.log(e);
+                const err = await args.otherConfig.addEvent(e);
+                if (err instanceof Error) {
+                    console.error(err);
                 }
             }
 
