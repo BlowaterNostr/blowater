@@ -39,12 +39,13 @@ export async function Start(database: DexieDatabase) {
     const pool = new ConnectionPool();
     const popOverInputChan: PopOverInputChannel = new Channel();
     const dbView = await Datebase_View.New(database, database, database);
+    const newNostrEventChannel = new Channel<NostrEvent>();
 
     const ctx = await getCurrentSignInCtx();
     if (ctx instanceof Error) {
         console.error(ctx);
     } else if (ctx) {
-        const otherConfig = await OtherConfig.FromLocalStorage(ctx);
+        const otherConfig = await OtherConfig.FromLocalStorage(ctx, newNostrEventChannel);
         const app = await App.Start({
             database: dbView,
             model,
@@ -74,6 +75,7 @@ export async function Start(database: DexieDatabase) {
             dbView: dbView,
             pool,
             popOver: popOverInputChan,
+            newNostrEventChannel: newNostrEventChannel,
         })
     ) {
         const t = Date.now();

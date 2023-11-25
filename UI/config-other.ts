@@ -3,39 +3,45 @@ import { NostrAccountContext, NostrEvent, NostrKind, verifyEvent } from "../lib/
 import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
 import { PinListGetter } from "./conversation-list.tsx";
 import { parseJSON } from "../features/profile.ts";
+import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 
 export class OtherConfig implements PinListGetter {
-    static Empty() {
-        return new OtherConfig();
+    static Empty(nostrEventPusher: Channel<NostrEvent>) {
+        return new OtherConfig(nostrEventPusher);
     }
 
-    static async FromLocalStorage(ctx: NostrAccountContext) {
+    static async FromLocalStorage(ctx: NostrAccountContext, eventPusher: Channel<NostrEvent>) {
         const item = localStorage.getItem(`${OtherConfig.name}:${ctx.publicKey.bech32()}`);
         if (item == null) {
-            return OtherConfig.Empty();
+            return OtherConfig.Empty(eventPusher);
         }
         const event = parseJSON<NostrEvent>(item);
         if (event instanceof Error) {
             console.error(event);
-            return OtherConfig.Empty();
+            return OtherConfig.Empty(eventPusher);
         }
         const ok = await verifyEvent(event);
         if (!ok) {
-            return OtherConfig.Empty();
+            return OtherConfig.Empty(eventPusher);
         }
         if (event.kind == NostrKind.Custom_App_Data) {
             const config = await OtherConfig.FromNostrEvent(
                 // @ts-ignore
                 event,
                 ctx,
+                eventPusher,
             );
             if (config instanceof Error) {
-                return OtherConfig.Empty();
+                return OtherConfig.Empty(eventPusher);
             }
             return config;
         }
-        return OtherConfig.Empty();
+        return OtherConfig.Empty(eventPusher);
     }
+
+    private constructor(
+        private readonly nostrEventPusher: Channel<NostrEvent>,
+    ) {}
 
     private pinList = new Set<string>(); // set of pubkeys in npub format
 
@@ -51,7 +57,11 @@ export class OtherConfig implements PinListGetter {
         this.pinList.delete(pubkey);
     }
 
-    static async FromNostrEvent(event: NostrEvent<NostrKind.Custom_App_Data>, ctx: NostrAccountContext) {
+    static async FromNostrEvent(
+        event: NostrEvent<NostrKind.Custom_App_Data>,
+        ctx: NostrAccountContext,
+        pusher: Channel<NostrEvent>,
+    ) {
         const decrypted = await ctx.decrypt(ctx.publicKey.hex, event.content);
         if (decrypted instanceof Error) {
             return decrypted;
@@ -70,7 +80,7 @@ export class OtherConfig implements PinListGetter {
         }
 
         // pinList.fromHex(decrypted);
-        const c = new OtherConfig();
+        const c = new OtherConfig(pusher);
         // c.pinList.merge(pinList);
         for (const pin of pinList) {
             c.addPin(pin);

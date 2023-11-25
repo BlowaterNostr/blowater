@@ -1,9 +1,7 @@
 import { Datebase_View, EventMark, EventMarker, EventsAdapter, Indices, RelayRecorder } from "../database.ts";
 import { EventBus } from "../event-bus.ts";
 import { NostrEvent } from "../lib/nostr-ts/nostr.ts";
-import { relays } from "../lib/nostr-ts/relay-list.test.ts";
 import { UI_Interaction_Event } from "./app_update.tsx";
-import { RelayRecord } from "./dexie-db.ts";
 
 export const testEventBus = new EventBus<UI_Interaction_Event>();
 

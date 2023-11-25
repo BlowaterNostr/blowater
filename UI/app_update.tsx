@@ -80,6 +80,7 @@ export async function* UI_Interaction_Update(args: {
     dbView: Datebase_View;
     pool: ConnectionPool;
     popOver: PopOverInputChannel;
+    newNostrEventChannel: Channel<NostrEvent>;
 }) {
     const { model, dbView, eventBus, pool } = args;
     const events = eventBus.onChange();
@@ -90,7 +91,7 @@ export async function* UI_Interaction_Update(args: {
                 const ctx = event.ctx;
                 if (ctx) {
                     console.log("sign in as", ctx.publicKey.bech32());
-                    const otherConfig = await OtherConfig.FromLocalStorage(ctx);
+                    const otherConfig = await OtherConfig.FromLocalStorage(ctx, args.newNostrEventChannel);
                     const app = await App.Start({
                         database: dbView,
                         model,
