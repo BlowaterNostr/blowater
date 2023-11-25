@@ -13,21 +13,20 @@ export const defaultRelays = [
 ];
 
 export class RelayConfig {
-    private config = new Set<string>();
     private readonly ctx: NostrAccountContext;
-    private readonly relayPool: RelayAdder & RelayRemover & RelayGetter;
+    private readonly relayPool: ConnectionPool;
 
     private constructor(
         args: {
             ctx: NostrAccountContext;
-            relayPool: RelayAdder & RelayRemover & RelayGetter;
+            relayPool: ConnectionPool;
         },
     ) {
         this.ctx = args.ctx;
         this.relayPool = args.relayPool;
     }
 
-    static Default(args: { ctx: NostrAccountContext; relayPool: RelayAdder & RelayRemover & RelayGetter }) {
+    static Default(args: { ctx: NostrAccountContext; relayPool: ConnectionPool }) {
         const config = new RelayConfig(args);
         config.add(blowater).then((res) => {
             if (res instanceof Error) {
@@ -45,7 +44,7 @@ export class RelayConfig {
     // The the relay config of this account from local storage
     static async FromLocalStorage(args: {
         ctx: NostrAccountContext;
-        relayPool: RelayAdder & RelayRemover & RelayGetter;
+        relayPool: ConnectionPool;
     }) {
         const encodedConfigStr = localStorage.getItem(this.localStorageKey(args.ctx));
         if (encodedConfigStr == null) {
@@ -81,25 +80,22 @@ export class RelayConfig {
         if (configChange.type != "RelayConfigChange") {
             return; // ignore
         }
-        if (configChange.kind == "add") {
-            this.config.add(configChange.url);
-        } else {
-            this.config.delete(configChange.url);
-        }
     }
 
     getRelayURLs() {
-        return this.config;
+        return new Set(Array.from(this.relayPool.getRelays()).map((r) => r.url));
     }
 
     saveToLocalStorage() {
         console.log(RelayConfig.name, ":: saveToLocalStorage");
-        localStorage.setItem(RelayConfig.localStorageKey(this.ctx), JSON.stringify(Array.from(this.config)));
+        localStorage.setItem(
+            RelayConfig.localStorageKey(this.ctx),
+            JSON.stringify(Array.from(this.relayPool.getRelays()).map((r) => r.url)),
+        );
     }
 
     async add(url: string): Promise<Error | SingleRelayConnection> {
         console.log(RelayConfig.name, ":: add relay config", url);
-        this.config.add(url);
         const relay = await this.relayPool.addRelayURL(url);
         if (relay instanceof Error) {
             return relay;
@@ -113,9 +109,7 @@ export class RelayConfig {
             return new RemoveBlowaterRelay();
         }
         await this.relayPool.removeRelay(url);
-        const ok = this.config.delete(url);
         this.saveToLocalStorage();
-        return ok;
     }
 }
 
