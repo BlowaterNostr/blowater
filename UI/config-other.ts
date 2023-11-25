@@ -5,7 +5,11 @@ import { PinListGetter } from "./conversation-list.tsx";
 import { parseJSON } from "../features/profile.ts";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 
-export class OtherConfig implements PinListGetter {
+export type NostrEventAdder = {
+    addEvent(event: NostrEvent): Promise<void>;
+};
+
+export class OtherConfig implements PinListGetter, NostrEventAdder {
     static Empty(nostrEventPusher: Channel<NostrEvent>) {
         return new OtherConfig(nostrEventPusher);
     }
@@ -50,19 +54,19 @@ export class OtherConfig implements PinListGetter {
     }
 
     async addPin(pubkey: string, ctx: NostrAccountContext) {
-        if(this.pinList.has(pubkey)) {
+        if (this.pinList.has(pubkey)) {
             return;
         }
         this.pinList.add(pubkey);
         const event = await prepareEncryptedNostrEvent(ctx, {
             content: "",
             encryptKey: ctx.publicKey,
-            kind: NostrKind.Custom_App_Data
-        })
-        if(event instanceof Error) {
+            kind: NostrKind.Custom_App_Data,
+        });
+        if (event instanceof Error) {
             return event;
         }
-        /* no await */ this.nostrEventPusher.put(event)
+        /* no await */ this.nostrEventPusher.put(event);
     }
 
     removePin(pubkey: string) {
@@ -94,7 +98,7 @@ export class OtherConfig implements PinListGetter {
         const c = new OtherConfig(pusher);
         for (const pin of pinList) {
             const err = await c.addPin(pin, ctx);
-            if(err instanceof Error) {
+            if (err instanceof Error) {
                 return err;
             }
         }
@@ -128,6 +132,9 @@ export class OtherConfig implements PinListGetter {
             return event;
         }
         localStorage.setItem(`${OtherConfig.name}:${ctx.publicKey.bech32()}`, JSON.stringify(event));
+    }
+
+    async addEvent(event: NostrEvent) {
     }
 }
 
