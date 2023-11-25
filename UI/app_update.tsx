@@ -159,25 +159,19 @@ export async function* UI_Interaction_Update(args: {
         } else if (event.type == "BackToContactList") {
             model.dm.currentEditor = undefined;
         } else if (event.type == "PinConversation") {
-            app.otherConfig.addPin(event.pubkey, app.ctx);
-            let err = await app.otherConfig.saveToLocalStorage(app.ctx);
-            if (err instanceof Error) {
-                console.error(err);
+            const err1 = await app.otherConfig.addPin(event.pubkey);
+            if (err1 instanceof Error) {
+                console.error(err1);
                 continue;
             }
-            err = await app.otherConfig.saveToRelay(pool, app.ctx);
-            if (err instanceof Error) {
-                console.error(err);
+            const err2 = await app.otherConfig.saveToLocalStorage(app.ctx);
+            if (err2 instanceof Error) {
+                console.error(err2);
                 continue;
             }
         } else if (event.type == "UnpinConversation") {
             app.otherConfig.removePin(event.pubkey);
             let err = await app.otherConfig.saveToLocalStorage(app.ctx);
-            if (err instanceof Error) {
-                console.error(err);
-                continue;
-            }
-            err = await app.otherConfig.saveToRelay(pool, app.ctx);
             if (err instanceof Error) {
                 console.error(err);
                 continue;
