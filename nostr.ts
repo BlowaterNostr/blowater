@@ -58,9 +58,21 @@ export type PinConversation = {
     pubkey: string;
 };
 
+export type PinConversationRelay = {
+    type: "PinConversation";
+    pubkey: string;
+    lamport: number;
+};
+
 export type UnpinConversation = {
     type: "UnpinConversation";
     pubkey: string;
+};
+
+export type UnpinConversationRelay = {
+    type: "UnpinConversation";
+    pubkey: string;
+    lamport: number;
 };
 
 export type UserLogin = {
