@@ -8,10 +8,10 @@ Deno.test("Pin List", async () => {
     const pusher = new Channel<NostrEvent>();
     const config = OtherConfig.Empty(pusher);
 
-    config.addPin("a");
+    await config.addPin("a", ctx);
     assertEquals(config.getPinList(), new Set(["a"]));
 
-    config.addPin("b");
+    await config.addPin("b", ctx);
     assertEquals(config.getPinList(), new Set(["a", "b"]));
 
     const err = await config.saveToLocalStorage(ctx);
@@ -20,4 +20,7 @@ Deno.test("Pin List", async () => {
     const config2 = await OtherConfig.FromLocalStorage(ctx, pusher);
     assertEquals(config2.getPinList(), new Set(["a", "b"]));
     assertEquals(config2.getPinList(), config.getPinList());
+
+    await pusher.pop()
+    await pusher.pop()
 });

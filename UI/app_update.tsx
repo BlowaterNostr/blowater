@@ -159,7 +159,7 @@ export async function* UI_Interaction_Update(args: {
         } else if (event.type == "BackToContactList") {
             model.dm.currentEditor = undefined;
         } else if (event.type == "PinConversation") {
-            app.otherConfig.addPin(event.pubkey);
+            app.otherConfig.addPin(event.pubkey, app.ctx);
             let err = await app.otherConfig.saveToLocalStorage(app.ctx);
             if (err instanceof Error) {
                 console.error(err);

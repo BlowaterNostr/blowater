@@ -49,8 +49,20 @@ export class OtherConfig implements PinListGetter {
         return this.pinList;
     }
 
-    addPin(pubkey: string) {
+    async addPin(pubkey: string, ctx: NostrAccountContext) {
+        if(this.pinList.has(pubkey)) {
+            return;
+        }
         this.pinList.add(pubkey);
+        const event = await prepareEncryptedNostrEvent(ctx, {
+            content: "",
+            encryptKey: ctx.publicKey,
+            kind: NostrKind.Custom_App_Data
+        })
+        if(event instanceof Error) {
+            return event;
+        }
+        /* no await */ this.nostrEventPusher.put(event)
     }
 
     removePin(pubkey: string) {
@@ -79,11 +91,12 @@ export class OtherConfig implements PinListGetter {
             pinList = [];
         }
 
-        // pinList.fromHex(decrypted);
         const c = new OtherConfig(pusher);
-        // c.pinList.merge(pinList);
         for (const pin of pinList) {
-            c.addPin(pin);
+            const err = await c.addPin(pin, ctx);
+            if(err instanceof Error) {
+                return err;
+            }
         }
         return c;
     }
