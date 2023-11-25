@@ -15,9 +15,6 @@ Deno.test("Pin List", async () => {
     await config.addPin("b");
     assertEquals(config.getPinList(), new Set(["a", "b"]));
 
-    const err = await config.saveToLocalStorage(ctx);
-    if (err instanceof Error) fail(err.message);
-
     // able to restore the config from local storage
     const config2 = await OtherConfig.FromLocalStorage(ctx, _);
     assertEquals(config2.getPinList(), new Set(["a", "b"]));

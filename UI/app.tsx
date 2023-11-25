@@ -40,6 +40,14 @@ export async function Start(database: DexieDatabase) {
     const popOverInputChan: PopOverInputChannel = new Channel();
     const dbView = await Datebase_View.New(database, database, database);
     const newNostrEventChannel = new Channel<NostrEvent>();
+    (async () => {
+        for await (const event of newNostrEventChannel) {
+            const err = await pool.sendEvent(event);
+            if (err instanceof Error) {
+                console.error(err);
+            }
+        }
+    })();
 
     const ctx = await getCurrentSignInCtx();
     if (ctx instanceof Error) {
@@ -211,6 +219,27 @@ export class App {
     private initApp = async () => {
         console.log("App.initApp");
 
+        // configurations: pin list
+        (async () => {
+            const stream = await this.pool.newSub(OtherConfig.name, {
+                authors: [this.ctx.publicKey.hex],
+                kinds: [NostrKind.Custom_App_Data],
+            });
+            if (stream instanceof Error) {
+                throw stream; // crash the app
+            }
+            for await (const msg of stream.chan) {
+                if (msg.res.type == "EOSE") {
+                    continue;
+                }
+                const ok = await this.database.addEvent(msg.res.event, msg.url);
+                if (ok instanceof Error) {
+                    console.error(msg.res.event);
+                    console.error(ok);
+                }
+            }
+        })();
+
         // group chat synchronization
         (async () => {
             const stream = await this.pool.newSub("gm_send", {
@@ -313,6 +342,9 @@ export class App {
                     this.groupChatController,
                     this.dmController,
                     this.eventBus.emit,
+                    {
+                        otherConfig: this.otherConfig,
+                    },
                 )
             ) {
                 const t = Date.now();

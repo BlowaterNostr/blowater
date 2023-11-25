@@ -59,6 +59,10 @@ export class OtherConfig implements PinListGetter, NostrEventAdder {
             return;
         }
         this.pinList.add(pubkey);
+        const err = await this.saveToLocalStorage();
+        if (err instanceof Error) {
+            return err;
+        }
         const event = await prepareEncryptedNostrEvent(this.ctx, {
             content: JSON.stringify({
                 type: "PinConversation",
@@ -134,12 +138,12 @@ export class OtherConfig implements PinListGetter, NostrEventAdder {
         return event;
     }
 
-    async saveToLocalStorage(ctx: NostrAccountContext) {
-        const event = await this.toNostrEvent(ctx);
+    private async saveToLocalStorage() {
+        const event = await this.toNostrEvent(this.ctx);
         if (event instanceof Error) {
             return event;
         }
-        localStorage.setItem(`${OtherConfig.name}:${ctx.publicKey.bech32()}`, JSON.stringify(event));
+        localStorage.setItem(`${OtherConfig.name}:${this.ctx.publicKey.bech32()}`, JSON.stringify(event));
     }
 
     async addEvent(event: NostrEvent) {
@@ -155,13 +159,19 @@ export class OtherConfig implements PinListGetter, NostrEventAdder {
             return pin;
         }
 
-        if (pin.type == "PinConversation") {
-            if (this.pinList.has(pin.pubkey)) {
-                return;
+        if (pin.type == "PinConversation" || pin.type == "UnpinConversation") {
+            if (pin.type == "PinConversation") {
+                if (this.pinList.has(pin.pubkey)) {
+                    return;
+                }
+                this.pinList.add(pin.pubkey);
+            } else {
+                this.pinList.delete(pin.pubkey);
             }
-            this.pinList.add(pin.pubkey);
-        } else if (pin.type == "UnpinConversation") {
-            this.pinList.delete(pin.pubkey);
+            const err = await this.saveToLocalStorage();
+            if (err instanceof Error) {
+                return err;
+            }
         } else {
             return;
         }

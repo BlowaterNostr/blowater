@@ -164,16 +164,10 @@ export async function* UI_Interaction_Update(args: {
                 console.error(err1);
                 continue;
             }
-            const err2 = await app.otherConfig.saveToLocalStorage(app.ctx);
-            if (err2 instanceof Error) {
-                console.error(err2);
-                continue;
-            }
         } else if (event.type == "UnpinConversation") {
-            app.otherConfig.removePin(event.pubkey);
-            let err = await app.otherConfig.saveToLocalStorage(app.ctx);
-            if (err instanceof Error) {
-                console.error(err);
+            const err1 = await app.otherConfig.removePin(event.pubkey);
+            if (err1 instanceof Error) {
+                console.error(err1);
                 continue;
             }
         } //
@@ -458,6 +452,9 @@ export async function* Database_Update(
     groupController: GroupMessageController,
     dmController: DirectedMessageController,
     emit: emitFunc<SelectConversation>,
+    args: {
+        otherConfig: OtherConfig;
+    },
 ) {
     const changes = database.subscribe();
     while (true) {
@@ -547,6 +544,12 @@ export async function* Database_Update(
                         console.error(err);
                         await database.remove(e.id);
                     }
+                }
+            } else if (e.kind == NostrKind.Custom_App_Data) {
+                console.log(e);
+                const err = await args.otherConfig.addEvent(e);
+                if (err instanceof Error) {
+                    console.error(err);
                 }
             }
 
