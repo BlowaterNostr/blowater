@@ -172,8 +172,6 @@ export class OtherConfig implements PinListGetter, NostrEventAdder {
             if (err instanceof Error) {
                 return err;
             }
-        } else {
-            return;
         }
     }
 }
