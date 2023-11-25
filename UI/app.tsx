@@ -30,10 +30,12 @@ import { ProfileGetter } from "./search.tsx";
 import { DirectedMessageController } from "../features/dm.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
 import { LamportTime } from "../time.ts";
+import { lastPathSegment } from "https://deno.land/std@0.186.0/path/_util.ts";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
 
+    const lamport = new LamportTime();
     const model = initialModel();
     const eventBus = new EventBus<UI_Interaction_Event>();
     const pool = new ConnectionPool();
@@ -53,7 +55,7 @@ export async function Start(database: DexieDatabase) {
     if (ctx instanceof Error) {
         console.error(ctx);
     } else if (ctx) {
-        const otherConfig = await OtherConfig.FromLocalStorage(ctx, newNostrEventChannel);
+        const otherConfig = await OtherConfig.FromLocalStorage(ctx, newNostrEventChannel, lamport);
         const app = await App.Start({
             database: dbView,
             model,
@@ -62,6 +64,7 @@ export async function Start(database: DexieDatabase) {
             pool,
             popOverInputChan,
             otherConfig,
+            lamport,
         });
         model.app = app;
     }
@@ -84,6 +87,7 @@ export async function Start(database: DexieDatabase) {
             pool,
             popOver: popOverInputChan,
             newNostrEventChannel: newNostrEventChannel,
+            lamport,
         })
     ) {
         const t = Date.now();
@@ -128,8 +132,9 @@ export class App {
         pool: ConnectionPool;
         popOverInputChan: PopOverInputChannel;
         otherConfig: OtherConfig;
+        lamport: LamportTime;
     }) {
-        const lamport = LamportTime.FromEvents(args.database.getAllEvents());
+        args.lamport.fromEvents(args.database.getAllEvents());
         const eventSyncer = new EventSyncer(args.pool, args.database);
 
         // init relay config
@@ -209,7 +214,7 @@ export class App {
             conversationLists,
             relayConfig,
             groupChatController,
-            lamport,
+            args.lamport,
             dmController,
         );
         await app.initApp();
@@ -223,7 +228,7 @@ export class App {
         (async () => {
             const stream = await this.pool.newSub(OtherConfig.name, {
                 authors: [this.ctx.publicKey.hex],
-                kinds: [NostrKind.Custom_App_Data],
+                kinds: [NostrKind.Encrypted_Custom_App_Data],
             });
             if (stream instanceof Error) {
                 throw stream; // crash the app

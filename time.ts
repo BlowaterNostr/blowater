@@ -2,17 +2,15 @@ import { NostrEvent } from "./lib/nostr-ts/nostr.ts";
 import { getTags } from "./nostr.ts";
 
 export class LamportTime {
-    constructor(private time: number) {}
+    private time = 0;
 
-    static FromEvents(events: Iterable<NostrEvent>) {
-        let time = 0;
+    fromEvents(events: Iterable<NostrEvent>) {
         for (const event of events) {
             const ts = getTags(event).lamport_timestamp;
-            if (ts && ts > time) {
-                time = ts;
+            if (ts) {
+                this.set(ts);
             }
         }
-        return new LamportTime(time);
     }
 
     now() {

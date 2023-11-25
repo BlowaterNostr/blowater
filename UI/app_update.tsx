@@ -81,6 +81,7 @@ export async function* UI_Interaction_Update(args: {
     pool: ConnectionPool;
     popOver: PopOverInputChannel;
     newNostrEventChannel: Channel<NostrEvent>;
+    lamport: LamportTime;
 }) {
     const { model, dbView, eventBus, pool } = args;
     const events = eventBus.onChange();
@@ -91,7 +92,11 @@ export async function* UI_Interaction_Update(args: {
                 const ctx = event.ctx;
                 if (ctx) {
                     console.log("sign in as", ctx.publicKey.bech32());
-                    const otherConfig = await OtherConfig.FromLocalStorage(ctx, args.newNostrEventChannel);
+                    const otherConfig = await OtherConfig.FromLocalStorage(
+                        ctx,
+                        args.newNostrEventChannel,
+                        args.lamport,
+                    );
                     const app = await App.Start({
                         database: dbView,
                         model,
@@ -100,6 +105,7 @@ export async function* UI_Interaction_Update(args: {
                         pool,
                         popOverInputChan: args.popOver,
                         otherConfig,
+                        lamport: args.lamport,
                     });
                     model.app = app;
                 } else {
@@ -545,7 +551,7 @@ export async function* Database_Update(
                         await database.remove(e.id);
                     }
                 }
-            } else if (e.kind == NostrKind.Custom_App_Data) {
+            } else if (e.kind == NostrKind.Encrypted_Custom_App_Data) {
                 console.log(e);
                 const err = await args.otherConfig.addEvent(e);
                 if (err instanceof Error) {
