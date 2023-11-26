@@ -10,6 +10,7 @@ import { HomeIcon } from "./icons/home-icon.tsx";
 import { KeyIcon } from "./icons/key-icon.tsx";
 import { UserIcon } from "./icons/user-icon.tsx";
 import { CopyButton } from "./components/copy-button.tsx";
+import { LinkColor } from "./style/colors.ts";
 
 type UserDetailProps = {
     targetUserProfile: ProfileData;
@@ -86,11 +87,11 @@ export function UserDetail(props: UserDetailProps) {
                             }}
                         />
                         <p
-                            class={tw`flex-1 text-[#7A818C] group-hover:text-[#F3F4EA] break-words overflow-hidden`}
+                            class={tw`flex-1 text-[${LinkColor}] group-hover:text-[#F3F4EA] break-words overflow-hidden`}
                         >
-                            {props.targetUserProfile.website
-                                ? props.targetUserProfile.website
-                                : "There is no website."}
+                            <a href={props.targetUserProfile.website} target="_blank">
+                                {props.targetUserProfile.website}
+                            </a>
                         </p>
                     </div>
                 )
