@@ -30,7 +30,7 @@ import { ProfileGetter } from "./search.tsx";
 import { DirectedMessageController } from "../features/dm.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
 import { LamportTime } from "../time.ts";
-import { lastPathSegment } from "https://deno.land/std@0.186.0/path/_util.ts";
+import { InstallPrompt } from "./install-prompt.tsx";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
@@ -435,6 +435,7 @@ export function AppComponent(props: {
         <div
             class={tw`font-roboto flex flex-col h-screen w-screen overflow-hidden`}
         >
+            <InstallPrompt />
             <div class={tw`w-full h-full flex flex-col`}>
                 <div class={tw`w-full flex-1 flex overflow-hidden`}>
                     <div class={tw`mobile:hidden`}>
