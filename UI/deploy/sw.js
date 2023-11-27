@@ -33,7 +33,7 @@ const cacheFirst = async ({ request }) => {
         putInCache(request, responseFromNetwork.clone());
         return responseFromNetwork;
     } catch (error) {
-        return new Response(error.message ? error.message: error, {
+        return new Response(error.message ? error.message : error, {
             status: 500,
             headers: { "Content-Type": "text/plain" },
         });
