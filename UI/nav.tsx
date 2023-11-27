@@ -1,5 +1,5 @@
 /** @jsx h */
-import { ComponentChild, h } from "https://esm.sh/preact@10.17.1";
+import { ComponentChild, Fragment, h } from "https://esm.sh/preact@10.17.1";
 import { tw } from "https://esm.sh/twind@0.16.16";
 import { Avatar } from "./components/avatar.tsx";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
@@ -19,6 +19,11 @@ import { AboutIcon } from "./icons/about-icon.tsx";
 
 import { CenterClass, NoOutlineClass } from "./components/tw.ts";
 import { emitFunc } from "../event-bus.ts";
+import { DownloadIcon } from "./icons/download-icon.tsx";
+
+export type InstallPrompt = {
+    event: Event | undefined;
+};
 
 export type NavigationUpdate = {
     type: "ChangeNavigation";
@@ -34,10 +39,12 @@ type Props = {
     profileGetter: ProfileGetter;
     emit: emitFunc<NavigationUpdate>;
     isMobile?: boolean;
+    installPrompt: InstallPrompt;
 };
 
 type State = {
     activeIndex: number;
+    installPrompt: InstallPrompt;
 };
 
 type NavTabID = "DM" | "Profile" | "About" | "Setting";
@@ -56,7 +63,8 @@ export class NavBar extends Component<Props, State> {
             }]`
         ),
         avatar: tw`w-12 h-12`,
-        tabsContainer: tw`last:flex-1 last:flex last:items-end`,
+        tabsContainer:
+            tw`last:flex-1 last:flex last:items-end last:flex last:flex-col last:justify-end last:gap-y-4`,
         tabs: (active: boolean) =>
             tw`rounded-lg w-10 h-10 ${
                 active ? `bg-[${SecondaryBackgroundColor}]` : ""
@@ -64,6 +72,10 @@ export class NavBar extends Component<Props, State> {
         mobileContainer: tw`h-[4.5rem] flex justify-evenly bg-[${PrimaryBackgroundColor}] items-start pt-2`,
     };
 
+    state: State = {
+        activeIndex: 0,
+        installPrompt: this.props.installPrompt,
+    };
     myProfile: ProfileData | undefined;
     tabs: NavTab[] = [
         {
@@ -85,9 +97,6 @@ export class NavBar extends Component<Props, State> {
     ];
 
     componentWillMount() {
-        this.setState({
-            activeIndex: 0,
-        });
         this.myProfile = this.props.profileGetter.getProfilesByPublicKey(this.props.publicKey)?.profile;
     }
 
@@ -106,18 +115,41 @@ export class NavBar extends Component<Props, State> {
         });
     };
 
+    install = async () => {
+        if (!this.props.installPrompt.event) {
+            return;
+        }
+
+        // @ts-ignore
+        await this.props.installPrompt.event.prompt();
+        this.setState({
+            installPrompt: {
+                event: undefined,
+            },
+        });
+    };
+
     render() {
         return (
             this.props.isMobile
                 ? (
                     <div class={this.styles.mobileContainer}>
                         {this.tabs.map((tab, index) => (
-                            <button
-                                onClick={() => this.changeTab(index)}
-                                class={this.styles.tabs(this.state.activeIndex == index)}
-                            >
-                                {tab.icon(this.state.activeIndex == index)}
-                            </button>
+                            <Fragment>
+                                {index == this.tabs.length - 1 && this.state.installPrompt.event
+                                    ? (
+                                        <button class={this.styles.tabs(false)} onClick={this.install}>
+                                            <DownloadIcon class={this.styles.icons(false)} />
+                                        </button>
+                                    )
+                                    : undefined}
+                                <button
+                                    onClick={() => this.changeTab(index)}
+                                    class={this.styles.tabs(this.state.activeIndex == index)}
+                                >
+                                    {tab.icon(this.state.activeIndex == index)}
+                                </button>
+                            </Fragment>
                         ))}
                     </div>
                 )
@@ -126,6 +158,14 @@ export class NavBar extends Component<Props, State> {
                         <Avatar class={this.styles.avatar} picture={this.myProfile?.picture} />
                         {this.tabs.map((tab, index) => (
                             <div class={this.styles.tabsContainer}>
+                                {index == this.tabs.length - 1 && this.state.installPrompt.event
+                                    ? (
+                                        <button class={this.styles.tabs(false)} onClick={this.install}>
+                                            <DownloadIcon class={this.styles.icons(false)} />
+                                        </button>
+                                    )
+                                    : undefined}
+
                                 <button
                                     onClick={() => this.changeTab(index)}
                                     class={this.styles.tabs(this.state.activeIndex == index)}

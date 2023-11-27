@@ -30,10 +30,17 @@ import { ProfileGetter } from "./search.tsx";
 import { DirectedMessageController } from "../features/dm.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
 import { LamportTime } from "../time.ts";
-import { InstallPrompt } from "./install-prompt.tsx";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
+
+    const installPrompt: nav.InstallPrompt = {
+        event: undefined,
+    };
+    window.addEventListener("beforeinstallprompt", async (event) => {
+        event.preventDefault();
+        installPrompt.event = event;
+    });
 
     const lamport = new LamportTime();
     const model = initialModel();
@@ -65,6 +72,7 @@ export async function Start(database: DexieDatabase) {
             popOverInputChan,
             otherConfig,
             lamport,
+            installPrompt,
         });
         model.app = app;
     }
@@ -75,6 +83,7 @@ export async function Start(database: DexieDatabase) {
             model,
             pool,
             popOverInputChan,
+            installPrompt,
         }),
         document.body,
     );
@@ -88,6 +97,7 @@ export async function Start(database: DexieDatabase) {
             popOver: popOverInputChan,
             newNostrEventChannel: newNostrEventChannel,
             lamport,
+            installPrompt,
         })
     ) {
         const t = Date.now();
@@ -98,6 +108,7 @@ export async function Start(database: DexieDatabase) {
                     model,
                     pool,
                     popOverInputChan,
+                    installPrompt,
                 }),
                 document.body,
             );
@@ -133,6 +144,7 @@ export class App {
         popOverInputChan: PopOverInputChannel;
         otherConfig: OtherConfig;
         lamport: LamportTime;
+        installPrompt: nav.InstallPrompt;
     }) {
         args.lamport.fromEvents(args.database.getAllEvents());
         const eventSyncer = new EventSyncer(args.pool, args.database);
@@ -217,11 +229,11 @@ export class App {
             args.lamport,
             dmController,
         );
-        await app.initApp();
+        await app.initApp(args.installPrompt);
         return app;
     }
 
-    private initApp = async () => {
+    private initApp = async (installPrompt: nav.InstallPrompt) => {
         console.log("App.initApp");
 
         // configurations: pin list
@@ -359,6 +371,7 @@ export class App {
                         model: this.model,
                         pool: this.pool,
                         popOverInputChan: this.popOverInputChan,
+                        installPrompt: installPrompt,
                     }),
                     document.body,
                 );
@@ -378,21 +391,14 @@ export function AppComponent(props: {
     eventBus: AppEventBus;
     pool: ConnectionPool;
     popOverInputChan: PopOverInputChannel;
+    installPrompt: nav.InstallPrompt;
 }) {
-    const Container = (children: ComponentChildren) => {
-        return (
-            <Fragment>
-                <InstallPrompt />
-                {children}
-            </Fragment>
-        );
-    };
     const t = Date.now();
     const model = props.model;
 
     if (model.app == undefined) {
         console.log("render sign in page");
-        return Container(<SignIn emit={props.eventBus.emit} />);
+        return <SignIn emit={props.eventBus.emit} />;
     }
 
     const app = model.app;
@@ -450,6 +456,7 @@ export function AppComponent(props: {
                             publicKey={app.ctx.publicKey}
                             profileGetter={app.database}
                             emit={app.eventBus.emit}
+                            installPrompt={props.installPrompt}
                         />
                     </div>
 
@@ -491,6 +498,7 @@ export function AppComponent(props: {
                                 profileGetter={app.database}
                                 emit={app.eventBus.emit}
                                 isMobile={true}
+                                installPrompt={props.installPrompt}
                             />
                         )
                         : <div class={tw`h-4 bg-[#36393F]`}></div>}
@@ -500,7 +508,7 @@ export function AppComponent(props: {
     );
 
     console.debug("AppComponent:end", Date.now() - t);
-    return Container(final);
+    return final;
 }
 
 // todo: move to somewhere else

@@ -4,9 +4,7 @@ import { setup } from "https://esm.sh/twind@0.16.16";
 import { NewIndexedDB } from "./dexie-db.ts";
 import { Start } from "./app.tsx";
 import { TWConfig } from "./tw.config.ts";
-import { Listener } from "./_listener.ts";
 
-Listener.init();
 setup(TWConfig);
 
 const database = NewIndexedDB();
