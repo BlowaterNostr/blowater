@@ -24,6 +24,14 @@ const putInCache = async (request, response) => {
 
 const cacheFirst = async ({ request }) => {
     const responseFromCache = await caches.match(request);
+    (async () => {
+        try {
+            const responseFromNetwork = await fetch(request);
+            putInCache(request, responseFromNetwork.clone());
+        } catch (error) {
+            // ignore
+        }
+    })();
     if (responseFromCache) {
         return responseFromCache;
     }
