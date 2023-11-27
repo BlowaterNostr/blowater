@@ -121,12 +121,14 @@ export class NavBar extends Component<Props, State> {
         }
 
         // @ts-ignore
-        await this.props.installPrompt.event.prompt();
-        this.setState({
-            installPrompt: {
-                event: undefined,
-            },
-        });
+        const res = await this.props.installPrompt.event.prompt();
+        if (res && res.outcome == "accepted") {
+            this.setState({
+                installPrompt: {
+                    event: undefined,
+                },
+            });
+        }
     };
 
     render() {
