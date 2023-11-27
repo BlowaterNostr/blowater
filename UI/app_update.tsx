@@ -14,7 +14,7 @@ import { emitFunc, EventBus } from "../event-bus.ts";
 import { ContactUpdate } from "./conversation-list.tsx";
 import { EditorEvent, EditorModel, new_DM_EditorModel, SendMessage } from "./editor.tsx";
 import { DirectMessagePanelUpdate } from "./message-panel.tsx";
-import { NavigationUpdate } from "./nav.tsx";
+import { InstallPrompt, NavigationUpdate } from "./nav.tsx";
 import { Model } from "./app_model.ts";
 import { SearchUpdate, SelectConversation } from "./search_model.ts";
 import { LamportTime } from "../time.ts";
@@ -82,8 +82,9 @@ export async function* UI_Interaction_Update(args: {
     popOver: PopOverInputChannel;
     newNostrEventChannel: Channel<NostrEvent>;
     lamport: LamportTime;
+    installPrompt: InstallPrompt;
 }) {
-    const { model, dbView, eventBus, pool } = args;
+    const { model, dbView, eventBus, pool, installPrompt } = args;
     const events = eventBus.onChange();
     for await (const event of events) {
         console.log(event);
@@ -106,6 +107,7 @@ export async function* UI_Interaction_Update(args: {
                         popOverInputChan: args.popOver,
                         otherConfig,
                         lamport: args.lamport,
+                        installPrompt,
                     });
                     model.app = app;
                 } else {
