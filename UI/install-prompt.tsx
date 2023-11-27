@@ -6,9 +6,10 @@ import { PrimaryTextColor } from "./style/colors.ts";
 import { DownloadIcon } from "./icons/download-icon.tsx";
 import { IconButtonClass, LinearGradientsClass } from "./components/tw.ts";
 import { CloseIcon } from "./icons/close-icon.tsx";
+import { Listener } from "./_listener.ts";
 
 type State = {
-    isInstalled: boolean;
+    installEvent: Event | undefined;
 };
 
 export class InstallPrompt extends Component<{}, State> {
@@ -21,55 +22,53 @@ export class InstallPrompt extends Component<{}, State> {
         closeIcon: tw`text-[${PrimaryTextColor}] stroke-current w-4 h-4`,
     };
 
-    installPrompt: Event | null = null;
-    state: State = {
-        isInstalled: true,
-    };
-
-    componentWillMount() {
-        window.addEventListener("beforeinstallprompt", (event) => {
-            event.preventDefault();
-            this.installPrompt = event;
+    async componentDidMount() {
+        for await (const event of Listener.installPromptListener) {
             this.setState({
-                isInstalled: false,
+                installEvent: event,
             });
-        });
+        }
     }
 
     install = async () => {
-        if (!this.installPrompt) {
+        if (!this.state.installEvent) {
             return;
         }
-        // @ts-ignore
-        await this.installPrompt.prompt();
-        this.installPrompt = null;
-        this.setState({
-            isInstalled: true,
-        });
+        try {
+            // @ts-ignore
+            await this.state.installEvent.prompt();
+            this.setState({
+                installEvent: undefined,
+            });
+        } catch (e) {
+            console.error(e);
+        }
     };
 
     close = (e: Event) => {
         e.stopPropagation();
 
         this.setState({
-            isInstalled: true,
+            installEvent: undefined,
         });
     };
 
     render() {
         return (
-            this.state.isInstalled ? undefined : (
-                <div
-                    onClick={this.install}
-                    class={this.styles.container}
-                >
-                    <DownloadIcon class={this.styles.icon} />
-                    <span class={this.styles.text}>Install Blowater</span>
-                    <button class={this.styles.close} onClick={(e) => this.close(e)}>
-                        <CloseIcon class={this.styles.closeIcon} />
-                    </button>
-                </div>
-            )
+            this.state.installEvent
+                ? (
+                    <div
+                        onClick={this.install}
+                        class={this.styles.container}
+                    >
+                        <DownloadIcon class={this.styles.icon} />
+                        <span class={this.styles.text}>Install Blowater</span>
+                        <button class={this.styles.close} onClick={(e) => this.close(e)}>
+                            <CloseIcon class={this.styles.closeIcon} />
+                        </button>
+                    </div>
+                )
+                : undefined
         );
     }
 }

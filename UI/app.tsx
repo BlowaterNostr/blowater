@@ -1,5 +1,5 @@
 /** @jsx h */
-import { h, render } from "https://esm.sh/preact@10.17.1";
+import { ComponentChildren, Fragment, h, render } from "https://esm.sh/preact@10.17.1";
 import * as dm from "../features/dm.ts";
 import { DirectMessageContainer } from "./dm.tsx";
 import { tw } from "https://esm.sh/twind@0.16.16";
@@ -379,12 +379,20 @@ export function AppComponent(props: {
     pool: ConnectionPool;
     popOverInputChan: PopOverInputChannel;
 }) {
+    const Container = (children: ComponentChildren) => {
+        return (
+            <Fragment>
+                <InstallPrompt />
+                {children}
+            </Fragment>
+        );
+    };
     const t = Date.now();
     const model = props.model;
 
     if (model.app == undefined) {
         console.log("render sign in page");
-        return <SignIn emit={props.eventBus.emit} />;
+        return Container(<SignIn emit={props.eventBus.emit} />);
     }
 
     const app = model.app;
@@ -435,7 +443,6 @@ export function AppComponent(props: {
         <div
             class={tw`font-roboto flex flex-col h-screen w-screen overflow-hidden`}
         >
-            <InstallPrompt />
             <div class={tw`w-full h-full flex flex-col`}>
                 <div class={tw`w-full flex-1 flex overflow-hidden`}>
                     <div class={tw`mobile:hidden`}>
@@ -493,7 +500,7 @@ export function AppComponent(props: {
     );
 
     console.debug("AppComponent:end", Date.now() - t);
-    return final;
+    return Container(final);
 }
 
 // todo: move to somewhere else
