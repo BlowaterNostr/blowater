@@ -37,7 +37,7 @@ export class NewMessageController implements NewMessageGetter, NewMessageSetter 
                     set.delete(eventID);
                     return;
                 }
-                this.newMessage.delete(hex);
+                set.clear();
                 break;
         }
     }
