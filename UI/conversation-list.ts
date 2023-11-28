@@ -13,15 +13,19 @@ export interface ConversationSummary {
 
 export class DM_List implements ConversationListRetriever, NewMessageChecker {
     readonly convoSummaries = new Map<string, ConversationSummary>();
+    private newMessage = new Map<string, number>();
 
     constructor(
         public readonly ctx: NostrAccountContext,
-        private readonly profileSyncer: ProfileSyncer,
     ) {}
 
-    has(hex: string, isGourpChat: boolean): boolean {
+    count(hex: string, isGourpChat: boolean): number {
         // todo: implement NewMessageChecker
-        return false;
+        return this.newMessage.get(hex) || 0;
+    }
+
+    read(hex: string) {
+        this.newMessage.delete(hex);
     }
 
     *getStrangers() {
@@ -71,9 +75,13 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker {
 
     addEvents(
         events: Parsed_Event[],
+        isNew?: boolean,
     ) {
         // const t = Date.now();
         for (const event of events) {
+            if (isNew) {
+                this.newMessage.set(event.pubkey, (this.newMessage.get(event.pubkey) || 0) + 1);
+            }
             switch (event.kind) {
                 case NostrKind.DIRECT_MESSAGE:
                     {

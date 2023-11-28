@@ -483,7 +483,7 @@ export async function* Database_Update(
 
         profileSyncer.add(...changes_events.map((e) => e.pubkey));
         // @ts-ignore
-        convoLists.addEvents(changes_events);
+        convoLists.addEvents(changes_events, true);
         for (let e of changes_events) {
             const t = getTags(e).lamport_timestamp;
             if (t) {
