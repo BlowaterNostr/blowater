@@ -423,7 +423,7 @@ function MessageBoxGroup(props: {
                 >
                     <pre
                         class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto ${
-                            isMsgNew ? `border-l-2 border-[${ErrorColor}]` : ""
+                            isMsgNew ? `border-l-2 border-[${ErrorColor}] pl-2 bg-[${ErrorColor}45]` : ""
                         }`}
                     >
                     {ParseMessageContent(
