@@ -1,9 +1,8 @@
-import { ConversationListRetriever, NewMessageChecker } from "./conversation-list.tsx";
+import { ConversationListRetriever } from "./conversation-list.tsx";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { getTags, Parsed_Event } from "../nostr.ts";
-import { ProfileSyncer } from "../features/profile.ts";
-import { gm_Creation } from "../features/gm.ts";
+import { NewMessageController } from "./new-message.ts";
 
 export interface ConversationSummary {
     pubkey: PublicKey;
@@ -11,22 +10,13 @@ export interface ConversationSummary {
     newestEventReceivedByMe?: NostrEvent;
 }
 
-export class DM_List implements ConversationListRetriever, NewMessageChecker {
+export class DM_List implements ConversationListRetriever {
     readonly convoSummaries = new Map<string, ConversationSummary>();
-    private newMessage = new Map<string, number>();
 
     constructor(
         public readonly ctx: NostrAccountContext,
+        private readonly newMessageController: NewMessageController,
     ) {}
-
-    count(hex: string, isGourpChat: boolean): number {
-        // todo: implement NewMessageChecker
-        return this.newMessage.get(hex) || 0;
-    }
-
-    read(hex: string) {
-        this.newMessage.delete(hex);
-    }
 
     *getStrangers() {
         for (const convoSummary of this.convoSummaries.values()) {
@@ -80,7 +70,7 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker {
         // const t = Date.now();
         for (const event of events) {
             if (isNew) {
-                this.newMessage.set(event.pubkey, (this.newMessage.get(event.pubkey) || 0) + 1);
+                this.newMessageController.setNewMessage("unread", event.pubkey, event.id);
             }
             switch (event.kind) {
                 case NostrKind.DIRECT_MESSAGE:

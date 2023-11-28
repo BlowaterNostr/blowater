@@ -20,6 +20,7 @@ import { ProfileGetter } from "./search.tsx";
 import { IS_BETA_VERSION } from "./config.js";
 import { UnpinIcon } from "./icons/unpin-icon.tsx";
 import { PinIcon } from "./icons/pin-icon.tsx";
+import { NewMessageGetter } from "./new-message.ts";
 
 export interface ConversationListRetriever {
     getContacts: () => Iterable<ConversationSummary>;
@@ -39,17 +40,12 @@ export type ContactUpdate =
     | UnpinConversation
     | StartCreateGroupChat;
 
-export interface NewMessageChecker {
-    count(hex: string, isGourpChat: boolean): number;
-    read(hex: string): void;
-}
-
 type Props = {
     emit: emitFunc<ContactUpdate | SearchUpdate>;
     eventBus: EventSubscriber<UI_Interaction_Event>;
     convoListRetriever: ConversationListRetriever;
     groupChatListGetter: GroupMessageListGetter;
-    hasNewMessages: NewMessageChecker;
+    newMessageGetter: NewMessageGetter;
     pinListGetter: PinListGetter;
     profileGetter: ProfileGetter;
 };
@@ -103,10 +99,10 @@ export class ConversationList extends Component<Props, State> {
         for (const conversationSummary of listToRender) {
             convoListToRender.push({
                 conversation: conversationSummary,
-                newMessageCount: props.hasNewMessages.count(
+                newMessageCount: props.newMessageGetter.getNewMessage(
                     conversationSummary.pubkey.hex,
                     listToRender == groups,
-                ),
+                )?.size || 0,
             });
         }
 

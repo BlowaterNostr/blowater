@@ -30,6 +30,7 @@ import { ProfileGetter } from "./search.tsx";
 import { DirectedMessageController } from "../features/dm.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
 import { LamportTime } from "../time.ts";
+import { NewMessageController } from "./new-message.ts";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
@@ -133,6 +134,7 @@ export class App {
         public readonly groupChatController: GroupMessageController,
         public readonly lamport: time.LamportTime,
         public readonly dmController: DirectedMessageController,
+        public readonly newMessageController: NewMessageController,
     ) {}
 
     static async Start(args: {
@@ -161,7 +163,8 @@ export class App {
         profileSyncer.add(args.ctx.publicKey.hex);
 
         // init conversation list
-        const conversationLists = new DM_List(args.ctx);
+        const newMessageController = new NewMessageController();
+        const conversationLists = new DM_List(args.ctx, newMessageController);
         conversationLists.addEvents(Array.from(args.database.getAllEvents()));
 
         const dmController = new DirectedMessageController(args.ctx);
@@ -228,6 +231,7 @@ export class App {
             groupChatController,
             args.lamport,
             dmController,
+            newMessageController,
         );
         await app.initApp(args.installPrompt);
         return app;
@@ -427,7 +431,7 @@ export function AppComponent(props: {
                         eventSyncer: app.eventSyncer,
                         pinListGetter: app.otherConfig,
                         groupChatController: app.groupChatController,
-                        newMessageChecker: app.conversationLists,
+                        newMessageGetter: app.newMessageController,
                         messageGetter: model.dm.isGroupMessage ? app.groupChatController : app.dmController,
                         newMessageListener: model.dm.isGroupMessage
                             ? app.groupChatController

@@ -5,7 +5,7 @@ import * as cl from "./conversation-list.tsx";
 import { MessagePanel, NewMessageListener, RightPanelModel } from "./message-panel.tsx";
 import { EventBus } from "../event-bus.ts";
 import { CenterClass, IconButtonClass } from "./components/tw.ts";
-import { ChatMessagesGetter, DirectMessageGetter, UI_Interaction_Event } from "./app_update.tsx";
+import { ChatMessagesGetter, UI_Interaction_Event } from "./app_update.tsx";
 import { NostrAccountContext, NostrEvent } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
 import { ProfileSyncer } from "../features/profile.ts";
@@ -23,6 +23,7 @@ import { IS_BETA_VERSION } from "./config.js";
 import { UserIcon } from "./icons/user-icon.tsx";
 import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
 import { RelayRecordGetter } from "../database.ts";
+import { NewMessageGetter } from "./new-message.ts";
 
 export type DM_Model = {
     currentEditor: EditorModel | undefined;
@@ -44,7 +45,7 @@ type DirectMessageContainerProps = {
     newMessageListener: NewMessageListener;
     pinListGetter: cl.PinListGetter;
     conversationLists: cl.ConversationListRetriever;
-    newMessageChecker: cl.NewMessageChecker;
+    newMessageGetter: NewMessageGetter;
     relayRecordGetter: RelayRecordGetter;
 } & DM_Model;
 
@@ -119,7 +120,6 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                     emit={props.bus.emit}
                     convoListRetriever={props.conversationLists}
                     groupChatListGetter={props.groupChatController}
-                    hasNewMessages={props.newMessageChecker}
                     {...props}
                 />
             </div>
