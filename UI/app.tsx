@@ -30,7 +30,6 @@ import { ProfileGetter } from "./search.tsx";
 import { DirectedMessageController } from "../features/dm.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
 import { LamportTime } from "../time.ts";
-import { NewMessageController } from "./new-message.ts";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");

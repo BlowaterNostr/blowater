@@ -46,7 +46,6 @@ import { InviteUsersToGroup } from "./invite-button.tsx";
 import { SaveProfile } from "./edit-profile.tsx";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { RelayDetail } from "./relay-detail.tsx";
-import { NewMessageController } from "./new-message.ts";
 
 export type UI_Interaction_Event =
     | SearchUpdate
