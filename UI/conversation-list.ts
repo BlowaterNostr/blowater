@@ -2,8 +2,6 @@ import { ConversationListRetriever, NewMessageChecker } from "./conversation-lis
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { getTags, Parsed_Event } from "../nostr.ts";
-import { ProfileSyncer } from "../features/profile.ts";
-import { gm_Creation } from "../features/gm.ts";
 
 export interface ConversationSummary {
     pubkey: PublicKey;
@@ -16,7 +14,6 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker {
 
     constructor(
         public readonly ctx: NostrAccountContext,
-        private readonly profileSyncer: ProfileSyncer,
     ) {}
 
     has(hex: string, isGourpChat: boolean): boolean {
