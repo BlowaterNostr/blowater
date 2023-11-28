@@ -134,7 +134,6 @@ export class App {
         public readonly groupChatController: GroupMessageController,
         public readonly lamport: time.LamportTime,
         public readonly dmController: DirectedMessageController,
-        public readonly newMessageController: NewMessageController,
     ) {}
 
     static async Start(args: {
@@ -163,7 +162,6 @@ export class App {
         profileSyncer.add(args.ctx.publicKey.hex);
 
         // init conversation list
-        const newMessageController = new NewMessageController();
         const conversationLists = new DM_List(args.ctx);
         conversationLists.addEvents(Array.from(args.database.getAllEvents()));
 
@@ -231,7 +229,6 @@ export class App {
             groupChatController,
             args.lamport,
             dmController,
-            newMessageController,
         );
         await app.initApp(args.installPrompt);
         return app;
@@ -366,7 +363,6 @@ export class App {
                     {
                         otherConfig: this.otherConfig,
                     },
-                    this.newMessageController,
                 )
             ) {
                 const t = Date.now();
@@ -432,7 +428,7 @@ export function AppComponent(props: {
                         eventSyncer: app.eventSyncer,
                         pinListGetter: app.otherConfig,
                         groupChatController: app.groupChatController,
-                        newMessageGetter: app.newMessageController,
+                        newMessageGetter: model.dm.newMessageController,
                         messageGetter: model.dm.isGroupMessage ? app.groupChatController : app.dmController,
                         newMessageListener: model.dm.isGroupMessage
                             ? app.groupChatController

@@ -23,12 +23,13 @@ import { IS_BETA_VERSION } from "./config.js";
 import { UserIcon } from "./icons/user-icon.tsx";
 import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
 import { RelayRecordGetter } from "../database.ts";
-import { NewMessageGetter } from "./new-message.ts";
+import { NewMessageController, NewMessageGetter } from "./new-message.ts";
 
 export type DM_Model = {
     currentEditor: EditorModel | undefined;
     focusedContent: Map<string, NostrEvent | PublicKey>;
     isGroupMessage: boolean;
+    newMessageController: NewMessageController;
 };
 
 type DirectMessageContainerProps = {

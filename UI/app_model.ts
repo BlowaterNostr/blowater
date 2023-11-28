@@ -5,6 +5,7 @@ import { RightPanelModel } from "./message-panel.tsx";
 import { App } from "./app.tsx";
 import { EditorModel } from "./editor.tsx";
 import { DM_Model } from "./dm.tsx";
+import { NewMessageController } from "./new-message.ts";
 
 export type Model = {
     app: App | undefined; // app is only available after sign-in
@@ -35,6 +36,7 @@ export function initialModel(): Model {
             focusedContent: new Map(),
             currentEditor: undefined,
             isGroupMessage: false,
+            newMessageController: new NewMessageController(),
         },
         dmEditors: editors,
         gmEditors: new Map(),

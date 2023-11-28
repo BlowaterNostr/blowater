@@ -45,6 +45,7 @@ import { ChatMessagesGetter } from "./app_update.tsx";
 import { isMobile } from "./_helper.ts";
 import { RelayRecordGetter } from "../database.ts";
 import { NewMessageGetter } from "./new-message.ts";
+import { NoticeIcon } from "./icons/notice-icon.tsx";
 
 export type RightPanelModel = {
     show: boolean;
@@ -61,6 +62,11 @@ export type DirectMessagePanelUpdate =
     | {
         type: "ViewEventDetail";
         message: ChatMessage;
+    }
+    | {
+        type: "MarkUnRead";
+        eventID: string;
+        pubkey: string;
     };
 
 export type OpenNote = {
@@ -388,7 +394,9 @@ function MessageBoxGroup(props: {
                 )}
                 <pre
                     class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto text-sm ${
-                        is_first_group_new ? `border-l-2 border-[${ErrorColor}]` : ""
+                        is_first_group_new
+                            ? `border-l-2 border-[${ErrorColor}F0] pl-2 bg-[${ErrorColor}45]`
+                            : ""
                     }`}
                 >
                     {ParseMessageContent(
@@ -423,7 +431,7 @@ function MessageBoxGroup(props: {
                 >
                     <pre
                         class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto ${
-                            isMsgNew ? `border-l-2 border-[${ErrorColor}] pl-2 bg-[${ErrorColor}45]` : ""
+                            isMsgNew ? `border-l-2 border-[${ErrorColor}F0] pl-2 bg-[${ErrorColor}45]` : ""
                         }`}
                     >
                     {ParseMessageContent(
@@ -471,6 +479,24 @@ function MessageActions(
                 }}
             >
                 <AboutIcon
+                    class={tw`w-4 h-4 scale-150`}
+                    style={{
+                        fill: PrimaryTextColor,
+                    }}
+                />
+            </button>
+
+            <button
+                class={tw`w-6 h-6 flex items-center justify-center`}
+                onClick={async () => {
+                    emit({
+                        type: "MarkUnRead",
+                        eventID: message.event.id,
+                        pubkey: message.event.pubkey,
+                    });
+                }}
+            >
+                <NoticeIcon
                     class={tw`w-4 h-4 scale-150`}
                     style={{
                         fill: PrimaryTextColor,

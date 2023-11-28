@@ -248,7 +248,10 @@ export async function* UI_Interaction_Update(args: {
         //
         // DM
         //
-        else if (event.type == "InviteUsersToGroup") {
+
+        else if (event.type == "MarkUnRead") {
+            model.dm.newMessageController.setNewMessage("unread", event.pubkey, event.eventID);
+        } else if (event.type == "InviteUsersToGroup") {
             for (const pubkey of event.usersPublicKey) {
                 const invitationEvent = await app.groupChatController.createInvitation(
                     event.groupPublicKey,
@@ -464,7 +467,6 @@ export async function* Database_Update(
     args: {
         otherConfig: OtherConfig;
     },
-    newMessageController: NewMessageController,
 ) {
     const changes = database.subscribe();
     while (true) {
@@ -486,7 +488,7 @@ export async function* Database_Update(
         profileSyncer.add(...changes_events.map((e) => e.pubkey));
         // @ts-ignore
         convoLists.addEvents(changes_events);
-        newMessageController.addEvents(changes_events);
+        model.dm.newMessageController.addEvents(changes_events);
         for (let e of changes_events) {
             const t = getTags(e).lamport_timestamp;
             if (t) {
