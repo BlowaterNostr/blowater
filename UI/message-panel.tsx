@@ -44,6 +44,7 @@ import { NoteID } from "../lib/nostr-ts/nip19.ts";
 import { ChatMessagesGetter } from "./app_update.tsx";
 import { isMobile } from "./_helper.ts";
 import { RelayRecordGetter } from "../database.ts";
+import { NewMessageGetter } from "./new-message.ts";
 
 export type RightPanelModel = {
     show: boolean;
@@ -100,6 +101,7 @@ interface DirectMessagePanelProps {
     newMessageListener: NewMessageListener;
     messageGetter: ChatMessagesGetter;
     relayRecordGetter: RelayRecordGetter;
+    newMessageGetter: NewMessageGetter;
 }
 
 export type NewMessageListener = {
@@ -167,6 +169,8 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
                         eventSyncer={props.eventSyncer}
                         profileGetter={props.profileGetter}
                         relayRecordGetter={props.relayRecordGetter}
+                        newMessageGetter={props.newMessageGetter}
+                        isGroupMessage={props.isGroupMessage}
                     />
 
                     <Editor
@@ -215,6 +219,8 @@ interface MessageListProps {
     eventSyncer: EventSyncer;
     profileGetter: ProfileGetter;
     relayRecordGetter: RelayRecordGetter;
+    newMessageGetter: NewMessageGetter;
+    isGroupMessage: boolean;
 }
 
 interface MessageListState {
@@ -273,7 +279,6 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
         });
         const messageBoxGroups = [];
         for (const messages of groups) {
-            const profileEvent = this.props.profileGetter.getProfilesByPublicKey(messages[0].author);
             messageBoxGroups.push(
                 MessageBoxGroup({
                     messages: messages,
@@ -281,9 +286,11 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
                     emit: this.props.emit,
                     profilesSyncer: this.props.profilesSyncer,
                     eventSyncer: this.props.eventSyncer,
-                    authorProfile: profileEvent ? profileEvent.profile : undefined,
+                    authorPublicKey: messages[0].author,
                     profileGetter: this.props.profileGetter,
                     relayRecordGetter: this.props.relayRecordGetter,
+                    newMessageGetter: this.props.newMessageGetter,
+                    isGroupMessage: this.props.isGroupMessage,
                 }),
             );
         }
@@ -329,7 +336,7 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
 }
 
 function MessageBoxGroup(props: {
-    authorProfile: ProfileData | undefined;
+    authorPublicKey: PublicKey;
     messages: ChatMessage[];
     myPublicKey: PublicKey;
     emit: emitFunc<DirectMessagePanelUpdate | ViewUserDetail | SelectConversation>;
@@ -337,12 +344,17 @@ function MessageBoxGroup(props: {
     eventSyncer: EventSyncer;
     profileGetter: ProfileGetter;
     relayRecordGetter: RelayRecordGetter;
+    newMessageGetter: NewMessageGetter;
+    isGroupMessage: boolean;
 }) {
     const messageGroups = props.messages.reverse();
     if (messageGroups.length == 0) {
         return;
     }
+    const authorProfile = props.profileGetter.getProfilesByPublicKey(props.authorPublicKey)?.profile;
+    const newMessages = props.newMessageGetter.getNewMessage(props.authorPublicKey.hex, props.isGroupMessage);
     const first_group = messageGroups[0];
+    const is_first_group_new = newMessages?.has(first_group.event.id);
     const rows = [];
     rows.push(
         <li
@@ -353,7 +365,7 @@ function MessageBoxGroup(props: {
             {MessageActions(first_group, props.emit)}
             <Avatar
                 class={tw`h-8 w-8 mt-[0.45rem] mr-2`}
-                picture={props.authorProfile?.picture}
+                picture={authorProfile?.picture}
                 onClick={() => {
                     props.emit({
                         type: "ViewUserDetail",
@@ -370,16 +382,18 @@ function MessageBoxGroup(props: {
             >
                 {NameAndTime(
                     first_group.author,
-                    props.authorProfile,
+                    authorProfile,
                     props.myPublicKey,
                     first_group.created_at,
                 )}
                 <pre
-                    class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto text-sm`}
+                    class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto text-sm ${
+                        is_first_group_new ? `border-l-2 border-[${ErrorColor}]` : ""
+                    }`}
                 >
                     {ParseMessageContent(
                         first_group,
-                        props.authorProfile,
+                        authorProfile,
                         props.profilesSyncer,
                         props.eventSyncer,
                         props.emit,
@@ -392,6 +406,7 @@ function MessageBoxGroup(props: {
 
     for (let i = 1; i < messageGroups.length; i++) {
         const msg = messageGroups[i];
+        const isMsgNew = newMessages?.has(msg.event.id);
         rows.push(
             <li
                 class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-center pr-8 mobile:pr-4 group relative text-sm ${
@@ -407,11 +422,13 @@ function MessageBoxGroup(props: {
                     }}
                 >
                     <pre
-                        class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto`}
+                        class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto ${
+                            isMsgNew ? `border-l-2 border-[${ErrorColor}]` : ""
+                        }`}
                     >
                     {ParseMessageContent(
                         msg,
-                        props.authorProfile,
+                        authorProfile,
                         props.profilesSyncer,
                         props.eventSyncer,
                         props.emit,

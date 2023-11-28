@@ -176,6 +176,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                                         editorModel={props.currentEditor}
                                         messageGetter={props.messageGetter}
                                         relayRecordGetter={props.relayRecordGetter}
+                                        newMessageGetter={props.newMessageGetter}
                                     />
                                 )
                                 : undefined}
