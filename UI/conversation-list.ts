@@ -2,7 +2,6 @@ import { ConversationListRetriever } from "./conversation-list.tsx";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { getTags, Parsed_Event } from "../nostr.ts";
-import { NewMessageController } from "./new-message.ts";
 
 export interface ConversationSummary {
     pubkey: PublicKey;
@@ -15,7 +14,6 @@ export class DM_List implements ConversationListRetriever {
 
     constructor(
         public readonly ctx: NostrAccountContext,
-        private readonly newMessageController: NewMessageController,
     ) {}
 
     *getStrangers() {
@@ -65,13 +63,9 @@ export class DM_List implements ConversationListRetriever {
 
     addEvents(
         events: Parsed_Event[],
-        isNew?: boolean,
     ) {
         // const t = Date.now();
         for (const event of events) {
-            if (isNew) {
-                this.newMessageController.setNewMessage("unread", event.pubkey, event.id);
-            }
             switch (event.kind) {
                 case NostrKind.DIRECT_MESSAGE:
                     {

@@ -1,3 +1,6 @@
+import { NostrKind } from "../lib/nostr-ts/nostr.ts";
+import { Parsed_Event } from "../nostr.ts";
+
 export interface NewMessageGetter {
     getNewMessage(hex: string, isGourpChat: boolean): Set<string> | undefined;
 }
@@ -36,6 +39,14 @@ export class NewMessageController implements NewMessageGetter, NewMessageSetter 
                 }
                 this.newMessage.delete(hex);
                 break;
+        }
+    }
+
+    addEvents(events: Parsed_Event[]) {
+        for (const event of events) {
+            if (event.kind == NostrKind.DIRECT_MESSAGE) {
+                this.setNewMessage("unread", event.pubkey, event.id);
+            }
         }
     }
 }

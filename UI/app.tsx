@@ -164,7 +164,7 @@ export class App {
 
         // init conversation list
         const newMessageController = new NewMessageController();
-        const conversationLists = new DM_List(args.ctx, newMessageController);
+        const conversationLists = new DM_List(args.ctx);
         conversationLists.addEvents(Array.from(args.database.getAllEvents()));
 
         const dmController = new DirectedMessageController(args.ctx);
@@ -366,6 +366,7 @@ export class App {
                     {
                         otherConfig: this.otherConfig,
                     },
+                    this.newMessageController,
                 )
             ) {
                 const t = Date.now();

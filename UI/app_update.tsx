@@ -46,6 +46,7 @@ import { InviteUsersToGroup } from "./invite-button.tsx";
 import { SaveProfile } from "./edit-profile.tsx";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { RelayDetail } from "./relay-detail.tsx";
+import { NewMessageController } from "./new-message.ts";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -463,6 +464,7 @@ export async function* Database_Update(
     args: {
         otherConfig: OtherConfig;
     },
+    newMessageController: NewMessageController,
 ) {
     const changes = database.subscribe();
     while (true) {
@@ -483,7 +485,8 @@ export async function* Database_Update(
 
         profileSyncer.add(...changes_events.map((e) => e.pubkey));
         // @ts-ignore
-        convoLists.addEvents(changes_events, true);
+        convoLists.addEvents(changes_events);
+        newMessageController.addEvents(changes_events);
         for (let e of changes_events) {
             const t = getTags(e).lamport_timestamp;
             if (t) {
