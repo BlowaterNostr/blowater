@@ -8,7 +8,7 @@ import { emitFunc, EventSubscriber } from "../event-bus.ts";
 import { SearchUpdate, SelectConversation } from "./search_model.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { PinConversation, UnpinConversation } from "../nostr.ts";
-import { PrimaryTextColor, SecondaryBackgroundColor } from "./style/colors.ts";
+import { ErrorColor, PrimaryTextColor, SecondaryBackgroundColor } from "./style/colors.ts";
 import { ButtonGroup } from "./components/button-group.tsx";
 import { ChatIcon } from "./icons/chat-icon.tsx";
 import { StartCreateGroupChat } from "./create-group.tsx";
@@ -102,7 +102,7 @@ export class ConversationList extends Component<Props, State> {
         for (const conversationSummary of listToRender) {
             convoListToRender.push({
                 conversation: conversationSummary,
-                isMarked: props.hasNewMessages.has(conversationSummary.pubkey.hex, listToRender == groups),
+                newMessageCount: 0,
             });
         }
 
@@ -217,7 +217,7 @@ export interface PinListGetter {
 }
 
 type ConversationListProps = {
-    contacts: { conversation: ConversationSummary; isMarked: boolean }[];
+    contacts: { conversation: ConversationSummary; newMessageCount: number }[];
     currentSelected: SelectConversation | undefined;
     pinListGetter: PinListGetter;
     isGroupChat: boolean;
@@ -265,7 +265,7 @@ function ContactGroup(props: ConversationListProps) {
                     >
                         <ConversationListItem
                             conversation={contact.conversation}
-                            isMarked={contact.isMarked}
+                            newMessageCount={contact.newMessageCount}
                             isPinned={true}
                             profile={profile}
                         />
@@ -317,7 +317,7 @@ function ContactGroup(props: ConversationListProps) {
                     >
                         <ConversationListItem
                             conversation={contact.conversation}
-                            isMarked={contact.isMarked}
+                            newMessageCount={contact.newMessageCount}
                             isPinned={false}
                             profile={profile}
                         />
@@ -353,7 +353,7 @@ function ContactGroup(props: ConversationListProps) {
 
 type ListItemProps = {
     conversation: ConversationSummary;
-    isMarked: boolean;
+    newMessageCount: number;
     isPinned: boolean;
     profile: ProfileData | undefined;
 };
@@ -384,11 +384,12 @@ function ConversationListItem(props: ListItemProps) {
                     )
                     : undefined}
 
-                {props.isMarked
+                {props.newMessageCount > 0
                     ? (
                         <span
-                            class={tw`absolute rounded-full h-2 w-2 bottom-2 right-2 bg-[#54D48C]`}
+                            class={tw`absolute top-0 right-0 px-1 text-[${PrimaryTextColor}] text-xs rounded-full bg-[${ErrorColor}]`}
                         >
+                            {props.newMessageCount}
                         </span>
                     )
                     : undefined}

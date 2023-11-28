@@ -161,7 +161,7 @@ export class App {
         profileSyncer.add(args.ctx.publicKey.hex);
 
         // init conversation list
-        const conversationLists = new DM_List(args.ctx, profileSyncer);
+        const conversationLists = new DM_List(args.ctx);
         conversationLists.addEvents(Array.from(args.database.getAllEvents()));
 
         const dmController = new DirectedMessageController(args.ctx);
