@@ -183,7 +183,7 @@ export async function* UI_Interaction_Update(args: {
         // Editor
         //
         else if (event.type == "SendMessage") {
-            const err = await handle_SendMessage(
+            handle_SendMessage(
                 event,
                 app.ctx,
                 app.lamport,
@@ -192,11 +192,11 @@ export async function* UI_Interaction_Update(args: {
                 app.model.gmEditors,
                 app.database,
                 app.groupChatController,
-            );
-            if (err instanceof Error) {
-                console.error("update:SendMessage", err);
-                continue;
-            }
+            ).then((res) => {
+                if (res instanceof Error) {
+                    console.error("update:SendMessage", res);
+                }
+            });
         } else if (event.type == "UpdateMessageFiles") {
             const editors = event.isGroupChat ? model.gmEditors : model.dmEditors;
             const editor = editors.get(event.pubkey.hex);
