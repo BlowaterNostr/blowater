@@ -664,16 +664,20 @@ export async function handle_SendMessage(
         if (events instanceof Error) {
             return events;
         }
+        {
+            // clearing the editor before sending the message to relays
+            // so that even if the sending is awaiting, the UI will clear
+            const editor = dmEditors.get(event.pubkey.hex);
+            if (editor) {
+                editor.files = [];
+                editor.text = "";
+            }
+        }
         for (const eventSent of events) {
             const err = await db.addEvent(eventSent);
             if (err instanceof Error) {
                 console.error(err);
             }
-        }
-        const editor = dmEditors.get(event.pubkey.hex);
-        if (editor) {
-            editor.files = [];
-            editor.text = "";
         }
     }
 }
