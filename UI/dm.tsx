@@ -5,7 +5,7 @@ import * as cl from "./conversation-list.tsx";
 import { MessagePanel, NewMessageListener, RightPanelModel } from "./message-panel.tsx";
 import { EventBus } from "../event-bus.ts";
 import { CenterClass, IconButtonClass } from "./components/tw.ts";
-import { ChatMessagesGetter, DirectMessageGetter, UI_Interaction_Event } from "./app_update.tsx";
+import { ChatMessagesGetter, UI_Interaction_Event } from "./app_update.tsx";
 import { NostrAccountContext, NostrEvent } from "../lib/nostr-ts/nostr.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
 import { ProfileSyncer } from "../features/profile.ts";
@@ -127,7 +127,9 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                 ? (
                     <div class={tw`flex-1 overflow-hidden flex-col flex`}>
                         <div
-                            class={tw`h-14 mobile:h-12 border-l border-b border-[#36393F] flex items-center justify-between px- mobile:px-2 bg-[#2F3136]`}
+                            class={tw`h-14 mobile:h-12
+                            border-l border-b border-[#36393F] flex
+                            items-center justify-between px- mobile:px-2 bg-[#2F3136]`}
                         >
                             <div class={tw`flex items-center overflow-hidden`}>
                                 <button
@@ -146,7 +148,20 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                                     />
                                 </button>
                                 <span
-                                    class={tw`text-[#F3F4EA] text-[1.2rem] ml-4 mobile:text-base whitespace-nowrap truncate`}
+                                    // https://tailwindcss.com/docs/customizing-colors
+                                    // https://tailwindcss.com/docs/cursor
+                                    class={tw`text-[#F3F4EA] text-[1.2rem]
+                                    hover:text-[#60a5fa] hover:cursor-pointer
+                                    ml-4 mobile:text-base whitespace-nowrap truncate`}
+                                    onClick={() => {
+                                        if (!props.currentEditor) {
+                                            return;
+                                        }
+                                        props.bus.emit({
+                                            type: "ViewUserDetail",
+                                            pubkey: props.currentEditor.pubkey,
+                                        });
+                                    }}
                                 >
                                     {props.profileGetter.getProfilesByPublicKey(props.currentEditor.pubkey)
                                         ?.profile.name ||
