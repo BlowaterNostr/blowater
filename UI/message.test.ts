@@ -1,5 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.176.0/testing/asserts.ts";
-import { ChatMessage, groupContinuousMessages, parseContent } from "./message.ts";
+import { ChatMessage, findUrlInString, groupContinuousMessages, parseContent } from "./message.ts";
 import { PrivateKey, PublicKey } from "../lib/nostr-ts/key.ts";
 import { Nevent, NostrAddress } from "../lib/nostr-ts/nip19.ts";
 import { NostrKind } from "../lib/nostr-ts/nostr.ts";
@@ -287,3 +287,26 @@ Deno.test("if there is no message, should not yield any group", () => {
     assertEquals(group.value, undefined);
     assertEquals(group.done, true);
 });
+
+Deno.test("findUrlInString should include non-URL parts", () => {
+    const result = findUrlInString("Visit http://example.com for more info.");
+    assertEquals(result, ["Visit ", new URL("http://example.com"), " for more info."]);
+});
+
+Deno.test("findUrlInString with multiple URLs and text parts", () => {
+    const result = findUrlInString("Go to http://example.com and https://example.org for info.");
+    assertEquals(result, [
+        "Go to ",
+        new URL("http://example.com"),
+        " and ",
+        new URL("https://example.org"),
+        " for info.",
+    ]);
+});
+
+Deno.test("findUrlInString with only text", () => {
+    const result = findUrlInString("No URLs here.");
+    assertEquals(result, ["No URLs here."]);
+});
+
+// Add more tests as needed

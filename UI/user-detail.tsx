@@ -11,6 +11,7 @@ import { KeyIcon } from "./icons/key-icon.tsx";
 import { UserIcon } from "./icons/user-icon.tsx";
 import { CopyButton } from "./components/copy-button.tsx";
 import { LinkColor } from "./style/colors.ts";
+import { findUrlInString } from "./message.ts";
 
 type UserDetailProps = {
     targetUserProfile: ProfileData;
@@ -20,7 +21,7 @@ type UserDetailProps = {
 
 export function UserDetail(props: UserDetailProps) {
     return (
-        <div class={tw`p-2 relative`}>
+        <div class={tw`p-2 relative text-[#7A818C]`}>
             <Avatar
                 class={tw`w-64 h-64 m-auto mt-8`}
                 picture={props.targetUserProfile.picture}
@@ -68,9 +69,9 @@ export function UserDetail(props: UserDetailProps) {
                             }}
                         />
                         <p
-                            class={tw`flex-1 text-[#7A818C] group-hover:text-[#F3F4EA] break-words overflow-hidden`}
+                            class={tw`flex-1 break-words overflow-hidden`}
                         >
-                            {props.targetUserProfile.about}
+                            {TextWithLinks({ text: props.targetUserProfile.about })}
                         </p>
                     </div>
                 )
@@ -87,15 +88,39 @@ export function UserDetail(props: UserDetailProps) {
                             }}
                         />
                         <p
-                            class={tw`flex-1 text-[${LinkColor}] group-hover:text-[#F3F4EA] break-words overflow-hidden`}
+                            class={tw`flex-1 break-words overflow-hidden`}
                         >
-                            <a href={props.targetUserProfile.website} target="_blank">
-                                {props.targetUserProfile.website}
-                            </a>
+                            {TextWithLinks({ text: props.targetUserProfile.website })}
                         </p>
                     </div>
                 )
                 : undefined}
+        </div>
+    );
+}
+
+function TextWithLinks({ text }: { text: string }) {
+    const parts = findUrlInString(text);
+
+    return (
+        <div>
+            {parts.map((part, index) => {
+                if (part instanceof URL) {
+                    return (
+                        <a
+                            class={tw`text-[${LinkColor}] hover:text-[#F3F4EA]`}
+                            key={index}
+                            href={part.href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            {part.href}
+                        </a>
+                    );
+                } else {
+                    return <span key={index}>{part}</span>;
+                }
+            })}
         </div>
     );
 }

@@ -227,3 +227,32 @@ export function sortMessage(messages: ChatMessage[]) {
             return m2.created_at.getTime() - m1.created_at.getTime();
         });
 }
+
+// credit to GPT4
+export function findUrlInString(text: string): (string | URL)[] {
+    // Regular expression for URLs with various protocols
+    const urlRegex = /[a-zA-Z][a-zA-Z0-9+.-]*:\/\/[^\s]+/g;
+
+    // Split the text into URL and non-URL parts
+    let parts = text.split(urlRegex);
+
+    // Find all URLs using the regex
+    const foundUrls = text.match(urlRegex) || [];
+
+    // Interleave non-URL parts and URL parts
+    let result: (string | URL)[] = [];
+    parts.forEach((part, index) => {
+        if (part !== "") {
+            result.push(part);
+        }
+        if (index < foundUrls.length) {
+            try {
+                result.push(new URL(foundUrls[index]));
+            } catch {
+                result.push(foundUrls[index]);
+            }
+        }
+    });
+
+    return result;
+}
