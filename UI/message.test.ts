@@ -308,5 +308,3 @@ Deno.test("findUrlInString with only text", () => {
     const result = findUrlInString("No URLs here.");
     assertEquals(result, ["No URLs here."]);
 });
-
-// Add more tests as needed
