@@ -101,7 +101,7 @@ export class ConversationList extends Component<Props, State> {
         for (const conversationSummary of listToRender) {
             convoListToRender.push({
                 conversation: conversationSummary,
-                newMessageCount: 0,
+                newMessageCount: 1,
             });
         }
 
@@ -390,7 +390,7 @@ function ConversationListItem(props: ListItemProps) {
                 {props.newMessageCount > 0
                     ? (
                         <span
-                            class={tw`absolute top-0 right-0 px-1 text-[${PrimaryTextColor}] text-xs rounded-full bg-[${ErrorColor}]`}
+                            class={tw`absolute bottom-0 right-0 px-1 text-[${PrimaryTextColor}] text-xs rounded-full bg-[${ErrorColor}]`}
                         >
                             {props.newMessageCount}
                         </span>
