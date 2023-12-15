@@ -20,14 +20,14 @@ export function Avatar(props: {
                 tw`rounded-full${props.onClick ? " cursor-pointer" : ""}`,
                 props.class,
             ].join(" ")}
-            src={props.picture ? props.picture : "logo-white.png"}
+            src={props.picture ? props.picture : "logo.webp"}
             alt="avatar"
             onError={(e) => {
-                e.currentTarget.src = "logo-white.png";
+                e.currentTarget.src = "logo.webp";
                 e.currentTarget.style.objectFit = "contain";
             }}
             onLoad={(e) => {
-                if (e.currentTarget.src.endsWith("logo-white.png")) {
+                if (e.currentTarget.src.endsWith("logo.webp")) {
                     e.currentTarget.style.objectFit = "contain";
                 } else {
                     e.currentTarget.style.objectFit = "cover";

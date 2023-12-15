@@ -18,13 +18,14 @@ if (await exists(folderName)) {
     await Deno.remove(folderName, { recursive: true });
 }
 
+export const logo = "./deploy/logo.webp";
+
 await Deno.mkdir(folderName);
 const url = new URL("./_main.tsx", import.meta.url);
 const res = await bundle(url);
 await Deno.writeTextFile(`./${folderName}/main.mjs`, res.code);
 await Deno.copyFile("./deploy/alby-logo.svg", `./${folderName}/alby-logo.svg`);
 await Deno.copyFile("./deploy/index.html", `./${folderName}/index.html`);
-await Deno.copyFile("./deploy/logo-white.png", `./${folderName}/logo-white.png`);
-await Deno.copyFile("./deploy/logo.ico", `./${folderName}/logo.ico`);
-await Deno.copyFile("./deploy/logo.png", `./${folderName}/logo.png`);
+await Deno.copyFile(logo, `./${folderName}/logo.webp`);
+await Deno.copyFile(logo, `./${folderName}/logo.webp`);
 await Deno.copyFile("./deploy/manifest.json", `./${folderName}/manifest.json`);
