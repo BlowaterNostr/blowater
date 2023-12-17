@@ -17,8 +17,7 @@ import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/mas
 import { LamportTime } from "../time.ts";
 import { prepareEncryptedNostrEvent } from "../lib/nostr-ts/event.ts";
 
-
-const ctx = InMemoryAccountContext.Generate()
+const ctx = InMemoryAccountContext.Generate();
 const db = NewIndexedDB();
 if (db instanceof Error) {
     fail(db.message);
@@ -35,12 +34,12 @@ const event = await prepareEncryptedNostrEvent(ctx, {
     encryptKey: ctx.publicKey,
     kind: NostrKind.DIRECT_MESSAGE,
     tags: [
-        ["p", ctx.publicKey.hex]
-    ]
+        ["p", ctx.publicKey.hex],
+    ],
 }) as NostrEvent;
 const err = dm_list.addEvents([event]);
-if(err instanceof Error) {
-    console.error(err)
+if (err instanceof Error) {
+    console.error(err);
 }
 const otherConfig = OtherConfig.Empty(new Channel(), ctx, new LamportTime());
 

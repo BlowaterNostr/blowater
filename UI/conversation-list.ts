@@ -78,7 +78,7 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker {
                         if (event.pubkey == this.ctx.publicKey.hex) {
                             // I am the sender
                             whoAm_I_TalkingTo = getTags(event).p[0];
-                            if(whoAm_I_TalkingTo == undefined) {
+                            if (whoAm_I_TalkingTo == undefined) {
                                 return new Error(`event ${event.id} does not have p tags`);
                             }
                         } else if (getTags(event).p[0] == this.ctx.publicKey.hex) {
