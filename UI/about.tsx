@@ -2,8 +2,11 @@
 import { h } from "https://esm.sh/preact@10.17.1";
 import { DividerClass } from "./components/tw.ts";
 import { LinkColor, PrimaryTextColor, SecondaryBackgroundColor } from "./style/colors.ts";
+import { emitFunc } from "../event-bus.ts";
+import { SelectConversation } from "./search_model.ts";
+import { PublicKey } from "../lib/nostr-ts/key.ts";
 
-export function About() {
+export function About(emit: emitFunc<SelectConversation>) {
     return (
         <div
             class={`flex-1 overflow-hidden bg-[${SecondaryBackgroundColor}] text-[${PrimaryTextColor}]`}
@@ -20,11 +23,19 @@ export function About() {
 
                 <p class={`text-[1.3rem] font-bold mt-8`}>Creator</p>
                 <a
-                    class={`text-[${LinkColor}] hover:underline mt-4`}
+                    class={`text-[${LinkColor}] hover:underline mt-4 hover:cursor-pointer`}
                     target="_blank"
-                    href="https://nostr.band/npub1dww6jgxykmkt7tqjqx985tg58dxlm7v83sa743578xa4j7zpe3hql6pdnf"
+                    onClick={() => {
+                        const pub = PublicKey.FromBech32("npub1dww6jgxykmkt7tqjqx985tg58dxlm7v83sa743578xa4j7zpe3hql6pdnf");
+                        if(pub instanceof Error) throw pub
+                        emit({
+                            type: "SelectConversation",
+                            isGroupChat: false,
+                            pubkey: pub
+                        })
+                    }}
                 >
-                    Water Blowater
+                    Water Blower (feel free to ask me questions)
                 </a>
                 <p class={`mt-4 text-[1.2rem]`}>Donation</p>
                 <p>
