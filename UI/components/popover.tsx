@@ -1,6 +1,5 @@
 /** @jsx h */
 import { Component, ComponentChildren, h } from "https://esm.sh/preact@10.17.1";
-import { tw } from "https://esm.sh/twind@0.16.16";
 import { SecondaryBackgroundColor } from "../style/colors.ts";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 
@@ -13,10 +12,10 @@ export class Popover extends Component<{
 }, State> {
     state = { show: false };
     styles = {
-        container: tw`fixed inset-0 z-20`,
-        backdrop: tw`fixed inset-0 z-[-1] backdrop-filter backdrop-blur cursor-pointer`,
+        container: `fixed inset-0 z-20`,
+        backdrop: `fixed inset-0 z-[-1] backdrop-filter backdrop-blur cursor-pointer`,
         childrenContainer:
-            tw`h-[80%] absolute top-[20%] overflow-auto bg-[${SecondaryBackgroundColor}] w-full shadow-inner`,
+            `h-[80%] absolute top-[20%] overflow-auto bg-[${SecondaryBackgroundColor}] w-full shadow-inner`,
     };
     children: ComponentChildren = undefined;
 

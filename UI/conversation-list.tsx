@@ -111,7 +111,7 @@ export class ConversationList extends Component<Props, State> {
                 <div
                     class={tw`flex items-center gap-2 px-4 h-20 border-b border-[#36393F]`}
                 >
-                    <ButtonGroup class={tw`flex-1 ${LinearGradientsClass}} items-center`}>
+                    <ButtonGroup class={`flex-1 ${LinearGradientsClass}} items-center`}>
                         <button
                             onClick={async () => {
                                 props.emit({
