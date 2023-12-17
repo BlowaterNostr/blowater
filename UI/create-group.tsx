@@ -1,7 +1,7 @@
 /** @jsx h */
 import { Component } from "https://esm.sh/preact@10.17.1";
 import { h } from "https://esm.sh/preact@10.17.1";
-import { tw } from "https://esm.sh/twind@0.16.16";
+
 import { ErrorColor, PrimaryTextColor, SecondaryBackgroundColor, TitleIconColor } from "./style/colors.ts";
 import { GroupIcon } from "./icons/group-icon.tsx";
 import { ButtonClass, InputClass, LinearGradientsClass } from "./components/tw.ts";
@@ -35,17 +35,17 @@ export class CreateGroup extends Component<Props, State> {
         error: "",
     };
     styles = {
-        container: tw`py-6 px-4 bg-[${SecondaryBackgroundColor}]`,
+        container: `py-6 px-4 bg-[${SecondaryBackgroundColor}]`,
         header: {
-            container: tw`text-[${PrimaryTextColor}] text-xl flex`,
-            icon: tw`w-8 h-8 mr-4 text-[${TitleIconColor}] fill-current`,
+            container: `text-[${PrimaryTextColor}] text-xl flex`,
+            icon: `w-8 h-8 mr-4 text-[${TitleIconColor}] fill-current`,
         },
-        title: tw`mt-7 text-[${PrimaryTextColor}]`,
-        avatar: tw`w-14 h-14 m-auto`,
-        input: tw`${InputClass} mt-4`,
-        error: tw`mt-2 text-[${ErrorColor}] text-xs`,
+        title: `mt-7 text-[${PrimaryTextColor}]`,
+        avatar: `w-14 h-14 m-auto`,
+        input: `${InputClass} mt-4`,
+        error: `mt-2 text-[${ErrorColor}] text-xs`,
         submit:
-            tw`w-full mt-4 ${ButtonClass} ${LinearGradientsClass} hover:bg-gradient-to-l disabled:opacity-50`,
+            `w-full mt-4 ${ButtonClass} ${LinearGradientsClass} hover:bg-gradient-to-l disabled:opacity-50`,
     };
 
     onNameInput = (name: string) => {

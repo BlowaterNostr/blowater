@@ -11,13 +11,13 @@ setup(TWConfig);
 const toastChannel: ToastChannel = new Channel();
 const inputRef = createRef();
 render(
-    <div class={tw`h-screen w-screen ${CenterClass}`}>
-        <input class={tw`${inputBorderClass} px-4 py-2 mr-4`} ref={inputRef} type="text" />
+    <div class={`h-screen w-screen ${CenterClass}`}>
+        <input class={`${inputBorderClass} px-4 py-2 mr-4`} ref={inputRef} type="text" />
         <button
             onClick={() => {
                 toastChannel.put(inputRef.current.value);
             }}
-            class={tw`bg-black text-white px-4 py-2 rounded`}
+            class={`bg-black text-white px-4 py-2 rounded`}
         >
             toast
         </button>

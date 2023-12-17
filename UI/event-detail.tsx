@@ -1,6 +1,6 @@
 /** @jsx h */
 import { Fragment, h } from "https://esm.sh/preact@10.11.3";
-import { tw } from "https://esm.sh/twind@0.16.16";
+
 import { CenterClass, InputClass } from "./components/tw.ts";
 import { PrimaryTextColor, SecondaryBackgroundColor, TitleIconColor } from "./style/colors.ts";
 import { Component } from "https://esm.sh/preact@10.11.3";
@@ -18,16 +18,16 @@ type Props = {
 
 export class EventDetail extends Component<Props> {
     styles = {
-        container: tw`py-6 px-4 bg-[${SecondaryBackgroundColor}]`,
+        container: `py-6 px-4 bg-[${SecondaryBackgroundColor}]`,
         header: {
-            container: tw`text-[${PrimaryTextColor}] text-xl flex`,
-            icon: tw`w-8 h-8 mr-4 text-[${TitleIconColor}] fill-current`,
+            container: `text-[${PrimaryTextColor}] text-xl flex`,
+            icon: `w-8 h-8 mr-4 text-[${TitleIconColor}] fill-current`,
         },
-        title: tw`mt-7 text-[${PrimaryTextColor}]`,
+        title: `mt-7 text-[${PrimaryTextColor}]`,
         field: {
-            container: tw`relative ${InputClass} resize-none flex p-0 mt-4`,
-            pre: tw`whitespace-pre flex-1 overflow-x-auto px-4 py-3`,
-            copyButton: tw`w-14 ${CenterClass}`,
+            container: `relative ${InputClass} resize-none flex p-0 mt-4`,
+            pre: `whitespace-pre flex-1 overflow-x-auto px-4 py-3`,
+            copyButton: `w-14 ${CenterClass}`,
         },
     };
 

@@ -1,6 +1,6 @@
 /** @jsx h */
 import { h } from "https://esm.sh/preact@10.17.1";
-import { tw } from "https://esm.sh/twind@0.16.16";
+
 import { emitFunc } from "../event-bus.ts";
 import { ProfileData } from "../features/profile.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
@@ -17,14 +17,14 @@ export function ProfileCard(props: {
     const { profileData, publicKey, emit } = props;
     const styles = {
         container:
-            tw`px-4 mb-1 mobile:px-2 py-1 text-[${HintTextColor}] hover:underline rounded bg-[${cardBackgroundColor}] border-l-2 border-[${HintLinkColor}] max-w-sm cursor-pointer gorup`,
+            `px-4 mb-1 mobile:px-2 py-1 text-[${HintTextColor}] hover:underline rounded bg-[${cardBackgroundColor}] border-l-2 border-[${HintLinkColor}] max-w-sm cursor-pointer gorup`,
         profile: {
-            container: tw`flex items-center`,
-            avatar: tw`w-8 h-8`,
-            name: tw`text-base font-bold truncate ml-2 text-[${LinkColor}]`,
+            container: `flex items-center`,
+            avatar: `w-8 h-8`,
+            name: `text-base font-bold truncate ml-2 text-[${LinkColor}]`,
         },
-        divider: tw`${DividerClass} my-[0.5rem]`,
-        about: tw`text-sm`,
+        divider: `${DividerClass} my-[0.5rem]`,
+        about: `text-sm`,
     };
 
     const onClick = () =>

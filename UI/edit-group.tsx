@@ -1,7 +1,7 @@
 /** @jsx h */
 import { Component } from "https://esm.sh/preact@10.17.1";
 import { h } from "https://esm.sh/preact@10.17.1";
-import { tw } from "https://esm.sh/twind@0.16.16";
+
 import { ErrorColor, PrimaryTextColor, SecondaryBackgroundColor, TitleIconColor } from "./style/colors.ts";
 import { GroupIcon } from "./icons/group-icon.tsx";
 import { ButtonClass, InputClass, LinearGradientsClass } from "./components/tw.ts";
@@ -24,10 +24,10 @@ export function EditGroup(props: {
     emit: emitFunc<SaveProfile>;
 }) {
     const styles = {
-        container: tw`py-6 px-4 bg-[${SecondaryBackgroundColor}]`,
+        container: `py-6 px-4 bg-[${SecondaryBackgroundColor}]`,
         header: {
-            container: tw`text-[${PrimaryTextColor}] text-xl flex`,
-            icon: tw`w-8 h-8 mr-4 text-[${TitleIconColor}] fill-current`,
+            container: `text-[${PrimaryTextColor}] text-xl flex`,
+            icon: `w-8 h-8 mr-4 text-[${TitleIconColor}] fill-current`,
         },
     };
 

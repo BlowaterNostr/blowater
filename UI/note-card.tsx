@@ -1,6 +1,6 @@
 /** @jsx h */
 import { h } from "https://esm.sh/preact@10.17.1";
-import { tw } from "https://esm.sh/twind@0.16.16";
+
 import { ProfileData } from "../features/profile.ts";
 import {
     cardBackgroundColor,
@@ -23,9 +23,9 @@ export function NoteCard(props: {
     const { profileData, event, emit, publicKey } = props;
     const styles = {
         container:
-            tw`px-4 mb-1 mobile:px-2 py-1 text-[${PrimaryTextColor}] rounded bg-[${cardBackgroundColor}] border-l-2 border-[${HintLinkColor}] w-4/5 mobile:w-full`,
-        name: tw`truncate font-bold text-[${LinkColor}] text-base cursor-pointer hover:underline`,
-        content: tw`text-sm text-[${HintTextColor}] hover:underline cursor-pointer`,
+            `px-4 mb-1 mobile:px-2 py-1 text-[${PrimaryTextColor}] rounded bg-[${cardBackgroundColor}] border-l-2 border-[${HintLinkColor}] w-4/5 mobile:w-full`,
+        name: `truncate font-bold text-[${LinkColor}] text-base cursor-pointer hover:underline`,
+        content: `text-sm text-[${HintTextColor}] hover:underline cursor-pointer`,
     };
 
     const viewNoteDetail = () =>

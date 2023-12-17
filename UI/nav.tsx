@@ -1,6 +1,6 @@
 /** @jsx h */
 import { ComponentChild, Fragment, h } from "https://esm.sh/preact@10.17.1";
-import { tw } from "https://esm.sh/twind@0.16.16";
+
 import { Avatar } from "./components/avatar.tsx";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import {
@@ -56,20 +56,20 @@ type NavTab = {
 export class NavBar extends Component<Props, State> {
     styles = {
         container:
-            tw`h-full w-16 flex flex-col gap-y-4 overflow-y-auto bg-[${PrimaryBackgroundColor}] py-8 items-center`,
+            `h-full w-16 flex flex-col gap-y-4 overflow-y-auto bg-[${PrimaryBackgroundColor}] py-8 items-center`,
         icons: (active: boolean, fill?: boolean) => (
-            tw`w-6 h-6 ${fill ? "fill-current" : "stroke-current"} text-[${
+            `w-6 h-6 ${fill ? "fill-current" : "stroke-current"} text-[${
                 active ? PrimaryTextColor : SecondaryTextColor
             }]`
         ),
-        avatar: tw`w-12 h-12`,
+        avatar: `w-12 h-12`,
         tabsContainer:
-            tw`last:flex-1 last:flex last:items-end last:flex last:flex-col last:justify-end last:gap-y-4`,
+            `last:flex-1 last:flex last:items-end last:flex last:flex-col last:justify-end last:gap-y-4`,
         tabs: (active: boolean) =>
-            tw`rounded-lg w-10 h-10 ${
+            `rounded-lg w-10 h-10 ${
                 active ? `bg-[${SecondaryBackgroundColor}]` : ""
             } hover:bg-[${SecondaryBackgroundColor}] ${CenterClass} ${NoOutlineClass}`,
-        mobileContainer: tw`h-[4.5rem] flex justify-evenly bg-[${PrimaryBackgroundColor}] items-start pt-2`,
+        mobileContainer: `h-[4.5rem] flex justify-evenly bg-[${PrimaryBackgroundColor}] items-start pt-2`,
     };
 
     state: State = {
