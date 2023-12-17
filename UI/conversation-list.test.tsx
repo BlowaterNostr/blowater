@@ -4,7 +4,7 @@ import { ConversationList } from "./conversation-list.tsx";
 import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { Datebase_View } from "../database.ts";
 import { PrivateKey } from "../lib/nostr-ts/key.ts";
-import { InMemoryAccountContext } from "../lib/nostr-ts/nostr.ts";
+import { InMemoryAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { testEventBus } from "./_setup.test.ts";
 import { initialModel } from "./app_model.ts";
 import { DM_List } from "./conversation-list.ts";
@@ -13,8 +13,12 @@ import { ProfileSyncer } from "../features/profile.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
 import { OtherConfig } from "./config-other.ts";
 import { GroupChatSyncer, GroupMessageController } from "../features/gm.ts";
+import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { LamportTime } from "../time.ts";
+import { prepareEncryptedNostrEvent } from "../lib/nostr-ts/event.ts";
 
-const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
+
+const ctx = InMemoryAccountContext.Generate()
 const db = NewIndexedDB();
 if (db instanceof Error) {
     fail(db.message);
@@ -23,22 +27,33 @@ const database = await Datebase_View.New(db, db, db);
 
 const pool = new ConnectionPool();
 const profileSyncer = new ProfileSyncer(database, pool);
-const convoLists = new DM_List(ctx, profileSyncer);
-const gmc = new GroupMessageController(ctx, new GroupChatSyncer(database, pool), profileSyncer);
-convoLists.addEvents(Array.from(database.events.values()));
 
-const model = initialModel();
+const gmc = new GroupMessageController(ctx, new GroupChatSyncer(database, pool), profileSyncer);
+const dm_list = new DM_List(ctx);
+const event = await prepareEncryptedNostrEvent(ctx, {
+    content: "",
+    encryptKey: ctx.publicKey,
+    kind: NostrKind.DIRECT_MESSAGE,
+    tags: [
+        ["p", ctx.publicKey.hex]
+    ]
+}) as NostrEvent;
+const err = dm_list.addEvents([event]);
+if(err instanceof Error) {
+    console.error(err)
+}
+const otherConfig = OtherConfig.Empty(new Channel(), ctx, new LamportTime());
 
 const view = () =>
     render(
         <ConversationList
-            convoListRetriever={convoLists}
             hasNewMessages={new Set()}
-            pinListGetter={OtherConfig.Empty()}
             eventBus={testEventBus}
             emit={testEventBus.emit}
             profileGetter={database}
             groupChatListGetter={gmc}
+            convoListRetriever={dm_list}
+            pinListGetter={otherConfig}
         />,
         document.body,
     );
