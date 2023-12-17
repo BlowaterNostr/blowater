@@ -439,7 +439,7 @@ function MessageActions(
 ) {
     return (
         <ButtonGroup
-            class={tw`hidden group-hover:flex absolute top-[-0.75rem] right-[3rem]`}
+            class={`hidden group-hover:flex absolute top-[-0.75rem] right-[3rem]`}
             style={{
                 boxShadow: "2px 2px 5px 0 black",
             }}

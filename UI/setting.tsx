@@ -1,6 +1,5 @@
 /** @jsx h */
 import { Component, Fragment, h } from "https://esm.sh/preact@10.17.1";
-import { tw } from "https://esm.sh/twind@0.16.16";
 
 import {
     CenterClass,
@@ -57,11 +56,11 @@ export const Setting = (props: SettingProps) => {
     }
     return (
         <div
-            class={tw`flex-1 overflow-hidden overflow-y-auto`}
+            class={`flex-1 overflow-hidden overflow-y-auto`}
         >
-            <div class={tw`min-w-full min-h-full px-2 bg-[${SecondaryBackgroundColor}]`}>
-                <div class={tw`max-w-[41rem] m-auto py-[1.5rem]`}>
-                    <div class={tw`px-[1rem] py-[1.5rem] ${inputBorderClass} rounded-lg mt-[1.5rem]`}>
+            <div class={`min-w-full min-h-full px-2 bg-[${SecondaryBackgroundColor}]`}>
+                <div class={`max-w-[41rem] m-auto py-[1.5rem]`}>
+                    <div class={`px-[1rem] py-[1.5rem] ${inputBorderClass} rounded-lg mt-[1.5rem]`}>
                         <RelaySetting
                             emit={props.emit}
                             relayConfig={props.relayConfig}
@@ -71,7 +70,7 @@ export const Setting = (props: SettingProps) => {
                     </div>
 
                     <div
-                        class={tw`px-[1rem] py-[0.5rem] ${inputBorderClass} rounded-lg mt-[1.5rem] text-[${PrimaryTextColor}]`}
+                        class={`px-[1rem] py-[0.5rem] ${inputBorderClass} rounded-lg mt-[1.5rem] text-[${PrimaryTextColor}]`}
                     >
                         <KeyView
                             privateKey={priKey}
@@ -79,7 +78,7 @@ export const Setting = (props: SettingProps) => {
                         />
                     </div>
                     <button
-                        class={tw`w-full p-[0.75rem] mt-[1.5rem] rounded-lg ${NoOutlineClass} ${CenterClass} ${LinearGradientsClass}  hover:bg-gradient-to-l text-[${PrimaryTextColor}]`}
+                        class={`w-full p-[0.75rem] mt-[1.5rem] rounded-lg ${NoOutlineClass} ${CenterClass} ${LinearGradientsClass}  hover:bg-gradient-to-l text-[${PrimaryTextColor}]`}
                         onClick={props.logout}
                     >
                         Logout
@@ -187,59 +186,59 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
 
         return (
             <Fragment>
-                <p class={tw`text-[1.3125rem] flex text-[${PrimaryTextColor}]`}>
+                <p class={`text-[1.3125rem] flex text-[${PrimaryTextColor}]`}>
                     <RelayIcon
-                        class={tw`w-[2rem] h-[2rem] mr-[1rem]`}
+                        class={`w-[2rem] h-[2rem] mr-[1rem]`}
                         style={{
                             stroke: TitleIconColor,
                         }}
                     />
                     Relays
                 </p>
-                <p class={tw`mt-[1.75rem] text-[${PrimaryTextColor}]`}>
+                <p class={`mt-[1.75rem] text-[${PrimaryTextColor}]`}>
                     Add Relay
                 </p>
-                <div class={tw`mt-[0.5rem] flex text-[${PrimaryTextColor}]`}>
+                <div class={`mt-[0.5rem] flex text-[${PrimaryTextColor}]`}>
                     <input
                         autofocus={true}
                         onInput={(e) => this.setState({ addRelayInput: e.currentTarget.value })}
                         value={addRelayInput}
                         placeholder="wss://"
                         type="text"
-                        class={tw`${InputClass}`}
+                        class={`${InputClass}`}
                     />
                     <button
-                        class={tw`ml-[0.75rem] w-[5.9375rem] h-[3rem] p-[0.75rem] rounded-lg ${NoOutlineClass} bg-[${DividerBackgroundColor}] hover:bg-[${HoverButtonBackgroudColor}] ${CenterClass} text-[${PrimaryTextColor}]`}
+                        class={`ml-[0.75rem] w-[5.9375rem] h-[3rem] p-[0.75rem] rounded-lg ${NoOutlineClass} bg-[${DividerBackgroundColor}] hover:bg-[${HoverButtonBackgroudColor}] ${CenterClass} text-[${PrimaryTextColor}]`}
                         onClick={addRelay}
                     >
                         Add
                     </button>
                 </div>
                 {this.state.error
-                    ? <p class={tw`mt-2 text-[${ErrorColor}] text-[0.875rem]`}>{this.state.error}</p>
+                    ? <p class={`mt-2 text-[${ErrorColor}] text-[0.875rem]`}>{this.state.error}</p>
                     : undefined}
 
-                <ul class={tw`mt-[1.5rem] text-[${PrimaryTextColor}]`}>
+                <ul class={`mt-[1.5rem] text-[${PrimaryTextColor}]`}>
                     {relayStatus.map((r) => {
                         return (
                             <li
                                 onClick={() => this.showRelayDetail(r.url)}
-                                class={tw`w-full px-[1rem] py-[0.75rem] rounded-lg bg-[${DividerBackgroundColor}80] mb-[0.5rem]  flex items-center justify-between cursor-pointer hover:bg-[${HoverButtonBackgroudColor}]`}
+                                class={`w-full px-[1rem] py-[0.75rem] rounded-lg bg-[${DividerBackgroundColor}80] mb-[0.5rem]  flex items-center justify-between cursor-pointer hover:bg-[${HoverButtonBackgroudColor}]`}
                             >
-                                <div class={tw`flex items-center flex-1 overflow-hidden`}>
+                                <div class={`flex items-center flex-1 overflow-hidden`}>
                                     <span
-                                        class={tw`bg-[${
+                                        class={`bg-[${
                                             colors[r.status]
                                         }] text-center block py-1 px-2 rounded text-[0.8rem] mr-2 font-bold`}
                                     >
                                         {r.status}
                                     </span>
-                                    <span class={tw`truncate`}>{r.url}</span>
+                                    <span class={`truncate`}>{r.url}</span>
                                 </div>
                                 {r.url != blowater
                                     ? (
                                         <button
-                                            class={tw`w-[2rem] h-[2rem] rounded-lg bg-transparent hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
+                                            class={`w-[2rem] h-[2rem] rounded-lg bg-transparent hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
                                             onClick={async (e) => {
                                                 e.stopPropagation();
                                                 const p = props.relayConfig.remove(r.url);
@@ -260,7 +259,7 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
                                             }}
                                         >
                                             <DeleteIcon
-                                                class={tw`w-[1rem] h-[1rem]`}
+                                                class={`w-[1rem] h-[1rem]`}
                                                 style={{
                                                     stroke: ErrorColor,
                                                 }}
