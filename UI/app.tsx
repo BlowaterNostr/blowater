@@ -439,7 +439,7 @@ export function AppComponent(props: {
         }
 
         if (model.navigationModel.activeNav == "About") {
-            aboutNode = About();
+            aboutNode = About(app.eventBus.emit);
         }
     }
 

@@ -153,6 +153,7 @@ export async function* UI_Interaction_Update(args: {
         // Contacts
         //
         else if (event.type == "SelectConversation") {
+            model.navigationModel.activeNav = "DM";
             model.search.isSearching = false;
             model.rightPanelModel = {
                 show: false,

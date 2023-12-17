@@ -19,6 +19,7 @@ import { NewIndexedDB } from "./dexie-db.ts";
 import { OtherConfig } from "./config-other.ts";
 import { DirectedMessageController } from "../features/dm.ts";
 import { GroupMessageController } from "../features/gm.ts";
+import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 
 const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
 const indexedDB = NewIndexedDB();
@@ -27,7 +28,7 @@ if (indexedDB instanceof Error) {
 }
 const database = await Datebase_View.New(indexedDB, indexedDB, indexedDB);
 
-const lamport = new LamportTime(0);
+const lamport = new LamportTime();
 
 const e = await database.addEvent(
     await prepareEncryptedNostrEvent(ctx, {
@@ -41,21 +42,22 @@ if (!e || e instanceof Error) {
     fail();
 }
 
-const allUserInfo = new DM_List(ctx, new ProfileSyncer(database, new ConnectionPool()));
-allUserInfo.addEvents([e]);
-allUserInfo.addEvents(Array.from(database.events.values()));
-console.log(database.events);
+const dm_list = new DM_List(ctx);
+dm_list.addEvents([e]);
+dm_list.addEvents(Array.from(database.getAllEvents()));
+
 const pool = new ConnectionPool();
 const model = initialModel();
 
 pool.addRelayURL(relays[0]);
 
 const gmControl = new GroupMessageController(ctx, { add: (_) => {} }, { add: (_) => {} });
+const dmControl = new DirectedMessageController(ctx);
 
 const view = () => {
     return (
         <DirectMessageContainer
-            conversationLists={allUserInfo}
+            conversationLists={dm_list}
             eventSyncer={new EventSyncer(pool, database)}
             profilesSyncer={new ProfileSyncer(database, pool)}
             bus={testEventBus}
@@ -67,12 +69,13 @@ const view = () => {
             ctx={ctx}
             pool={pool}
             isGroupMessage={false}
-            pinListGetter={new OtherConfig()}
+            pinListGetter={OtherConfig.Empty(new Channel(), ctx, lamport)}
             profileGetter={database}
-            dmGetter={new DirectedMessageController(ctx)}
             groupChatController={gmControl}
             messageGetter={gmControl}
-            newMessageChecker={allUserInfo}
+            newMessageChecker={dm_list}
+            newMessageListener={dmControl}
+            relayRecordGetter={database}
         />
     );
 };
@@ -84,7 +87,7 @@ render(view(), document.body);
         if (event == null) {
             continue;
         }
-        allUserInfo.addEvents([event]);
+        dm_list.addEvents([event]);
     }
 })();
 

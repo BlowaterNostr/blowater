@@ -1,5 +1,5 @@
 import { bundle } from "https://deno.land/x/emit@0.31.0/mod.ts";
-import { logo } from "./build-pwa.ts";
+import { logo } from "./_build-pwa.ts";
 
 const exists = async (filename: string): Promise<boolean> => {
     try {
