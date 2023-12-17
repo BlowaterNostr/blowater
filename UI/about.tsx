@@ -26,13 +26,15 @@ export function About(emit: emitFunc<SelectConversation>) {
                     class={`text-[${LinkColor}] hover:underline mt-4 hover:cursor-pointer`}
                     target="_blank"
                     onClick={() => {
-                        const pub = PublicKey.FromBech32("npub1dww6jgxykmkt7tqjqx985tg58dxlm7v83sa743578xa4j7zpe3hql6pdnf");
-                        if(pub instanceof Error) throw pub
+                        const pub = PublicKey.FromBech32(
+                            "npub1dww6jgxykmkt7tqjqx985tg58dxlm7v83sa743578xa4j7zpe3hql6pdnf",
+                        );
+                        if (pub instanceof Error) throw pub;
                         emit({
                             type: "SelectConversation",
                             isGroupChat: false,
-                            pubkey: pub
-                        })
+                            pubkey: pub,
+                        });
                     }}
                 >
                     Water Blower (feel free to ask me questions)

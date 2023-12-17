@@ -5,7 +5,6 @@ import { TWConfig } from "../tw.config.ts";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { CenterClass, inputBorderClass } from "./tw.ts";
 
-
 const toastChannel: ToastChannel = new Channel();
 const inputRef = createRef();
 render(
