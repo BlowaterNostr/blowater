@@ -1,6 +1,6 @@
 /** @jsx h */
 import { Component, h } from "https://esm.sh/preact@10.17.1";
-
+import { tw } from "https://esm.sh/twind@0.16.16";
 import { GetLocalStorageAccountContext, Nip7ExtensionContext } from "./account-context.ts";
 import { ButtonClass, CenterClass, LinearGradientsClass, NoOutlineClass } from "./components/tw.ts";
 import KeyView from "./key-view.tsx";
@@ -79,22 +79,22 @@ type State = {
 export class SignIn extends Component<Props, State> {
     styles = {
         container:
-            `h-screen w-screen bg-[${PrimaryBackgroundColor}] flex items-center justify-center p-4 overflow-y-auto`,
-        form: `w-[30rem] flex flex-col h-full py-8`,
-        logo: `w-32 h-32 mx-auto`,
-        title: `text-[${PrimaryTextColor}] text-center text-4xl`,
-        subTitle: `text-[${HintTextColor}] text-center`,
-        input: `w-full px-4 py-2 focus-visible:outline-none rounded-lg mt-8`,
-        hint: `text-[${HintTextColor}] text-sm mt-2`,
-        block: `flex-1 desktop:hidden`,
+            tw`h-screen w-screen bg-[${PrimaryBackgroundColor}] flex items-center justify-center p-4 overflow-y-auto`,
+        form: tw`w-[30rem] flex flex-col h-full py-8`,
+        logo: tw`w-32 h-32 mx-auto`,
+        title: tw`text-[${PrimaryTextColor}] text-center text-4xl`,
+        subTitle: tw`text-[${HintTextColor}] text-center`,
+        input: tw`w-full px-4 py-2 focus-visible:outline-none rounded-lg mt-8`,
+        hint: tw`text-[${HintTextColor}] text-sm mt-2`,
+        block: tw`flex-1 desktop:hidden`,
         signInButton:
-            `w-full mt-4 ${ButtonClass} ${LinearGradientsClass} hover:bg-gradient-to-l mobile:rounded-full font-bold`,
+            tw`w-full mt-4 ${ButtonClass} ${LinearGradientsClass} hover:bg-gradient-to-l mobile:rounded-full font-bold`,
         cancelButton:
-            `${ButtonClass} ${CenterClass} mt-4 bg-[${SecondaryBackgroundColor}] text-[${PrimaryTextColor}] hover:bg-[${HoverButtonBackgroudColor}] mobile:rounded-full`,
+            tw`${ButtonClass} ${CenterClass} mt-4 bg-[${SecondaryBackgroundColor}] text-[${PrimaryTextColor}] hover:bg-[${HoverButtonBackgroudColor}] mobile:rounded-full`,
         newButton:
-            `text-[${HintLinkColor}] hover:underline mobile:text-[${PrimaryTextColor}] mobile:bg-[${HintLinkColor}] mobile:rounded mobile:px-2 mobile:py-1 ${NoOutlineClass}`,
-        ablyIcon: `h-10`,
-        isError: (error: string) => error ? `text-[${ErrorColor}]` : "",
+            tw`text-[${HintLinkColor}] hover:underline mobile:text-[${PrimaryTextColor}] mobile:bg-[${HintLinkColor}] mobile:rounded mobile:px-2 mobile:py-1 ${NoOutlineClass}`,
+        ablyIcon: tw`h-10`,
+        isError: (error: string) => error ? tw`text-[${ErrorColor}]` : "",
     };
 
     signInWithPrivateKey = () => {

@@ -1,6 +1,6 @@
 /** @jsx h */
 import { Attributes, ComponentChild, ComponentChildren, h, Ref } from "https://esm.sh/preact@10.17.1";
-
+import { tw } from "https://esm.sh/twind@0.16.16";
 import { DividerBackgroundColor, PrimaryTextColor, SuccessColor } from "../style/colors.ts";
 import { CopyIcon } from "../icons/copy-icon.tsx";
 import { CenterClass, NoOutlineClass } from "./tw.ts";
@@ -19,9 +19,9 @@ type State = {
 
 export class CopyButton extends Component<Props, State> {
     styles = {
-        button: `w-6 h-6 rounded-lg hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`,
-        copyIcon: `w-4 h-4 text-[${PrimaryTextColor}] stroke-current`,
-        checkIcon: `w-4 h-4 text-[${SuccessColor}] stroke-current`,
+        button: tw`w-6 h-6 rounded-lg hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`,
+        copyIcon: tw`w-4 h-4 text-[${PrimaryTextColor}] stroke-current`,
+        checkIcon: tw`w-4 h-4 text-[${SuccessColor}] stroke-current`,
     };
     state: State = {
         state: "copy",

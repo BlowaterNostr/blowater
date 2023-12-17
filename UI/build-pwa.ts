@@ -29,4 +29,3 @@ await Deno.copyFile("./deploy/index.html", `./${folderName}/index.html`);
 await Deno.copyFile(logo, `./${folderName}/logo.webp`);
 await Deno.copyFile(logo, `./${folderName}/logo.webp`);
 await Deno.copyFile("./deploy/manifest.json", `./${folderName}/manifest.json`);
-await Deno.copyFile("./deploy/tailwind.js", `./${folderName}/tailwind.js`);

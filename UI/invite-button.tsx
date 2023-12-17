@@ -1,6 +1,6 @@
 /** @jsx h */
 import { Component, h } from "https://esm.sh/preact@10.17.1";
-
+import { tw } from "https://esm.sh/twind@0.16.16";
 import { InviteIcon } from "./icons/invite-icon.tsx";
 import { DividerBackgroundColor, HoverButtonBackgroudColor, PrimaryTextColor } from "./style/colors.ts";
 import { NoOutlineClass } from "./components/tw.ts";
@@ -31,11 +31,11 @@ export class InviteButton extends Component<Props, State> {
     styles = {
         button: {
             container:
-                `w-6 h-6 flex items-center justify-center relative bg-[${DividerBackgroundColor}] hover:[${HoverButtonBackgroudColor}] ${NoOutlineClass}`,
-            icon: `w-4 h-4 scale-150 fill-current text-[${PrimaryTextColor}]`,
+                tw`w-6 h-6 flex items-center justify-center relative bg-[${DividerBackgroundColor}] hover:[${HoverButtonBackgroudColor}] ${NoOutlineClass}`,
+            icon: tw`w-4 h-4 scale-150 fill-current text-[${PrimaryTextColor}]`,
         },
-        ul: `absolute top-6 rounded right-0 text-[${PrimaryTextColor}] bg-[${HoverButtonBackgroudColor}] z-20 overflow-y-auto`,
-        li: `p-2 text-left hover:bg-[${DividerBackgroundColor}] first:rounded-t last:rounded-b w-32 whitespace-nowrap truncate text-xs`,
+        ul: tw`absolute top-6 rounded right-0 text-[${PrimaryTextColor}] bg-[${HoverButtonBackgroudColor}] z-20 overflow-y-auto`,
+        li: tw`p-2 text-left hover:bg-[${DividerBackgroundColor}] first:rounded-t last:rounded-b w-32 whitespace-nowrap truncate text-xs`,
     };
 
     sendEvent = (e: h.JSX.TargetedMouseEvent<HTMLLIElement>, groupPublicKey: PublicKey) => {

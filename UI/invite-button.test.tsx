@@ -6,7 +6,7 @@ import { GroupMessageController } from "../features/gm.ts";
 import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { Datebase_View } from "../database.ts";
 import { testEventBus, testEventMarker, testEventsAdapter, testRelayAdapter } from "./_setup.test.ts";
-
+import { tw } from "https://esm.sh/twind@0.16.16";
 import { CenterClass } from "./components/tw.ts";
 import { getTags } from "../nostr.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
@@ -27,7 +27,7 @@ gm_A.addEvent({
     publicKey: PublicKey.FromHex(gm_A_creation_event.pubkey) as PublicKey,
 });
 render(
-    <div class={`${CenterClass}`}>
+    <div class={tw`${CenterClass}`}>
         <InviteButton
             userPublicKey={user_B.publicKey}
             groupChatController={gm_A}

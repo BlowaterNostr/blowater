@@ -1,6 +1,6 @@
 /** @jsx h */
 import { h } from "https://esm.sh/preact@10.17.1";
-
+import { tw } from "https://esm.sh/twind@0.16.16";
 import { PrimaryTextColor, SecondaryBackgroundColor, SecondaryTextColor } from "./style/colors.ts";
 import { Avatar } from "./components/avatar.tsx";
 import { LinearGradientsClass, NoOutlineClass } from "./components/tw.ts";
@@ -20,19 +20,19 @@ export function InviteCard(props: {
     const { publicKey, profileGetter } = props;
 
     const styles = {
-        container: `bg-[${SecondaryBackgroundColor}] rounded-sm p-2 max-w-sm my-1`,
-        title: `text-[${SecondaryTextColor}] font-bold text-xs uppercase`,
+        container: tw`bg-[${SecondaryBackgroundColor}] rounded-sm p-2 max-w-sm my-1`,
+        title: tw`text-[${SecondaryTextColor}] font-bold text-xs uppercase`,
         profile: {
-            container: `flex py-2 gap-x-4`,
-            picture: `w-10 h-10`,
+            container: tw`flex py-2 gap-x-4`,
+            picture: tw`w-10 h-10`,
             text: {
-                container: `flex-1 overflow-hidden`,
-                name: `text-[${PrimaryTextColor}] truncate`,
-                description: `text-[${SecondaryTextColor}] text-xs truncate`,
+                container: tw`flex-1 overflow-hidden`,
+                name: tw`text-[${PrimaryTextColor}] truncate`,
+                description: tw`text-[${SecondaryTextColor}] text-xs truncate`,
             },
         },
         button:
-            `px-4 py-2 rounded-sm ${LinearGradientsClass} hover:bg-gradient-to-l text-[${PrimaryTextColor}] text-sm ${NoOutlineClass} font-bold`,
+            tw`px-4 py-2 rounded-sm ${LinearGradientsClass} hover:bg-gradient-to-l text-[${PrimaryTextColor}] text-sm ${NoOutlineClass} font-bold`,
     };
 
     const profile = profileGetter.getProfilesByPublicKey(publicKey);
