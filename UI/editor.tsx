@@ -5,11 +5,7 @@ import { emitFunc } from "../event-bus.ts";
 
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { ImageIcon } from "./icons/image-icon.tsx";
-import {
-    DividerBackgroundColor,
-    PrimaryBackgroundColor,
-    PrimaryTextColor,
-} from "./style/colors.ts";
+import { DividerBackgroundColor, PrimaryBackgroundColor, PrimaryTextColor } from "./style/colors.ts";
 import { SendIcon } from "./icons/send-icon.tsx";
 import { Component } from "https://esm.sh/preact@10.17.1";
 import { RemoveIcon } from "./icons/remove-icon.tsx";
