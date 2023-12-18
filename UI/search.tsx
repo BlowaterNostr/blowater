@@ -1,6 +1,5 @@
 /** @jsx h */
 import { createRef, h } from "https://esm.sh/preact@10.17.1";
-import { tw } from "https://esm.sh/twind@0.16.16";
 import { Avatar } from "./components/avatar.tsx";
 import {
     DividerBackgroundColor,
@@ -48,16 +47,16 @@ export class Search extends Component<Props, State> {
     state: State = { searchResults: [] };
     inputRef = createRef();
     styles = {
-        container: tw`flex flex-col h-full w-full bg-[${SecondaryBackgroundColor}]`,
+        container: `flex flex-col h-full w-full bg-[${SecondaryBackgroundColor}]`,
         searchInput:
-            tw`p-2 w-full border-b border-[${DividerBackgroundColor}] focus-visible:outline-none bg-[${SecondaryBackgroundColor}] text-[${PrimaryTextColor}] placeholder-[${PlaceholderColor}]`,
+            `p-2 w-full border-b border-[${DividerBackgroundColor}] focus-visible:outline-none bg-[${SecondaryBackgroundColor}] text-[${PrimaryTextColor}] placeholder-[${PlaceholderColor}]`,
         result: {
-            container: tw`flex-1 list-none p-1 overflow-y-auto`,
+            container: `flex-1 list-none p-1 overflow-y-auto`,
             item: {
                 container:
-                    tw`w-full flex items-center px-4 py-2 text-[#B8B9BF] hover:bg-[#404249] rounded cursor-pointer`,
-                avatar: tw`w-8 h-8 mr-2`,
-                text: tw`truncate`,
+                    `w-full flex items-center px-4 py-2 text-[#B8B9BF] hover:bg-[#404249] rounded cursor-pointer`,
+                avatar: `w-8 h-8 mr-2`,
+                text: `truncate`,
             },
         },
     };

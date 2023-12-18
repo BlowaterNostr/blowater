@@ -1,6 +1,5 @@
 /** @jsx h */
 import { Component, ComponentChildren, Fragment, h } from "https://esm.sh/preact@10.17.1";
-import { tw } from "https://esm.sh/twind@0.16.16";
 import { CopyButton } from "./components/copy-button.tsx";
 import { CenterClass, InputClass } from "./components/tw.ts";
 import {
@@ -44,12 +43,12 @@ export type RelayDetailItem = {
 
 export class RelayDetail extends Component<Props, State> {
     styles = {
-        container: tw`bg-[${SecondaryBackgroundColor}] p-8`,
-        title: tw`pt-8 text-[${PrimaryTextColor}]`,
-        error: tw`text-[${ErrorColor}] ${CenterClass}`,
+        container: `bg-[${SecondaryBackgroundColor}] p-8`,
+        title: `pt-8 text-[${PrimaryTextColor}]`,
+        error: `text-[${ErrorColor}] ${CenterClass}`,
         header: {
-            container: tw`text-lg flex text-[${PrimaryTextColor}] pb-4`,
-            icon: tw`w-8 h-8 mr-4 text-[${TitleIconColor}] stroke-current`,
+            container: `text-lg flex text-[${PrimaryTextColor}] pb-4`,
+            icon: `w-8 h-8 mr-4 text-[${TitleIconColor}] stroke-current`,
         },
     };
 
@@ -178,10 +177,10 @@ function AuthorField(props: {
     profileGetter: ProfileGetter;
 }) {
     const styles = {
-        container: tw`flex items-center ${InputClass}`,
-        avatar: tw`h-8 w-8 mr-2`,
-        icon: tw`w-4 h-4 text-[${HintTextColor}] fill-current rotate-180`,
-        name: tw`overflow-x-auto flex-1`,
+        container: `flex items-center ${InputClass}`,
+        avatar: `h-8 w-8 mr-2`,
+        icon: `w-4 h-4 text-[${HintTextColor}] fill-current rotate-180`,
+        name: `overflow-x-auto flex-1`,
     };
 
     const pubkey = PublicKey.FromString(props.publicKey);
@@ -206,9 +205,9 @@ function TextField(props: {
     text: string;
 }) {
     const styles = {
-        container: tw`relative ${InputClass} resize-none flex p-0 mt-4`,
-        pre: tw`whitespace-pre flex-1 overflow-x-auto px-4 py-3`,
-        copyButton: tw`w-14 ${CenterClass}`,
+        container: `relative ${InputClass} resize-none flex p-0 mt-4`,
+        pre: `whitespace-pre flex-1 overflow-x-auto px-4 py-3`,
+        copyButton: `w-14 ${CenterClass}`,
     };
 
     return (

@@ -1,17 +1,11 @@
 /** @jsx h */
 import { createRef, h } from "https://esm.sh/preact@10.17.1";
-import { tw } from "https://esm.sh/twind@0.16.16";
 import { CenterClass, LinearGradientsClass, NoOutlineClass } from "./components/tw.ts";
 import { emitFunc } from "../event-bus.ts";
 
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { ImageIcon } from "./icons/image-icon.tsx";
-import {
-    DividerBackgroundColor,
-    PrimaryBackgroundColor,
-    PrimaryTextColor,
-    SecondaryBackgroundColor,
-} from "./style/colors.ts";
+import { DividerBackgroundColor, PrimaryBackgroundColor, PrimaryTextColor } from "./style/colors.ts";
 import { SendIcon } from "./icons/send-icon.tsx";
 import { Component } from "https://esm.sh/preact@10.17.1";
 import { RemoveIcon } from "./icons/remove-icon.tsx";
@@ -107,9 +101,9 @@ export class Editor extends Component<EditorProps> {
         };
 
         return (
-            <div class={tw`flex mb-4 mx-5 mobile:mx-2 mobile:mb-2 items-center`}>
+            <div class={`flex mb-4 mx-5 mobile:mx-2 mobile:mb-2 items-center`}>
                 <button
-                    class={tw`min-w-[3rem] mobile:min-w-[2rem] w-[3rem] mobile:w-8 h-[3rem] mobile:h-8 hover:bg-[${DividerBackgroundColor}] group ${CenterClass} rounded-[50%] ${NoOutlineClass}`}
+                    class={`min-w-[3rem] mobile:min-w-[2rem] w-[3rem] mobile:w-8 h-[3rem] mobile:h-8 hover:bg-[${DividerBackgroundColor}] group ${CenterClass} rounded-[50%] ${NoOutlineClass}`}
                     onClick={() => {
                         if (uploadFileInput.current) {
                             uploadFileInput.current.click();
@@ -117,7 +111,7 @@ export class Editor extends Component<EditorProps> {
                     }}
                 >
                     <ImageIcon
-                        class={tw`h-[2rem] w-[2rem] mobile:w-6 mobile:h-6 stroke-current text-[${PrimaryTextColor}4D] group-hover:text-[${PrimaryTextColor}]`}
+                        class={`h-[2rem] w-[2rem] mobile:w-6 mobile:h-6 stroke-current text-[${PrimaryTextColor}4D] group-hover:text-[${PrimaryTextColor}]`}
                         style={{
                             fill: "none",
                         }}
@@ -148,29 +142,29 @@ export class Editor extends Component<EditorProps> {
                             isGroupChat: props.isGroupChat,
                         });
                     }}
-                    class={tw`hidden`}
+                    class={`hidden`}
                 />
                 <div
-                    class={tw`mx-2 p-[0.75rem] mobile:p-2 mobile:text-sm bg-[${DividerBackgroundColor}] rounded-lg flex flex-col flex-1 overflow-hidden`}
+                    class={`mx-2 p-[0.75rem] mobile:p-2 mobile:text-sm bg-[${DividerBackgroundColor}] rounded-lg flex flex-col flex-1 overflow-hidden`}
                 >
                     {props.files.length > 0
                         ? (
                             <ul
-                                class={tw`flex overflow-auto list-none py-2 w-full border-b border-[#52525B] mb-[1rem]`}
+                                class={`flex overflow-auto list-none py-2 w-full border-b border-[#52525B] mb-[1rem]`}
                             >
                                 {props.files.map((file, index) => {
                                     return (
                                         <li
-                                            class={tw`relative mx-2 min-w-[10rem] w-[10rem]  h-[10rem] p-2 bg-[${PrimaryBackgroundColor}] rounded ${CenterClass}`}
+                                            class={`relative mx-2 min-w-[10rem] w-[10rem]  h-[10rem] p-2 bg-[${PrimaryBackgroundColor}] rounded ${CenterClass}`}
                                         >
                                             <button
-                                                class={tw`w-[2rem] h-[2rem] absolute top-1 right-1 rounded-[50%] hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
+                                                class={`w-[2rem] h-[2rem] absolute top-1 right-1 rounded-[50%] hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
                                                 onClick={() => {
                                                     removeFile(index);
                                                 }}
                                             >
                                                 <RemoveIcon
-                                                    class={tw`w-[1.3rem] h-[1.3rem]`}
+                                                    class={`w-[1.3rem] h-[1.3rem]`}
                                                     style={{
                                                         fill: "none",
                                                         stroke: PrimaryTextColor,
@@ -178,7 +172,7 @@ export class Editor extends Component<EditorProps> {
                                                 />
                                             </button>
                                             <img
-                                                class={tw`max-w-full max-h-full`}
+                                                class={`max-w-full max-h-full`}
                                                 src={URL.createObjectURL(file)}
                                                 alt=""
                                             />
@@ -196,7 +190,7 @@ export class Editor extends Component<EditorProps> {
                         }}
                         value={props.text}
                         rows={1}
-                        class={tw`flex-1 bg-transparent focus-visible:outline-none placeholder-[${PrimaryTextColor}4D] text-[0.8rem] text-[#D2D3D5] whitespace-nowrap resize-none overflow-x-hidden overflow-y-auto`}
+                        class={`flex-1 bg-transparent focus-visible:outline-none placeholder-[${PrimaryTextColor}4D] text-[0.8rem] text-[#D2D3D5] whitespace-nowrap resize-none overflow-x-hidden overflow-y-auto`}
                         placeholder={props.placeholder}
                         onInput={(e) => {
                             props.emit({
@@ -246,17 +240,17 @@ export class Editor extends Component<EditorProps> {
                 </div>
 
                 <div
-                    class={tw`w-[5rem] h-[2.5rem] rounded-lg mobile:hidden ${LinearGradientsClass} ${CenterClass}`}
+                    class={`w-[5rem] h-[2.5rem] rounded-lg mobile:hidden ${LinearGradientsClass} ${CenterClass}`}
                 >
                     <button
-                        class={tw`w-[4.8rem] h-[2.3rem] text-[${PrimaryTextColor}] rounded-lg ${CenterClass} bg-[#36393F] hover:bg-transparent font-bold`}
+                        class={`w-[4.8rem] h-[2.3rem] text-[${PrimaryTextColor}] rounded-lg ${CenterClass} bg-[#36393F] hover:bg-transparent font-bold`}
                         onClick={async () => {
                             await sendMessage();
                             this.textareaElement.current?.focus();
                         }}
                     >
                         <SendIcon
-                            class={tw`h-[1.25rem] w-[1.25rem] mr-[0.1rem]`}
+                            class={`h-[1.25rem] w-[1.25rem] mr-[0.1rem]`}
                             style={{
                                 stroke: PrimaryTextColor,
                                 fill: "none",
@@ -267,14 +261,14 @@ export class Editor extends Component<EditorProps> {
                 </div>
 
                 <button
-                    class={tw`desktop:hidden w-12 h-8 ${CenterClass} ${LinearGradientsClass} rounded`}
+                    class={`desktop:hidden w-12 h-8 ${CenterClass} ${LinearGradientsClass} rounded`}
                     onClick={async () => {
                         await sendMessage();
                         this.textareaElement.current?.focus();
                     }}
                 >
                     <SendIcon
-                        class={tw`h-4 w-4`}
+                        class={`h-4 w-4`}
                         style={{
                             stroke: PrimaryTextColor,
                             fill: "none",

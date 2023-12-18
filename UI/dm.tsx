@@ -1,6 +1,5 @@
 /** @jsx h */
 import { h } from "https://esm.sh/preact@10.17.1";
-import { tw } from "https://esm.sh/twind@0.16.16";
 import * as cl from "./conversation-list.tsx";
 import { MessagePanel, NewMessageListener, RightPanelModel } from "./message-panel.tsx";
 import { EventBus } from "../event-bus.ts";
@@ -62,7 +61,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
         if (props.isGroupMessage) {
             buttons.push(
                 <button
-                    class={tw`w-8 h-8 ${CenterClass}`}
+                    class={`w-8 h-8 ${CenterClass}`}
                     onClick={() => {
                         props.bus.emit({
                             type: "ViewUserDetail",
@@ -71,7 +70,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                     }}
                 >
                     <UserIcon
-                        class={tw`w-6 h-6 text-[${PrimaryTextColor}] stroke-current`}
+                        class={`w-6 h-6 text-[${PrimaryTextColor}] stroke-current`}
                         style={{ fill: "none" }}
                     />
                 </button>,
@@ -82,7 +81,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                 buttons.push(
                     // setting button
                     <button
-                        class={tw`w-8 h-8 ${CenterClass}`}
+                        class={`w-8 h-8 ${CenterClass}`}
                         onClick={() => {
                             props.bus.emit({
                                 type: "StartEditGroupChatProfile",
@@ -91,7 +90,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                         }}
                     >
                         <SettingIcon
-                            class={tw`w-6 h-6 text-[${PrimaryTextColor}] stroke-current`}
+                            class={`w-6 h-6 text-[${PrimaryTextColor}] stroke-current`}
                             style={{ fill: "none" }}
                         />
                     </button>,
@@ -111,9 +110,9 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
 
     const vDom = (
         <div
-            class={tw`h-full w-full flex bg-[#36393F] overflow-hidden`}
+            class={`h-full w-full flex bg-[#36393F] overflow-hidden`}
         >
-            <div class={tw`${props.currentEditor ? "mobile:hidden" : "mobile:w-full"}`}>
+            <div class={`${props.currentEditor ? "mobile:hidden" : "mobile:w-full"}`}>
                 <cl.ConversationList
                     eventBus={props.bus}
                     emit={props.bus.emit}
@@ -125,23 +124,23 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
             </div>
             {props.currentEditor
                 ? (
-                    <div class={tw`flex-1 overflow-hidden flex-col flex`}>
+                    <div class={`flex-1 overflow-hidden flex-col flex`}>
                         <div
-                            class={tw`h-14 mobile:h-12
+                            class={`h-14 mobile:h-12
                             border-l border-b border-[#36393F] flex
                             items-center justify-between px- mobile:px-2 bg-[#2F3136]`}
                         >
-                            <div class={tw`flex items-center overflow-hidden`}>
+                            <div class={`flex items-center overflow-hidden`}>
                                 <button
                                     onClick={() => {
                                         props.bus.emit({
                                             type: "BackToContactList",
                                         });
                                     }}
-                                    class={tw`w-6 h-6 mobile:mr-2 desktop:hidden ${IconButtonClass}`}
+                                    class={`w-6 h-6 mobile:mr-2 desktop:hidden ${IconButtonClass}`}
                                 >
                                     <LeftArrowIcon
-                                        class={tw`w-4 h-4`}
+                                        class={`w-4 h-4`}
                                         style={{
                                             fill: "rgb(185, 187, 190)",
                                         }}
@@ -150,7 +149,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                                 <span
                                     // https://tailwindcss.com/docs/customizing-colors
                                     // https://tailwindcss.com/docs/cursor
-                                    class={tw`text-[#F3F4EA] text-[1.2rem]
+                                    class={`text-[#F3F4EA] text-[1.2rem]
                                     hover:text-[#60a5fa] hover:cursor-pointer
                                     ml-4 mobile:text-base whitespace-nowrap truncate`}
                                     onClick={() => {
@@ -172,7 +171,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                                 {buttons}
                             </ButtonGroup>
                         </div>
-                        <div class={tw`flex-1 overflow-x-auto`}>
+                        <div class={`flex-1 overflow-x-auto`}>
                             {props.currentEditor
                                 ? (
                                     <MessagePanel
