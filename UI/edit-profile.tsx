@@ -1,6 +1,5 @@
 /** @jsx h */
 import { createRef, Fragment, h } from "https://esm.sh/preact@10.17.1";
-import { tw } from "https://esm.sh/twind@0.16.16";
 import { Avatar } from "./components/avatar.tsx";
 import {
     CenterClass,
@@ -49,30 +48,30 @@ type State = {
 
 export class EditProfile extends Component<Props, State> {
     styles = {
-        container: tw`py-4 bg-[${SecondaryBackgroundColor}]`,
+        container: `py-4 bg-[${SecondaryBackgroundColor}]`,
         banner: {
-            container: tw`h-72 w-full rounded-lg mb-20 relative`,
+            container: `h-72 w-full rounded-lg mb-20 relative`,
             avatar:
-                tw`w-24 h-24 m-auto absolute top-60 left-1/2 box-border border-2 border-[${PrimaryTextColor}] -translate-x-2/4`,
+                `w-24 h-24 m-auto absolute top-60 left-1/2 box-border border-2 border-[${PrimaryTextColor}] -translate-x-2/4`,
         },
-        avatar: tw`w-24 h-24 m-auto box-border border-2 border-[${PrimaryTextColor}]`,
+        avatar: `w-24 h-24 m-auto box-border border-2 border-[${PrimaryTextColor}]`,
         field: {
-            title: tw`text-[${PrimaryTextColor}] mt-8`,
-            input: tw`${InputClass}`,
+            title: `text-[${PrimaryTextColor}] mt-8`,
+            input: `${InputClass}`,
             hint: {
-                text: tw`text-sm text-[${HintTextColor}]`,
-                link: tw`text-[${HintLinkColor}]`,
+                text: `text-sm text-[${HintTextColor}]`,
+                link: `text-[${HintLinkColor}]`,
             },
         },
         addButton:
-            tw`w-full mt-6 p-3 rounded-lg ${NoOutlineClass} text-[${PrimaryTextColor}] bg-[${DividerBackgroundColor}] hover:bg-[${HoverButtonBackgroudColor}] ${CenterClass}`,
+            `w-full mt-6 p-3 rounded-lg ${NoOutlineClass} text-[${PrimaryTextColor}] bg-[${DividerBackgroundColor}] hover:bg-[${HoverButtonBackgroudColor}] ${CenterClass}`,
         submitButton:
-            tw`w-full p-3 rounded-lg ${NoOutlineClass} text-[${PrimaryTextColor}] ${CenterClass} ${LinearGradientsClass}  hover:bg-gradient-to-l`,
-        divider: tw`${DividerClass}`,
+            `w-full p-3 rounded-lg ${NoOutlineClass} text-[${PrimaryTextColor}] ${CenterClass} ${LinearGradientsClass}  hover:bg-gradient-to-l`,
+        divider: `${DividerClass}`,
         custom: {
-            title: tw`text-[${PrimaryTextColor}] font-bold text-sm`,
-            text: tw`text-[${HintTextColor}] text-sm`,
-            error: tw`text-sm text-[${ErrorColor}]`,
+            title: `text-[${PrimaryTextColor}] font-bold text-sm`,
+            text: `text-[${HintTextColor}] text-sm`,
+            error: `text-sm text-[${ErrorColor}]`,
         },
     };
 
@@ -266,7 +265,7 @@ export class EditProfile extends Component<Props, State> {
 
                 <button class={this.styles.addButton} onClick={this.addField}>Add Field</button>
 
-                <div class={tw`${DividerClass}`}></div>
+                <div class={`${DividerClass}`}></div>
 
                 <button class={this.styles.submitButton} onClick={this.onSubmit}>Update Profile</button>
             </div>
