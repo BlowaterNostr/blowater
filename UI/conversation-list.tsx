@@ -9,7 +9,6 @@ import { SearchUpdate, SelectConversation } from "./search_model.ts";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { PinConversation, UnpinConversation } from "../nostr.ts";
 import { ErrorColor, PrimaryTextColor, SecondaryBackgroundColor } from "./style/colors.ts";
-import { ButtonGroup } from "./components/button-group.tsx";
 import { ChatIcon } from "./icons/chat-icon.tsx";
 import { StartCreateGroupChat } from "./create-group.tsx";
 import { GroupIcon } from "./icons/group-icon.tsx";
@@ -111,7 +110,7 @@ export class ConversationList extends Component<Props, State> {
                 <div
                     class={tw`flex items-center gap-2 px-4 h-20 border-b border-[#36393F]`}
                 >
-                    <ButtonGroup class={`flex-1 ${LinearGradientsClass}} items-center`}>
+                    <div class={`flex-1 ${LinearGradientsClass}} items-center`}>
                         <button
                             onClick={async () => {
                                 props.emit({
@@ -148,7 +147,7 @@ export class ConversationList extends Component<Props, State> {
                                 </Fragment>
                             )
                             : undefined}
-                    </ButtonGroup>
+                    </div>
                 </div>
 
                 <ul class={tw`bg-[#36393F] w-full flex h-[3rem] border-b border-[#36393F]`}>
