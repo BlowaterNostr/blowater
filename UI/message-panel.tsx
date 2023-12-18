@@ -23,15 +23,8 @@ import { ProfileData, ProfileSyncer } from "../features/profile.ts";
 
 import { UserDetail } from "./user-detail.tsx";
 
-import {
-    DividerBackgroundColor,
-    ErrorColor,
-    HintTextColor,
-    LinkColor,
-    PrimaryTextColor,
-} from "./style/colors.ts";
+import { DividerBackgroundColor, ErrorColor, LinkColor, PrimaryTextColor } from "./style/colors.ts";
 import { EventSyncer } from "./event_syncer.ts";
-import { ButtonGroup } from "./components/button-group.tsx";
 import { ProfileCard } from "./profile-card.tsx";
 import { NoteCard } from "./note-card.tsx";
 import { ProfileGetter } from "./search.tsx";
@@ -438,7 +431,7 @@ function MessageActions(
     emit: emitFunc<ViewThread | DirectMessagePanelUpdate>,
 ) {
     return (
-        <ButtonGroup
+        <div
             class={`hidden group-hover:flex absolute top-[-0.75rem] right-[3rem]`}
             style={{
                 boxShadow: "2px 2px 5px 0 black",
@@ -460,7 +453,7 @@ function MessageActions(
                     }}
                 />
             </button>
-        </ButtonGroup>
+        </div>
     );
 }
 

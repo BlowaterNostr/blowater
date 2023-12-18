@@ -10,7 +10,6 @@ import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
 import { ProfileSyncer } from "../features/profile.ts";
 import { getFocusedContent } from "./app.tsx";
 import { EventSyncer } from "./event_syncer.ts";
-import { ButtonGroup } from "./components/button-group.tsx";
 import { PrimaryTextColor } from "./style/colors.ts";
 import { SettingIcon } from "./icons/setting-icon.tsx";
 import { GroupMessageController } from "../features/gm.ts";
@@ -167,9 +166,9 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                                         props.currentEditor.pubkey.bech32()}
                                 </span>
                             </div>
-                            <ButtonGroup>
+                            <div>
                                 {buttons}
-                            </ButtonGroup>
+                            </div>
                         </div>
                         <div class={`flex-1 overflow-x-auto`}>
                             {props.currentEditor
