@@ -1,6 +1,5 @@
 /** @jsx h */
 import { h } from "https://esm.sh/preact@10.17.1";
-import { tw } from "https://esm.sh/twind@0.16.16";
 import { Avatar } from "./components/avatar.tsx";
 import { PublicKey } from "../lib/nostr-ts/key.ts";
 import { ProfileData } from "../features/profile.ts";
@@ -21,37 +20,37 @@ type UserDetailProps = {
 
 export function UserDetail(props: UserDetailProps) {
     return (
-        <div class={tw`p-2 relative text-[#7A818C]`}>
+        <div class={`p-2 relative text-[#7A818C]`}>
             <Avatar
-                class={tw`w-64 h-64 m-auto mt-8`}
+                class={`w-64 h-64 m-auto mt-8`}
                 picture={props.targetUserProfile.picture}
             />
-            <h1 class={tw`text-[#F3F4EA] truncate text-[1.4rem] mt-8 max-w-full text-center`}>
+            <h1 class={`text-[#F3F4EA] truncate text-[1.4rem] mt-8 max-w-full text-center`}>
                 {props.targetUserProfile.name || props.pubkey.bech32()}
             </h1>
-            <div class={tw`flex items-start overflow-hidden w-full mt-8 group`}>
+            <div class={`flex items-start overflow-hidden w-full mt-8 group`}>
                 <KeyIcon
-                    class={tw`w-6 h-6 mr-2`}
+                    class={`w-6 h-6 mr-2`}
                     style={{
                         fill: "#7A818C",
                     }}
                 />
                 <p
-                    class={tw`flex-1 text-[#7A818C] group-hover:text-[#F3F4EA] break-words overflow-hidden`}
+                    class={`flex-1 text-[#7A818C] group-hover:text-[#F3F4EA] break-words overflow-hidden`}
                 >
                     {props.pubkey.bech32()}
                 </p>
                 <CopyButton text={props.pubkey.bech32()} />
             </div>
-            <div class={tw`flex items-start overflow-hidden w-full mt-1 group`}>
+            <div class={`flex items-start overflow-hidden w-full mt-1 group`}>
                 <KeyIcon
-                    class={tw`w-6 h-6 mr-2`}
+                    class={`w-6 h-6 mr-2`}
                     style={{
                         fill: "#7A818C",
                     }}
                 />
                 <p
-                    class={tw`flex-1 text-[#7A818C] group-hover:text-[#F3F4EA] break-words overflow-hidden`}
+                    class={`flex-1 text-[#7A818C] group-hover:text-[#F3F4EA] break-words overflow-hidden`}
                 >
                     {props.pubkey.hex}
                 </p>
@@ -59,9 +58,9 @@ export function UserDetail(props: UserDetailProps) {
             </div>
             {props.targetUserProfile.about
                 ? (
-                    <div class={tw`flex items-start overflow-hidden w-full mt-4 group`}>
+                    <div class={`flex items-start overflow-hidden w-full mt-4 group`}>
                         <UserIcon
-                            class={tw`w-6 h-6 mr-2`}
+                            class={`w-6 h-6 mr-2`}
                             style={{
                                 stroke: "#7A818C",
                                 strokeWidth: "1.5",
@@ -69,7 +68,7 @@ export function UserDetail(props: UserDetailProps) {
                             }}
                         />
                         <p
-                            class={tw`flex-1 break-words overflow-hidden`}
+                            class={`flex-1 break-words overflow-hidden`}
                         >
                             {TextWithLinks({ text: props.targetUserProfile.about })}
                         </p>
@@ -78,9 +77,9 @@ export function UserDetail(props: UserDetailProps) {
                 : undefined}
             {props.targetUserProfile.website
                 ? (
-                    <div class={tw`flex items-start overflow-hidden w-full mt-4 group`}>
+                    <div class={`flex items-start overflow-hidden w-full mt-4 group`}>
                         <HomeIcon
-                            class={tw`w-6 h-6 mr-2`}
+                            class={`w-6 h-6 mr-2`}
                             style={{
                                 stroke: "#7A818C",
                                 strokeWidth: "1.5",
@@ -88,7 +87,7 @@ export function UserDetail(props: UserDetailProps) {
                             }}
                         />
                         <p
-                            class={tw`flex-1 break-words overflow-hidden`}
+                            class={`flex-1 break-words overflow-hidden`}
                         >
                             {TextWithLinks({ text: props.targetUserProfile.website })}
                         </p>
@@ -108,7 +107,7 @@ function TextWithLinks({ text }: { text: string }) {
                 if (part instanceof URL) {
                     return (
                         <a
-                            class={tw`text-[${LinkColor}] hover:text-[#F3F4EA]`}
+                            class={`text-[${LinkColor}] hover:text-[#F3F4EA]`}
                             key={index}
                             href={part.href}
                             target="_blank"

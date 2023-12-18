@@ -1,6 +1,5 @@
 /** @jsx h */
 import { h } from "https://esm.sh/preact@10.17.1";
-import { tw } from "https://esm.sh/twind@0.16.16";
 
 export function Avatar(props: {
     picture: string | undefined;
@@ -17,7 +16,7 @@ export function Avatar(props: {
             onClick={props.onClick}
             style={props.style}
             class={[
-                tw`rounded-full${props.onClick ? " cursor-pointer" : ""}`,
+                `rounded-full${props.onClick ? " cursor-pointer" : ""}`,
                 props.class,
             ].join(" ")}
             src={props.picture ? props.picture : "logo.webp"}
