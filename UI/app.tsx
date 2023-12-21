@@ -446,7 +446,7 @@ export function AppComponent(props: {
     console.debug("AppComponent:2", Date.now() - t);
 
     const final = (
-        <div class={tw`fixed w-full flex-1 flex overflow-hidden`}>
+        <div class={tw`h-screen fixed w-full flex-1 flex overflow-hidden`}>
             <nav.NavBar
                 publicKey={app.ctx.publicKey}
                 profileGetter={app.database}
