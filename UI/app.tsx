@@ -446,64 +446,42 @@ export function AppComponent(props: {
     console.debug("AppComponent:2", Date.now() - t);
 
     const final = (
-        <div
-            class={tw`font-roboto flex flex-col h-screen w-screen overflow-hidden`}
-        >
-            <div class={tw`w-full h-full flex flex-col`}>
-                <div class={tw`w-full flex-1 flex overflow-hidden`}>
-                    <div class={tw`mobile:hidden`}>
-                        <nav.NavBar
-                            publicKey={app.ctx.publicKey}
-                            profileGetter={app.database}
-                            emit={app.eventBus.emit}
-                            installPrompt={props.installPrompt}
-                        />
-                    </div>
+        <div class={tw`fixed w-full flex-1 flex overflow-hidden`}>
+            <nav.NavBar
+                publicKey={app.ctx.publicKey}
+                profileGetter={app.database}
+                emit={app.eventBus.emit}
+                installPrompt={props.installPrompt}
+            />
 
-                    <div
-                        class={tw`h-full px-[3rem] mobile:px-4 bg-[${SecondaryBackgroundColor}] flex-1 overflow-auto${
-                            model.navigationModel.activeNav == "Profile" ? " block" : " hidden"
-                        }`}
-                    >
-                        <div
-                            class={tw`max-w-[35rem] h-full m-auto`}
-                        >
-                            <EditProfile
-                                ctx={model.app.ctx}
-                                profileGetter={app.database}
-                                emit={props.eventBus.emit}
-                            />
-                        </div>
-                    </div>
-                    {dmVNode}
-                    {aboutNode}
-                    {Setting({
-                        show: model.navigationModel.activeNav == "Setting",
-                        logout: app.logout,
-                        relayConfig: app.relayConfig,
-                        myAccountContext: myAccountCtx,
-                        relayPool: props.pool,
-                        emit: props.eventBus.emit,
-                    })}
-                    <Popover
-                        inputChan={props.popOverInputChan}
+            <div
+                class={tw`h-full px-[3rem] sm:px-4 bg-[${SecondaryBackgroundColor}] flex-1 overflow-auto${
+                    model.navigationModel.activeNav == "Profile" ? " block" : " hidden"
+                }`}
+            >
+                <div
+                    class={tw`max-w-[35rem] h-full m-auto`}
+                >
+                    <EditProfile
+                        ctx={model.app.ctx}
+                        profileGetter={app.database}
+                        emit={props.eventBus.emit}
                     />
                 </div>
-
-                <div class={tw`desktop:hidden`}>
-                    {!model.dm.currentEditor
-                        ? (
-                            <nav.NavBar
-                                publicKey={app.ctx.publicKey}
-                                profileGetter={app.database}
-                                emit={app.eventBus.emit}
-                                isMobile={true}
-                                installPrompt={props.installPrompt}
-                            />
-                        )
-                        : <div class={tw`h-4 bg-[#36393F]`}></div>}
-                </div>
             </div>
+            {dmVNode}
+            {aboutNode}
+            {Setting({
+                show: model.navigationModel.activeNav == "Setting",
+                logout: app.logout,
+                relayConfig: app.relayConfig,
+                myAccountContext: myAccountCtx,
+                relayPool: props.pool,
+                emit: props.eventBus.emit,
+            })}
+            <Popover
+                inputChan={props.popOverInputChan}
+            />
         </div>
     );
 

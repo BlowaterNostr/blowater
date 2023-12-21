@@ -55,7 +55,7 @@ type NavTab = {
 export class NavBar extends Component<Props, State> {
     styles = {
         container:
-            `h-full w-16 flex flex-col gap-y-4 overflow-y-auto bg-[${PrimaryBackgroundColor}] py-8 items-center`,
+            `h-screen w-16 flex flex-col gap-y-4 overflow-y-auto bg-[${PrimaryBackgroundColor}] py-8 items-center`,
         icons: (active: boolean, fill?: boolean) => (
             `w-6 h-6 ${fill ? "fill-current" : "stroke-current"} text-[${
                 active ? PrimaryTextColor : SecondaryTextColor
