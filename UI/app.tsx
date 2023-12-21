@@ -1,5 +1,5 @@
 /** @jsx h */
-import { Fragment, h, render } from "https://esm.sh/preact@10.17.1";
+import { h, render } from "https://esm.sh/preact@10.17.1";
 import * as dm from "../features/dm.ts";
 import { DirectMessageContainer } from "./dm.tsx";
 import { tw } from "https://esm.sh/twind@0.16.16";
