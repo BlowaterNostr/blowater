@@ -486,12 +486,7 @@ export function AppComponent(props: {
     );
 
     console.debug("AppComponent:end", Date.now() - t);
-    return (
-        <Fragment>
-            {/* <SidePanel />; */}
-            {final}
-        </Fragment>
-    );
+    return final;
 }
 
 // todo: move to somewhere else
