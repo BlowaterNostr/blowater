@@ -16,6 +16,7 @@ import { GroupChatSyncer, GroupMessageController } from "../features/gm.ts";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { LamportTime } from "../time.ts";
 import { prepareEncryptedNostrEvent } from "../lib/nostr-ts/event.ts";
+import { PublicKey } from "../lib/nostr-ts/nodejs/index.mjs";
 
 const ctx = InMemoryAccountContext.Generate();
 const db = NewIndexedDB();
@@ -29,18 +30,22 @@ const profileSyncer = new ProfileSyncer(database, pool);
 
 const gmc = new GroupMessageController(ctx, new GroupChatSyncer(database, pool), profileSyncer);
 const dm_list = new DM_List(ctx);
-const event = await prepareEncryptedNostrEvent(ctx, {
-    content: "",
-    encryptKey: ctx.publicKey,
-    kind: NostrKind.DIRECT_MESSAGE,
-    tags: [
-        ["p", ctx.publicKey.hex],
-    ],
-}) as NostrEvent;
-const err = dm_list.addEvents([event]);
-if (err instanceof Error) {
-    console.error(err);
+
+for (let i = 0; i < 20; i++) {
+    const event = await prepareEncryptedNostrEvent(ctx, {
+        content: "",
+        encryptKey: ctx.publicKey,
+        kind: NostrKind.DIRECT_MESSAGE,
+        tags: [
+            ["p", PrivateKey.Generate().toPublicKey().hex],
+        ],
+    }) as NostrEvent;
+    const err = dm_list.addEvents([event]);
+    if (err instanceof Error) {
+        fail(err.message);
+    }
 }
+
 const otherConfig = OtherConfig.Empty(new Channel(), ctx, new LamportTime());
 
 const view = () =>
