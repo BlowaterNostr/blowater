@@ -106,7 +106,9 @@ export class ConversationList extends Component<Props, State> {
         }
 
         return (
-            <div class={tw`h-screen flex flex-col mobile:w-full desktop:w-64 bg-[${SecondaryBackgroundColor}]`}>
+            <div
+                class={tw`h-screen flex flex-col mobile:w-full desktop:w-64 bg-[${SecondaryBackgroundColor}]`}
+            >
                 <div
                     class={tw`flex items-center gap-2 px-4 h-20 border-b border-[#36393F]`}
                 >
@@ -157,8 +159,7 @@ export class ConversationList extends Component<Props, State> {
                                 ? "border-b-2 border-[#54D48C] bg-[#42464D] text-[#F7F7F7]"
                                 : ""
                         }`}
-                        onClick={() =>
-                            this.setState({ selectedContactGroup: "Contacts" })}
+                        onClick={() => this.setState({ selectedContactGroup: "Contacts" })}
                     >
                         Contacts: {contacts.length}
                     </li>

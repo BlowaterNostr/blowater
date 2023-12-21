@@ -123,7 +123,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
             </div>
             {props.currentEditor
                 ? (
-                    <div class={`flex-1 overflow-hidden flex-col flex`}>
+                    <div class={`h-screen flex-1 overflow-hidden flex-col flex`}>
                         <div
                             class={`h-14 mobile:h-12
                             border-l border-b border-[#36393F] flex
