@@ -451,17 +451,15 @@ export function AppComponent(props: {
         >
             <div class={tw`w-full h-full flex flex-col`}>
                 <div class={tw`w-full flex-1 flex overflow-hidden`}>
-                    <div class={tw`mobile:hidden`}>
-                        <nav.NavBar
-                            publicKey={app.ctx.publicKey}
-                            profileGetter={app.database}
-                            emit={app.eventBus.emit}
-                            installPrompt={props.installPrompt}
-                        />
-                    </div>
+                    <nav.NavBar
+                        publicKey={app.ctx.publicKey}
+                        profileGetter={app.database}
+                        emit={app.eventBus.emit}
+                        installPrompt={props.installPrompt}
+                    />
 
                     <div
-                        class={tw`h-full px-[3rem] mobile:px-4 bg-[${SecondaryBackgroundColor}] flex-1 overflow-auto${
+                        class={tw`h-full px-[3rem] sm:px-4 bg-[${SecondaryBackgroundColor}] flex-1 overflow-auto${
                             model.navigationModel.activeNav == "Profile" ? " block" : " hidden"
                         }`}
                     >
@@ -488,20 +486,6 @@ export function AppComponent(props: {
                     <Popover
                         inputChan={props.popOverInputChan}
                     />
-                </div>
-
-                <div class={tw`desktop:hidden`}>
-                    {!model.dm.currentEditor
-                        ? (
-                            <nav.NavBar
-                                publicKey={app.ctx.publicKey}
-                                profileGetter={app.database}
-                                emit={app.eventBus.emit}
-                                isMobile={true}
-                                installPrompt={props.installPrompt}
-                            />
-                        )
-                        : <div class={tw`h-4 bg-[#36393F]`}></div>}
                 </div>
             </div>
         </div>

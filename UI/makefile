@@ -9,7 +9,7 @@ test: bundle
 bundle:
 	deno bundle --config=./deno.json $(page).test.tsx deploy/main.mjs
 
-app: build-pwa
+app: fmt build-pwa
 	file_server --port=$(port) ./build-pwa
 
 compile-all-tests:
@@ -20,3 +20,6 @@ build-extension:
 
 build-pwa:
 	deno run --allow-read --allow-env --allow-write --allow-net _build-pwa.ts
+
+fmt:
+	deno fmt --options-indent-width 4 --options-line-width 110
