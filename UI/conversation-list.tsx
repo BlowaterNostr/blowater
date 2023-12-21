@@ -106,7 +106,7 @@ export class ConversationList extends Component<Props, State> {
         }
 
         return (
-            <div class={tw`h-full flex flex-col mobile:w-full desktop:w-64 bg-[${SecondaryBackgroundColor}]`}>
+            <div class={tw`h-screen flex flex-col mobile:w-full desktop:w-64 bg-[${SecondaryBackgroundColor}]`}>
                 <div
                     class={tw`flex items-center gap-2 px-4 h-20 border-b border-[#36393F]`}
                 >

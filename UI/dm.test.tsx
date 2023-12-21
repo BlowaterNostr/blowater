@@ -46,6 +46,21 @@ const dm_list = new DM_List(ctx);
 dm_list.addEvents([e]);
 dm_list.addEvents(Array.from(database.getAllEvents()));
 
+for (let i = 0; i < 20; i++) {
+    const event = await prepareEncryptedNostrEvent(ctx, {
+        content: "",
+        encryptKey: ctx.publicKey,
+        kind: NostrKind.DIRECT_MESSAGE,
+        tags: [
+            ["p", PrivateKey.Generate().toPublicKey().hex],
+        ],
+    }) as NostrEvent;
+    const err = dm_list.addEvents([event]);
+    if (err instanceof Error) {
+        fail(err.message);
+    }
+}
+
 const pool = new ConnectionPool();
 const model = initialModel();
 
