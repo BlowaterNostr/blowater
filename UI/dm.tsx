@@ -1,7 +1,7 @@
 /** @jsx h */
 import { h } from "https://esm.sh/preact@10.17.1";
 import * as cl from "./conversation-list.tsx";
-import { MessagePanel, NewMessageListener, RightPanelModel } from "./message-panel.tsx";
+import { MessagePanel, NewMessageListener } from "./message-panel.tsx";
 import { EventBus } from "../event-bus.ts";
 import { CenterClass, IconButtonClass } from "./components/tw.ts";
 import { ChatMessagesGetter, UI_Interaction_Event } from "./app_update.tsx";
@@ -21,6 +21,7 @@ import { IS_BETA_VERSION } from "./config.js";
 import { UserIcon } from "./icons/user-icon.tsx";
 import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
 import { RelayRecordGetter } from "../database.ts";
+import { RightPanelModel } from "./right-panel.tsx";
 
 export type DM_Model = {
     currentEditor: EditorModel | undefined;
@@ -168,6 +169,29 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                             </div>
                             <div>
                                 {buttons}
+
+                                {!props.rightPanelModel.show
+                                    ? (
+                                        <button
+                                            class={`absolute z-10 w-6 h-6 transition-transform duration-100 ease-in-out right-4 mobile:right-0 top-4${
+                                                props.rightPanelModel.show ? " rotate-180" : ""
+                                            } ${IconButtonClass}`}
+                                            onClick={() => {
+                                                props.bus.emit({
+                                                    type: "ToggleRightPanel",
+                                                    show: !props.rightPanelModel.show,
+                                                });
+                                            }}
+                                        >
+                                            <LeftArrowIcon
+                                                class={`w-4 h-4`}
+                                                style={{
+                                                    fill: "#F3F4EA",
+                                                }}
+                                            />
+                                        </button>
+                                    )
+                                    : undefined}
                             </div>
                         </div>
                         <div class={`flex-1 overflow-x-auto`}>

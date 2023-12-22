@@ -3,7 +3,7 @@
 page=app
 port=4507
 
-test: bundle
+test: fmt bundle
 	file_server ./deploy
 
 bundle:
