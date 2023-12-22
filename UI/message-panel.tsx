@@ -21,8 +21,6 @@ import { NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { Parsed_Event, PinConversation, UnpinConversation } from "../nostr.ts";
 import { ProfileData, ProfileSyncer } from "../features/profile.ts";
 
-import { UserDetail } from "./user-detail.tsx";
-
 import { DividerBackgroundColor, ErrorColor, LinkColor, PrimaryTextColor } from "./style/colors.ts";
 import { EventSyncer } from "./event_syncer.ts";
 import { ProfileCard } from "./profile-card.tsx";
@@ -37,10 +35,8 @@ import { NoteID } from "../lib/nostr-ts/nip19.ts";
 import { ChatMessagesGetter } from "./app_update.tsx";
 import { isMobile } from "./_helper.ts";
 import { RelayRecordGetter } from "../database.ts";
-
-export type RightPanelModel = {
-    show: boolean;
-};
+import { RightPanel, RightPanelModel } from "./right-panel.tsx";
+import { UserDetail } from "./user-detail.tsx";
 
 export type DirectMessagePanelUpdate =
     | {
@@ -637,40 +633,6 @@ function ReSent() {
         <div class={styles.container}>
             <AboutIcon class={styles.icon} />
             <p class={styles.text}>Failed to send message</p>
-        </div>
-    );
-}
-
-type RightPanelProps = {
-    emit: emitFunc<DirectMessagePanelUpdate>;
-    rightPanelModel: RightPanelModel;
-    children: ComponentChildren;
-};
-
-function RightPanel(props: RightPanelProps) {
-    return (
-        <div
-            class={tw`mobile:w-full desktop:w-96 bg-[#2F3136] overflow-hidden overflow-y-auto relative${
-                props.rightPanelModel.show ? " block" : " hidden"
-            }`}
-        >
-            <button
-                class={tw`w-6 min-w-[1.5rem] h-6 ml-4 ${IconButtonClass} hover:bg-[#36393F] absolute right-2 top-3 z-10`}
-                onClick={() => {
-                    props.emit({
-                        type: "ToggleRightPanel",
-                        show: false,
-                    });
-                }}
-            >
-                <CloseIcon
-                    class={tw`w-4 h-4`}
-                    style={{
-                        stroke: "rgb(185, 187, 190)",
-                    }}
-                />
-            </button>
-            {props.children}
         </div>
     );
 }

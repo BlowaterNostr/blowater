@@ -1,7 +1,7 @@
 /** @jsx h */
 import { h } from "https://esm.sh/preact@10.17.1";
 import * as cl from "./conversation-list.tsx";
-import { MessagePanel, NewMessageListener, RightPanelModel } from "./message-panel.tsx";
+import { MessagePanel, NewMessageListener } from "./message-panel.tsx";
 import { EventBus } from "../event-bus.ts";
 import { CenterClass, IconButtonClass } from "./components/tw.ts";
 import { ChatMessagesGetter, UI_Interaction_Event } from "./app_update.tsx";
@@ -21,6 +21,7 @@ import { IS_BETA_VERSION } from "./config.js";
 import { UserIcon } from "./icons/user-icon.tsx";
 import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
 import { RelayRecordGetter } from "../database.ts";
+import { RightPanelModel } from "./right-panel.tsx";
 
 export type DM_Model = {
     currentEditor: EditorModel | undefined;

@@ -20,7 +20,7 @@ type UserDetailProps = {
 
 export function UserDetail(props: UserDetailProps) {
     return (
-        <div class={`p-2 relative text-[#7A818C]`}>
+        <div class={`p-2 text-[#7A818C]`}>
             <Avatar
                 class={`w-64 h-64 m-auto mt-8`}
                 picture={props.targetUserProfile.picture}
