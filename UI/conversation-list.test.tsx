@@ -38,7 +38,7 @@ for (let i = 0; i < 20; i++) {
             ["p", PrivateKey.Generate().toPublicKey().hex],
         ],
     }) as NostrEvent;
-    const err = dm_list.addEvents([event]);
+    const err = dm_list.addEvents([event], false);
     if (err instanceof Error) {
         fail(err.message);
     }
@@ -49,7 +49,7 @@ const otherConfig = OtherConfig.Empty(new Channel(), ctx, new LamportTime());
 const view = () =>
     render(
         <ConversationList
-            hasNewMessages={new Set()}
+            hasNewMessages={dm_list}
             eventBus={testEventBus}
             emit={testEventBus.emit}
             profileGetter={database}
