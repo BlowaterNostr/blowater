@@ -6,7 +6,6 @@ import { Datebase_View } from "../database.ts";
 import { PrivateKey } from "../lib/nostr-ts/key.ts";
 import { InMemoryAccountContext, NostrEvent, NostrKind } from "../lib/nostr-ts/nostr.ts";
 import { testEventBus } from "./_setup.test.ts";
-import { initialModel } from "./app_model.ts";
 import { DM_List } from "./conversation-list.ts";
 import { NewIndexedDB } from "./dexie-db.ts";
 import { ProfileSyncer } from "../features/profile.ts";
@@ -16,7 +15,6 @@ import { GroupChatSyncer, GroupMessageController } from "../features/gm.ts";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { LamportTime } from "../time.ts";
 import { prepareEncryptedNostrEvent } from "../lib/nostr-ts/event.ts";
-import { PublicKey } from "../lib/nostr-ts/nodejs/index.mjs";
 
 const ctx = InMemoryAccountContext.Generate();
 const db = NewIndexedDB();

@@ -412,29 +412,23 @@ export function AppComponent(props: {
     ) {
         if (model.navigationModel.activeNav == "DM") {
             dmVNode = (
-                <div
-                    class={tw`flex-1 overflow-hidden`}
-                >
-                    {DirectMessageContainer({
-                        ...model.dm,
-                        rightPanelModel: model.rightPanelModel,
-                        bus: app.eventBus,
-                        ctx: myAccountCtx,
-                        profileGetter: app.database,
-                        pool: props.pool,
-                        conversationLists: app.conversationLists,
-                        profilesSyncer: app.profileSyncer,
-                        eventSyncer: app.eventSyncer,
-                        pinListGetter: app.otherConfig,
-                        groupChatController: app.groupChatController,
-                        newMessageChecker: app.conversationLists,
-                        messageGetter: model.dm.isGroupMessage ? app.groupChatController : app.dmController,
-                        newMessageListener: model.dm.isGroupMessage
-                            ? app.groupChatController
-                            : app.dmController,
-                        relayRecordGetter: app.database,
-                    })}
-                </div>
+                <DirectMessageContainer
+                    {...model.dm}
+                    rightPanelModel={model.rightPanelModel}
+                    bus={app.eventBus}
+                    ctx={myAccountCtx}
+                    profileGetter={app.database}
+                    pool={props.pool}
+                    conversationLists={app.conversationLists}
+                    profilesSyncer={app.profileSyncer}
+                    eventSyncer={app.eventSyncer}
+                    pinListGetter={app.otherConfig}
+                    groupChatController={app.groupChatController}
+                    newMessageChecker={app.conversationLists}
+                    messageGetter={model.dm.isGroupMessage ? app.groupChatController : app.dmController}
+                    newMessageListener={model.dm.isGroupMessage ? app.groupChatController : app.dmController}
+                    relayRecordGetter={app.database}
+                />
             );
         }
 
@@ -446,7 +440,7 @@ export function AppComponent(props: {
     console.debug("AppComponent:2", Date.now() - t);
 
     const final = (
-        <div class={tw`h-screen fixed w-full flex-1 flex overflow-hidden`}>
+        <div class={tw`h-screen w-full flex`}>
             <nav.NavBar
                 publicKey={app.ctx.publicKey}
                 profileGetter={app.database}
