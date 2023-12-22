@@ -69,33 +69,30 @@ pool.addRelayURL(relays[0]);
 const gmControl = new GroupMessageController(ctx, { add: (_) => {} }, { add: (_) => {} });
 const dmControl = new DirectedMessageController(ctx);
 
-const view = () => {
-    return (
-        <DirectMessageContainer
-            conversationLists={dm_list}
-            eventSyncer={new EventSyncer(pool, database)}
-            profilesSyncer={new ProfileSyncer(database, pool)}
-            bus={testEventBus}
-            rightPanelModel={{
-                show: true,
-            }}
-            currentEditor={model.dm.currentEditor}
-            focusedContent={model.dm.focusedContent}
-            ctx={ctx}
-            pool={pool}
-            isGroupMessage={false}
-            pinListGetter={OtherConfig.Empty(new Channel(), ctx, lamport)}
-            profileGetter={database}
-            groupChatController={gmControl}
-            messageGetter={gmControl}
-            newMessageChecker={dm_list}
-            newMessageListener={dmControl}
-            relayRecordGetter={database}
-        />
-    );
-};
-
-render(view(), document.body);
+render(
+    <DirectMessageContainer
+        conversationLists={dm_list}
+        eventSyncer={new EventSyncer(pool, database)}
+        profilesSyncer={new ProfileSyncer(database, pool)}
+        bus={testEventBus}
+        rightPanelModel={{
+            show: true,
+        }}
+        currentEditor={model.dm.currentEditor}
+        focusedContent={model.dm.focusedContent}
+        ctx={ctx}
+        pool={pool}
+        isGroupMessage={false}
+        pinListGetter={OtherConfig.Empty(new Channel(), ctx, lamport)}
+        profileGetter={database}
+        groupChatController={gmControl}
+        messageGetter={gmControl}
+        newMessageChecker={dm_list}
+        newMessageListener={dmControl}
+        relayRecordGetter={database}
+    />,
+    document.body,
+);
 
 (async () => {
     for await (const event of database.subscribe()) {
@@ -105,25 +102,3 @@ render(view(), document.body);
         dm_list.addEvents([event]);
     }
 })();
-
-for await (const e of testEventBus.onChange()) {
-    console.log(e);
-    if (e.type == "SendMessage") {
-        const err = await handle_SendMessage(
-            e,
-            ctx,
-            lamport,
-            pool,
-            model.dmEditors,
-            model.gmEditors,
-            database,
-            gmControl,
-        );
-
-        if (err instanceof Error) {
-            console.error("update:SendMessage", err);
-            continue; // todo: global error toast
-        }
-    }
-    render(view(), document.body);
-}
