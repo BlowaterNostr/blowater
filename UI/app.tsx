@@ -411,23 +411,25 @@ export function AppComponent(props: {
         model.navigationModel.activeNav == "About"
     ) {
         if (model.navigationModel.activeNav == "DM") {
-            <DirectMessageContainer
-                {...model.dm}
-                rightPanelModel={model.rightPanelModel}
-                bus={app.eventBus}
-                ctx={myAccountCtx}
-                profileGetter={app.database}
-                pool={props.pool}
-                conversationLists={app.conversationLists}
-                profilesSyncer={app.profileSyncer}
-                eventSyncer={app.eventSyncer}
-                pinListGetter={app.otherConfig}
-                groupChatController={app.groupChatController}
-                newMessageChecker={app.conversationLists}
-                messageGetter={model.dm.isGroupMessage ? app.groupChatController : app.dmController}
-                newMessageListener={model.dm.isGroupMessage ? app.groupChatController : app.dmController}
-                relayRecordGetter={app.database}
-            />;
+            dmVNode = (
+                <DirectMessageContainer
+                    {...model.dm}
+                    rightPanelModel={model.rightPanelModel}
+                    bus={app.eventBus}
+                    ctx={myAccountCtx}
+                    profileGetter={app.database}
+                    pool={props.pool}
+                    conversationLists={app.conversationLists}
+                    profilesSyncer={app.profileSyncer}
+                    eventSyncer={app.eventSyncer}
+                    pinListGetter={app.otherConfig}
+                    groupChatController={app.groupChatController}
+                    newMessageChecker={app.conversationLists}
+                    messageGetter={model.dm.isGroupMessage ? app.groupChatController : app.dmController}
+                    newMessageListener={model.dm.isGroupMessage ? app.groupChatController : app.dmController}
+                    relayRecordGetter={app.database}
+                />
+            );
         }
 
         if (model.navigationModel.activeNav == "About") {
