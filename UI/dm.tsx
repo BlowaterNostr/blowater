@@ -1,5 +1,5 @@
 /** @jsx h */
-import { Component, h } from "https://esm.sh/preact@10.17.1";
+import { Component, h, VNode } from "https://esm.sh/preact@10.17.1";
 import * as cl from "./conversation-list.tsx";
 import { MessagePanel, NewMessageListener } from "./message-panel.tsx";
 import { EventBus } from "../event-bus.ts";
@@ -167,100 +167,32 @@ export class DirectMessageContainer extends Component<DirectMessageContainerProp
 
                 {this.state.currentEditor
                     ? (
-                        <div class={`h-screen flex-1 flex-col flex`}>
-                            <div
-                                class={`h-14
-                            border-l border-b border-[#36393F] flex
-                            items-center justify-between bg-[#2F3136]`}
-                            >
-                                <div class={`flex items-center overflow-hidden`}>
-                                    <button
-                                        onClick={() => {
-                                            props.bus.emit({
-                                                type: "BackToContactList",
-                                            });
-                                        }}
-                                        class={`w-6 h-6 mobile:mr-2 desktop:hidden ${IconButtonClass}`}
-                                    >
-                                        <LeftArrowIcon
-                                            class={`w-4 h-4`}
-                                            style={{
-                                                fill: "rgb(185, 187, 190)",
-                                            }}
-                                        />
-                                    </button>
-                                    <span
-                                        // https://tailwindcss.com/docs/customizing-colors
-                                        // https://tailwindcss.com/docs/cursor
-                                        class={`text-[#F3F4EA] text-[1.2rem]
-                                    hover:text-[#60a5fa] hover:cursor-pointer
-                                    ml-4 mobile:text-base whitespace-nowrap truncate`}
-                                        onClick={() => {
-                                            if (!props.currentEditor) {
-                                                return;
-                                            }
-                                            props.bus.emit({
-                                                type: "ViewUserDetail",
-                                                pubkey: props.currentEditor.pubkey,
-                                            });
-                                        }}
-                                    >
-                                        {props.profileGetter.getProfilesByPublicKey(
-                                            this.state.currentEditor.pubkey,
-                                        )
-                                            ?.profile.name ||
-                                            this.state.currentEditor.pubkey.bech32()}
-                                    </span>
-                                </div>
-                                <div>
-                                    {buttons}
-
-                                    {!props.rightPanelModel.show
-                                        ? (
-                                            <button
-                                                class={`absolute z-10 w-6 h-6 transition-transform duration-100 ease-in-out right-4 mobile:right-0 top-4${
-                                                    props.rightPanelModel.show ? " rotate-180" : ""
-                                                } ${IconButtonClass}`}
-                                                onClick={() => {
-                                                    props.bus.emit({
-                                                        type: "ToggleRightPanel",
-                                                        show: !props.rightPanelModel.show,
-                                                    });
-                                                }}
-                                            >
-                                                <LeftArrowIcon
-                                                    class={`w-4 h-4`}
-                                                    style={{
-                                                        fill: "#F3F4EA",
-                                                    }}
-                                                />
-                                            </button>
-                                        )
-                                        : undefined}
-                                </div>
-                            </div>
-                            <div class={`flex-1 overflow-x-auto`}>
-                                {props.currentEditor
-                                    ? (
-                                        <MessagePanel
-                                            myPublicKey={props.ctx.publicKey}
-                                            rightPanelModel={props.rightPanelModel}
-                                            emit={props.bus.emit}
-                                            newMessageListener={props.newMessageListener}
-                                            focusedContent={getFocusedContent(
-                                                props.focusedContent.get(props.currentEditor.pubkey.hex),
-                                                props.profileGetter,
-                                            )}
-                                            profilesSyncer={props.profilesSyncer}
-                                            eventSyncer={props.eventSyncer}
-                                            isGroupMessage={props.isGroupMessage}
-                                            profileGetter={props.profileGetter}
-                                            editorModel={props.currentEditor}
-                                            messageGetter={props.messageGetter}
-                                            relayRecordGetter={props.relayRecordGetter}
-                                        />
-                                    )
-                                    : undefined}
+                        <div class={`flex flex-col flex-1 overflow-hidden`}>
+                            <TopBar
+                                bus={this.props.bus}
+                                buttons={buttons}
+                                currentEditor={this.state.currentEditor}
+                                profileGetter={this.props.profileGetter}
+                                showRightPanel={this.props.rightPanelModel.show}
+                            />
+                            <div class={`flex-1 overflow-auto`}>
+                                <MessagePanel
+                                    myPublicKey={props.ctx.publicKey}
+                                    rightPanelModel={props.rightPanelModel}
+                                    emit={props.bus.emit}
+                                    newMessageListener={props.newMessageListener}
+                                    focusedContent={getFocusedContent(
+                                        props.focusedContent.get(this.state.currentEditor.pubkey.hex),
+                                        props.profileGetter,
+                                    )}
+                                    profilesSyncer={props.profilesSyncer}
+                                    eventSyncer={props.eventSyncer}
+                                    isGroupMessage={props.isGroupMessage}
+                                    profileGetter={props.profileGetter}
+                                    editorModel={this.state.currentEditor}
+                                    messageGetter={props.messageGetter}
+                                    relayRecordGetter={props.relayRecordGetter}
+                                />
                             </div>
                         </div>
                     )
@@ -270,4 +202,85 @@ export class DirectMessageContainer extends Component<DirectMessageContainerProp
         console.debug("DirectMessageContainer:end", Date.now() - t);
         return vDom;
     }
+}
+
+function TopBar(props: {
+    bus: EventBus<UI_Interaction_Event>;
+    currentEditor: EditorModel;
+    profileGetter: ProfileGetter;
+    showRightPanel: boolean;
+    buttons: VNode[];
+}) {
+    return (
+        <div
+            class={`h-14 border-l border-b border-[#36393F] flex
+                items-center justify-between bg-[#2F3136]`}
+        >
+            <div class={`flex items-center overflow-hidden`}>
+                <button
+                    onClick={() => {
+                        props.bus.emit({
+                            type: "BackToContactList",
+                        });
+                    }}
+                    class={`w-6 h-6 mobile:mr-2 desktop:hidden ${IconButtonClass}`}
+                >
+                    <LeftArrowIcon
+                        class={`w-4 h-4`}
+                        style={{
+                            fill: "rgb(185, 187, 190)",
+                        }}
+                    />
+                </button>
+                <span
+                    // https://tailwindcss.com/docs/customizing-colors
+                    // https://tailwindcss.com/docs/cursor
+                    class={`text-[#F3F4EA] text-[1.2rem]
+                                    hover:text-[#60a5fa] hover:cursor-pointer
+                                    ml-4 mobile:text-base whitespace-nowrap truncate`}
+                    onClick={() => {
+                        if (!props.currentEditor) {
+                            return;
+                        }
+                        props.bus.emit({
+                            type: "ViewUserDetail",
+                            pubkey: props.currentEditor.pubkey,
+                        });
+                    }}
+                >
+                    {props.profileGetter.getProfilesByPublicKey(
+                        props.currentEditor.pubkey,
+                    )
+                        ?.profile.name ||
+                        props.currentEditor.pubkey.bech32()}
+                </span>
+            </div>
+            <div>
+                {props.buttons}
+
+                {!props.showRightPanel
+                    ? (
+                        <button
+                            class={`absolute z-10 w-6 h-6 transition-transform duration-100 ease-in-out right-4 mobile:right-0 top-4${
+                                props.showRightPanel ? " rotate-180" : ""
+                            } ${IconButtonClass}`}
+                            onClick={() => {
+                                props.bus.emit({
+                                    type: "ToggleRightPanel",
+                                    show: !props.showRightPanel,
+                                });
+                            }}
+                        >
+                            <LeftArrowIcon
+                                class={`w-4 h-4`}
+                                style={{
+                                    fill: "#F3F4EA",
+                                }}
+                            />
+                        </button>
+                    )
+                    : undefined}
+            </div>
+        </div>
+    );
 }
