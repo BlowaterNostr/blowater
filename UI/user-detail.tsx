@@ -20,9 +20,9 @@ type UserDetailProps = {
 
 export function UserDetail(props: UserDetailProps) {
     return (
-        <div class={`p-2 text-[#7A818C]`}>
+        <div class={`px-2 pt-3 text-[#7A818C]`}>
             <Avatar
-                class={`w-64 h-64 m-auto mt-8`}
+                class={`w-64 h-64 m-auto`}
                 picture={props.targetUserProfile.picture}
             />
             <h1 class={`text-[#F3F4EA] truncate text-[1.4rem] mt-8 max-w-full text-center`}>
