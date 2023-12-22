@@ -66,20 +66,19 @@ type EditorProps = {
 export type EditorState = {
     text: string;
     files: Blob[];
-}
+};
 
 export class Editor extends Component<EditorProps, EditorState> {
-
     state: Readonly<EditorState> = {
         text: "",
         files: [],
-    }
+    };
 
     componentDidMount(): void {
-      this.setState({
-        text: this.props.text,
-        files: this.props.files
-      })
+        this.setState({
+            text: this.props.text,
+            files: this.props.files,
+        });
     }
 
     componentWillReceiveProps(nextProps: Readonly<EditorProps>) {
@@ -103,23 +102,21 @@ export class Editor extends Component<EditorProps, EditorState> {
             "rows",
             "1",
         );
-        this.setState({text: "", files: []})
+        this.setState({ text: "", files: [] });
     };
 
     removeFile = (index: number) => {
-        const props = this.props;
-        const newFiles = props.files.slice(0, index).concat(
-            props.files.slice(index + 1),
-        );
-        props.emit({
+        const files = this.state.files;
+        const newFiles = files.slice(0, index).concat(files.slice(index + 1));
+        this.props.emit({
             type: "UpdateMessageFiles",
             files: newFiles,
-            pubkey: props.targetNpub,
-            isGroupChat: props.isGroupChat,
+            pubkey: this.props.targetNpub,
+            isGroupChat: this.props.isGroupChat,
         });
         this.setState({
-            files:newFiles
-        })
+            files: newFiles,
+        });
     };
 
     render() {
@@ -167,8 +164,8 @@ export class Editor extends Component<EditorProps, EditorState> {
                             isGroupChat: this.props.isGroupChat,
                         });
                         this.setState({
-                            files: propsfiles
-                        })
+                            files: propsfiles,
+                        });
                     }}
                     class={`hidden`}
                 />
@@ -232,6 +229,7 @@ export class Editor extends Component<EditorProps, EditorState> {
                                 "rows",
                                 `${lines.length}`,
                             );
+                            this.setState({ text: e.currentTarget.value });
                         }}
                         onKeyDown={async (e) => {
                             // https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/metaKey
