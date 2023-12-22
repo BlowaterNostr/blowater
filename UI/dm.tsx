@@ -169,6 +169,29 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                             </div>
                             <div>
                                 {buttons}
+
+                                {!props.rightPanelModel.show
+                                    ? (
+                                        <button
+                                            class={`absolute z-10 w-6 h-6 transition-transform duration-100 ease-in-out right-4 mobile:right-0 top-4${
+                                                props.rightPanelModel.show ? " rotate-180" : ""
+                                            } ${IconButtonClass}`}
+                                            onClick={() => {
+                                                props.bus.emit({
+                                                    type: "ToggleRightPanel",
+                                                    show: !props.rightPanelModel.show,
+                                                });
+                                            }}
+                                        >
+                                            <LeftArrowIcon
+                                                class={`w-4 h-4`}
+                                                style={{
+                                                    fill: "#F3F4EA",
+                                                }}
+                                            />
+                                        </button>
+                                    )
+                                    : undefined}
                             </div>
                         </div>
                         <div class={`flex-1 overflow-x-auto`}>
