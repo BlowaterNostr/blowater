@@ -123,7 +123,7 @@ export class Editor extends Component<EditorProps, EditorState> {
         const uploadFileInput = createRef();
 
         return (
-            <div class={`flex mb-4 mx-5 items-center`}>
+            <div class={`flex mb-4 mx-4 items-center bg-[${DividerBackgroundColor}] rounded-lg`}>
                 <button
                     class={`min-w-[3rem] w-[3rem] h-[3rem] hover:bg-[${DividerBackgroundColor}] group ${CenterClass} rounded-[50%] ${NoOutlineClass}`}
                     onClick={() => {
@@ -170,7 +170,7 @@ export class Editor extends Component<EditorProps, EditorState> {
                     class={`hidden`}
                 />
                 <div
-                    class={`mx-2 p-[0.75rem] bg-[${DividerBackgroundColor}] rounded-lg flex flex-col flex-1 overflow-hidden`}
+                    class={`py-[0.75rem] flex flex-col flex-1 overflow-hidden`}
                 >
                     {this.state.files.length > 0
                         ? (
@@ -266,7 +266,7 @@ export class Editor extends Component<EditorProps, EditorState> {
                 </div>
 
                 <button
-                    class={`w-12 h-8 ${CenterClass} ${LinearGradientsClass} rounded`}
+                    class={`m-2 w-12 h-8 ${CenterClass} ${LinearGradientsClass} rounded`}
                     onClick={async () => {
                         await this.sendMessage();
                         this.textareaElement.current?.focus();
