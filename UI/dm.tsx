@@ -112,7 +112,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
         <div
             class={`h-full w-full flex bg-[#36393F] overflow-hidden`}
         >
-            <div class={`${props.currentEditor ? "mobile:hidden" : "mobile:w-full"}`}>
+            <div class={`w-full ${props.currentEditor ? "max-sm:hidden" : ""}`}>
                 <cl.ConversationList
                     eventBus={props.bus}
                     emit={props.bus.emit}
@@ -122,6 +122,7 @@ export function DirectMessageContainer(props: DirectMessageContainerProps) {
                     {...props}
                 />
             </div>
+
             {props.currentEditor
                 ? (
                     <div class={`h-screen flex-1 overflow-hidden flex-col flex`}>

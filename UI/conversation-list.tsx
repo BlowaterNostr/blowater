@@ -107,12 +107,15 @@ export class ConversationList extends Component<Props, State> {
 
         return (
             <div
-                class={tw`h-screen flex flex-col mobile:w-full desktop:w-64 bg-[${SecondaryBackgroundColor}]`}
+                // https://tailwindcss.com/docs/hover-focus-and-other-states#quick-reference
+                class={`
+                h-screen w-80 max-sm:w-full
+                flex flex-col bg-[${SecondaryBackgroundColor}]`}
             >
                 <div
-                    class={tw`flex items-center gap-2 px-4 h-20 border-b border-[#36393F]`}
+                    class={`gap-2 py-2.5 px-4 border-b border-[#36393F]`}
                 >
-                    <div class={`flex-1 ${LinearGradientsClass}} items-center`}>
+                    <div class={`${LinearGradientsClass} flex items-center justify-center rounded-lg`}>
                         <button
                             onClick={async () => {
                                 props.emit({
