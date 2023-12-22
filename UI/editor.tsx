@@ -63,8 +63,25 @@ type EditorProps = {
     readonly isGroupChat: boolean;
 };
 
-export class Editor extends Component<EditorProps> {
-    componentWillReceiveProps(nextProps: Readonly<EditorProps>, nextContext: any): void {
+export type EditorState = {
+    text: string;
+    files: Blob[];
+};
+
+export class Editor extends Component<EditorProps, EditorState> {
+    state: Readonly<EditorState> = {
+        text: "",
+        files: [],
+    };
+
+    componentDidMount(): void {
+        this.setState({
+            text: this.props.text,
+            files: this.props.files,
+        });
+    }
+
+    componentWillReceiveProps(nextProps: Readonly<EditorProps>) {
         if (!isMobile()) {
             this.textareaElement.current.focus();
         }
@@ -72,38 +89,43 @@ export class Editor extends Component<EditorProps> {
 
     textareaElement = createRef();
 
-    render(props: EditorProps) {
+    sendMessage = async () => {
+        const props = this.props;
+        props.emit({
+            type: "SendMessage",
+            pubkey: props.targetNpub,
+            files: props.files,
+            text: props.text,
+            isGroupChat: props.isGroupChat,
+        });
+        this.textareaElement.current.setAttribute(
+            "rows",
+            "1",
+        );
+        this.setState({ text: "", files: [] });
+    };
+
+    removeFile = (index: number) => {
+        const files = this.state.files;
+        const newFiles = files.slice(0, index).concat(files.slice(index + 1));
+        this.props.emit({
+            type: "UpdateMessageFiles",
+            files: newFiles,
+            pubkey: this.props.targetNpub,
+            isGroupChat: this.props.isGroupChat,
+        });
+        this.setState({
+            files: newFiles,
+        });
+    };
+
+    render() {
         const uploadFileInput = createRef();
 
-        const removeFile = (index: number) => {
-            props.emit({
-                type: "UpdateMessageFiles",
-                files: props.files.slice(0, index).concat(
-                    props.files.slice(index + 1),
-                ),
-                pubkey: props.targetNpub,
-                isGroupChat: props.isGroupChat,
-            });
-        };
-
-        const sendMessage = async () => {
-            props.emit({
-                type: "SendMessage",
-                pubkey: props.targetNpub,
-                files: props.files,
-                text: props.text,
-                isGroupChat: props.isGroupChat,
-            });
-            this.textareaElement.current.setAttribute(
-                "rows",
-                "1",
-            );
-        };
-
         return (
-            <div class={`flex mb-4 mx-5 mobile:mx-2 mobile:mb-2 items-center`}>
+            <div class={`flex mb-4 mx-5 items-center`}>
                 <button
-                    class={`min-w-[3rem] mobile:min-w-[2rem] w-[3rem] mobile:w-8 h-[3rem] mobile:h-8 hover:bg-[${DividerBackgroundColor}] group ${CenterClass} rounded-[50%] ${NoOutlineClass}`}
+                    class={`min-w-[3rem] w-[3rem] h-[3rem] hover:bg-[${DividerBackgroundColor}] group ${CenterClass} rounded-[50%] ${NoOutlineClass}`}
                     onClick={() => {
                         if (uploadFileInput.current) {
                             uploadFileInput.current.click();
@@ -111,7 +133,7 @@ export class Editor extends Component<EditorProps> {
                     }}
                 >
                     <ImageIcon
-                        class={`h-[2rem] w-[2rem] mobile:w-6 mobile:h-6 stroke-current text-[${PrimaryTextColor}4D] group-hover:text-[${PrimaryTextColor}]`}
+                        class={`h-[2rem] w-[2rem] stroke-current text-[${PrimaryTextColor}4D] group-hover:text-[${PrimaryTextColor}]`}
                         style={{
                             fill: "none",
                         }}
@@ -123,7 +145,7 @@ export class Editor extends Component<EditorProps> {
                     accept="image/*"
                     multiple
                     onChange={async (e) => {
-                        let propsfiles = props.files;
+                        let propsfiles = this.state.files;
                         const files = e.currentTarget.files;
                         if (!files) {
                             return;
@@ -135,24 +157,27 @@ export class Editor extends Component<EditorProps> {
                             }
                             propsfiles = propsfiles.concat([file]);
                         }
-                        props.emit({
+                        this.props.emit({
                             type: "UpdateMessageFiles",
                             files: propsfiles,
-                            pubkey: props.targetNpub,
-                            isGroupChat: props.isGroupChat,
+                            pubkey: this.props.targetNpub,
+                            isGroupChat: this.props.isGroupChat,
+                        });
+                        this.setState({
+                            files: propsfiles,
                         });
                     }}
                     class={`hidden`}
                 />
                 <div
-                    class={`mx-2 p-[0.75rem] mobile:p-2 mobile:text-sm bg-[${DividerBackgroundColor}] rounded-lg flex flex-col flex-1 overflow-hidden`}
+                    class={`mx-2 p-[0.75rem] bg-[${DividerBackgroundColor}] rounded-lg flex flex-col flex-1 overflow-hidden`}
                 >
-                    {props.files.length > 0
+                    {this.state.files.length > 0
                         ? (
                             <ul
                                 class={`flex overflow-auto list-none py-2 w-full border-b border-[#52525B] mb-[1rem]`}
                             >
-                                {props.files.map((file, index) => {
+                                {this.state.files.map((file, index) => {
                                     return (
                                         <li
                                             class={`relative mx-2 min-w-[10rem] w-[10rem]  h-[10rem] p-2 bg-[${PrimaryBackgroundColor}] rounded ${CenterClass}`}
@@ -160,7 +185,7 @@ export class Editor extends Component<EditorProps> {
                                             <button
                                                 class={`w-[2rem] h-[2rem] absolute top-1 right-1 rounded-[50%] hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
                                                 onClick={() => {
-                                                    removeFile(index);
+                                                    this.removeFile(index);
                                                 }}
                                             >
                                                 <RemoveIcon
@@ -186,29 +211,30 @@ export class Editor extends Component<EditorProps> {
                     <textarea
                         ref={this.textareaElement}
                         style={{
-                            maxHeight: props.maxHeight,
+                            maxHeight: this.props.maxHeight,
                         }}
-                        value={props.text}
+                        value={this.state.text}
                         rows={1}
                         class={`flex-1 bg-transparent focus-visible:outline-none placeholder-[${PrimaryTextColor}4D] text-[0.8rem] text-[#D2D3D5] whitespace-nowrap resize-none overflow-x-hidden overflow-y-auto`}
-                        placeholder={props.placeholder}
+                        placeholder={this.props.placeholder}
                         onInput={(e) => {
-                            props.emit({
+                            this.props.emit({
                                 type: "UpdateEditorText",
-                                pubkey: props.targetNpub,
+                                pubkey: this.props.targetNpub,
                                 text: e.currentTarget.value,
-                                isGroupChat: props.isGroupChat,
+                                isGroupChat: this.props.isGroupChat,
                             });
                             const lines = e.currentTarget.value.split("\n");
                             e.currentTarget.setAttribute(
                                 "rows",
                                 `${lines.length}`,
                             );
+                            this.setState({ text: e.currentTarget.value });
                         }}
                         onKeyDown={async (e) => {
                             // https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/metaKey
                             if (e.code === "Enter" && (e.ctrlKey || e.metaKey)) {
-                                await sendMessage();
+                                await this.sendMessage();
                             }
                         }}
                         onPaste={async (_) => {
@@ -224,11 +250,11 @@ export class Editor extends Component<EditorProps> {
                                     const image = await item.getType(
                                         "image/png",
                                     );
-                                    props.emit({
+                                    this.props.emit({
                                         type: "UpdateMessageFiles",
-                                        isGroupChat: props.isGroupChat,
-                                        pubkey: props.targetNpub,
-                                        files: props.files.concat([image]),
+                                        isGroupChat: this.props.isGroupChat,
+                                        pubkey: this.props.targetNpub,
+                                        files: this.props.files.concat([image]),
                                     });
                                 } catch (e) {
                                     console.error(e);
@@ -239,31 +265,10 @@ export class Editor extends Component<EditorProps> {
                     </textarea>
                 </div>
 
-                <div
-                    class={`w-[5rem] h-[2.5rem] rounded-lg mobile:hidden ${LinearGradientsClass} ${CenterClass}`}
-                >
-                    <button
-                        class={`w-[4.8rem] h-[2.3rem] text-[${PrimaryTextColor}] rounded-lg ${CenterClass} bg-[#36393F] hover:bg-transparent font-bold`}
-                        onClick={async () => {
-                            await sendMessage();
-                            this.textareaElement.current?.focus();
-                        }}
-                    >
-                        <SendIcon
-                            class={`h-[1.25rem] w-[1.25rem] mr-[0.1rem]`}
-                            style={{
-                                stroke: PrimaryTextColor,
-                                fill: "none",
-                            }}
-                        />
-                        Send
-                    </button>
-                </div>
-
                 <button
-                    class={`desktop:hidden w-12 h-8 ${CenterClass} ${LinearGradientsClass} rounded`}
+                    class={`w-12 h-8 ${CenterClass} ${LinearGradientsClass} rounded`}
                     onClick={async () => {
-                        await sendMessage();
+                        await this.sendMessage();
                         this.textareaElement.current?.focus();
                     }}
                 >

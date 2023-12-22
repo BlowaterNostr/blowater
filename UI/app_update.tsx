@@ -212,7 +212,6 @@ export async function* UI_Interaction_Update(args: {
             }
         } else if (event.type == "UpdateEditorText") {
             const editorMap = event.isGroupChat ? model.gmEditors : model.dmEditors;
-            console.log(editorMap);
             const editor = editorMap.get(event.pubkey.hex);
             if (editor) {
                 editor.text = event.text;
