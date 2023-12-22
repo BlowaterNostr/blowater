@@ -39,7 +39,8 @@ export type ContactUpdate =
     | StartCreateGroupChat;
 
 export interface NewMessageChecker {
-    has(hex: string, isGourpChat: boolean): number;
+    newNessageCount(hex: string, isGourpChat: boolean): number;
+    markRead(hex: string, isGourpChat: boolean): void;
 }
 
 type Props = {
@@ -103,7 +104,10 @@ export class ConversationList extends Component<Props, State> {
         for (const conversationSummary of listToRender) {
             convoListToRender.push({
                 conversation: conversationSummary,
-                newMessageCount: props.hasNewMessages.has(conversationSummary.pubkey.hex, isGroupChat),
+                newMessageCount: props.hasNewMessages.newNessageCount(
+                    conversationSummary.pubkey.hex,
+                    isGroupChat,
+                ),
             });
         }
 

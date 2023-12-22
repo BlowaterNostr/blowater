@@ -165,6 +165,7 @@ export async function* UI_Interaction_Update(args: {
             }
             app.popOverInputChan.put({ children: undefined });
             app.model.dm.isGroupMessage = event.isGroupChat;
+            app.conversationLists.markRead(event.pubkey.hex, event.isGroupChat);
         } else if (event.type == "BackToContactList") {
             model.dm.currentEditor = undefined;
         } else if (event.type == "PinConversation") {
@@ -482,7 +483,7 @@ export async function* Database_Update(
         }
 
         profileSyncer.add(...changes_events.map((e) => e.pubkey));
-        convoLists.addEvents(changes_events);
+        convoLists.addEvents(changes_events, true);
         for (let e of changes_events) {
             const t = getTags(e).lamport_timestamp;
             if (t) {

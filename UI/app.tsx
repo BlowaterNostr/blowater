@@ -163,7 +163,7 @@ export class App {
         // init conversation list
         const all_events = Array.from(args.database.getAllEvents());
         const conversationLists = new DM_List(args.ctx);
-        const err = conversationLists.addEvents(all_events);
+        const err = conversationLists.addEvents(all_events, false);
         if (err instanceof InvalidEvent) {
             console.error(err);
             await args.database.remove(err.event.id);

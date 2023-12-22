@@ -18,9 +18,12 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker {
         public readonly ctx: NostrAccountContext,
     ) {}
 
-    has(hex: string, isGourpChat: boolean): number {
-        // return this.newMessages.get(hex) || 0;
-        return 0;
+    newNessageCount(hex: string, isGourpChat: boolean): number {
+        return this.newMessages.get(hex) || 0;
+    }
+
+    markRead(hex: string, isGourpChat: boolean): void {
+        this.newMessages.set(hex, 0);
     }
 
     *getStrangers() {
@@ -70,89 +73,100 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker {
 
     addEvents(
         events: NostrEvent[],
+        newEvents: boolean,
     ) {
-        let i = 0;
         for (const event of events) {
             if (event.kind != NostrKind.DIRECT_MESSAGE) {
                 continue;
             }
-
-            let whoAm_I_TalkingTo = "";
-            if (event.pubkey == this.ctx.publicKey.hex) {
-                // I am the sender
-                whoAm_I_TalkingTo = getTags(event).p[0];
-                if (whoAm_I_TalkingTo == undefined) {
-                    return new InvalidEvent(event, `event ${event.id} does not have p tags`);
-                }
-            } else if (getTags(event).p[0] == this.ctx.publicKey.hex) {
-                // I am the receiver
-                whoAm_I_TalkingTo = event.pubkey;
-            } else {
-                // I am neither. Possible because other user has used this device before
-                continue;
+            const err = this.addEvent({
+                ...event,
+                kind: event.kind,
+            }, newEvents);
+            if (err instanceof Error) {
+                return err;
             }
+        }
+    }
 
-            this.newMessages.set(whoAm_I_TalkingTo, this.has(whoAm_I_TalkingTo, false) + 1);
+    private addEvent(event: NostrEvent<NostrKind.DIRECT_MESSAGE>, newEvent: boolean) {
+        let whoAm_I_TalkingTo = "";
+        if (event.pubkey == this.ctx.publicKey.hex) {
+            // I am the sender
+            whoAm_I_TalkingTo = getTags(event).p[0];
+            if (whoAm_I_TalkingTo == undefined) {
+                return new InvalidEvent(event, `event ${event.id} does not have p tags`);
+            }
+        } else if (getTags(event).p[0] == this.ctx.publicKey.hex) {
+            // I am the receiver
+            whoAm_I_TalkingTo = event.pubkey;
+        } else {
+            // I am neither. Possible because other user has used this device before
+            return;
+        }
 
-            const userInfo = this.convoSummaries.get(whoAm_I_TalkingTo);
-            if (userInfo) {
-                if (whoAm_I_TalkingTo == this.ctx.publicKey.hex) {
-                    // talking to myself
-                    if (userInfo.newestEventSendByMe) {
-                        if (event.created_at > userInfo.newestEventSendByMe?.created_at) {
-                            userInfo.newestEventSendByMe = event;
-                            userInfo.newestEventReceivedByMe = event;
-                        }
-                    } else {
+        if (newEvent && this.ctx.publicKey.hex != event.pubkey) {
+            this.newMessages.set(whoAm_I_TalkingTo, this.newNessageCount(whoAm_I_TalkingTo, false) + 1);
+        }
+
+        const userInfo = this.convoSummaries.get(whoAm_I_TalkingTo);
+        if (userInfo) {
+            if (whoAm_I_TalkingTo == this.ctx.publicKey.hex) {
+                // talking to myself
+                if (userInfo.newestEventSendByMe) {
+                    if (event.created_at > userInfo.newestEventSendByMe?.created_at) {
                         userInfo.newestEventSendByMe = event;
                         userInfo.newestEventReceivedByMe = event;
                     }
                 } else {
-                    if (this.ctx.publicKey.hex == event.pubkey) {
-                        // I am the sender
-                        if (userInfo.newestEventSendByMe) {
-                            if (event.created_at > userInfo.newestEventSendByMe.created_at) {
-                                userInfo.newestEventSendByMe = event;
-                            }
-                        } else {
+                    userInfo.newestEventSendByMe = event;
+                    userInfo.newestEventReceivedByMe = event;
+                }
+            } else {
+                if (this.ctx.publicKey.hex == event.pubkey) {
+                    // I am the sender
+                    if (userInfo.newestEventSendByMe) {
+                        if (event.created_at > userInfo.newestEventSendByMe.created_at) {
                             userInfo.newestEventSendByMe = event;
                         }
                     } else {
-                        // I am the receiver
-                        if (userInfo.newestEventReceivedByMe) {
-                            if (event.created_at > userInfo.newestEventReceivedByMe.created_at) {
-                                userInfo.newestEventReceivedByMe = event;
-                            }
-                        } else {
+                        userInfo.newestEventSendByMe = event;
+                    }
+                } else {
+                    // I am the receiver
+                    if (userInfo.newestEventReceivedByMe) {
+                        if (event.created_at > userInfo.newestEventReceivedByMe.created_at) {
                             userInfo.newestEventReceivedByMe = event;
                         }
-                    }
-                }
-            } else {
-                const pubkey = PublicKey.FromHex(whoAm_I_TalkingTo);
-                if (pubkey instanceof Error) {
-                    return new InvalidEvent(event, pubkey.message);
-                }
-                const newUserInfo: ConversationSummary = {
-                    pubkey,
-                    newestEventReceivedByMe: undefined,
-                    newestEventSendByMe: undefined,
-                };
-                if (whoAm_I_TalkingTo == this.ctx.publicKey.hex) {
-                    // talking to myself
-                    newUserInfo.newestEventSendByMe = event;
-                    newUserInfo.newestEventReceivedByMe = event;
-                } else {
-                    if (this.ctx.publicKey.hex == event.pubkey) {
-                        // I am the sender
-                        newUserInfo.newestEventSendByMe = event;
                     } else {
-                        // I am the receiver
-                        newUserInfo.newestEventReceivedByMe = event;
+                        userInfo.newestEventReceivedByMe = event;
                     }
                 }
-                this.convoSummaries.set(whoAm_I_TalkingTo, newUserInfo);
             }
+        } else {
+            const pubkey = PublicKey.FromHex(whoAm_I_TalkingTo);
+            if (pubkey instanceof Error) {
+                return new InvalidEvent(event, pubkey.message);
+            }
+            const newUserInfo: ConversationSummary = {
+                pubkey,
+                newestEventReceivedByMe: undefined,
+                newestEventSendByMe: undefined,
+            };
+            if (whoAm_I_TalkingTo == this.ctx.publicKey.hex) {
+                // talking to myself
+                newUserInfo.newestEventSendByMe = event;
+                newUserInfo.newestEventReceivedByMe = event;
+            } else {
+                if (this.ctx.publicKey.hex == event.pubkey) {
+                    // I am the sender
+                    newUserInfo.newestEventSendByMe = event;
+                } else {
+                    // I am the receiver
+                    newUserInfo.newestEventReceivedByMe = event;
+                }
+            }
+            this.convoSummaries.set(whoAm_I_TalkingTo, newUserInfo);
         }
     }
 }
