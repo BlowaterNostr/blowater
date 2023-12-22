@@ -27,7 +27,7 @@ import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/mas
 import { group_GM_events, GroupChatSyncer, GroupMessageController } from "../features/gm.ts";
 import { OtherConfig } from "./config-other.ts";
 import { ProfileGetter } from "./search.tsx";
-import { DirectedMessageController } from "../features/dm.ts";
+import { DirectedMessageController, InvalidEvent } from "../features/dm.ts";
 import { ConnectionPool } from "../lib/nostr-ts/relay-pool.ts";
 import { LamportTime } from "../time.ts";
 
@@ -161,8 +161,13 @@ export class App {
         profileSyncer.add(args.ctx.publicKey.hex);
 
         // init conversation list
+        const all_events = Array.from(args.database.getAllEvents());
         const conversationLists = new DM_List(args.ctx);
-        conversationLists.addEvents(Array.from(args.database.getAllEvents()));
+        const err = conversationLists.addEvents(all_events);
+        if (err instanceof InvalidEvent) {
+            console.error(err);
+            await args.database.remove(err.event.id);
+        }
 
         const dmController = new DirectedMessageController(args.ctx);
         const groupSyncer = new GroupChatSyncer(args.database, args.pool);
@@ -174,7 +179,7 @@ export class App {
 
         (async () => {
             // load DMs
-            for (const e of args.database.getAllEvents()) {
+            for (const e of all_events) {
                 if (e.kind == NostrKind.DIRECT_MESSAGE) {
                     const error = await dmController.addEvent({
                         ...e,

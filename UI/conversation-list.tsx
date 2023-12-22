@@ -39,7 +39,7 @@ export type ContactUpdate =
     | StartCreateGroupChat;
 
 export interface NewMessageChecker {
-    has(hex: string, isGourpChat: boolean): boolean;
+    has(hex: string, isGourpChat: boolean): number;
 }
 
 type Props = {
@@ -86,6 +86,7 @@ export class ConversationList extends Component<Props, State> {
         const contacts = Array.from(props.convoListRetriever.getContacts());
         const strangers = Array.from(props.convoListRetriever.getStrangers());
         const groups = Array.from(props.groupChatListGetter.getConversationList());
+        let isGroupChat = false;
         switch (this.state.selectedContactGroup) {
             case "Contacts":
                 listToRender = contacts;
@@ -95,13 +96,14 @@ export class ConversationList extends Component<Props, State> {
                 break;
             case "Group":
                 listToRender = groups;
+                isGroupChat = true;
                 break;
         }
         const convoListToRender = [];
         for (const conversationSummary of listToRender) {
             convoListToRender.push({
                 conversation: conversationSummary,
-                newMessageCount: 0,
+                newMessageCount: props.hasNewMessages.has(conversationSummary.pubkey.hex, isGroupChat),
             });
         }
 
@@ -390,7 +392,7 @@ function ConversationListItem(props: ListItemProps) {
                 {props.newMessageCount > 0
                     ? (
                         <span
-                            class={tw`absolute top-0 right-0 px-1 text-[${PrimaryTextColor}] text-xs rounded-full bg-[${ErrorColor}]`}
+                            class={tw`absolute bottom-0 right-0 px-1 text-[${PrimaryTextColor}] text-xs rounded-full bg-[${ErrorColor}]`}
                         >
                             {props.newMessageCount}
                         </span>
