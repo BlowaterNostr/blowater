@@ -315,8 +315,8 @@ async function parseDM(
 }
 
 export class InvalidEvent extends Error {
-    constructor(kind: NostrKind, message: string) {
-        super(`invliad event, expecting kind:${kind}, ${message}`);
+    constructor(public readonly event: NostrEvent, message: string) {
+        super(`invliad event, expecting kind:${event.kind}, ${message}`);
         this.name = "InvalidEvent";
     }
 }
@@ -339,7 +339,7 @@ export function whoIamTalkingTo(event: NostrEvent<NostrKind.DIRECT_MESSAGE>, myP
         return {
             type: "Other",
             error: new InvalidEvent(
-                NostrKind.DIRECT_MESSAGE,
+                event,
                 `No p tag is found - Not a valid DM - id ${event.id}, kind ${event.kind}`,
             ),
         };
