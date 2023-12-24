@@ -51,10 +51,7 @@ export class EditProfile extends Component<Props, State> {
         container: `py-4 bg-[${SecondaryBackgroundColor}]`,
         banner: {
             container: `h-72 w-full rounded-lg mb-20 relative`,
-            avatar:
-                `w-24 h-24 m-auto absolute top-60 left-1/2 box-border border-2 border-[${PrimaryTextColor}] -translate-x-2/4`,
         },
-        avatar: `w-24 h-24 m-auto box-border border-2 border-[${PrimaryTextColor}]`,
         field: {
             title: `text-[${PrimaryTextColor}] mt-8`,
             input: `${InputClass}`,
@@ -199,14 +196,14 @@ export class EditProfile extends Component<Props, State> {
                 >
                     <Avatar
                         picture={this.state.profile?.picture}
-                        class={this.styles.banner.avatar}
+                        class={`w-24 h-24 m-auto absolute top-60 left-1/2 rounded-full box-border border-2 border-[${PrimaryTextColor}] -translate-x-2/4`}
                     />
                 </div>
             )
             : (
                 <Avatar
                     picture={this.state.profile?.picture}
-                    class={this.styles.avatar}
+                    class={`w-24 h-24 m-auto box-border border-2 border-[${PrimaryTextColor}]`}
                 />
             );
 
