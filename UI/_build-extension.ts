@@ -26,5 +26,5 @@ await Deno.writeTextFile(`./${folderName}/main.mjs`, res.code);
 await Deno.copyFile("./deploy/alby-logo.svg", `./${folderName}/alby-logo.svg`);
 await Deno.copyFile("./deploy/index-extension.html", `./${folderName}/index.html`);
 await Deno.copyFile(logo, `./${folderName}/logo.ico`);
-await Deno.copyFile(logo, `./${folderName}/logo.png`);
+await Deno.copyFile(logo, `./${folderName}/logo.webp`);
 await Deno.copyFile("./deploy/manifest-extension.json", `./${folderName}/manifest.json`);

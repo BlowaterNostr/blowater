@@ -23,7 +23,7 @@
             },
             "externalBin": [],
             "icon": [
-                "../UI/deploy/logo.png"
+                "../UI/deploy/logo.webp"
             ],
             "identifier": "com.tauri.dev",
             "longDescription": "",
