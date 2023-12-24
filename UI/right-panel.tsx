@@ -32,7 +32,7 @@ export class RightPanel extends Component<RightPanelProps, RightPanelState> {
                 class={`border-l fixed top-0 right-0 h-full bg-[#2F3136] overflow-hidden overflow-y-auto z-20 transition-all duration-300 ease-in-out w-96 max-w-full`}
             >
                 <button
-                    class={`w-6 min-w-[1.5rem] h-6 ml-4 ${IconButtonClass} hover:bg-[#36393F] absolute right-2 top-3`}
+                    class={`w-6 min-w-[1.5rem] h-6 ml-4 ${IconButtonClass} hover:bg-[#36393F] absolute right-2 top-3 z-10 border-2`}
                     onClick={() => {
                         emit({
                             type: "ToggleRightPanel",
