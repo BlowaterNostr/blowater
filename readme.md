@@ -1,4 +1,4 @@
-![](https://blowater.deno.dev/logo.png)
+![](https://blowater.deno.dev/logo.webp)
 
 # Blowater
 
