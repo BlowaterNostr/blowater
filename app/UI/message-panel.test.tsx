@@ -5,7 +5,7 @@ import { PrivateKey } from "../../libs/nostr.ts/key.ts";
 import { InMemoryAccountContext, NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { relays } from "../../libs/nostr.ts/relay-list.test.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
-import { GroupMessageController, GroupChatSyncer } from "../features/gm.ts";
+import { GroupChatSyncer, GroupMessageController } from "../features/gm.ts";
 import { ProfileSyncer } from "../features/profile.ts";
 import { LamportTime } from "../time.ts";
 import { test_db_view, testEventBus } from "./_setup.test.ts";
@@ -14,7 +14,6 @@ import { handle_SendMessage } from "./app_update.tsx";
 import { EventSyncer } from "./event_syncer.ts";
 import { MessagePanel } from "./message-panel.tsx";
 import { DirectedMessageController } from "../features/dm.ts";
-
 
 const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
 const database = await test_db_view();

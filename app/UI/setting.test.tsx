@@ -9,7 +9,7 @@ import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 
 const pool = new ConnectionPool();
 const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
-const relayConfig = RelayConfig.Default({ctx, relayPool: pool});
+const relayConfig = RelayConfig.Default({ ctx, relayPool: pool });
 for (const url of defaultRelays) {
     relayConfig.add(url);
 }

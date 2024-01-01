@@ -7,7 +7,7 @@ import { prepareEncryptedNostrEvent } from "../../libs/nostr.ts/event.ts";
 import { PrivateKey } from "../../libs/nostr.ts/key.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 import { Datebase_View } from "../database.ts";
-import { GroupMessageController, GroupChatSyncer } from "../features/gm.ts";
+import { GroupChatSyncer, GroupMessageController } from "../features/gm.ts";
 import { ProfileSyncer } from "../features/profile.ts";
 import { LamportTime } from "../time.ts";
 import { testEventBus } from "./_setup.test.ts";
@@ -15,7 +15,6 @@ import { OtherConfig } from "./config-other.ts";
 import { DM_List } from "./conversation-list.ts";
 import { ConversationList } from "./conversation-list.tsx";
 import { NewIndexedDB } from "./dexie-db.ts";
-
 
 const ctx = InMemoryAccountContext.Generate();
 const db = NewIndexedDB();

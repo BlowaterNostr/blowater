@@ -38,10 +38,10 @@ render(
 
 for await (const event of testEventBus.onChange()) {
     console.log(event);
-    if(event.type == "InviteUsersToGroup") {
+    if (event.type == "InviteUsersToGroup") {
         console.log(event.groupPublicKey.hex, "=", gm_A_creation.groupKey.publicKey.hex);
         console.log(event.usersPublicKey[0].hex, "=", user_B.publicKey.hex);
     } else {
-        throw new Error("impossible")
+        throw new Error("impossible");
     }
 }

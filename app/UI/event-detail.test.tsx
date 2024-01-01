@@ -4,14 +4,13 @@ import { prepareNormalNostrEvent } from "../../libs/nostr.ts/event.ts";
 import { PrivateKey, PublicKey } from "../../libs/nostr.ts/key.ts";
 import { NoteID } from "../../libs/nostr.ts/nip19.ts";
 import { InMemoryAccountContext, NostrKind } from "../../libs/nostr.ts/nostr.ts";
-import { EventDetailItem, EventDetail } from "./event-detail.tsx";
-
+import { EventDetail, EventDetailItem } from "./event-detail.tsx";
 
 const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
 const event = await prepareNormalNostrEvent(ctx, {
     kind: NostrKind.TEXT_NOTE,
     tags: [["d", "nostr"]],
-    content: "Pura Vida"
+    content: "Pura Vida",
 });
 const publicKey = PublicKey.FromHex(event.pubkey) as PublicKey;
 
