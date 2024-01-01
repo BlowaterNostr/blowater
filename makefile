@@ -56,6 +56,9 @@ test-ui:
 dev: build
 	file_server -p $(port) build-pwa
 
+compile-all-ui-tests:
+	deno run --allow-read --allow-env --allow-write --allow-net app/UI/_compile-ui-tests.ts
+
 # build the tauri application
 tauri-dev:
 	cargo tauri dev

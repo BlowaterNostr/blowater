@@ -44,7 +44,7 @@ jobs:
         run: make test
 
       - name: UI test
-        run: cd UI && make compile-all-tests
+        run: make compile-all-ui-tests
 
   deploy:
     timeout-minutes: 1

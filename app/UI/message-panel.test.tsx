@@ -1,26 +1,25 @@
 /** @jsx h */
 import { h, render } from "https://esm.sh/preact@10.17.1";
-import { MessagePanel } from "./message-panel.tsx";
-import { InvalidKey, PrivateKey } from "../../libs/nostr.ts/key.ts";
+import { prepareNormalNostrEvent } from "../../libs/nostr.ts/event.ts";
+import { PrivateKey } from "../../libs/nostr.ts/key.ts";
 import { InMemoryAccountContext, NostrKind } from "../../libs/nostr.ts/nostr.ts";
-import { Datebase_View } from "../database.ts";
-import { testEventBus, testEventMarker, testEventsAdapter, testRelayAdapter } from "./_setup.test.ts";
-import { prepareNormalNostrEvent } from "../../lib/nostr-ts/event.ts";
-import { DM_List } from "./conversation-list.ts";
-import { EventSyncer } from "./event_syncer.ts";
-import { ConnectionPool } from "../../lib/nostr-ts/relay-pool.ts";
+import { relays } from "../../libs/nostr.ts/relay-list.test.ts";
+import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
+import { GroupMessageController, GroupChatSyncer } from "../features/gm.ts";
 import { ProfileSyncer } from "../features/profile.ts";
-import { handle_SendMessage } from "./app_update.tsx";
 import { LamportTime } from "../time.ts";
+import { test_db_view, testEventBus } from "./_setup.test.ts";
 import { initialModel } from "./app_model.ts";
-import { relays } from "../../lib/nostr-ts/relay-list.test.ts";
-import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
-import { GroupChatSyncer, GroupMessageController } from "../features/gm.ts";
+import { handle_SendMessage } from "./app_update.tsx";
+import { EventSyncer } from "./event_syncer.ts";
+import { MessagePanel } from "./message-panel.tsx";
+import { DirectedMessageController } from "../features/dm.ts";
+
 
 const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
 const database = await test_db_view();
 
-const lamport = new LamportTime(0);
+const lamport = new LamportTime();
 
 await database.addEvent(
     await prepareNormalNostrEvent(ctx, {
@@ -68,11 +67,13 @@ const view = () => {
             myPublicKey={ctx.publicKey}
             profilesSyncer={new ProfileSyncer(database, pool)}
             emit={testEventBus.emit}
-            messages={[]}
             rightPanelModel={{
                 show: true,
             }}
-            isGroupChat={false}
+            isGroupMessage={true}
+            messageGetter={groupMessageController}
+            newMessageListener={new DirectedMessageController(ctx)}
+            relayRecordGetter={database}
         />
     );
 };
