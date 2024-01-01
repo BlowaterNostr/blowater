@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        deno-version: [1.38.2]
+        deno-version: [1.39.1]
 
     steps:
       - name: Setup repo
@@ -44,7 +44,7 @@ jobs:
         run: make test
 
       - name: UI test
-        run: cd UI && make compile-all-tests
+        run: make compile-all-ui-tests
 
   deploy:
     timeout-minutes: 1
@@ -63,11 +63,11 @@ jobs:
         uses: denoland/setup-deno@v1
 
       - name: Bundle
-        run: cd UI && make build-pwa
+        run: make build
 
       - name: Upload to Deno Deploy
         uses: denoland/deployctl@v1
         with:
           project: "blowater"
           entrypoint: https://raw.githubusercontent.com/denoland/deno_std/0.196.0/http/file_server.ts
-          root: UI/build-pwa
+          root: build-pwa

@@ -4,6 +4,7 @@ test.ts
 *.log
 # Bundle
 *.mjs
+main.js
 cov_profile*
 Elm
 DevOps/stats.sqlite
@@ -12,3 +13,5 @@ DevOps/stats.sqlite
 build-pwa
 build-extension
 *.zip
+# tauri
+tauri-app/src-tauri/icons
