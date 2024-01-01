@@ -12,3 +12,5 @@ DevOps/stats.sqlite
 build-pwa
 build-extension
 *.zip
+# tauri
+tauri-app/src-tauri/icons

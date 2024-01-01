@@ -16,6 +16,6 @@
         }
     },
     "fmt": {
-        "exclude": ["UI/vendor/", "vendor"]
+        "exclude": ["UI/vendor/", "vendor", "cov_profile", "tauri-app"]
     }
 }
