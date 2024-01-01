@@ -46,11 +46,11 @@ stats:
 
 # build the web application
 build: fmt
-	cp -r 1_app/UI/assets/ build-pwa/
-	deno bundle 1_app/UI/_main.tsx build-pwa/main.mjs
+	cp -r app/UI/assets/ build-pwa/
+	deno bundle app/UI/_main.tsx build-pwa/main.mjs
 
 test:
-	deno bundle --config=./deno.json 1_app/UI/$(page).test.tsx build-pwa/main.mjs
+	deno bundle --config=./deno.json app/UI/$(page).test.tsx build-pwa/main.mjs
 	file_server -p $(port) build-pwa
 
 dev: build
