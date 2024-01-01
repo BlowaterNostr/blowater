@@ -49,7 +49,7 @@ build: fmt
 	cp -rv app/UI/assets/ build-pwa/
 	deno bundle app/UI/_main.tsx build-pwa/main.mjs
 
-test:
+test-ui:
 	deno bundle --config=./deno.json app/UI/$(page).test.tsx build-pwa/main.mjs
 	file_server -p $(port) build-pwa
 

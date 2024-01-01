@@ -79,6 +79,8 @@
     "https://esm.sh/v134/@scure/bip39@1.2.1/denonext/bip39.mjs": "2b99a6aac64caae58b2fe1e74576f047b2d787942091f11e3b1a55afa487bd5e",
     "https://esm.sh/v134/@scure/bip39@1.2.1/denonext/wordlists/english.js": "c606099d820c43e10e7c466571850947405da72f24f9b6bd859685a1610a6840",
     "https://esm.sh/v135/dexie@3.2.4/denonext/dexie.mjs": "1ce1770b71be61358f3bbaf5b0667b395cf30052872e66d312178ebe0a72cca1",
+    "https://esm.sh/v135/dexie@3.2.4/denonext/dist/dexie.js": "20d7fea3aad3a1b5d91b7d43590df26f3132c429b731d2dd77697d2a60f67a79",
+    "https://esm.sh/v135/dexie@3.2.4/dist/dexie.js": "09d2f84b77cc12ac170004634c8560bc7d40a43920ff99166a269a034c48704b",
     "https://esm.sh/v135/style-vendorizer@2.2.3/denonext/style-vendorizer.mjs": "121455e7b04b631ef6463ce63cdcd29febd74d88c37713c774ceca8a1561c83d",
     "https://esm.sh/v135/twind@0.16.16/denonext/twind.mjs": "857319af660b8bae96d20737a4f9a9b4ce909fcb47e0552abd559216824fe795",
     "https://esm.sh/v135/zod@3.22.4/denonext/zod.mjs": "660128af5d1e921745c4d452472d103d9f2fc5afa508bbf233b83d35a272ad67",
