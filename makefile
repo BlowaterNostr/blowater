@@ -1,5 +1,11 @@
+# https://stackoverflow.com/questions/3931741/why-does-make-think-the-target-is-up-to-date
+.PHONY: build-pwa build-extension
+
+page=app
+port=4507
 file = *
 coverage_dir = cov_profile
+
 test: clear-coverage
 	deno test --config=deno.json --coverage=$(coverage_dir) --allow-net --allow-read --allow-env --trace-ops *.test.ts **/*.test.ts
 
@@ -36,3 +42,24 @@ clear-coverage:
 
 stats:
 	cd DevOps && deno run --unstable --allow-net --allow-write --allow-read stats.ts
+
+
+# build the web application
+build: fmt
+	cp -r 1_app/UI/assets/ build-pwa/
+	deno bundle 1_app/UI/_main.tsx build-pwa/main.mjs
+
+test:
+	deno bundle --config=./deno.json 1_app/UI/$(page).test.tsx build-pwa/main.mjs
+	file_server -p $(port) build-pwa
+
+dev: build
+	file_server -p $(port) build-pwa
+
+# build the tauri application
+tauri-dev:
+	cargo tauri dev
+
+tauri-build: fmt
+	deno bundle 1_app/UI/_main.tsx build-pwa/main.mjs
+	cargo tauri build
