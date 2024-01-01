@@ -202,7 +202,7 @@ export class SignIn extends Component<Props, State> {
         return (
             <div class={this.styles.container}>
                 <div class={this.styles.form}>
-                    <img class={this.styles.logo} src="logo.png" alt="Logo" />
+                    <img class={this.styles.logo} src="logo.webp" alt="Logo" />
                     <h1 class={this.styles.title}>Blowater</h1>
                     <p class={this.styles.subTitle}>A delightful Nostr client that focuses on DM</p>
                     <input
