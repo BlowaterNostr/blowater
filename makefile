@@ -46,7 +46,7 @@ stats:
 
 # build the web application
 build: fmt
-	cp -r app/UI/assets/ build-pwa/
+	cp -rv app/UI/assets/ build-pwa/
 	deno bundle app/UI/_main.tsx build-pwa/main.mjs
 
 test:
