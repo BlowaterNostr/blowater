@@ -19,7 +19,6 @@ import { SettingIcon } from "./icons/setting-icon.tsx";
 import { UserIcon } from "./icons/user-icon.tsx";
 import { InviteButton } from "./invite-button.tsx";
 import { MessagePanel, NewMessageListener } from "./message-panel.tsx";
-import { RightPanelModel } from "./right-panel.tsx";
 import { ProfileGetter } from "./search.tsx";
 import { PrimaryTextColor } from "./style/colors.ts";
 import {
@@ -36,7 +35,6 @@ export type DM_Model = {
 };
 
 type DirectMessageContainerProps = {
-    rightPanelModel: RightPanelModel;
     ctx: NostrAccountContext;
     pool: ConnectionPool;
     bus: EventBus<UI_Interaction_Event>;
@@ -178,13 +176,12 @@ export class DirectMessageContainer extends Component<DirectMessageContainerProp
                                 buttons={buttons}
                                 currentEditor={this.state.currentEditor}
                                 profileGetter={this.props.profileGetter}
-                                showRightPanel={this.props.rightPanelModel.show}
                             />
                             <div class={`flex-1 overflow-auto`}>
                                 <MessagePanel
                                     myPublicKey={props.ctx.publicKey}
-                                    rightPanelModel={props.rightPanelModel}
                                     emit={props.bus.emit}
+                                    eventSub={props.bus}
                                     newMessageListener={props.newMessageListener}
                                     focusedContent={getFocusedContent(
                                         props.focusedContent.get(this.state.currentEditor.pubkey.hex),
@@ -213,7 +210,6 @@ function TopBar(props: {
     bus: EventBus<UI_Interaction_Event>;
     currentEditor: EditorModel;
     profileGetter: ProfileGetter;
-    showRightPanel: boolean;
     buttons: VNode[];
 }) {
     return (
@@ -263,28 +259,23 @@ function TopBar(props: {
             <div>
                 {props.buttons}
 
-                {!props.showRightPanel
-                    ? (
-                        <button
-                            class={`absolute z-10 w-6 h-6 transition-transform duration-100 ease-in-out right-4 mobile:right-0 top-4${
-                                props.showRightPanel ? " rotate-180" : ""
-                            } ${IconButtonClass}`}
-                            onClick={() => {
-                                props.bus.emit({
-                                    type: "ToggleRightPanel",
-                                    show: !props.showRightPanel,
-                                });
-                            }}
-                        >
-                            <LeftArrowIcon
-                                class={`w-4 h-4`}
-                                style={{
-                                    fill: "#F3F4EA",
-                                }}
-                            />
-                        </button>
-                    )
-                    : undefined}
+                <button
+                    class={`absolute z-10 w-6 h-6 transition-transform duration-100 ease-in-out
+                            right-4 mobile:right-0 top-4 ${IconButtonClass}`}
+                    onClick={() => {
+                        props.bus.emit({
+                            type: "ToggleRightPanel",
+                            show: true,
+                        });
+                    }}
+                >
+                    <LeftArrowIcon
+                        class={`w-4 h-4`}
+                        style={{
+                            fill: "#F3F4EA",
+                        }}
+                    />
+                </button>
             </div>
         </div>
     );

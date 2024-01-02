@@ -153,9 +153,6 @@ export async function* UI_Interaction_Update(args: {
         else if (event.type == "SelectConversation") {
             model.navigationModel.activeNav = "DM";
             model.search.isSearching = false;
-            model.rightPanelModel = {
-                show: false,
-            };
             updateConversation(app.model, event.pubkey, event.isGroupChat);
 
             if (!model.dm.focusedContent.get(event.pubkey.hex)) {
@@ -239,9 +236,6 @@ export async function* UI_Interaction_Update(args: {
         //
         else if (event.type == "ChangeNavigation") {
             model.navigationModel.activeNav = event.id;
-            model.rightPanelModel = {
-                show: false,
-            };
         } //
         //
         // DM
@@ -262,8 +256,6 @@ export async function* UI_Interaction_Update(args: {
                     continue;
                 }
             }
-        } else if (event.type == "ToggleRightPanel") {
-            model.rightPanelModel.show = event.show;
         } else if (event.type == "ViewThread") {
             if (model.navigationModel.activeNav == "DM") {
                 if (model.dm.currentEditor) {
@@ -273,23 +265,19 @@ export async function* UI_Interaction_Update(args: {
                     );
                 }
             }
-            model.rightPanelModel.show = true;
         } else if (event.type == "ViewUserDetail") {
             if (model.dm.currentEditor) {
                 const currentFocus = model.dm.focusedContent.get(model.dm.currentEditor.pubkey.hex);
                 if (
-                    model.rightPanelModel.show == true &&
                     currentFocus instanceof PublicKey &&
                     currentFocus.hex == event.pubkey.hex &&
                     currentFocus.hex == model.dm.currentEditor.pubkey.hex
                 ) {
-                    model.rightPanelModel.show = false;
                 } else {
                     model.dm.focusedContent.set(
                         model.dm.currentEditor.pubkey.hex,
                         event.pubkey,
                     );
-                    model.rightPanelModel.show = true;
                 }
             }
         } else if (event.type == "OpenNote") {

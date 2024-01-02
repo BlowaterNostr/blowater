@@ -7,9 +7,7 @@ render(
     <div class="border">
         <RightPanel
             emit={testEventBus.emit}
-            rightPanelModel={{
-                show: true,
-            }}
+            eventSub={testEventBus}
         >
             Test
         </RightPanel>

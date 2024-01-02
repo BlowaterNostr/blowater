@@ -417,7 +417,6 @@ export function AppComponent(props: {
             dmVNode = (
                 <DirectMessageContainer
                     {...model.dm}
-                    rightPanelModel={model.rightPanelModel}
                     bus={app.eventBus}
                     ctx={myAccountCtx}
                     profileGetter={app.database}
