@@ -41,6 +41,7 @@ export class RightPanel extends Component<RightPanelProps, {}> {
             <div
                 ref={this.ref}
                 class={tw`fixed top-0 right-0 border-l
+                    overflow-auto
                     h-full bg-[#2F3136]
                     z-20 transition duration-150 ease-in-out w-96 max-w-full
                     translate-x-full`}
