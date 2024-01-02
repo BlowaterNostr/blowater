@@ -57,7 +57,7 @@ export const Setting = (props: SettingProps) => {
     }
     return (
         <div
-            class={`flex-1 overflow-hidden overflow-y-auto`}
+            class={`flex-1 overflow-y-auto`}
         >
             <div class={`min-w-full min-h-full px-2 bg-[${SecondaryBackgroundColor}]`}>
                 <div class={`max-w-[41rem] m-auto py-[1.5rem]`}>
