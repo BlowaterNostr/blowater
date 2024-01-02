@@ -4,6 +4,7 @@ import { parseJSON, ProfileData } from "./features/profile.ts";
 import { NostrEvent, NostrKind, Tag, verifyEvent } from "../libs/nostr.ts/nostr.ts";
 import { PublicKey } from "../libs/nostr.ts/key.ts";
 import { ProfileController } from "./UI/search.tsx";
+import { UserBlocker } from "./UI/app_update.tsx";
 
 const buffer_size = 2000;
 export interface Indices {

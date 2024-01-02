@@ -12,23 +12,34 @@ import { CopyButton } from "./components/copy-button.tsx";
 import { LinkColor } from "./style/colors.ts";
 import { findUrlInString } from "./message.ts";
 
+export type BlockUser = {
+    type: "BlockUser";
+    pubkey: PublicKey;
+};
+
+export type UnblockUser = {
+    type: "UnblockUser";
+    pubkey: PublicKey;
+};
+
 type UserDetailProps = {
     targetUserProfile: ProfileData;
     pubkey: PublicKey;
-    emit: emitFunc<DirectMessagePanelUpdate>;
+    blocked: boolean;
+    emit: emitFunc<DirectMessagePanelUpdate | BlockUser | UnblockUser>;
 };
 
 export function UserDetail(props: UserDetailProps) {
     return (
-        <div class={`px-2 pt-3 text-[#7A818C]`}>
+        <div class={`px-2 py-3 text-[#7A818C]`}>
             <Avatar
                 class={`w-64 h-64 m-auto`}
                 picture={props.targetUserProfile.picture}
             />
-            <h1 class={`text-[#F3F4EA] truncate text-[1.4rem] mt-8 max-w-full text-center`}>
+            <h1 class={`text-[#F3F4EA] truncate text-[1.4rem] my-4 max-w-full text-center`}>
                 {props.targetUserProfile.name || props.pubkey.bech32()}
             </h1>
-            <div class={`flex items-start overflow-hidden w-full mt-8 group`}>
+            <div class={`flex items-start overflow-hidden w-full group`}>
                 <KeyIcon
                     class={`w-6 h-6 mr-2`}
                     style={{
@@ -94,6 +105,26 @@ export function UserDetail(props: UserDetailProps) {
                     </div>
                 )
                 : undefined}
+            <div class="py-1"></div>
+            <div
+                class="border inline-block select-none px-1 rounded-full
+                hover:text-[#D4D4D4] hover:cursor-pointer"
+                onClick={(e) => {
+                    if (props.blocked) {
+                        props.emit({
+                            type: "UnblockUser",
+                            pubkey: props.pubkey,
+                        });
+                    } else {
+                        props.emit({
+                            type: "BlockUser",
+                            pubkey: props.pubkey,
+                        });
+                    }
+                }}
+            >
+                {props.blocked ? "Unblock" : "Block"}
+            </div>
         </div>
     );
 }

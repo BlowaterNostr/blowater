@@ -430,6 +430,7 @@ export function AppComponent(props: {
                     messageGetter={model.dm.isGroupMessage ? app.groupChatController : app.dmController}
                     newMessageListener={model.dm.isGroupMessage ? app.groupChatController : app.dmController}
                     relayRecordGetter={app.database}
+                    userBlocker={app.conversationLists}
                 />
             );
         }

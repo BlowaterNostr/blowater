@@ -43,6 +43,7 @@ import { SearchUpdate, SelectConversation } from "./search_model.ts";
 import { RelayConfigChange, ViewRelayDetail } from "./setting.tsx";
 import { SignInEvent } from "./signIn.tsx";
 import { TagSelected } from "./contact-tags.tsx";
+import { BlockUser, UnblockUser } from "./user-detail.tsx";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -62,12 +63,21 @@ export type UI_Interaction_Event =
     | StartInvite
     | InviteUsersToGroup
     | ViewRelayDetail
-    | TagSelected;
+    | TagSelected
+    | BlockUser
+    | UnblockUser;
 
 type BackToContactList = {
     type: "BackToContactList";
 };
 export type AppEventBus = EventBus<UI_Interaction_Event>;
+
+export type UserBlocker = {
+    blockUser(pubkey: PublicKey): void;
+    unblockUser(pubkey: PublicKey): void;
+    isUserBlocked(pubkey: PublicKey): boolean;
+    getBlockedUsers(): Set<string>;
+};
 
 /////////////////////
 // UI Interfaction //
@@ -160,7 +170,7 @@ export async function* UI_Interaction_Update(args: {
             }
             app.popOverInputChan.put({ children: undefined });
             app.model.dm.isGroupMessage = event.isGroupChat;
-            app.conversationLists.markRead(event.pubkey.hex, event.isGroupChat);
+            app.conversationLists.markRead(event.pubkey, event.isGroupChat);
         } else if (event.type == "BackToContactList") {
             model.dm.currentEditor = undefined;
         } else if (event.type == "PinConversation") {
@@ -402,6 +412,10 @@ export async function* UI_Interaction_Update(args: {
                     />
                 ),
             });
+        } else if (event.type == "BlockUser") {
+            app.conversationLists.blockUser(event.pubkey);
+        } else if (event.type == "UnblockUser") {
+            app.conversationLists.unblockUser(event.pubkey);
         }
         yield model;
     }
