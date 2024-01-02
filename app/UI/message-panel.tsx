@@ -32,7 +32,7 @@ import { RightPanel } from "./right-panel.tsx";
 import { ProfileGetter } from "./search.tsx";
 import { SelectConversation } from "./search_model.ts";
 import { DividerBackgroundColor, ErrorColor, LinkColor, PrimaryTextColor } from "./style/colors.ts";
-import { UserDetail } from "./user-detail.tsx";
+import { BlockUser, UserDetail } from "./user-detail.tsx";
 
 export type DirectMessagePanelUpdate =
     | ToggleRightPanel
@@ -77,7 +77,12 @@ interface DirectMessagePanelProps {
     } | undefined;
 
     emit: emitFunc<
-        EditorEvent | DirectMessagePanelUpdate | PinConversation | UnpinConversation | SelectConversation
+        | EditorEvent
+        | DirectMessagePanelUpdate
+        | PinConversation
+        | UnpinConversation
+        | SelectConversation
+        | BlockUser
     >;
     eventSub: EventSubscriber<UI_Interaction_Event>;
     profilesSyncer: ProfileSyncer;

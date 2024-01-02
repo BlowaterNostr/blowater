@@ -12,10 +12,15 @@ import { CopyButton } from "./components/copy-button.tsx";
 import { LinkColor } from "./style/colors.ts";
 import { findUrlInString } from "./message.ts";
 
+export type BlockUser = {
+    type: "BlockUser";
+    pubkey: PublicKey;
+};
+
 type UserDetailProps = {
     targetUserProfile: ProfileData;
     pubkey: PublicKey;
-    emit: emitFunc<DirectMessagePanelUpdate>;
+    emit: emitFunc<DirectMessagePanelUpdate | BlockUser>;
 };
 
 export function UserDetail(props: UserDetailProps) {
@@ -95,13 +100,16 @@ export function UserDetail(props: UserDetailProps) {
                 )
                 : undefined}
             <div class="py-1"></div>
-            <div class="border inline-block select-none px-1">
-                Block
-            </div>
-            <div class="border inline-block select-none px-1">
-                Block
-            </div>
-            <div class="border inline-block select-none px-1">
+            <div
+                class="border inline-block select-none px-1 rounded-full
+                hover:text-[#D4D4D4] hover:cursor-pointer"
+                onClick={(e) => {
+                    props.emit({
+                        type: "BlockUser",
+                        pubkey: props.pubkey,
+                    });
+                }}
+            >
                 Block
             </div>
         </div>
