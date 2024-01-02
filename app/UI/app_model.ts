@@ -3,7 +3,6 @@ import { SearchInitModel, SearchModel } from "./search_model.ts";
 import { ProfileData } from "../features/profile.ts";
 import { EditorModel } from "./editor.tsx";
 import { DM_Model } from "./dm.tsx";
-import { RightPanelModel } from "./right-panel.tsx";
 import { App } from "./app.tsx";
 
 export type Model = {
@@ -23,7 +22,6 @@ export type Model = {
 
     // UI
     navigationModel: NavigationModel;
-    rightPanelModel: RightPanelModel;
 };
 
 export function initialModel(): Model {
@@ -44,9 +42,6 @@ export function initialModel(): Model {
         },
         navigationModel: {
             activeNav: "DM",
-        },
-        rightPanelModel: {
-            show: false,
         },
         myProfile: undefined,
     };

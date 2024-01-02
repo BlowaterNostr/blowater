@@ -6,11 +6,11 @@ import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { NoteID } from "../../libs/nostr.ts/nip19.ts";
 import { NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { RelayRecordGetter } from "../database.ts";
-import { emitFunc } from "../event-bus.ts";
+import { emitFunc, EventSubscriber } from "../event-bus.ts";
 import { ProfileData, ProfileSyncer } from "../features/profile.ts";
 import { Parsed_Event, PinConversation, UnpinConversation } from "../nostr.ts";
 import { isMobile } from "./_helper.ts";
-import { ChatMessagesGetter } from "./app_update.tsx";
+import { ChatMessagesGetter, UI_Interaction_Event } from "./app_update.tsx";
 import { Avatar } from "./components/avatar.tsx";
 import { IconButtonClass } from "./components/tw.ts";
 import { Editor, EditorEvent, EditorModel } from "./editor.tsx";
@@ -28,17 +28,14 @@ import {
 } from "./message.ts";
 import { NoteCard } from "./note-card.tsx";
 import { ProfileCard } from "./profile-card.tsx";
-import { RightPanel, RightPanelModel } from "./right-panel.tsx";
+import { RightPanel } from "./right-panel.tsx";
 import { ProfileGetter } from "./search.tsx";
 import { SelectConversation } from "./search_model.ts";
 import { DividerBackgroundColor, ErrorColor, LinkColor, PrimaryTextColor } from "./style/colors.ts";
 import { UserDetail } from "./user-detail.tsx";
 
 export type DirectMessagePanelUpdate =
-    | {
-        type: "ToggleRightPanel";
-        show: boolean;
-    }
+    | ToggleRightPanel
     | ViewThread
     | ViewUserDetail
     | OpenNote
@@ -46,6 +43,11 @@ export type DirectMessagePanelUpdate =
         type: "ViewEventDetail";
         message: ChatMessage;
     };
+
+export type ToggleRightPanel = {
+    type: "ToggleRightPanel";
+    show: boolean;
+};
 
 export type OpenNote = {
     type: "OpenNote";
@@ -74,11 +76,10 @@ interface DirectMessagePanelProps {
         pubkey: PublicKey;
     } | undefined;
 
-    rightPanelModel: RightPanelModel;
-
     emit: emitFunc<
         EditorEvent | DirectMessagePanelUpdate | PinConversation | UnpinConversation | SelectConversation
     >;
+    eventSub: EventSubscriber<UI_Interaction_Event>;
     profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
     profileGetter: ProfileGetter;
@@ -111,34 +112,32 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
     render() {
         const props = this.props;
 
-        let rightPanel;
-        if (props.rightPanelModel.show) {
-            let rightPanelChildren: h.JSX.Element | undefined;
-            if (props.focusedContent) {
-                if (props.focusedContent.type == "ProfileData") {
-                    rightPanelChildren = (
-                        <UserDetail
-                            targetUserProfile={{
-                                name: props.focusedContent?.data?.name,
-                                picture: props.focusedContent?.data?.picture,
-                                about: props.focusedContent?.data?.about,
-                                website: props.focusedContent?.data?.website,
-                            }}
-                            pubkey={props.focusedContent.pubkey}
-                            emit={props.emit}
-                        />
-                    );
-                }
+        let rightPanelChildren: h.JSX.Element | undefined;
+        if (props.focusedContent) {
+            if (props.focusedContent.type == "ProfileData") {
+                rightPanelChildren = (
+                    <UserDetail
+                        targetUserProfile={{
+                            name: props.focusedContent?.data?.name,
+                            picture: props.focusedContent?.data?.picture,
+                            about: props.focusedContent?.data?.about,
+                            website: props.focusedContent?.data?.website,
+                        }}
+                        pubkey={props.focusedContent.pubkey}
+                        emit={props.emit}
+                    />
+                );
             }
-            rightPanel = (
-                <RightPanel
-                    emit={props.emit}
-                    rightPanelModel={props.rightPanelModel}
-                >
-                    {rightPanelChildren}
-                </RightPanel>
-            );
         }
+        let rightPanel = (
+            <RightPanel
+                emit={props.emit}
+                eventSub={props.eventSub}
+            >
+                {rightPanelChildren}
+            </RightPanel>
+        );
+
         let vnode = (
             <div class={tw`flex h-full w-full relative bg-[#36393F]`}>
                 <div class={tw`flex flex-col h-full flex-1 overflow-hidden`}>

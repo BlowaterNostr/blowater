@@ -18,6 +18,7 @@ import { UnpinIcon } from "./icons/unpin-icon.tsx";
 import { ProfileGetter } from "./search.tsx";
 import { SearchUpdate, SelectConversation } from "./search_model.ts";
 import { ErrorColor, PrimaryTextColor, SecondaryBackgroundColor } from "./style/colors.ts";
+import { ContactTags, TagSelected } from "./contact-tags.tsx";
 
 export interface ConversationListRetriever {
     getContacts: () => Iterable<ConversationSummary>;
@@ -43,7 +44,7 @@ export interface NewMessageChecker {
 }
 
 type Props = {
-    emit: emitFunc<ContactUpdate | SearchUpdate>;
+    emit: emitFunc<ContactUpdate | SearchUpdate | TagSelected>;
     eventBus: EventSubscriber<UI_Interaction_Event>;
     convoListRetriever: ConversationListRetriever;
     groupChatListGetter: GroupMessageListGetter;
@@ -71,6 +72,14 @@ export class ConversationList extends Component<Props, State> {
                         e.pubkey,
                         e.isGroupChat,
                     ),
+                });
+            } else if (e.type == "tagSelected") {
+                let group: ConversationType = "Strangers";
+                if (e.tag == "contacts") {
+                    group = "Contacts";
+                }
+                this.setState({
+                    selectedContactGroup: group,
                 });
             }
         }
@@ -114,7 +123,7 @@ export class ConversationList extends Component<Props, State> {
             <div
                 // https://tailwindcss.com/docs/hover-focus-and-other-states#quick-reference
                 class={`
-                h-screen w-80 max-sm:w-full
+                h-screen w-60 max-sm:w-full
                 flex flex-col bg-[${SecondaryBackgroundColor}]`}
             >
                 <div
@@ -160,52 +169,10 @@ export class ConversationList extends Component<Props, State> {
                     </div>
                 </div>
 
-                <ul class={tw`bg-[#36393F] w-full flex h-[3rem] border-b border-[#36393F]`}>
-                    <li
-                        class={tw`h-full flex-1 cursor-pointer hover:text-[#F7F7F7] text-[#96989D] bg-[#2F3136] hover:bg-[#42464D] ${CenterClass} ${
-                            this.state.selectedContactGroup == "Contacts"
-                                ? "border-b-2 border-[#54D48C] bg-[#42464D] text-[#F7F7F7]"
-                                : ""
-                        }`}
-                        onClick={() => this.setState({ selectedContactGroup: "Contacts" })}
-                    >
-                        Contacts: {contacts.length}
-                    </li>
-                    <li class={tw`w-[0.05rem] h-full bg-[#2F3136]`}></li>
-                    <li
-                        class={tw`h-full flex-1 cursor-pointer hover:text-[#F7F7F7] text-[#96989D] bg-[#2F3136] hover:bg-[#42464D] ${CenterClass} ${
-                            this.state.selectedContactGroup == "Strangers"
-                                ? "border-b-2 border-[#54D48C] bg-[#42464D] text-[#F7F7F7]"
-                                : ""
-                        }`}
-                        onClick={() => {
-                            this.setState({
-                                selectedContactGroup: "Strangers",
-                            });
-                        }}
-                    >
-                        Strangers: {strangers.length}
-                    </li>
-
-                    {IS_BETA_VERSION
-                        ? (
-                            <li
-                                class={tw`h-full flex-1 cursor-pointer hover:text-[#F7F7F7] text-[#96989D] bg-[#2F3136] hover:bg-[#42464D] ${CenterClass} ${
-                                    this.state.selectedContactGroup == "Group"
-                                        ? "border-b-2 border-[#54D48C] bg-[#42464D] text-[#F7F7F7]"
-                                        : ""
-                                }`}
-                                onClick={() => {
-                                    this.setState({
-                                        selectedContactGroup: "Group",
-                                    });
-                                }}
-                            >
-                                Group: {groups.length}
-                            </li>
-                        )
-                        : undefined}
-                </ul>
+                <div class="py-1 border-b border-[#36393F]">
+                    <ContactTags tags={["contacts", "strangers"]} emit={this.props.emit}>
+                    </ContactTags>
+                </div>
 
                 <ContactGroup
                     contacts={Array.from(convoListToRender.values())}
@@ -264,7 +231,7 @@ function ContactGroup(props: ConversationListProps) {
                                 props.isGroupChat == props.currentSelected.isGroupChat
                                 ? "bg-[#42464D] text-[#FFFFFF]"
                                 : "bg-[#42464D] text-[#96989D]"
-                        } cursor-pointer p-2 hover:bg-[#3C3F45] my-2 rounded-lg flex items-center w-full relative group`}
+                        } cursor-pointer p-2 hover:bg-[#3C3F45] mb-2 rounded-lg flex items-center w-full relative group`}
                         onClick={selectConversation(
                             props.emit,
                             contact.conversation.pubkey,
@@ -279,7 +246,10 @@ function ContactGroup(props: ConversationListProps) {
                         />
 
                         <button
-                            class={tw`w-6 h-6 absolute hidden group-hover:flex top-[-0.75rem] right-[0.75rem] ${IconButtonClass} bg-[#42464D] hover:bg-[#2F3136]`}
+                            class={tw`
+                                w-6 h-6 absolute hidden group-hover:flex top-[-0.75rem] right-[0.75rem]
+                                focus:outline-none focus-visible:outline-none rounded-full hover:bg-[#42464D] ${CenterClass}
+                                bg-[#42464D] hover:bg-[#2F3136]`}
                             style={{
                                 boxShadow: "2px 2px 5px 0 black",
                             }}
@@ -331,7 +301,10 @@ function ContactGroup(props: ConversationListProps) {
                         />
 
                         <button
-                            class={tw`w-6 h-6 absolute hidden group-hover:flex top-[-0.75rem] right-[0.75rem] ${IconButtonClass} bg-[#42464D] hover:bg-[#2F3136]`}
+                            class={tw`
+                            w-6 h-6 absolute hidden group-hover:flex top-[-0.75rem] right-[0.75rem]
+                            focus:outline-none focus-visible:outline-none rounded-full hover:bg-[#42464D] ${CenterClass}
+                            bg-[#42464D] hover:bg-[#2F3136]`}
                             style={{
                                 boxShadow: "2px 2px 5px 0 black",
                             }}
