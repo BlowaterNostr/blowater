@@ -170,7 +170,8 @@ export class ConversationList extends Component<Props, State> {
                 </div>
 
                 <div class="py-1 border-b border-[#36393F]">
-                    <ContactTags tags={["contacts", "strangers"]} emit={this.props.emit}></ContactTags>
+                    <ContactTags tags={["contacts", "strangers", "blocked"]} emit={this.props.emit}>
+                    </ContactTags>
                 </div>
 
                 <ContactGroup
@@ -245,7 +246,10 @@ function ContactGroup(props: ConversationListProps) {
                         />
 
                         <button
-                            class={tw`w-6 h-6 absolute hidden group-hover:flex top-[-0.75rem] right-[0.75rem] ${IconButtonClass} bg-[#42464D] hover:bg-[#2F3136]`}
+                            class={tw`
+                                w-6 h-6 absolute hidden group-hover:flex top-[-0.75rem] right-[0.75rem]
+                                focus:outline-none focus-visible:outline-none rounded-full hover:bg-[#42464D] ${CenterClass}
+                                bg-[#42464D] hover:bg-[#2F3136]`}
                             style={{
                                 boxShadow: "2px 2px 5px 0 black",
                             }}
@@ -297,7 +301,10 @@ function ContactGroup(props: ConversationListProps) {
                         />
 
                         <button
-                            class={tw`w-6 h-6 absolute hidden group-hover:flex top-[-0.75rem] right-[0.75rem] ${IconButtonClass} bg-[#42464D] hover:bg-[#2F3136]`}
+                            class={tw`
+                            w-6 h-6 absolute hidden group-hover:flex top-[-0.75rem] right-[0.75rem]
+                            focus:outline-none focus-visible:outline-none rounded-full hover:bg-[#42464D] ${CenterClass}
+                            bg-[#42464D] hover:bg-[#2F3136]`}
                             style={{
                                 boxShadow: "2px 2px 5px 0 black",
                             }}

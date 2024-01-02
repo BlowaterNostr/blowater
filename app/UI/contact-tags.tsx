@@ -5,21 +5,23 @@ import { emitFunc } from "../event-bus.ts";
 
 export type TagSelected = {
     type: "tagSelected";
-    tag: "contacts" | "strangers" | string;
+    tag: Tag;
 };
 
+export type Tag = "contacts" | "strangers" | "blocked";
+
 type Props = {
-    tags: string[];
+    tags: Tag[];
     emit: emitFunc<TagSelected>;
 };
 
 type State = {
-    selectedTag: string;
+    selectedTag: Tag | undefined;
 };
 
 export class ContactTags extends Component<Props, State> {
     state: State = {
-        selectedTag: "",
+        selectedTag: undefined,
     };
 
     render() {
