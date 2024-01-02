@@ -9,7 +9,7 @@ import { EventBus } from "../event-bus.ts";
 import { GroupMessageController } from "../features/gm.ts";
 import { ProfileSyncer } from "../features/profile.ts";
 import { getFocusedContent } from "./app.tsx";
-import { ChatMessagesGetter, UI_Interaction_Event } from "./app_update.tsx";
+import { ChatMessagesGetter, UI_Interaction_Event, UserBlocker } from "./app_update.tsx";
 import { CenterClass, IconButtonClass } from "./components/tw.ts";
 import { IS_BETA_VERSION } from "./config.js";
 import { EditorModel } from "./editor.tsx";
@@ -49,6 +49,7 @@ type DirectMessageContainerProps = {
     conversationLists: ConversationListRetriever;
     newMessageChecker: NewMessageChecker;
     relayRecordGetter: RelayRecordGetter;
+    userBlocker: UserBlocker;
 } & DM_Model;
 
 export type StartInvite = {
@@ -165,6 +166,7 @@ export class DirectMessageContainer extends Component<DirectMessageContainerProp
                         groupChatListGetter={props.groupChatController}
                         hasNewMessages={props.newMessageChecker}
                         {...props}
+                        userBlocker={props.userBlocker}
                     />
                 </div>
 

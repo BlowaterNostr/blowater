@@ -5,9 +5,9 @@ import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { emitFunc, EventSubscriber } from "../event-bus.ts";
 import { ProfileData } from "../features/profile.ts";
 import { PinConversation, UnpinConversation } from "../nostr.ts";
-import { UI_Interaction_Event } from "./app_update.tsx";
+import { UI_Interaction_Event, UserBlocker } from "./app_update.tsx";
 import { Avatar } from "./components/avatar.tsx";
-import { CenterClass, IconButtonClass, LinearGradientsClass } from "./components/tw.ts";
+import { CenterClass, LinearGradientsClass } from "./components/tw.ts";
 import { IS_BETA_VERSION } from "./config.js";
 import { ConversationSummary, sortUserInfo } from "./conversation-list.ts";
 import { StartCreateGroupChat } from "./create-group.tsx";
@@ -18,19 +18,20 @@ import { UnpinIcon } from "./icons/unpin-icon.tsx";
 import { ProfileGetter } from "./search.tsx";
 import { SearchUpdate, SelectConversation } from "./search_model.ts";
 import { ErrorColor, PrimaryTextColor, SecondaryBackgroundColor } from "./style/colors.ts";
-import { ContactTags, TagSelected } from "./contact-tags.tsx";
+import { ContactTag, ContactTags, TagSelected } from "./contact-tags.tsx";
 
 export interface ConversationListRetriever {
     getContacts: () => Iterable<ConversationSummary>;
     getStrangers: () => Iterable<ConversationSummary>;
-    getConversationType(pubkey: PublicKey, isGourpChat: boolean): "Contacts" | "Strangers" | "Group";
+    getConversations: (keys: Iterable<string>) => Iterable<ConversationSummary>;
+    getConversationType(pubkey: PublicKey, isGourpChat: boolean): ConversationType;
 }
 
 export interface GroupMessageListGetter {
     getConversationList: () => Iterable<ConversationSummary>;
 }
 
-export type ConversationType = "Contacts" | "Strangers" | "Group";
+export type ConversationType = ContactTag | "Group";
 
 export type ContactUpdate =
     | SearchUpdate
@@ -39,8 +40,8 @@ export type ContactUpdate =
     | StartCreateGroupChat;
 
 export interface NewMessageChecker {
-    newNessageCount(hex: string, isGourpChat: boolean): number;
-    markRead(hex: string, isGourpChat: boolean): void;
+    newNessageCount(pubkey: PublicKey, isGourpChat: boolean): number;
+    markRead(pubkey: PublicKey, isGourpChat: boolean): void;
 }
 
 type Props = {
@@ -51,6 +52,7 @@ type Props = {
     hasNewMessages: NewMessageChecker;
     pinListGetter: PinListGetter;
     profileGetter: ProfileGetter;
+    userBlocker: UserBlocker;
 };
 
 type State = {
@@ -74,19 +76,15 @@ export class ConversationList extends Component<Props, State> {
                     ),
                 });
             } else if (e.type == "tagSelected") {
-                let group: ConversationType = "Strangers";
-                if (e.tag == "contacts") {
-                    group = "Contacts";
-                }
                 this.setState({
-                    selectedContactGroup: group,
+                    selectedContactGroup: e.tag,
                 });
             }
         }
     }
 
     state: Readonly<State> = {
-        selectedContactGroup: "Contacts",
+        selectedContactGroup: "contacts",
         currentSelected: undefined,
     };
 
@@ -95,25 +93,29 @@ export class ConversationList extends Component<Props, State> {
         const contacts = Array.from(props.convoListRetriever.getContacts());
         const strangers = Array.from(props.convoListRetriever.getStrangers());
         const groups = Array.from(props.groupChatListGetter.getConversationList());
+        const blocked = props.userBlocker.getBlockedUsers();
         let isGroupChat = false;
         switch (this.state.selectedContactGroup) {
-            case "Contacts":
+            case "contacts":
                 listToRender = contacts;
                 break;
-            case "Strangers":
+            case "strangers":
                 listToRender = strangers;
                 break;
             case "Group":
                 listToRender = groups;
                 isGroupChat = true;
                 break;
+            case "blocked":
+                listToRender = Array.from(props.convoListRetriever.getConversations(blocked));
         }
         const convoListToRender = [];
+        console.log(contacts, strangers, blocked);
         for (const conversationSummary of listToRender) {
             convoListToRender.push({
                 conversation: conversationSummary,
                 newMessageCount: props.hasNewMessages.newNessageCount(
-                    conversationSummary.pubkey.hex,
+                    conversationSummary.pubkey,
                     isGroupChat,
                 ),
             });
@@ -170,7 +172,7 @@ export class ConversationList extends Component<Props, State> {
                 </div>
 
                 <div class="py-1 border-b border-[#36393F]">
-                    <ContactTags tags={["contacts", "strangers"]} emit={this.props.emit}>
+                    <ContactTags tags={["contacts", "strangers", "blocked"]} emit={this.props.emit}>
                     </ContactTags>
                 </div>
 

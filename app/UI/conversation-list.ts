@@ -18,12 +18,12 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker {
         public readonly ctx: NostrAccountContext,
     ) {}
 
-    newNessageCount(hex: string, isGourpChat: boolean): number {
-        return this.newMessages.get(hex) || 0;
+    newNessageCount(pubkey: PublicKey, isGourpChat: boolean): number {
+        return this.newMessages.get(pubkey.bech32()) || 0;
     }
 
-    markRead(hex: string, isGourpChat: boolean): void {
-        this.newMessages.set(hex, 0);
+    markRead(pubkey: PublicKey, isGourpChat: boolean): void {
+        this.newMessages.set(pubkey.bech32(), 0);
     }
 
     *getStrangers() {
@@ -58,16 +58,25 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker {
         if (isGroupChat) {
             return "Group";
         }
-        const contact = this.convoSummaries.get(pubkey.hex);
+        const contact = this.convoSummaries.get(pubkey.bech32());
         if (contact == undefined) {
-            return "Strangers";
+            return "strangers";
         }
         if (
             contact.newestEventReceivedByMe == undefined || contact.newestEventSendByMe == undefined
         ) {
-            return "Strangers";
+            return "strangers";
         } else {
-            return "Contacts";
+            return "contacts";
+        }
+    }
+
+    *getConversations(keys: Iterable<string>): Iterable<ConversationSummary> {
+        for (const key of keys) {
+            const convo = this.convoSummaries.get(key);
+            if (convo) {
+                yield convo;
+            }
         }
     }
 
@@ -90,28 +99,38 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker {
     }
 
     private addEvent(event: NostrEvent<NostrKind.DIRECT_MESSAGE>, newEvent: boolean) {
-        let whoAm_I_TalkingTo = "";
-        if (event.pubkey == this.ctx.publicKey.hex) {
-            // I am the sender
-            whoAm_I_TalkingTo = getTags(event).p[0];
-            if (whoAm_I_TalkingTo == undefined) {
-                return new InvalidEvent(event, `event ${event.id} does not have p tags`);
+        let pubkey_I_TalkingTo;
+        {
+            let whoAm_I_TalkingTo = "";
+            if (event.pubkey == this.ctx.publicKey.hex) {
+                // I am the sender
+                whoAm_I_TalkingTo = getTags(event).p[0];
+                if (whoAm_I_TalkingTo == undefined) {
+                    return new InvalidEvent(event, `event ${event.id} does not have p tags`);
+                }
+            } else if (getTags(event).p[0] == this.ctx.publicKey.hex) {
+                // I am the receiver
+                whoAm_I_TalkingTo = event.pubkey;
+            } else {
+                // I am neither. Possible because other user has used this device before
+                return;
             }
-        } else if (getTags(event).p[0] == this.ctx.publicKey.hex) {
-            // I am the receiver
-            whoAm_I_TalkingTo = event.pubkey;
-        } else {
-            // I am neither. Possible because other user has used this device before
-            return;
+            pubkey_I_TalkingTo = PublicKey.FromHex(whoAm_I_TalkingTo);
+            if (pubkey_I_TalkingTo instanceof Error) {
+                return new InvalidEvent(event, pubkey_I_TalkingTo.message);
+            }
         }
 
         if (newEvent && this.ctx.publicKey.hex != event.pubkey) {
-            this.newMessages.set(whoAm_I_TalkingTo, this.newNessageCount(whoAm_I_TalkingTo, false) + 1);
+            this.newMessages.set(
+                pubkey_I_TalkingTo.bech32(),
+                this.newNessageCount(pubkey_I_TalkingTo, false) + 1,
+            );
         }
 
-        const userInfo = this.convoSummaries.get(whoAm_I_TalkingTo);
+        const userInfo = this.convoSummaries.get(pubkey_I_TalkingTo.bech32());
         if (userInfo) {
-            if (whoAm_I_TalkingTo == this.ctx.publicKey.hex) {
+            if (pubkey_I_TalkingTo.hex == this.ctx.publicKey.hex) {
                 // talking to myself
                 if (userInfo.newestEventSendByMe) {
                     if (event.created_at > userInfo.newestEventSendByMe?.created_at) {
@@ -144,16 +163,12 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker {
                 }
             }
         } else {
-            const pubkey = PublicKey.FromHex(whoAm_I_TalkingTo);
-            if (pubkey instanceof Error) {
-                return new InvalidEvent(event, pubkey.message);
-            }
             const newUserInfo: ConversationSummary = {
-                pubkey,
+                pubkey: pubkey_I_TalkingTo,
                 newestEventReceivedByMe: undefined,
                 newestEventSendByMe: undefined,
             };
-            if (whoAm_I_TalkingTo == this.ctx.publicKey.hex) {
+            if (pubkey_I_TalkingTo.hex == this.ctx.publicKey.hex) {
                 // talking to myself
                 newUserInfo.newestEventSendByMe = event;
                 newUserInfo.newestEventReceivedByMe = event;
@@ -166,7 +181,7 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker {
                     newUserInfo.newestEventReceivedByMe = event;
                 }
             }
-            this.convoSummaries.set(whoAm_I_TalkingTo, newUserInfo);
+            this.convoSummaries.set(pubkey_I_TalkingTo.bech32(), newUserInfo);
         }
     }
 }

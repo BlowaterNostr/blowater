@@ -71,6 +71,13 @@ type BackToContactList = {
 };
 export type AppEventBus = EventBus<UI_Interaction_Event>;
 
+export type UserBlocker = {
+    blockUser(pubkey: PublicKey): void;
+    unblockUser(pubkey: PublicKey): void;
+    isUserBlocked(pubkey: PublicKey): boolean;
+    getBlockedUsers(): Set<string>;
+};
+
 /////////////////////
 // UI Interfaction //
 /////////////////////
@@ -83,6 +90,7 @@ export async function* UI_Interaction_Update(args: {
     newNostrEventChannel: Channel<NostrEvent>;
     lamport: LamportTime;
     installPrompt: InstallPrompt;
+    userBlocker: UserBlocker;
 }) {
     const { model, dbView, eventBus, pool, installPrompt } = args;
     const events = eventBus.onChange();
@@ -162,7 +170,7 @@ export async function* UI_Interaction_Update(args: {
             }
             app.popOverInputChan.put({ children: undefined });
             app.model.dm.isGroupMessage = event.isGroupChat;
-            app.conversationLists.markRead(event.pubkey.hex, event.isGroupChat);
+            app.conversationLists.markRead(event.pubkey, event.isGroupChat);
         } else if (event.type == "BackToContactList") {
             model.dm.currentEditor = undefined;
         } else if (event.type == "PinConversation") {
@@ -404,8 +412,8 @@ export async function* UI_Interaction_Update(args: {
                     />
                 ),
             });
-        } else if(event.type == "BlockUser") {
-            
+        } else if (event.type == "BlockUser") {
+            args.userBlocker.blockUser(event.pubkey);
         }
         yield model;
     }
