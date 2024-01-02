@@ -170,7 +170,7 @@ export class ConversationList extends Component<Props, State> {
                 </div>
 
                 <div class="py-1 border-b border-[#36393F]">
-                    <ContactTags tags={["contacts", "strangers", "blocked"]} emit={this.props.emit}>
+                    <ContactTags tags={["contacts", "strangers"]} emit={this.props.emit}>
                     </ContactTags>
                 </div>
 
