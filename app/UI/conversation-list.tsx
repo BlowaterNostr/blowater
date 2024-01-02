@@ -114,7 +114,7 @@ export class ConversationList extends Component<Props, State> {
             <div
                 // https://tailwindcss.com/docs/hover-focus-and-other-states#quick-reference
                 class={`
-                h-screen w-80 max-sm:w-full
+                h-screen w-60 max-sm:w-full
                 flex flex-col bg-[${SecondaryBackgroundColor}]`}
             >
                 <div

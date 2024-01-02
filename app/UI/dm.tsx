@@ -228,7 +228,7 @@ function TopBar(props: {
                             type: "BackToContactList",
                         });
                     }}
-                    class={`w-6 h-6 mobile:mr-2 desktop:hidden ${IconButtonClass}`}
+                    class={`w-6 h-6 mx-2 ${IconButtonClass}`}
                 >
                     <LeftArrowIcon
                         class={`w-4 h-4`}
@@ -241,8 +241,8 @@ function TopBar(props: {
                     // https://tailwindcss.com/docs/customizing-colors
                     // https://tailwindcss.com/docs/cursor
                     class={`text-[#F3F4EA] text-[1.2rem]
-                                    hover:text-[#60a5fa] hover:cursor-pointer
-                                    ml-4 mobile:text-base whitespace-nowrap truncate`}
+                            hover:text-[#60a5fa] hover:cursor-pointer
+                            whitespace-nowrap truncate`}
                     onClick={() => {
                         if (!props.currentEditor) {
                             return;
