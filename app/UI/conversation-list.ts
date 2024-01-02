@@ -2,7 +2,8 @@ import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { InvalidEvent } from "../features/dm.ts";
 import { getTags } from "../nostr.ts";
-import { ConversationListRetriever, NewMessageChecker } from "./conversation-list.tsx";
+import { UserBlocker } from "./app_update.tsx";
+import { ConversationListRetriever, ConversationType, NewMessageChecker } from "./conversation-list.tsx";
 
 export interface ConversationSummary {
     pubkey: PublicKey;
@@ -10,7 +11,7 @@ export interface ConversationSummary {
     newestEventReceivedByMe?: NostrEvent;
 }
 
-export class DM_List implements ConversationListRetriever, NewMessageChecker {
+export class DM_List implements ConversationListRetriever, NewMessageChecker, UserBlocker {
     readonly convoSummaries = new Map<string, ConversationSummary>();
     readonly newMessages = new Map<string, number>();
 
@@ -38,6 +39,9 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker {
                     convoSummary.newestEventSendByMe == undefined
                 )
             ) {
+                if (this.isUserBlocked(convoSummary.pubkey)) {
+                    continue;
+                }
                 yield convoSummary;
             }
         }
@@ -49,18 +53,24 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker {
                 userInfo.newestEventReceivedByMe != undefined &&
                 userInfo.newestEventSendByMe != undefined
             ) {
+                if (this.isUserBlocked(userInfo.pubkey)) {
+                    continue;
+                }
                 yield userInfo;
             }
         }
     }
 
-    getConversationType(pubkey: PublicKey, isGroupChat: boolean) {
+    getConversationType(pubkey: PublicKey, isGroupChat: boolean): ConversationType {
         if (isGroupChat) {
             return "Group";
         }
         const contact = this.convoSummaries.get(pubkey.bech32());
         if (contact == undefined) {
             return "strangers";
+        }
+        if (this.isUserBlocked(pubkey)) {
+            return "blocked";
         }
         if (
             contact.newestEventReceivedByMe == undefined || contact.newestEventSendByMe == undefined
@@ -79,6 +89,33 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker {
             }
         }
     }
+
+    ///////////////////////////
+    // implement UserBlocker //
+    ///////////////////////////
+    blockUser(pubkey: PublicKey): void {
+        let blockedUsers = this.getBlockedUsers();
+        blockedUsers.add(pubkey.bech32());
+        localStorage.setItem("blocked-users", JSON.stringify(Array.from(blockedUsers)));
+    }
+    unblockUser(pubkey: PublicKey): void {
+        let blockedUsers = this.getBlockedUsers();
+        blockedUsers.delete(pubkey.bech32());
+        localStorage.setItem("blocked-users", JSON.stringify(Array.from(blockedUsers)));
+    }
+    isUserBlocked(pubkey: PublicKey): boolean {
+        const blockedUsers = this.getBlockedUsers();
+        return blockedUsers.has(pubkey.bech32());
+    }
+    getBlockedUsers() {
+        let blockedUsers: string | null = localStorage.getItem("blocked-users");
+        if (blockedUsers == null) {
+            blockedUsers = "[]";
+        }
+        return new Set(JSON.parse(blockedUsers) as string[]);
+    }
+    // end //
+    /////////
 
     addEvents(
         events: NostrEvent[],

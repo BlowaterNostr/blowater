@@ -90,7 +90,6 @@ export async function* UI_Interaction_Update(args: {
     newNostrEventChannel: Channel<NostrEvent>;
     lamport: LamportTime;
     installPrompt: InstallPrompt;
-    userBlocker: UserBlocker;
 }) {
     const { model, dbView, eventBus, pool, installPrompt } = args;
     const events = eventBus.onChange();
@@ -413,7 +412,7 @@ export async function* UI_Interaction_Update(args: {
                 ),
             });
         } else if (event.type == "BlockUser") {
-            args.userBlocker.blockUser(event.pubkey);
+            app.conversationLists.blockUser(event.pubkey);
         }
         yield model;
     }

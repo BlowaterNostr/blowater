@@ -61,8 +61,7 @@ export interface RelayRecordGetter {
     getRelayRecord: (eventID: string) => Set<string>;
 }
 
-export class Datebase_View
-    implements ProfileController, EventGetter, EventRemover, RelayRecordGetter, UserBlocker {
+export class Datebase_View implements ProfileController, EventGetter, EventRemover, RelayRecordGetter {
     public readonly sourceOfChange = csp.chan<Parsed_Event>(buffer_size);
     private readonly caster = csp.multi<Parsed_Event>(this.sourceOfChange);
     private readonly profiles = new Map<string, Profile_Nostr_Event>();
@@ -75,31 +74,6 @@ export class Datebase_View
         private readonly removedEvents: Set<string>,
         private readonly relayRecords: Map<string, Set<string>>,
     ) {}
-
-    ///////////////////////////
-    // implement UserBlocker //
-    ///////////////////////////
-    blockUser(pubkey: PublicKey): void {
-        let blockedUsers = this.getBlockedUsers();
-        blockedUsers.add(pubkey.bech32());
-        localStorage.setItem("blocked-users", JSON.stringify(Array.from(blockedUsers)));
-    }
-    unblockUser(pubkey: PublicKey): void {
-        let blockedUsers = this.getBlockedUsers();
-        blockedUsers.delete(pubkey.bech32());
-        localStorage.setItem("blocked-users", JSON.stringify(Array.from(blockedUsers)));
-    }
-    isUserBlocked(pubkey: PublicKey): boolean {
-        const blockedUsers = this.getBlockedUsers();
-        return blockedUsers.has(pubkey.bech32());
-    }
-    getBlockedUsers() {
-        let blockedUsers: string | null = localStorage.getItem("blocked-users");
-        if (blockedUsers == null) {
-            blockedUsers = "[]";
-        }
-        return new Set(JSON.parse(blockedUsers) as string[]);
-    }
 
     static async New(
         eventsAdapter: EventsAdapter,
