@@ -17,10 +17,16 @@ export type BlockUser = {
     pubkey: PublicKey;
 };
 
+export type UnblockUser = {
+    type: "UnblockUser";
+    pubkey: PublicKey;
+};
+
 type UserDetailProps = {
     targetUserProfile: ProfileData;
     pubkey: PublicKey;
-    emit: emitFunc<DirectMessagePanelUpdate | BlockUser>;
+    blocked: boolean;
+    emit: emitFunc<DirectMessagePanelUpdate | BlockUser | UnblockUser>;
 };
 
 export function UserDetail(props: UserDetailProps) {
@@ -104,13 +110,20 @@ export function UserDetail(props: UserDetailProps) {
                 class="border inline-block select-none px-1 rounded-full
                 hover:text-[#D4D4D4] hover:cursor-pointer"
                 onClick={(e) => {
-                    props.emit({
-                        type: "BlockUser",
-                        pubkey: props.pubkey,
-                    });
+                    if (props.blocked) {
+                        props.emit({
+                            type: "UnblockUser",
+                            pubkey: props.pubkey,
+                        });
+                    } else {
+                        props.emit({
+                            type: "BlockUser",
+                            pubkey: props.pubkey,
+                        });
+                    }
                 }}
             >
-                Block
+                {props.blocked ? "Unblock" : "Block"}
             </div>
         </div>
     );

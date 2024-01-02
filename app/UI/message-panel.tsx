@@ -10,7 +10,7 @@ import { emitFunc, EventSubscriber } from "../event-bus.ts";
 import { ProfileData, ProfileSyncer } from "../features/profile.ts";
 import { Parsed_Event, PinConversation, UnpinConversation } from "../nostr.ts";
 import { isMobile } from "./_helper.ts";
-import { ChatMessagesGetter, UI_Interaction_Event } from "./app_update.tsx";
+import { ChatMessagesGetter, UI_Interaction_Event, UserBlocker } from "./app_update.tsx";
 import { Avatar } from "./components/avatar.tsx";
 import { IconButtonClass } from "./components/tw.ts";
 import { Editor, EditorEvent, EditorModel } from "./editor.tsx";
@@ -32,7 +32,7 @@ import { RightPanel } from "./right-panel.tsx";
 import { ProfileGetter } from "./search.tsx";
 import { SelectConversation } from "./search_model.ts";
 import { DividerBackgroundColor, ErrorColor, LinkColor, PrimaryTextColor } from "./style/colors.ts";
-import { BlockUser, UserDetail } from "./user-detail.tsx";
+import { BlockUser, UnblockUser, UserDetail } from "./user-detail.tsx";
 
 export type DirectMessagePanelUpdate =
     | ToggleRightPanel
@@ -83,6 +83,7 @@ interface DirectMessagePanelProps {
         | UnpinConversation
         | SelectConversation
         | BlockUser
+        | UnblockUser
     >;
     eventSub: EventSubscriber<UI_Interaction_Event>;
     profilesSyncer: ProfileSyncer;
@@ -91,6 +92,7 @@ interface DirectMessagePanelProps {
     newMessageListener: NewMessageListener;
     messageGetter: ChatMessagesGetter;
     relayRecordGetter: RelayRecordGetter;
+    userBlocker: UserBlocker;
 }
 
 export type NewMessageListener = {
@@ -130,6 +132,7 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
                         }}
                         pubkey={props.focusedContent.pubkey}
                         emit={props.emit}
+                        blocked={props.userBlocker.isUserBlocked(props.focusedContent.pubkey)}
                     />
                 );
             }

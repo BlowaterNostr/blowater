@@ -43,7 +43,7 @@ import { SearchUpdate, SelectConversation } from "./search_model.ts";
 import { RelayConfigChange, ViewRelayDetail } from "./setting.tsx";
 import { SignInEvent } from "./signIn.tsx";
 import { TagSelected } from "./contact-tags.tsx";
-import { BlockUser } from "./user-detail.tsx";
+import { BlockUser, UnblockUser } from "./user-detail.tsx";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -64,7 +64,8 @@ export type UI_Interaction_Event =
     | InviteUsersToGroup
     | ViewRelayDetail
     | TagSelected
-    | BlockUser;
+    | BlockUser
+    | UnblockUser;
 
 type BackToContactList = {
     type: "BackToContactList";
@@ -413,6 +414,8 @@ export async function* UI_Interaction_Update(args: {
             });
         } else if (event.type == "BlockUser") {
             app.conversationLists.blockUser(event.pubkey);
+        } else if (event.type == "UnblockUser") {
+            app.conversationLists.unblockUser(event.pubkey);
         }
         yield model;
     }

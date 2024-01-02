@@ -196,6 +196,7 @@ export class DirectMessageContainer extends Component<DirectMessageContainerProp
                                     editorModel={this.state.currentEditor}
                                     messageGetter={props.messageGetter}
                                     relayRecordGetter={props.relayRecordGetter}
+                                    userBlocker={props.userBlocker}
                                 />
                             </div>
                         </div>
