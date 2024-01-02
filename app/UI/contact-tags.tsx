@@ -1,9 +1,16 @@
 /** @jsx h */
 import { Component, h } from "https://esm.sh/preact@10.17.1";
 import { HintTextColor, PrimaryTextColor, SecondaryTextColor } from "./style/colors.ts";
+import { emitFunc } from "../event-bus.ts";
+
+export type TagSelected = {
+    type: "tagSelected";
+    tag: "contacts" | "strangers" | string;
+};
 
 type Props = {
     tags: string[];
+    emit: emitFunc<TagSelected>;
 };
 
 type State = {
@@ -36,6 +43,10 @@ export class ContactTags extends Component<Props, State> {
                             tag.selected = !tag.selected;
                             this.setState({
                                 tags: this.state.tags,
+                            });
+                            this.props.emit({
+                                type: "tagSelected",
+                                tag: tag.name,
                             });
                         }}
                     >

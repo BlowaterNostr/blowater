@@ -42,6 +42,7 @@ import { Search } from "./search.tsx";
 import { SearchUpdate, SelectConversation } from "./search_model.ts";
 import { RelayConfigChange, ViewRelayDetail } from "./setting.tsx";
 import { SignInEvent } from "./signIn.tsx";
+import { TagSelected } from "./contact-tags.tsx";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -60,7 +61,8 @@ export type UI_Interaction_Event =
     | StartEditGroupChatProfile
     | StartInvite
     | InviteUsersToGroup
-    | ViewRelayDetail;
+    | ViewRelayDetail
+    | TagSelected;
 
 type BackToContactList = {
     type: "BackToContactList";

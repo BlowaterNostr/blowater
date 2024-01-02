@@ -18,7 +18,7 @@ import { UnpinIcon } from "./icons/unpin-icon.tsx";
 import { ProfileGetter } from "./search.tsx";
 import { SearchUpdate, SelectConversation } from "./search_model.ts";
 import { ErrorColor, PrimaryTextColor, SecondaryBackgroundColor } from "./style/colors.ts";
-import { ContactTags } from "./contact-tags.tsx";
+import { ContactTags, TagSelected } from "./contact-tags.tsx";
 
 export interface ConversationListRetriever {
     getContacts: () => Iterable<ConversationSummary>;
@@ -44,7 +44,7 @@ export interface NewMessageChecker {
 }
 
 type Props = {
-    emit: emitFunc<ContactUpdate | SearchUpdate>;
+    emit: emitFunc<ContactUpdate | SearchUpdate | TagSelected>;
     eventBus: EventSubscriber<UI_Interaction_Event>;
     convoListRetriever: ConversationListRetriever;
     groupChatListGetter: GroupMessageListGetter;
@@ -72,6 +72,14 @@ export class ConversationList extends Component<Props, State> {
                         e.pubkey,
                         e.isGroupChat,
                     ),
+                });
+            } else if (e.type == "tagSelected") {
+                let group: ConversationType = "Strangers";
+                if (e.tag == "contacts") {
+                    group = "Contacts";
+                }
+                this.setState({
+                    selectedContactGroup: group,
                 });
             }
         }
@@ -162,7 +170,7 @@ export class ConversationList extends Component<Props, State> {
                 </div>
 
                 <div class="py-1 border-b border-[#36393F]">
-                    <ContactTags tags={["contacts", "strangers"]}></ContactTags>
+                    <ContactTags tags={["contacts", "strangers"]} emit={this.props.emit}></ContactTags>
                 </div>
 
                 <ContactGroup
