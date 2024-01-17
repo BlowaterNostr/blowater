@@ -7,6 +7,7 @@ import {
     NostrKind,
     UnsignedNostrEvent,
 } from "../../libs/nostr.ts/nostr.ts";
+import { LocalPrivateKeyController } from "./signIn.tsx";
 
 type NIP07 = {
     getPublicKey(): Promise<string>;
@@ -115,16 +116,12 @@ export class Nip7ExtensionContext implements NostrAccountContext {
     };
 }
 
-export function GetLocalStorageAccountContext() {
-    const loginPrivateKey = localStorage.getItem("MPK");
-    if (loginPrivateKey) {
-        const priKey = PrivateKey.FromHex(loginPrivateKey);
-        if (!(priKey instanceof Error)) {
-            return InMemoryAccountContext.New(priKey);
-        }
-        console.error("the stored MPK is not a valid private, removing it");
-        localStorage.removeItem("MPK");
-        return undefined;
+export async function GetLocalStorageAccountContext(pin: string) {
+    const priKey = await LocalPrivateKeyController.getKey(pin);
+    if (priKey instanceof Error) {
+        return priKey;
+    } else if(priKey == undefined) {
+        return undefined
     }
-    return undefined;
+    return InMemoryAccountContext.New(priKey)
 }

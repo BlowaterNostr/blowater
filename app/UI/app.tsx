@@ -24,7 +24,7 @@ import { EventSyncer } from "./event_syncer.ts";
 import { RelayConfig } from "./relay-config.ts";
 import { ProfileGetter } from "./search.tsx";
 import { Setting } from "./setting.tsx";
-import { getCurrentSignInCtx, setSignInState, SignIn } from "./signIn.tsx";
+import { getCurrentSignInCtx, getPinFromUser, setSignInState, SignIn } from "./signIn.tsx";
 import { SecondaryBackgroundColor } from "./style/colors.ts";
 import { LamportTime } from "../time.ts";
 import { InstallPrompt, NavBar } from "./nav.tsx";
@@ -56,7 +56,9 @@ export async function Start(database: DexieDatabase) {
         }
     })();
 
-    const ctx = await getCurrentSignInCtx();
+    const pin = await getPinFromUser()
+
+    const ctx = await getCurrentSignInCtx(pin);
     if (ctx instanceof Error) {
         console.error(ctx);
     } else if (ctx) {
