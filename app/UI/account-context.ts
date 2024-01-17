@@ -120,8 +120,8 @@ export async function GetLocalStorageAccountContext(pin: string) {
     const priKey = await LocalPrivateKeyController.getKey(pin);
     if (priKey instanceof Error) {
         return priKey;
-    } else if(priKey == undefined) {
-        return undefined
+    } else if (priKey == undefined) {
+        return undefined;
     }
-    return InMemoryAccountContext.New(priKey)
+    return InMemoryAccountContext.New(priKey);
 }

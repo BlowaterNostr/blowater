@@ -1,5 +1,14 @@
 /** @jsx h */
-import { Component, createRef, h } from "https://esm.sh/preact@10.17.1";
+import {
+    Attributes,
+    Component,
+    ComponentChild,
+    ComponentChildren,
+    createRef,
+    h,
+    Ref,
+    render,
+} from "https://esm.sh/preact@10.17.1";
 import { GetLocalStorageAccountContext, Nip7ExtensionContext } from "./account-context.ts";
 import { ButtonClass, CenterClass, LinearGradientsClass, NoOutlineClass } from "./components/tw.ts";
 import KeyView from "./key-view.tsx";
@@ -301,8 +310,39 @@ export class SignIn extends Component<Props, State> {
     }
 }
 
+class AskForLocalPin extends Component<{
+    resolve: (pin: string) => void;
+}, {}> {
+    input = createRef<HTMLInputElement>();
+
+    render() {
+        return (
+            <div
+                class={`h-screen w-screen bg-[${PrimaryBackgroundColor}] ` +
+                    `flex flex-col items-center justify-center p-4 overflow-y-auto`}
+            >
+                <div class="block text-white">Please enter the pin you just typed</div>
+                <input ref={this.input} type="password"></input>
+                <button
+                    class="text-white border mt-1 px-2 hover:bg-zinc-200"
+                    onClick={() => {
+                        const input = this.input.current;
+                        if (input) {
+                            this.props.resolve(input.value);
+                        }
+                    }}
+                >
+                    confirm
+                </button>
+            </div>
+        );
+    }
+}
+
 export async function getPinFromUser() {
-    return ""
+    return new Promise<string>((resolve) => {
+        render(<AskForLocalPin resolve={resolve}></AskForLocalPin>, document.body);
+    });
 }
 
 export class LocalPrivateKeyController {
@@ -368,7 +408,7 @@ export class LocalPrivateKeyController {
                 encryptedData,
             );
             const private_hex = new TextDecoder().decode(decrypted);
-            return PrivateKey.FromHex(private_hex)
+            return PrivateKey.FromHex(private_hex);
         } catch (e) {
             return e as Error;
         }

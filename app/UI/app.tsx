@@ -56,8 +56,7 @@ export async function Start(database: DexieDatabase) {
         }
     })();
 
-    const pin = await getPinFromUser()
-
+    const pin = await getPinFromUser();
     const ctx = await getCurrentSignInCtx(pin);
     if (ctx instanceof Error) {
         console.error(ctx);
