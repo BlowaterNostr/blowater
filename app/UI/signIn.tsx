@@ -63,7 +63,7 @@ export async function getCurrentSignInCtx(pin: string) {
     if (getSignInState() === "local") {
         const ctx = await GetLocalStorageAccountContext(pin);
         if (ctx instanceof Error) {
-            throw ctx;
+            return ctx;
         }
         if (ctx === undefined) {
             console.log("GetLocalStorageAccountContext is undefined");
@@ -253,6 +253,8 @@ export class SignIn extends Component<Props, State> {
                                         type: "SignInEvent",
                                         ctx: ctx,
                                     });
+                                } else {
+                                    
                                 }
                             }
                         }}
@@ -312,6 +314,7 @@ export class SignIn extends Component<Props, State> {
 
 class AskForLocalPin extends Component<{
     resolve: (pin: string) => void;
+    err: Error | undefined;
 }, {}> {
     input = createRef<HTMLInputElement>();
 
@@ -334,18 +337,24 @@ class AskForLocalPin extends Component<{
                 >
                     confirm
                 </button>
+                {this.props.err ? <div class="block text-white">{this.props.err.message}</div> : undefined}
             </div>
         );
     }
 }
 
-export async function getPinFromUser() {
+export async function getPinFromUser(err: Error | undefined) {
     return new Promise<string>((resolve) => {
-        render(<AskForLocalPin resolve={resolve}></AskForLocalPin>, document.body);
+        console.log(err);
+        render(<AskForLocalPin resolve={resolve} err={err}></AskForLocalPin>, document.body);
     });
 }
 
 export class LocalPrivateKeyController {
+    static cleanOldVersionDate() {
+        localStorage.removeItem("MPK");
+    }
+
     static async setKey(pin: string, pri: PrivateKey) {
         // hash the pin
         const encoder = new TextEncoder();
@@ -410,10 +419,11 @@ export class LocalPrivateKeyController {
             const private_hex = new TextDecoder().decode(decrypted);
             return PrivateKey.FromHex(private_hex);
         } catch (e) {
-            return e as Error;
+            return new Error("wrong pin");
         }
     }
 }
+LocalPrivateKeyController.cleanOldVersionDate();
 
 function toBase64(uInt8Array: Uint8Array) {
     let strChunks = new Array(uInt8Array.length);
