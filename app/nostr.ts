@@ -122,7 +122,7 @@ export async function prepareNostrImageEvent(
     kind: nostr.NostrKind,
 ): Promise<nostr.NostrEvent | Error> {
     const binaryContent = await nostr.blobToBase64(blob);
-    const encrypted = await sender.encrypt(receiverPublicKey.hex, binaryContent);
+    const encrypted = await sender.encrypt(receiverPublicKey.hex, binaryContent, "nip44");
     if (encrypted instanceof Error) {
         return encrypted;
     }

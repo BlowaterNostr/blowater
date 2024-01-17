@@ -168,7 +168,7 @@ export class GroupMessageController
         if (groupChatCtx == undefined) {
             return new Error(`group ${groupAddr} does not have me in it`);
         }
-        const decryptedContent = await groupChatCtx.decrypt(event.pubkey, event.content);
+        const decryptedContent = await groupChatCtx.decrypt(event.pubkey, event.content, "nip44");
         if (decryptedContent instanceof Error) {
             return decryptedContent;
         }
@@ -220,7 +220,7 @@ export class GroupMessageController
     }
 
     private async handleCreation(event: NostrEvent<NostrKind.Group_Message>) {
-        const decryptedContent = await this.ctx.decrypt(event.pubkey, event.content);
+        const decryptedContent = await this.ctx.decrypt(event.pubkey, event.content, "nip44");
         if (decryptedContent instanceof Error) {
             return decryptedContent;
         }
@@ -357,7 +357,7 @@ export async function gmEventType(
     }
 
     if (ctx.publicKey.hex == event.pubkey) { // I sent
-        if (await ctx.decrypt(receiver, event.content) instanceof Error) {
+        if (await ctx.decrypt(receiver, event.content, "nip44") instanceof Error) {
             return "gm_message";
         }
         return "gm_invitation";
@@ -408,9 +408,9 @@ export async function decodeInvitation(ctx: NostrAccountContext, event: NostrEve
     let decryptedContent;
     const pTags = getTags(event).p;
     if (pTags.length > 0 && pTags[0] != ctx.publicKey.hex) { // I sent
-        decryptedContent = await ctx.decrypt(pTags[0], event.content);
+        decryptedContent = await ctx.decrypt(pTags[0], event.content, "nip44");
     } else {
-        decryptedContent = await ctx.decrypt(event.pubkey, event.content);
+        decryptedContent = await ctx.decrypt(event.pubkey, event.content, "nip44");
     }
     if (decryptedContent instanceof Error) {
         return decryptedContent;
