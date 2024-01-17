@@ -130,7 +130,7 @@ export class OtherConfig implements PinListGetter, NostrEventAdder {
         pusher: Channel<NostrEvent>,
         lamport: LamportTime,
     ) {
-        const decrypted = await ctx.decrypt(ctx.publicKey.hex, event.content);
+        const decrypted = await ctx.decrypt(ctx.publicKey.hex, event.content, "nip4");
         if (decrypted instanceof Error) {
             return decrypted;
         }
@@ -179,7 +179,7 @@ export class OtherConfig implements PinListGetter, NostrEventAdder {
         if (event.kind != NostrKind.Encrypted_Custom_App_Data) {
             return;
         }
-        const decrypted = await this.ctx.decrypt(this.ctx.publicKey.hex, event.content);
+        const decrypted = await this.ctx.decrypt(this.ctx.publicKey.hex, event.content, "nip44");
         if (decrypted instanceof Error) {
             return decrypted;
         }

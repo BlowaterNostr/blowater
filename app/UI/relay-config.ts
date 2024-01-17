@@ -1,8 +1,7 @@
-import { NostrAccountContext, NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
-import { ConnectionPool, RelayAdder, RelayGetter, RelayRemover } from "../../libs/nostr.ts/relay-pool.ts";
+import { NostrAccountContext } from "../../libs/nostr.ts/nostr.ts";
+import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 import { parseJSON } from "../features/profile.ts";
 import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
-import { RelayConfigChange } from "./setting.tsx";
 import { blowater, damus } from "../../libs/nostr.ts/relay-list.test.ts";
 
 export const defaultRelays = [
@@ -66,20 +65,6 @@ export class RelayConfig {
     }
     static localStorageKey(ctx: NostrAccountContext) {
         return `${RelayConfig.name}-${ctx.publicKey.bech32()}`;
-    }
-
-    async addEvent(event: NostrEvent<NostrKind.Custom_App_Data>) {
-        const content = await this.ctx.encrypt(this.ctx.publicKey.hex, event.content);
-        if (content instanceof Error) {
-            return content;
-        }
-        const configChange = parseJSON<RelayConfigChange>(content);
-        if (configChange instanceof Error) {
-            return configChange;
-        }
-        if (configChange.type != "RelayConfigChange") {
-            return; // ignore
-        }
     }
 
     getRelayURLs() {

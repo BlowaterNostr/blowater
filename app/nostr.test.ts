@@ -1,14 +1,8 @@
 import { assertEquals, fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
-import {
-    blobToBase64,
-    decryptNostrEvent,
-    InMemoryAccountContext,
-    NostrEvent,
-    NostrKind,
-} from "../libs/nostr.ts/nostr.ts";
+import { blobToBase64, InMemoryAccountContext, NostrEvent, NostrKind } from "../libs/nostr.ts/nostr.ts";
 import { prepareNostrImageEvent, prepareReplyEvent } from "./nostr.ts";
 import { PrivateKey } from "../libs/nostr.ts/key.ts";
-import { utf8Decode } from "../libs/nostr.ts/ende.ts";
+import { utf8Decode } from "../libs/nostr.ts/nip4.ts";
 import { prepareNormalNostrEvent } from "../libs/nostr.ts/event.ts";
 
 Deno.test("prepareNostrImageEvent", async (t) => {
@@ -34,13 +28,12 @@ Deno.test("prepareNostrImageEvent", async (t) => {
     }
 
     await t.step("full", async () => {
-        const decryptedEvents = [];
-        const decryptedEvent = await decryptNostrEvent(imgEvent, ctx, pub.hex);
-        if (decryptedEvent instanceof Error) {
-            fail(decryptedEvent.message);
+        const decryptedEvent_content = await ctx.decrypt(imgEvent.pubkey, imgEvent.content);
+        if (decryptedEvent_content instanceof Error) {
+            fail(decryptedEvent_content.message);
         }
-        decryptedEvents.push(decryptedEvent);
-        assertEquals(await blobToBase64(blob), decryptedEvent.content);
+
+        assertEquals(await blobToBase64(blob), decryptedEvent_content);
     });
 });
 
