@@ -24,7 +24,14 @@ import { EventSyncer } from "./event_syncer.ts";
 import { RelayConfig } from "./relay-config.ts";
 import { ProfileGetter } from "./search.tsx";
 import { Setting } from "./setting.tsx";
-import { getCurrentSignInCtx, setSignInState, SignIn } from "./signIn.tsx";
+import {
+    forgot_pin,
+    getCurrentSignInCtx,
+    getPinFromUser,
+    getSignInState,
+    setSignInState,
+    SignIn,
+} from "./signIn.tsx";
 import { SecondaryBackgroundColor } from "./style/colors.ts";
 import { LamportTime } from "../time.ts";
 import { InstallPrompt, NavBar } from "./nav.tsx";
@@ -56,23 +63,37 @@ export async function Start(database: DexieDatabase) {
         }
     })();
 
-    const ctx = await getCurrentSignInCtx();
-    if (ctx instanceof Error) {
-        console.error(ctx);
-    } else if (ctx) {
-        const otherConfig = await OtherConfig.FromLocalStorage(ctx, newNostrEventChannel, lamport);
-        const app = await App.Start({
-            database: dbView,
-            model,
-            ctx,
-            eventBus,
-            pool,
-            popOverInputChan,
-            otherConfig,
-            lamport,
-            installPrompt,
-        });
-        model.app = app;
+    {
+        let err: Error | undefined;
+        for (;;) {
+            if (getSignInState() === "none") {
+                break;
+            }
+            const pin = await getPinFromUser(err);
+            if (pin == forgot_pin) {
+                break;
+            }
+            const ctx = await getCurrentSignInCtx(pin);
+            if (ctx instanceof Error) {
+                err = ctx;
+                continue;
+            } else if (ctx) {
+                const otherConfig = await OtherConfig.FromLocalStorage(ctx, newNostrEventChannel, lamport);
+                const app = await App.Start({
+                    database: dbView,
+                    model,
+                    ctx,
+                    eventBus,
+                    pool,
+                    popOverInputChan,
+                    otherConfig,
+                    lamport,
+                    installPrompt,
+                });
+                model.app = app;
+                break;
+            }
+        }
     }
 
     /* first render */ render(

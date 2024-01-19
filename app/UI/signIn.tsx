@@ -1,5 +1,14 @@
 /** @jsx h */
-import { Component, h } from "https://esm.sh/preact@10.17.1";
+import {
+    Attributes,
+    Component,
+    ComponentChild,
+    ComponentChildren,
+    createRef,
+    h,
+    Ref,
+    render,
+} from "https://esm.sh/preact@10.17.1";
 import { GetLocalStorageAccountContext, Nip7ExtensionContext } from "./account-context.ts";
 import { ButtonClass, CenterClass, LinearGradientsClass, NoOutlineClass } from "./components/tw.ts";
 import KeyView from "./key-view.tsx";
@@ -40,7 +49,7 @@ export function setSignInState(state: SignInState) {
 ////////////////////////
 // Check Login Status //
 ////////////////////////
-export async function getCurrentSignInCtx() {
+export async function getCurrentSignInCtx(pin: string) {
     if (getSignInState() === "nip07") {
         const nip07Ctx = await Nip7ExtensionContext.New();
         if (nip07Ctx instanceof Error) {
@@ -52,9 +61,9 @@ export async function getCurrentSignInCtx() {
         return nip07Ctx;
     }
     if (getSignInState() === "local") {
-        const ctx = GetLocalStorageAccountContext();
+        const ctx = await GetLocalStorageAccountContext(pin);
         if (ctx instanceof Error) {
-            throw ctx;
+            return ctx;
         }
         if (ctx === undefined) {
             console.log("GetLocalStorageAccountContext is undefined");
@@ -70,22 +79,24 @@ type Props = {
 };
 
 type State = {
-    state: "newAccount" | "enterPrivateKey";
+    step: "newAccount" | "enterPrivateKey" | "enter local pin" | "confirm local pin";
+    localPin: string;
     privateKey: PrivateKey;
     privateKeyError: string;
     nip07Error: string;
 };
 export class SignIn extends Component<Props, State> {
+    localPinInput = createRef<HTMLInputElement>();
+
     styles = {
-        container:
-            `h-screen w-screen bg-[${PrimaryBackgroundColor}] flex items-center justify-center p-4 overflow-y-auto`,
+        container: `h-screen w-screen bg-[${PrimaryBackgroundColor}] ` +
+            `flex flex-col items-center justify-center p-4 overflow-y-auto`,
         form: `w-[30rem] flex flex-col h-full py-8`,
         logo: `w-32 h-32 mx-auto`,
         title: `text-[${PrimaryTextColor}] text-center text-4xl`,
         subTitle: `text-[${HintTextColor}] text-center`,
         input: `w-full px-4 py-2 focus-visible:outline-none rounded-lg mt-8`,
         hint: `text-[${HintTextColor}] text-sm mt-2`,
-        block: `flex-1 desktop:hidden`,
         signInButton:
             `w-full mt-4 ${ButtonClass} ${LinearGradientsClass} hover:bg-gradient-to-l mobile:rounded-full font-bold`,
         cancelButton:
@@ -104,13 +115,8 @@ export class SignIn extends Component<Props, State> {
             return;
         }
 
-        const ctx = InMemoryAccountContext.New(this.state.privateKey);
-        localStorage.setItem("MPK", this.state.privateKey.hex);
-        setSignInState("local");
-
-        this.props.emit({
-            type: "SignInEvent",
-            ctx: ctx,
+        this.setState({
+            step: "enter local pin",
         });
     };
 
@@ -140,13 +146,13 @@ export class SignIn extends Component<Props, State> {
         this.setState({
             privateKey: PrivateKey.Generate(),
             privateKeyError: "",
-            state: "newAccount",
+            step: "newAccount",
         });
     };
 
     cancelNew = () => {
         this.setState({
-            state: "enterPrivateKey",
+            step: "enterPrivateKey",
             privateKey: undefined,
         });
     };
@@ -170,7 +176,7 @@ export class SignIn extends Component<Props, State> {
     };
 
     render() {
-        if (this.state.state == "newAccount") {
+        if (this.state.step == "newAccount") {
             return (
                 <div class={this.styles.container}>
                     <div class={this.styles.form}>
@@ -181,7 +187,6 @@ export class SignIn extends Component<Props, State> {
                         <p class={this.styles.hint}>
                             Please back up your <strong>Private Key</strong>
                         </p>
-                        <div class={this.styles.block}></div>
                         <button
                             onClick={this.cancelNew}
                             class={this.styles.cancelButton}
@@ -197,49 +202,257 @@ export class SignIn extends Component<Props, State> {
                     </div>
                 </div>
             );
-        }
-
-        return (
-            <div class={this.styles.container}>
-                <div class={this.styles.form}>
-                    <img class={this.styles.logo} src="logo.webp" alt="Logo" />
-                    <h1 class={this.styles.title}>Blowater</h1>
-                    <p class={this.styles.subTitle}>A delightful Nostr client that focuses on DM</p>
-                    <input
-                        onInput={(e) => this.inputPrivateKey(e.currentTarget.value)}
-                        placeholder="Input your private key here"
-                        type="password"
-                        class={this.styles.input}
-                        autofocus
-                    />
-                    <p class={this.styles.hint}>
-                        <span class={this.styles.isError(this.state.privateKeyError)}>
-                            Private Key has to be <strong>64</strong> letters hex-decimal or{" "}
-                            <strong>63</strong> letters nsec string.
-                        </span>{" "}
-                        Don't have an account yet?{" "}
-                        <button onClick={this.newAccount} class={this.styles.newButton}>create one!</button>
-                    </p>
-                    <div class={this.styles.block}></div>
+        } else if (this.state.step == "enter local pin") {
+            return (
+                <div class={this.styles.container}>
+                    <div class="block text-white">
+                        Please enter a pin that is used to encrypt your private key on-device
+                    </div>
+                    <input ref={this.localPinInput} type="password"></input>
                     <button
-                        onClick={this.signInWithPrivateKey}
-                        class={this.styles.signInButton}
+                        class="text-white border mt-1 px-2 hover:bg-zinc-200"
+                        onClick={() => {
+                            const input = this.localPinInput.current;
+                            if (input) {
+                                const pin = input.value;
+                                this.setState({
+                                    localPin: pin,
+                                    step: "confirm local pin",
+                                });
+                            }
+                        }}
                     >
-                        Sign In
+                        confirm
                     </button>
-                    <button
-                        onClick={async () => await this.signInWithExtension()}
-                        class={this.styles.signInButton}
-                    >
-                        Sign in with Nostr Extension
-                    </button>
-                    <p class={this.styles.hint}>
-                        <span class={this.styles.isError(this.state.nip07Error)}>
-                            {this.state.nip07Error}
-                        </span>
-                    </p>
                 </div>
+            );
+        } else if (this.state.step == "confirm local pin") {
+            const input = this.localPinInput.current;
+            if (input) {
+                input.value = "";
+            }
+            return (
+                <div class={this.styles.container}>
+                    <div class="block text-white">Please enter the pin you just typed</div>
+                    <input ref={this.localPinInput} type="password"></input>
+                    <button
+                        class="text-white border mt-1 px-2 hover:bg-zinc-200"
+                        onClick={() => {
+                            const input = this.localPinInput.current;
+                            if (input) {
+                                const pin = input.value;
+                                console.log(this.state.localPin, pin, this.state.localPin == pin);
+                                if (this.state.localPin == pin) {
+                                    const ctx = InMemoryAccountContext.New(this.state.privateKey);
+
+                                    LocalPrivateKeyController.setKey(pin, this.state.privateKey);
+
+                                    setSignInState("local");
+
+                                    this.props.emit({
+                                        type: "SignInEvent",
+                                        ctx: ctx,
+                                    });
+                                } else {
+                                }
+                            }
+                        }}
+                    >
+                        confirm
+                    </button>
+                </div>
+            );
+        } else {
+            return (
+                <div class={this.styles.container}>
+                    <div class={this.styles.form}>
+                        <img class={this.styles.logo} src="logo.webp" alt="Logo" />
+                        <h1 class={this.styles.title}>Blowater</h1>
+                        <p class={this.styles.subTitle}>A delightful Nostr client that focuses on DM</p>
+                        <input
+                            onInput={(e) => this.inputPrivateKey(e.currentTarget.value)}
+                            placeholder="Input your private key here"
+                            type="password"
+                            class={this.styles.input}
+                            autofocus
+                        />
+                        <p class={this.styles.hint}>
+                            <span class={this.styles.isError(this.state.privateKeyError)}>
+                                Private Key has to be <strong>64</strong> letters hex-decimal or{" "}
+                                <strong>63</strong> letters nsec string.
+                            </span>{" "}
+                            Don't have an account yet?{" "}
+                            <button onClick={this.newAccount} class={this.styles.newButton}>
+                                create one!
+                            </button>
+                        </p>
+                        <div class={"flex-1"}></div>
+                        <button
+                            onClick={this.signInWithPrivateKey}
+                            class={this.styles.signInButton}
+                        >
+                            Sign In
+                        </button>
+                        <button
+                            onClick={async () => await this.signInWithExtension()}
+                            class={this.styles.signInButton}
+                        >
+                            Sign in with Nostr Extension
+                        </button>
+                        <p class={this.styles.hint}>
+                            <span class={this.styles.isError(this.state.nip07Error)}>
+                                {this.state.nip07Error}
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            );
+        }
+    }
+}
+
+export const forgot_pin = Symbol("forgot_pin");
+class AskForLocalPin extends Component<{
+    resolve: (pin: string | typeof forgot_pin) => void;
+    err: Error | undefined;
+}, {}> {
+    input = createRef<HTMLInputElement>();
+
+    render() {
+        return (
+            <div
+                class={`h-screen w-screen bg-[${PrimaryBackgroundColor}] ` +
+                    `flex flex-col items-center justify-center p-4 overflow-y-auto`}
+            >
+                <div class="block text-white">Please enter your local pin</div>
+                <input ref={this.input} type="password"></input>
+                <button
+                    class="text-white border mt-1 px-2 hover:bg-zinc-200"
+                    onClick={() => {
+                        const input = this.input.current;
+                        if (input) {
+                            this.props.resolve(input.value);
+                        }
+                    }}
+                >
+                    confirm
+                </button>
+                <button
+                    class="text-white border mt-1 px-2 hover:bg-zinc-200"
+                    onClick={() => {
+                        const input = this.input.current;
+                        if (input) {
+                            this.props.resolve(forgot_pin);
+                        }
+                    }}
+                >
+                    Forgot the pin
+                </button>
+                {this.props.err ? <div class="block text-white">{this.props.err.message}</div> : undefined}
             </div>
         );
     }
+}
+
+export async function getPinFromUser(err: Error | undefined) {
+    return new Promise<string | typeof forgot_pin>((resolve) => {
+        console.log(err);
+        render(<AskForLocalPin resolve={resolve} err={err}></AskForLocalPin>, document.body);
+    });
+}
+
+export class LocalPrivateKeyController {
+    static cleanOldVersionDate() {
+        localStorage.removeItem("MPK");
+    }
+
+    static async setKey(pin: string, pri: PrivateKey) {
+        // hash the pin
+        const encoder = new TextEncoder();
+        const data = encoder.encode(pin);
+        const hash = await crypto.subtle.digest("SHA-256", data);
+
+        // encrypt the private key
+        const key = await crypto.subtle.importKey(
+            "raw",
+            hash,
+            { name: "AES-GCM", length: 256 },
+            false,
+            ["encrypt"],
+        );
+
+        const iv = crypto.getRandomValues(new Uint8Array(12));
+        const encrypted = await crypto.subtle.encrypt(
+            { name: "AES-GCM", iv: iv },
+            key,
+            new TextEncoder().encode(pri.hex),
+        );
+
+        // store the key
+        localStorage.setItem(
+            `private key`,
+            JSON.stringify({
+                encrypted: toBase64(new Uint8Array(encrypted)),
+                iv: toBase64(new Uint8Array(iv)),
+            }),
+        );
+    }
+
+    static async getKey(pin: string): Promise<PrivateKey | Error | undefined> {
+        // Retrieve the encrypted data from localStorage
+        const stored = localStorage.getItem(`private key`);
+        if (!stored) return undefined;
+
+        const { encrypted, iv } = JSON.parse(stored);
+        const encryptedData = decodeBase64(encrypted);
+        const ivData = decodeBase64(iv);
+
+        // Hash the pin
+        const encoder = new TextEncoder();
+        const data = encoder.encode(pin);
+        const hash = await crypto.subtle.digest("SHA-256", data);
+
+        // Decrypt the private key
+        const key = await crypto.subtle.importKey(
+            "raw",
+            hash,
+            { name: "AES-GCM", length: 256 },
+            false,
+            ["decrypt"],
+        );
+
+        try {
+            const decrypted = await crypto.subtle.decrypt(
+                { name: "AES-GCM", iv: ivData },
+                key,
+                encryptedData,
+            );
+            const private_hex = new TextDecoder().decode(decrypted);
+            return PrivateKey.FromHex(private_hex);
+        } catch (e) {
+            return new Error("wrong pin");
+        }
+    }
+}
+LocalPrivateKeyController.cleanOldVersionDate();
+
+function toBase64(uInt8Array: Uint8Array) {
+    let strChunks = new Array(uInt8Array.length);
+    let i = 0;
+    for (let byte of uInt8Array) {
+        strChunks[i] = String.fromCharCode(byte); // bytes to utf16 string
+        i++;
+    }
+    return btoa(strChunks.join(""));
+}
+
+function decodeBase64(base64String: string) {
+    const binaryString = atob(base64String);
+    const length = binaryString.length;
+    const bytes = new Uint8Array(length);
+
+    for (let i = 0; i < length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes;
 }
