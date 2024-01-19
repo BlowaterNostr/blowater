@@ -24,7 +24,14 @@ import { EventSyncer } from "./event_syncer.ts";
 import { RelayConfig } from "./relay-config.ts";
 import { ProfileGetter } from "./search.tsx";
 import { Setting } from "./setting.tsx";
-import { getCurrentSignInCtx, getPinFromUser, getSignInState, setSignInState, SignIn } from "./signIn.tsx";
+import {
+    forgot_pin,
+    getCurrentSignInCtx,
+    getPinFromUser,
+    getSignInState,
+    setSignInState,
+    SignIn,
+} from "./signIn.tsx";
 import { SecondaryBackgroundColor } from "./style/colors.ts";
 import { LamportTime } from "../time.ts";
 import { InstallPrompt, NavBar } from "./nav.tsx";
@@ -63,6 +70,9 @@ export async function Start(database: DexieDatabase) {
                 break;
             }
             const pin = await getPinFromUser(err);
+            if (pin == forgot_pin) {
+                break;
+            }
             const ctx = await getCurrentSignInCtx(pin);
             if (ctx instanceof Error) {
                 err = ctx;

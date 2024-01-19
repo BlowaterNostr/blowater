@@ -254,7 +254,6 @@ export class SignIn extends Component<Props, State> {
                                         ctx: ctx,
                                     });
                                 } else {
-                                    
                                 }
                             }
                         }}
@@ -312,8 +311,9 @@ export class SignIn extends Component<Props, State> {
     }
 }
 
+export const forgot_pin = Symbol("forgot_pin");
 class AskForLocalPin extends Component<{
-    resolve: (pin: string) => void;
+    resolve: (pin: string | typeof forgot_pin) => void;
     err: Error | undefined;
 }, {}> {
     input = createRef<HTMLInputElement>();
@@ -324,7 +324,7 @@ class AskForLocalPin extends Component<{
                 class={`h-screen w-screen bg-[${PrimaryBackgroundColor}] ` +
                     `flex flex-col items-center justify-center p-4 overflow-y-auto`}
             >
-                <div class="block text-white">Please enter the pin you just typed</div>
+                <div class="block text-white">Please enter your local pin</div>
                 <input ref={this.input} type="password"></input>
                 <button
                     class="text-white border mt-1 px-2 hover:bg-zinc-200"
@@ -337,6 +337,17 @@ class AskForLocalPin extends Component<{
                 >
                     confirm
                 </button>
+                <button
+                    class="text-white border mt-1 px-2 hover:bg-zinc-200"
+                    onClick={() => {
+                        const input = this.input.current;
+                        if (input) {
+                            this.props.resolve(forgot_pin);
+                        }
+                    }}
+                >
+                    Forgot the pin
+                </button>
                 {this.props.err ? <div class="block text-white">{this.props.err.message}</div> : undefined}
             </div>
         );
@@ -344,7 +355,7 @@ class AskForLocalPin extends Component<{
 }
 
 export async function getPinFromUser(err: Error | undefined) {
-    return new Promise<string>((resolve) => {
+    return new Promise<string | typeof forgot_pin>((resolve) => {
         console.log(err);
         render(<AskForLocalPin resolve={resolve} err={err}></AskForLocalPin>, document.body);
     });
