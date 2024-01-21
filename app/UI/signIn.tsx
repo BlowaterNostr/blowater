@@ -325,7 +325,17 @@ class AskForLocalPin extends Component<{
                     `flex flex-col items-center justify-center p-4 overflow-y-auto`}
             >
                 <div class="block text-white">Please enter your local pin</div>
-                <input ref={this.input} type="password"></input>
+                <input
+                    ref={this.input}
+                    type="password"
+                    onKeyDown={(e) => {
+                        const input = this.input.current;
+                        if (e.key == "Enter" && input) {
+                            this.props.resolve(input.value);
+                        }
+                    }}
+                >
+                </input>
                 <button
                     class="text-white border mt-1 px-2 hover:bg-zinc-200"
                     onClick={() => {
