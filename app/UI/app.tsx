@@ -12,7 +12,13 @@ import { group_GM_events, GroupChatSyncer, GroupMessageController } from "../fea
 import { ProfileSyncer } from "../features/profile.ts";
 import { About } from "./about.tsx";
 import { initialModel, Model } from "./app_model.ts";
-import { AppEventBus, Database_Update, UI_Interaction_Event, UI_Interaction_Update } from "./app_update.tsx";
+import {
+    AppEventBus,
+    ChatMessagesGetter,
+    Database_Update,
+    UI_Interaction_Event,
+    UI_Interaction_Update,
+} from "./app_update.tsx";
 import { Popover, PopOverInputChannel } from "./components/popover.tsx";
 import { OtherConfig } from "./config-other.ts";
 import { DM_List } from "./conversation-list.ts";
@@ -34,8 +40,9 @@ import {
 } from "./signIn.tsx";
 import { SecondaryBackgroundColor } from "./style/colors.ts";
 import { LamportTime } from "../time.ts";
-import { InstallPrompt, NavBar } from "./nav.tsx";
+import { InstallPrompt, NavBar, setState } from "./nav.tsx";
 import { Component } from "https://esm.sh/preact@10.17.1";
+import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
@@ -419,13 +426,18 @@ type AppProps = {
     installPrompt: InstallPrompt;
 };
 
-export class AppComponent extends Component<AppProps> {
+type AppState = {
+    selectedRelay: SingleRelayConnection | undefined;
+};
+
+export class AppComponent extends Component<AppProps, AppState> {
     events = this.props.eventBus.onChange();
 
     async componentDidMount() {
         for await (const event of this.events) {
             if (event.type == "SelectRelay") {
                 console.log(event);
+                await setState(this, { selectedRelay: event.relay });
             }
         }
     }
@@ -452,7 +464,23 @@ export class AppComponent extends Component<AppProps> {
             model.navigationModel.activeNav == "DM" ||
             model.navigationModel.activeNav == "About"
         ) {
-            if (model.navigationModel.activeNav == "DM") {
+            if (model.navigationModel.activeNav == "DM" && this.state.selectedRelay) {
+                const messageGetter = model.dm.isGroupMessage ? app.groupChatController : app.dmController;
+                function f(messageGetter: ChatMessagesGetter, relay: SingleRelayConnection) {
+                    return {
+                        getChatMessages: (publicKey: string) => {
+                            const msgs = messageGetter.getChatMessages(publicKey);
+                            const ret = [];
+                            for (const msg of msgs) {
+                                const relays = app.database.getRelayRecord(msg.event.id);
+                                if (relays.has(relay.url)) {
+                                    ret.push(msg);
+                                }
+                            }
+                            return ret;
+                        },
+                    };
+                }
                 dmVNode = (
                     <DirectMessageContainer
                         {...model.dm}
@@ -465,7 +493,7 @@ export class AppComponent extends Component<AppProps> {
                         pinListGetter={app.otherConfig}
                         groupChatController={app.groupChatController}
                         newMessageChecker={app.conversationLists}
-                        messageGetter={model.dm.isGroupMessage ? app.groupChatController : app.dmController}
+                        messageGetter={f(messageGetter, this.state.selectedRelay)}
                         newMessageListener={model.dm.isGroupMessage
                             ? app.groupChatController
                             : app.dmController}
