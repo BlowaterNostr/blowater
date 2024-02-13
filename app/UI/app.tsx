@@ -467,7 +467,7 @@ export function AppComponent(props: {
         <div class={tw`h-screen w-full flex`}>
             <NavBar
                 publicKey={app.ctx.publicKey}
-                profileGetter={app.database}
+                profile={app.database.getProfilesByPublicKey(myAccountCtx.publicKey)}
                 emit={app.eventBus.emit}
                 installPrompt={props.installPrompt}
             />

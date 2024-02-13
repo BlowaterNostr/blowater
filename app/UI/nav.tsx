@@ -19,6 +19,7 @@ import { AboutIcon } from "./icons/about-icon.tsx";
 import { CenterClass, NoOutlineClass } from "./components/tw.ts";
 import { emitFunc } from "../event-bus.ts";
 import { DownloadIcon } from "./icons/download-icon.tsx";
+import { Profile_Nostr_Event } from "../nostr.ts";
 
 export type InstallPrompt = {
     event: Event | undefined;
@@ -35,7 +36,7 @@ export type NavigationModel = {
 
 type Props = {
     publicKey: PublicKey;
-    profileGetter: ProfileGetter;
+    profile: Profile_Nostr_Event | undefined;
     emit: emitFunc<NavigationUpdate>;
     isMobile?: boolean;
     installPrompt: InstallPrompt;
@@ -75,7 +76,6 @@ export class NavBar extends Component<Props, State> {
         activeIndex: 0,
         installPrompt: this.props.installPrompt,
     };
-    myProfile: ProfileData | undefined;
     tabs: NavTab[] = [
         {
             icon: (active: boolean) => <ChatIcon class={this.styles.icons(active)} />,
@@ -94,10 +94,6 @@ export class NavBar extends Component<Props, State> {
             id: "Setting",
         },
     ];
-
-    componentWillMount() {
-        this.myProfile = this.props.profileGetter.getProfilesByPublicKey(this.props.publicKey)?.profile;
-    }
 
     changeTab = (activeIndex: number) => {
         if (activeIndex == this.state.activeIndex) {
@@ -156,7 +152,7 @@ export class NavBar extends Component<Props, State> {
                 )
                 : (
                     <div class={this.styles.container}>
-                        <Avatar class={this.styles.avatar} picture={this.myProfile?.picture} />
+                        <Avatar class={this.styles.avatar} picture={this.props.profile?.profile?.picture} />
                         {this.tabs.map((tab, index) => (
                             <div class={this.styles.tabsContainer}>
                                 {index == this.tabs.length - 1 && this.state.installPrompt.event
