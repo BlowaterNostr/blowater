@@ -102,7 +102,7 @@ export class RelayDetail extends Component<Props, State> {
             const detail: Detail = await res.json();
             return detail;
         } catch (e) {
-            return e;
+            return e as Error;
         }
     };
 
