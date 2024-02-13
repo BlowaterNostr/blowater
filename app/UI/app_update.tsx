@@ -94,8 +94,7 @@ export async function* UI_Interaction_Update(args: {
     installPrompt: InstallPrompt;
 }) {
     const { model, dbView, eventBus, pool, installPrompt } = args;
-    const events = eventBus.onChange();
-    for await (const event of events) {
+    for await (const event of eventBus.onChange()) {
         console.log(event);
         switch (event.type) {
             case "SignInEvent":

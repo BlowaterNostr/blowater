@@ -97,13 +97,13 @@ export async function Start(database: DexieDatabase) {
     }
 
     /* first render */ render(
-        AppComponent({
-            eventBus,
-            model,
-            pool,
-            popOverInputChan,
-            installPrompt,
-        }),
+        <AppComponent
+            eventBus={eventBus}
+            model={model}
+            pool={pool}
+            popOverInputChan={popOverInputChan}
+            installPrompt={installPrompt}
+        />,
         document.body,
     );
 
@@ -122,13 +122,13 @@ export async function Start(database: DexieDatabase) {
         const t = Date.now();
         {
             render(
-                AppComponent({
-                    eventBus,
-                    model,
-                    pool,
-                    popOverInputChan,
-                    installPrompt,
-                }),
+                <AppComponent
+                    eventBus={eventBus}
+                    model={model}
+                    pool={pool}
+                    popOverInputChan={popOverInputChan}
+                    installPrompt={installPrompt}
+                />,
                 document.body,
             );
         }
@@ -390,13 +390,13 @@ export class App {
             ) {
                 const t = Date.now();
                 render(
-                    AppComponent({
-                        eventBus: this.eventBus,
-                        model: this.model,
-                        pool: this.pool,
-                        popOverInputChan: this.popOverInputChan,
-                        installPrompt: installPrompt,
-                    }),
+                    <AppComponent
+                        eventBus={this.eventBus}
+                        model={this.model}
+                        pool={this.pool}
+                        popOverInputChan={this.popOverInputChan}
+                        installPrompt={installPrompt}
+                    />,
                     document.body,
                 );
                 console.log(`Database_Update: render ${++i} times, ${Date.now() - t}`);
