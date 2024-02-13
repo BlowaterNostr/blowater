@@ -35,7 +35,7 @@ import { EventDetail, EventDetailItem } from "./event-detail.tsx";
 import { InviteUsersToGroup } from "./invite-button.tsx";
 import { DirectMessagePanelUpdate } from "./message-panel.tsx";
 import { ChatMessage } from "./message.ts";
-import { InstallPrompt, NavigationUpdate } from "./nav.tsx";
+import { InstallPrompt, NavigationUpdate, SelectRelay } from "./nav.tsx";
 import { notify } from "./notification.ts";
 import { RelayDetail } from "./relay-detail.tsx";
 import { Search } from "./search.tsx";
@@ -65,7 +65,8 @@ export type UI_Interaction_Event =
     | ViewRelayDetail
     | TagSelected
     | BlockUser
-    | UnblockUser;
+    | UnblockUser
+    | SelectRelay;
 
 type BackToContactList = {
     type: "BackToContactList";

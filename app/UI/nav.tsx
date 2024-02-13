@@ -1,6 +1,6 @@
 /** @jsx h */
-import { ComponentChild, Fragment, h } from "https://esm.sh/preact@10.17.1";
-import { Avatar } from "./components/avatar.tsx";
+import { ComponentChild, h } from "https://esm.sh/preact@10.17.1";
+import { Avatar, RelayAvatar } from "./components/avatar.tsx";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import {
     PrimaryBackgroundColor,
@@ -12,14 +12,14 @@ import { ChatIcon } from "./icons/chat-icon.tsx";
 import { UserIcon } from "./icons/user-icon.tsx";
 import { SettingIcon } from "./icons/setting-icon.tsx";
 import { Component } from "https://esm.sh/preact@10.17.1";
-import { ProfileGetter } from "./search.tsx";
-import { ProfileData } from "../features/profile.ts";
 import { AboutIcon } from "./icons/about-icon.tsx";
 
 import { CenterClass, NoOutlineClass } from "./components/tw.ts";
 import { emitFunc } from "../event-bus.ts";
 import { DownloadIcon } from "./icons/download-icon.tsx";
 import { Profile_Nostr_Event } from "../nostr.ts";
+import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
+import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 
 export type InstallPrompt = {
     event: Event | undefined;
@@ -30,6 +30,11 @@ export type NavigationUpdate = {
     id: NavTabID;
 };
 
+export type SelectRelay = {
+    type: "SelectRelay";
+    relay: SingleRelayConnection;
+};
+
 export type NavigationModel = {
     activeNav: NavTabID;
 };
@@ -37,12 +42,13 @@ export type NavigationModel = {
 type Props = {
     publicKey: PublicKey;
     profile: Profile_Nostr_Event | undefined;
-    emit: emitFunc<NavigationUpdate>;
-    isMobile?: boolean;
+    emit: emitFunc<NavigationUpdate | SelectRelay>;
     installPrompt: InstallPrompt;
+    connectionPool: ConnectionPool;
 };
 
 type State = {
+    selectedRelay: string;
     activeIndex: number;
     installPrompt: InstallPrompt;
 };
@@ -73,6 +79,7 @@ export class NavBar extends Component<Props, State> {
     };
 
     state: State = {
+        selectedRelay: "",
         activeIndex: 0,
         installPrompt: this.props.installPrompt,
     };
@@ -126,53 +133,60 @@ export class NavBar extends Component<Props, State> {
         }
     };
 
-    render() {
-        return (
-            this.props.isMobile
-                ? (
-                    <div class={this.styles.mobileContainer}>
-                        {this.tabs.map((tab, index) => (
-                            <Fragment>
-                                {index == this.tabs.length - 1 && this.state.installPrompt.event
-                                    ? (
-                                        <button class={this.styles.tabs(false)} onClick={this.install}>
-                                            <DownloadIcon class={this.styles.icons(false)} />
-                                        </button>
-                                    )
-                                    : undefined}
-                                <button
-                                    onClick={() => this.changeTab(index)}
-                                    class={this.styles.tabs(this.state.activeIndex == index)}
-                                >
-                                    {tab.icon(this.state.activeIndex == index)}
-                                </button>
-                            </Fragment>
-                        ))}
-                    </div>
-                )
-                : (
-                    <div class={this.styles.container}>
-                        <Avatar class={this.styles.avatar} picture={this.props.profile?.profile?.picture} />
-                        {this.tabs.map((tab, index) => (
-                            <div class={this.styles.tabsContainer}>
-                                {index == this.tabs.length - 1 && this.state.installPrompt.event
-                                    ? (
-                                        <button class={this.styles.tabs(false)} onClick={this.install}>
-                                            <DownloadIcon class={this.styles.icons(false)} />
-                                        </button>
-                                    )
-                                    : undefined}
+    onRelaySelected = (relay: SingleRelayConnection) => async () => {
+        await setState(this, {
+            selectedRelay: relay.url,
+        });
+        this.props.emit({
+            type: "SelectRelay",
+            relay,
+        });
+    };
 
-                                <button
-                                    onClick={() => this.changeTab(index)}
-                                    class={this.styles.tabs(this.state.activeIndex == index)}
-                                >
-                                    {tab.icon(this.state.activeIndex == index)}
+    render() {
+        const relayList = [];
+        for (const relay of this.props.connectionPool.getRelays()) {
+            const rounded = this.state.selectedRelay == relay.url ? "rounded-lg" : "rounded-full";
+            relayList.push(
+                <button
+                    class={`hover:rounded-lg ${rounded} my-2 bg-white ease-in-out transition duration-200`}
+                    onClick={this.onRelaySelected(relay)}
+                >
+                    <RelayAvatar class={this.styles.avatar} picture={undefined} />
+                </button>,
+            );
+        }
+        return (
+            <div class={this.styles.container}>
+                <Avatar class={this.styles.avatar} picture={this.props.profile?.profile?.picture} />
+                {relayList}
+                {this.tabs.map((tab, index) => (
+                    <div class={this.styles.tabsContainer}>
+                        {index == this.tabs.length - 1 && this.state.installPrompt.event
+                            ? (
+                                <button class={this.styles.tabs(false)} onClick={this.install}>
+                                    <DownloadIcon class={this.styles.icons(false)} />
                                 </button>
-                            </div>
-                        ))}
+                            )
+                            : undefined}
+
+                        <button
+                            onClick={() => this.changeTab(index)}
+                            class={this.styles.tabs(this.state.activeIndex == index)}
+                        >
+                            {tab.icon(this.state.activeIndex == index)}
+                        </button>
                     </div>
-                )
+                ))}
+            </div>
         );
     }
+}
+
+export function setState<P, S>(component: Component<P, S>, state: Partial<S>): Promise<void> {
+    return new Promise((resolve) => {
+        component.setState(state, () => {
+            resolve();
+        });
+    });
 }

@@ -441,7 +441,6 @@ export function AppComponent(props: {
                     bus={app.eventBus}
                     ctx={myAccountCtx}
                     profileGetter={app.database}
-                    pool={props.pool}
                     conversationLists={app.conversationLists}
                     profilesSyncer={app.profileSyncer}
                     eventSyncer={app.eventSyncer}
@@ -470,6 +469,7 @@ export function AppComponent(props: {
                 profile={app.database.getProfilesByPublicKey(myAccountCtx.publicKey)}
                 emit={app.eventBus.emit}
                 installPrompt={props.installPrompt}
+                connectionPool={app.pool}
             />
 
             <div

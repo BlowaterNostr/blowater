@@ -36,7 +36,6 @@ export type DM_Model = {
 
 type DirectMessageContainerProps = {
     ctx: NostrAccountContext;
-    pool: ConnectionPool;
     bus: EventBus<UI_Interaction_Event>;
     profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;

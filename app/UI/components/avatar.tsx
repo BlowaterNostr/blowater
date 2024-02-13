@@ -73,3 +73,37 @@ function SantaHat(props: { class?: string }) {
         </svg>
     );
 }
+
+export function RelayAvatar(props: {
+    picture: string | undefined;
+    style?:
+        | string
+        | h.JSX.CSSProperties
+        | h.JSX.SignalLike<string | h.JSX.CSSProperties>
+        | undefined;
+    class?: string | h.JSX.SignalLike<string | undefined> | undefined;
+    onClick?: h.JSX.MouseEventHandler<HTMLImageElement>;
+}) {
+    return (
+        <div class={`sticky ${props.class}`} style={props.style}>
+            <img
+                onClick={props.onClick}
+                class={`w-full h-full rounded-full ${props.onClick ? "cursor-pointer" : ""}`}
+                src={props.picture ? props.picture : "logo.webp"}
+                alt="avatar"
+                onError={(e) => {
+                    e.currentTarget.src = "logo.webp";
+                    e.currentTarget.style.objectFit = "contain";
+                }}
+                onLoad={(e) => {
+                    if (e.currentTarget.src.endsWith("logo.webp")) {
+                        e.currentTarget.style.objectFit = "contain";
+                    } else {
+                        e.currentTarget.style.objectFit = "cover";
+                    }
+                }}
+            >
+            </img>
+        </div>
+    );
+}
