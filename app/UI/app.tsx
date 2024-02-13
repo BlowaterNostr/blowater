@@ -35,6 +35,7 @@ import {
 import { SecondaryBackgroundColor } from "./style/colors.ts";
 import { LamportTime } from "../time.ts";
 import { InstallPrompt, NavBar } from "./nav.tsx";
+import { Component } from "https://esm.sh/preact@10.17.1";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
@@ -410,101 +411,121 @@ export class App {
     };
 }
 
-export function AppComponent(props: {
+type AppProps = {
     model: Model;
     eventBus: AppEventBus;
     pool: ConnectionPool;
     popOverInputChan: PopOverInputChannel;
     installPrompt: InstallPrompt;
-}) {
-    const t = Date.now();
-    const model = props.model;
+};
 
-    if (model.app == undefined) {
-        console.log("render sign in page");
-        return <SignIn emit={props.eventBus.emit} />;
-    }
+export class AppComponent extends Component<AppProps> {
+    events = this.props.eventBus.onChange();
 
-    const app = model.app;
-    const myAccountCtx = model.app.ctx;
-
-    let dmVNode;
-    let aboutNode;
-    if (
-        model.navigationModel.activeNav == "DM" ||
-        model.navigationModel.activeNav == "About"
-    ) {
-        if (model.navigationModel.activeNav == "DM") {
-            dmVNode = (
-                <DirectMessageContainer
-                    {...model.dm}
-                    bus={app.eventBus}
-                    ctx={myAccountCtx}
-                    profileGetter={app.database}
-                    conversationLists={app.conversationLists}
-                    profilesSyncer={app.profileSyncer}
-                    eventSyncer={app.eventSyncer}
-                    pinListGetter={app.otherConfig}
-                    groupChatController={app.groupChatController}
-                    newMessageChecker={app.conversationLists}
-                    messageGetter={model.dm.isGroupMessage ? app.groupChatController : app.dmController}
-                    newMessageListener={model.dm.isGroupMessage ? app.groupChatController : app.dmController}
-                    relayRecordGetter={app.database}
-                    userBlocker={app.conversationLists}
-                />
-            );
-        }
-
-        if (model.navigationModel.activeNav == "About") {
-            aboutNode = About(app.eventBus.emit);
+    async componentDidMount() {
+        for await (const event of this.events) {
+            if (event.type == "SelectRelay") {
+                console.log(event);
+            }
         }
     }
 
-    console.debug("AppComponent:2", Date.now() - t);
+    componentWillUnmount() {
+        this.events.close();
+    }
 
-    const final = (
-        <div class={tw`h-screen w-full flex`}>
-            <NavBar
-                publicKey={app.ctx.publicKey}
-                profile={app.database.getProfilesByPublicKey(myAccountCtx.publicKey)}
-                emit={app.eventBus.emit}
-                installPrompt={props.installPrompt}
-                connectionPool={app.pool}
-            />
+    render(props: AppProps) {
+        const t = Date.now();
+        const model = props.model;
 
-            <div
-                class={tw`h-full px-[3rem] sm:px-4 bg-[${SecondaryBackgroundColor}] flex-1 overflow-auto${
-                    model.navigationModel.activeNav == "Profile" ? " block" : " hidden"
-                }`}
-            >
-                <div
-                    class={tw`max-w-[35rem] h-full m-auto`}
-                >
-                    <EditProfile
-                        ctx={model.app.ctx}
+        if (model.app == undefined) {
+            console.log("render sign in page");
+            return <SignIn emit={props.eventBus.emit} />;
+        }
+
+        const app = model.app;
+        const myAccountCtx = model.app.ctx;
+
+        let dmVNode;
+        let aboutNode;
+        if (
+            model.navigationModel.activeNav == "DM" ||
+            model.navigationModel.activeNav == "About"
+        ) {
+            if (model.navigationModel.activeNav == "DM") {
+                dmVNode = (
+                    <DirectMessageContainer
+                        {...model.dm}
+                        bus={app.eventBus}
+                        ctx={myAccountCtx}
                         profileGetter={app.database}
-                        emit={props.eventBus.emit}
+                        conversationLists={app.conversationLists}
+                        profilesSyncer={app.profileSyncer}
+                        eventSyncer={app.eventSyncer}
+                        pinListGetter={app.otherConfig}
+                        groupChatController={app.groupChatController}
+                        newMessageChecker={app.conversationLists}
+                        messageGetter={model.dm.isGroupMessage ? app.groupChatController : app.dmController}
+                        newMessageListener={model.dm.isGroupMessage
+                            ? app.groupChatController
+                            : app.dmController}
+                        relayRecordGetter={app.database}
+                        userBlocker={app.conversationLists}
                     />
-                </div>
-            </div>
-            {dmVNode}
-            {aboutNode}
-            {Setting({
-                show: model.navigationModel.activeNav == "Setting",
-                logout: app.logout,
-                relayConfig: app.relayConfig,
-                myAccountContext: myAccountCtx,
-                relayPool: props.pool,
-                emit: props.eventBus.emit,
-            })}
-            <Popover
-                inputChan={props.popOverInputChan}
-            />
-        </div>
-    );
+                );
+            }
 
-    console.debug("AppComponent:end", Date.now() - t);
-    return final;
+            if (model.navigationModel.activeNav == "About") {
+                aboutNode = About(app.eventBus.emit);
+            }
+        }
+
+        console.debug("AppComponent:2", Date.now() - t);
+
+        const final = (
+            <div class={tw`h-screen w-full flex`}>
+                <NavBar
+                    publicKey={app.ctx.publicKey}
+                    profile={app.database.getProfilesByPublicKey(myAccountCtx.publicKey)}
+                    emit={app.eventBus.emit}
+                    installPrompt={props.installPrompt}
+                    connectionPool={app.pool}
+                />
+
+                <div
+                    class={tw`h-full px-[3rem] sm:px-4 bg-[${SecondaryBackgroundColor}] flex-1 overflow-auto${
+                        model.navigationModel.activeNav == "Profile" ? " block" : " hidden"
+                    }`}
+                >
+                    <div
+                        class={tw`max-w-[35rem] h-full m-auto`}
+                    >
+                        <EditProfile
+                            ctx={model.app.ctx}
+                            profileGetter={app.database}
+                            emit={props.eventBus.emit}
+                        />
+                    </div>
+                </div>
+                {dmVNode}
+                {aboutNode}
+                {Setting({
+                    show: model.navigationModel.activeNav == "Setting",
+                    logout: app.logout,
+                    relayConfig: app.relayConfig,
+                    myAccountContext: myAccountCtx,
+                    relayPool: props.pool,
+                    emit: props.eventBus.emit,
+                })}
+                <Popover
+                    inputChan={props.popOverInputChan}
+                />
+            </div>
+        );
+
+        console.debug("AppComponent:end", Date.now() - t);
+        return final;
+    }
 }
 
 // todo: move to somewhere else
