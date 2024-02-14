@@ -41,19 +41,22 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
         const relayList = [];
         for (const relay of this.props.pool.getRelays()) {
             const rounded = this.state.selectedRelay == relay.url ? "rounded-lg" : "rounded-full";
+            const domain = new URL(relay.url).hostname.split(".");
             relayList.push(
                 <button
-                    class={`hover:rounded-lg ${rounded} my-2 bg-white ease-in-out transition duration-200`}
+                    class={`border hover:rounded-lg ${rounded} my-2
+                    bg-white ease-in-out transition duration-200
+                    w-14 h-14`}
                     onClick={this.onRelaySelected(relay)}
                 >
                     <RelayAvatar
                         icon={this.state.relayInformation.get(relay.url)?.icon}
-                        name={new URL(relay.url).origin}
+                        name={domain[domain.length - 2]}
                     />
                 </button>,
             );
         }
-        return relayList;
+        return <div class="flex flex-col w-16 items-center">{relayList}</div>;
     }
 
     onRelaySelected = (relay: SingleRelayConnection) => async () => {
