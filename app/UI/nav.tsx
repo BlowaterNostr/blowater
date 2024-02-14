@@ -19,7 +19,8 @@ import { emitFunc } from "../event-bus.ts";
 import { DownloadIcon } from "./icons/download-icon.tsx";
 import { Profile_Nostr_Event } from "../nostr.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
-import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
+import { RelayInformation, SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
+import { RelaySwitchList } from "./relay-switch-list.tsx";
 
 export type InstallPrompt = {
     event: Event | undefined;
@@ -44,7 +45,7 @@ type Props = {
     profile: Profile_Nostr_Event | undefined;
     emit: emitFunc<NavigationUpdate | SelectRelay>;
     installPrompt: InstallPrompt;
-    connectionPool: ConnectionPool;
+    pool: ConnectionPool;
 };
 
 type State = {
@@ -102,18 +103,16 @@ export class NavBar extends Component<Props, State> {
         },
     ];
 
-    changeTab = (activeIndex: number) => {
+    changeTab = async (activeIndex: number) => {
         if (activeIndex == this.state.activeIndex) {
             return;
         }
-
+        await setState(this, {
+            activeIndex: activeIndex,
+        });
         this.props.emit({
             type: "ChangeNavigation",
             id: this.tabs[activeIndex].id,
-        });
-
-        this.setState({
-            activeIndex: activeIndex,
         });
     };
 
@@ -133,33 +132,11 @@ export class NavBar extends Component<Props, State> {
         }
     };
 
-    onRelaySelected = (relay: SingleRelayConnection) => async () => {
-        await setState(this, {
-            selectedRelay: relay.url,
-        });
-        this.props.emit({
-            type: "SelectRelay",
-            relay,
-        });
-    };
-
-    render() {
-        const relayList = [];
-        for (const relay of this.props.connectionPool.getRelays()) {
-            const rounded = this.state.selectedRelay == relay.url ? "rounded-lg" : "rounded-full";
-            relayList.push(
-                <button
-                    class={`hover:rounded-lg ${rounded} my-2 bg-white ease-in-out transition duration-200`}
-                    onClick={this.onRelaySelected(relay)}
-                >
-                    <RelayAvatar class={this.styles.avatar} picture={undefined} />
-                </button>,
-            );
-        }
+    render(props: Props) {
         return (
             <div class={this.styles.container}>
                 <Avatar class={this.styles.avatar} picture={this.props.profile?.profile?.picture} />
-                {relayList}
+                {<RelaySwitchList emit={props.emit} pool={props.pool} />}
                 {this.tabs.map((tab, index) => (
                     <div class={this.styles.tabsContainer}>
                         {index == this.tabs.length - 1 && this.state.installPrompt.event

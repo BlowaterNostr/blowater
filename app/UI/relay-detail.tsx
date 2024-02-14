@@ -14,19 +14,10 @@ import { ProfileGetter } from "./search.tsx";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { Loading } from "./components/loading.tsx";
 import { RelayIcon } from "./icons/relay-icon.tsx";
-
-type Detail = {
-    name?: string;
-    description?: string;
-    pubkey?: string;
-    contact?: string;
-    supported_nips?: number[];
-    software?: string;
-    version?: string;
-};
+import { RelayInformation } from "../../libs/nostr.ts/relay-single.ts";
 
 type State = {
-    detail: Detail;
+    relayInfo: RelayInformation;
     error: string;
     isLoading: boolean;
 };
@@ -36,12 +27,12 @@ type Props = {
     profileGetter: ProfileGetter;
 };
 
-export type RelayDetailItem = {
+export type RelayInfoItem = {
     title: string;
     field: ComponentChildren;
 };
 
-export class RelayDetail extends Component<Props, State> {
+export class RelayInformationComponent extends Component<Props, State> {
     styles = {
         container: `bg-[${SecondaryBackgroundColor}] p-8`,
         title: `pt-8 text-[${PrimaryTextColor}]`,
@@ -53,7 +44,7 @@ export class RelayDetail extends Component<Props, State> {
     };
 
     state: State = {
-        detail: {
+        relayInfo: {
             name: undefined,
             description: undefined,
             pubkey: undefined,
@@ -70,7 +61,7 @@ export class RelayDetail extends Component<Props, State> {
         this.setState({
             isLoading: true,
         });
-        const res = await this.fetchData();
+        const res = await getRelayInformation(this.props.relayUrl);
         if (res instanceof Error) {
             this.setState({
                 isLoading: false,
@@ -79,65 +70,45 @@ export class RelayDetail extends Component<Props, State> {
         } else {
             this.setState({
                 isLoading: false,
-                detail: res,
+                relayInfo: res,
             });
         }
     }
 
-    fetchData = async () => {
-        const url = this.props.relayUrl;
-        try {
-            const httpURL = new URL(url);
-            httpURL.protocol = "https";
-            const res = await fetch(httpURL, {
-                headers: {
-                    "Accept": "application/nostr+json",
-                },
-            });
-
-            if (!res.ok) {
-                return new Error(`Faild to get detail, ${res.status}: ${await res.text()}`);
-            }
-
-            const detail: Detail = await res.json();
-            return detail;
-        } catch (e) {
-            return e as Error;
-        }
-    };
-
     render() {
-        const items: RelayDetailItem[] = [
+        const items: RelayInfoItem[] = [
             {
                 title: "Admin",
-                field: this.state.detail.pubkey &&
+                field: this.state.relayInfo.pubkey &&
                     (
                         <AuthorField
-                            publicKey={this.state.detail.pubkey}
+                            publicKey={this.state.relayInfo.pubkey}
                             profileGetter={this.props.profileGetter}
                         />
                     ),
             },
             {
                 title: "Contact",
-                field: this.state.detail.contact && <TextField text={this.state.detail.contact} />,
+                field: this.state.relayInfo.contact && <TextField text={this.state.relayInfo.contact} />,
             },
             {
                 title: "Description",
-                field: this.state.detail.description && <TextField text={this.state.detail.description} />,
+                field: this.state.relayInfo.description && (
+                    <TextField text={this.state.relayInfo.description} />
+                ),
             },
             {
                 title: "Software",
-                field: this.state.detail.software && <TextField text={this.state.detail.software} />,
+                field: this.state.relayInfo.software && <TextField text={this.state.relayInfo.software} />,
             },
             {
                 title: "Version",
-                field: this.state.detail.version && <TextField text={this.state.detail.version} />,
+                field: this.state.relayInfo.version && <TextField text={this.state.relayInfo.version} />,
             },
             {
                 title: "Supported Nips",
-                field: this.state.detail.supported_nips && (
-                    <TextField text={this.state.detail.supported_nips.join(",")} />
+                field: this.state.relayInfo.supported_nips && (
+                    <TextField text={this.state.relayInfo.supported_nips.join(",")} />
                 ),
             },
         ];
@@ -218,4 +189,25 @@ function TextField(props: {
             </div>
         </div>
     );
+}
+
+export async function getRelayInformation(url: string) {
+    try {
+        const httpURL = new URL(url);
+        httpURL.protocol = "https";
+        const res = await fetch(httpURL, {
+            headers: {
+                "accept": "application/nostr+json",
+            },
+        });
+
+        if (!res.ok) {
+            return new Error(`Faild to get detail, ${res.status}: ${await res.text()}`);
+        }
+
+        const detail = await res.text();
+        return JSON.parse(detail) as RelayInformation;
+    } catch (e) {
+        return e as Error;
+    }
 }

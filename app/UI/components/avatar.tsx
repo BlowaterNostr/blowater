@@ -1,5 +1,6 @@
 /** @jsx h */
 import { h } from "https://esm.sh/preact@10.17.1";
+import { RelayInformation } from "../../../libs/nostr.ts/relay-single.ts";
 
 export function Avatar(props: {
     picture: string | undefined;
@@ -75,21 +76,16 @@ function SantaHat(props: { class?: string }) {
 }
 
 export function RelayAvatar(props: {
-    picture: string | undefined;
-    style?:
-        | string
-        | h.JSX.CSSProperties
-        | h.JSX.SignalLike<string | h.JSX.CSSProperties>
-        | undefined;
-    class?: string | h.JSX.SignalLike<string | undefined> | undefined;
+    name: string;
+    icon?: string;
     onClick?: h.JSX.MouseEventHandler<HTMLImageElement>;
 }) {
-    return (
-        <div class={`sticky ${props.class}`} style={props.style}>
+    if (props.icon) {
+        return (
             <img
                 onClick={props.onClick}
                 class={`w-full h-full rounded-full ${props.onClick ? "cursor-pointer" : ""}`}
-                src={props.picture ? props.picture : "logo.webp"}
+                src={props.icon}
                 alt="avatar"
                 onError={(e) => {
                     e.currentTarget.src = "logo.webp";
@@ -104,6 +100,8 @@ export function RelayAvatar(props: {
                 }}
             >
             </img>
-        </div>
-    );
+        );
+    } else {
+        return <div>{props.name}</div>;
+    }
 }

@@ -16,7 +16,7 @@ render(
         profile={undefined}
         installPrompt={{ event: undefined }}
         publicKey={PrivateKey.Generate().toPublicKey()}
-        connectionPool={pool}
+        pool={pool}
     />,
     document.body,
 );

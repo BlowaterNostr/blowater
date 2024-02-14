@@ -37,7 +37,7 @@ import { DirectMessagePanelUpdate } from "./message-panel.tsx";
 import { ChatMessage } from "./message.ts";
 import { InstallPrompt, NavigationUpdate, SelectRelay } from "./nav.tsx";
 import { notify } from "./notification.ts";
-import { RelayDetail } from "./relay-detail.tsx";
+import { RelayInformationComponent } from "./relay-detail.tsx";
 import { Search } from "./search.tsx";
 import { SearchUpdate, SelectConversation } from "./search_model.ts";
 import { RelayConfigChange, ViewRelayDetail } from "./setting.tsx";
@@ -154,7 +154,7 @@ export async function* UI_Interaction_Update(args: {
         //
         else if (event.type == "ViewRelayDetail") {
             app.popOverInputChan.put({
-                children: <RelayDetail relayUrl={event.url} profileGetter={app.database} />,
+                children: <RelayInformationComponent relayUrl={event.url} profileGetter={app.database} />,
             });
         } //
         //

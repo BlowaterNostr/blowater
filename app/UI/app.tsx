@@ -517,7 +517,7 @@ export class AppComponent extends Component<AppProps, AppState> {
                     profile={app.database.getProfilesByPublicKey(myAccountCtx.publicKey)}
                     emit={app.eventBus.emit}
                     installPrompt={props.installPrompt}
-                    connectionPool={app.pool}
+                    pool={app.pool}
                 />
 
                 <div
