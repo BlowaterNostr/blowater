@@ -14,7 +14,17 @@ import { ProfileGetter } from "./search.tsx";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { Loading } from "./components/loading.tsx";
 import { RelayIcon } from "./icons/relay-icon.tsx";
-import { RelayInformation } from "../../libs/nostr.ts/relay-single.ts";
+
+export type RelayInformation = {
+    name?: string;
+    description?: string;
+    pubkey?: string;
+    contact?: string;
+    supported_nips?: number[];
+    software?: string;
+    version?: string;
+    icon?: string;
+};
 
 type State = {
     relayInfo: RelayInformation;

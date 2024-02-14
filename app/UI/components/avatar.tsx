@@ -1,6 +1,5 @@
 /** @jsx h */
 import { h } from "https://esm.sh/preact@10.17.1";
-import { RelayInformation } from "../../../libs/nostr.ts/relay-single.ts";
 
 export function Avatar(props: {
     picture: string | undefined;

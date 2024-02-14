@@ -1,10 +1,11 @@
 /** @jsx h */
 import { Component, h } from "https://esm.sh/preact@10.17.1";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
-import { RelayInformation, SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
+import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 import { emitFunc } from "../event-bus.ts";
 import { RelayAvatar } from "./components/avatar.tsx";
 import { SelectRelay, setState } from "./nav.tsx";
+import { RelayInformation } from "./relay-detail.tsx";
 
 type RelaySwitchListProps = {
     pool: ConnectionPool;
@@ -24,7 +25,7 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
 
     async componentDidMount() {
         for (const relay of this.props.pool.getRelays()) {
-            relay.getInformation().then((info) => {
+            getRelayInformation(relay.url).then((info) => {
                 if (info instanceof Error) {
                     console.error(info);
                     return;
@@ -64,4 +65,25 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
             relay,
         });
     };
+}
+
+export async function getRelayInformation(url: string) {
+    try {
+        const httpURL = new URL(url);
+        httpURL.protocol = "https";
+        const res = await fetch(httpURL, {
+            headers: {
+                "Accept": "application/nostr+json",
+            },
+        });
+
+        if (!res.ok) {
+            return new Error(`Faild to get detail, ${res.status}: ${await res.text()}`);
+        }
+
+        const detail: RelayInformation = await res.json();
+        return detail;
+    } catch (e) {
+        return e as Error;
+    }
 }

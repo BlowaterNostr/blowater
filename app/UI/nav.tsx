@@ -19,7 +19,7 @@ import { emitFunc } from "../event-bus.ts";
 import { DownloadIcon } from "./icons/download-icon.tsx";
 import { Profile_Nostr_Event } from "../nostr.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
-import { RelayInformation, SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
+import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 import { RelaySwitchList } from "./relay-switch-list.tsx";
 
 export type InstallPrompt = {
