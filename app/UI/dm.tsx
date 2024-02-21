@@ -190,7 +190,6 @@ export class DirectMessageContainer extends Component<DirectMessageContainerProp
                                     )}
                                     profilesSyncer={props.profilesSyncer}
                                     eventSyncer={props.eventSyncer}
-                                    isGroupMessage={props.isGroupMessage}
                                     profileGetter={props.profileGetter}
                                     editorModel={this.state.currentEditor}
                                     messageGetter={props.messageGetter}

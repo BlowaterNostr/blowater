@@ -22,6 +22,7 @@ import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 import { RelaySwitchList } from "./relay-switch-list.tsx";
 import { SocialIcon } from "./icons/social-icon.tsx";
+import { setState } from "./_helper.ts";
 
 export type InstallPrompt = {
     event: Event | undefined;
@@ -163,12 +164,4 @@ export class NavBar extends Component<Props, State> {
             </div>
         );
     }
-}
-
-export function setState<P, S>(component: Component<P, S>, state: Partial<S>): Promise<void> {
-    return new Promise((resolve) => {
-        component.setState(state, () => {
-            resolve();
-        });
-    });
 }

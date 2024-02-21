@@ -40,11 +40,12 @@ import {
 } from "./signIn.tsx";
 import { SecondaryBackgroundColor } from "./style/colors.ts";
 import { LamportTime } from "../time.ts";
-import { InstallPrompt, NavBar, setState } from "./nav.tsx";
+import { InstallPrompt, NavBar } from "./nav.tsx";
 import { Component } from "https://esm.sh/preact@10.17.1";
 import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 import { ChannelList } from "./channel-list.tsx";
 import { ChannelContainer } from "./channel-container.tsx";
+import { setState } from "./_helper.ts";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
@@ -512,7 +513,7 @@ export class AppComponent extends Component<AppProps, AppState> {
 
         let socialNode: VNode | undefined;
         if (model.navigationModel.activeNav == "Social") {
-            socialNode = <ChannelContainer></ChannelContainer>;
+            // socialNode = <ChannelContainer ></ChannelContainer>;
         }
 
         console.debug("AppComponent:2", Date.now() - t);

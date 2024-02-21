@@ -67,7 +67,6 @@ export type ViewUserDetail = {
 interface DirectMessagePanelProps {
     myPublicKey: PublicKey;
 
-    isGroupMessage: boolean;
     editorModel: EditorModel;
 
     focusedContent: {
@@ -164,7 +163,6 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
                     <Editor
                         maxHeight="30vh"
                         emit={props.emit}
-                        isGroupChat={props.isGroupMessage}
                         targetNpub={props.editorModel.pubkey}
                         text={props.editorModel.text}
                         files={props.editorModel.files}

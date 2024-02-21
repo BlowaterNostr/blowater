@@ -4,8 +4,9 @@ import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 import { emitFunc } from "../event-bus.ts";
 import { RelayAvatar } from "./components/avatar.tsx";
-import { SelectRelay, setState } from "./nav.tsx";
+import { SelectRelay } from "./nav.tsx";
 import { RelayInformation } from "./relay-detail.tsx";
+import { setState } from "./_helper.ts";
 
 type RelaySwitchListProps = {
     pool: ConnectionPool;

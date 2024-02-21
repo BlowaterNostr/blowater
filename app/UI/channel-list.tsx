@@ -1,5 +1,5 @@
 import { Component, h } from "https://esm.sh/preact@10.17.1";
-import { setState } from "./nav.tsx";
+import { setState } from "./_helper.ts";
 
 type Props = {
     channels: string[];

@@ -9,7 +9,7 @@ import { DividerBackgroundColor, PrimaryBackgroundColor, PrimaryTextColor } from
 import { SendIcon } from "./icons/send-icon.tsx";
 import { Component } from "https://esm.sh/preact@10.17.1";
 import { RemoveIcon } from "./icons/remove-icon.tsx";
-import { isMobile } from "./_helper.ts";
+import { isMobile, setState } from "./_helper.ts";
 
 export type EditorModel = {
     readonly pubkey: PublicKey;
@@ -60,7 +60,6 @@ type EditorProps = {
     files: Blob[];
     //
     readonly emit: emitFunc<EditorEvent>;
-    readonly isGroupChat: boolean;
 };
 
 export type EditorState = {
@@ -96,7 +95,7 @@ export class Editor extends Component<EditorProps, EditorState> {
             pubkey: props.targetNpub,
             files: props.files,
             text: props.text,
-            isGroupChat: props.isGroupChat,
+            isGroupChat: false,
         });
         this.textareaElement.current.setAttribute(
             "rows",
@@ -112,7 +111,7 @@ export class Editor extends Component<EditorProps, EditorState> {
             type: "UpdateMessageFiles",
             files: newFiles,
             pubkey: this.props.targetNpub,
-            isGroupChat: this.props.isGroupChat,
+            isGroupChat: false,
         });
         this.setState({
             files: newFiles,
@@ -161,9 +160,9 @@ export class Editor extends Component<EditorProps, EditorState> {
                             type: "UpdateMessageFiles",
                             files: propsfiles,
                             pubkey: this.props.targetNpub,
-                            isGroupChat: this.props.isGroupChat,
+                            isGroupChat: false,
                         });
-                        this.setState({
+                        await setState(this, {
                             files: propsfiles,
                         });
                     }}
@@ -222,7 +221,7 @@ export class Editor extends Component<EditorProps, EditorState> {
                                 type: "UpdateEditorText",
                                 pubkey: this.props.targetNpub,
                                 text: e.currentTarget.value,
-                                isGroupChat: this.props.isGroupChat,
+                                isGroupChat: false,
                             });
                             const lines = e.currentTarget.value.split("\n");
                             e.currentTarget.setAttribute(
@@ -252,7 +251,7 @@ export class Editor extends Component<EditorProps, EditorState> {
                                     );
                                     this.props.emit({
                                         type: "UpdateMessageFiles",
-                                        isGroupChat: this.props.isGroupChat,
+                                        isGroupChat: false,
                                         pubkey: this.props.targetNpub,
                                         files: this.props.files.concat([image]),
                                     });
