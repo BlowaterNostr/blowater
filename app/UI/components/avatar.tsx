@@ -14,8 +14,10 @@ export function Avatar(props: {
     return (
         <div class={`sticky ${props.class}`} style={props.style}>
             {/* Container for positioning */}
-            <SantaHat class="absolute -top-1/3 left-1/4 w-full z-10 -scale-x-100 opacity-50" />
-            <SantaHat class="absolute -top-1/3 left-1/4 w-full -z-10 -scale-x-100" />
+            {
+                /* <SantaHat class="absolute -top-1/3 left-1/4 w-full z-10 -scale-x-100 opacity-50" />
+            <SantaHat class="absolute -top-1/3 left-1/4 w-full -z-10 -scale-x-100" /> */
+            }
             <img
                 onClick={props.onClick}
                 class={`w-full h-full rounded-full ${props.onClick ? "cursor-pointer" : ""}`}

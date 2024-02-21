@@ -40,23 +40,36 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
     render() {
         const relayList = [];
         for (const relay of this.props.pool.getRelays()) {
-            const rounded = this.state.selectedRelay == relay.url ? "rounded-lg" : "rounded-full";
             const domain = new URL(relay.url).hostname.split(".");
             relayList.push(
-                <button
-                    class={`border hover:rounded-lg ${rounded} my-2
-                    bg-white ease-in-out transition duration-200
-                    w-14 h-14`}
+                <div
+                    class="flex flex-row mx-1 my-1 hover:bg-[rgb(244,244,244)] hover:cursor-pointer"
                     onClick={this.onRelaySelected(relay)}
                 >
-                    <RelayAvatar
-                        icon={this.state.relayInformation.get(relay.url)?.icon}
-                        name={domain[domain.length - 2]}
-                    />
-                </button>,
+                    <div class="w-16 h-16 border rounded-md mx-1">
+                        <RelayAvatar
+                            icon={this.state.relayInformation.get(relay.url)?.icon}
+                            name={domain[domain.length - 2]}
+                        />
+                    </div>
+                    <div>
+                        <div>{this.state.relayInformation.get(relay.url)?.name}</div>
+                        <div>{relay.url}</div>
+                    </div>
+                </div>,
             );
         }
-        return <div class="flex flex-col w-16 items-center">{relayList}</div>;
+        return (
+            <div>
+                <div class="w-16 h-16 border rounded-md mx-1 my-1">
+                    <RelayAvatar
+                        icon={this.state.relayInformation.get(this.state.selectedRelay)?.icon}
+                        name={this.state.relayInformation.get(this.state.selectedRelay)?.name || "relay"}
+                    />
+                </div>
+                <div class="flex flex-col border w-64 rounded-lg">{relayList}</div>
+            </div>
+        );
     }
 
     onRelaySelected = (relay: SingleRelayConnection) => async () => {
