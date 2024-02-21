@@ -60,14 +60,14 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
             );
         }
         return (
-            <div>
-                <div class="w-16 h-16 border rounded-md mx-1 my-1">
+            <div class="px-2">
+                <div class="w-14 h-14 border rounded-md mx-1 my-1">
                     <RelayAvatar
-                        icon={this.state.relayInformation.get(this.state.selectedRelay)?.icon}
+                        icon={this.state.relayInformation.get(this.state.selectedRelay)?.icon || "logo.webp"}
                         name={this.state.relayInformation.get(this.state.selectedRelay)?.name || "relay"}
                     />
                 </div>
-                <div class="flex flex-col border w-64 rounded-lg">{relayList}</div>
+                <div class="absolute z-10 flex flex-col border w-64 rounded-lg bg-white">{relayList}</div>
             </div>
         );
     }
