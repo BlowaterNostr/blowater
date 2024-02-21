@@ -1,5 +1,5 @@
 /** @jsx h */
-import { h, render } from "https://esm.sh/preact@10.17.1";
+import { h, render, VNode } from "https://esm.sh/preact@10.17.1";
 import { tw } from "https://esm.sh/twind@0.16.16";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
@@ -43,6 +43,8 @@ import { LamportTime } from "../time.ts";
 import { InstallPrompt, NavBar, setState } from "./nav.tsx";
 import { Component } from "https://esm.sh/preact@10.17.1";
 import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
+import { ChannelList } from "./channel-list.tsx";
+import { ChannelContainer } from "./channel-container.tsx";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
@@ -508,6 +510,11 @@ export class AppComponent extends Component<AppProps, AppState> {
             }
         }
 
+        let socialNode: VNode | undefined;
+        if (model.navigationModel.activeNav == "Social") {
+            socialNode = <ChannelContainer></ChannelContainer>;
+        }
+
         console.debug("AppComponent:2", Date.now() - t);
 
         const final = (
@@ -535,6 +542,7 @@ export class AppComponent extends Component<AppProps, AppState> {
                         />
                     </div>
                 </div>
+                {socialNode}
                 {dmVNode}
                 {aboutNode}
                 {Setting({
