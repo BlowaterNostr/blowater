@@ -14,6 +14,7 @@ type RelaySwitchListProps = {
 
 type RelaySwitchListState = {
     selectedRelay: string;
+    showRelayList: boolean;
     relayInformation: Map<string, RelayInformation>;
 };
 
@@ -21,6 +22,7 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
     state: Readonly<RelaySwitchListState> = {
         selectedRelay: "",
         relayInformation: new Map(),
+        showRelayList: false,
     };
 
     async componentDidMount() {
@@ -61,20 +63,36 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
         }
         return (
             <div class="px-2">
-                <div class="w-14 h-14 border rounded-md mx-1 my-1">
+                <div
+                    class="w-14 h-14 border rounded-md mx-1 my-1 hover:hover:cursor-pointer"
+                    onClick={this.toggleRelayList}
+                >
                     <RelayAvatar
                         icon={this.state.relayInformation.get(this.state.selectedRelay)?.icon || "logo.webp"}
                         name={this.state.relayInformation.get(this.state.selectedRelay)?.name || "relay"}
                     />
                 </div>
-                <div class="absolute z-10 flex flex-col border w-64 rounded-lg bg-white">{relayList}</div>
+                {this.state.showRelayList
+                    ? (
+                        <div class="absolute z-10 flex flex-col border w-64 rounded-lg bg-white">
+                            {relayList}
+                        </div>
+                    )
+                    : undefined}
             </div>
         );
     }
 
+    toggleRelayList = async () => {
+        await setState(this, {
+            showRelayList: !this.state.showRelayList,
+        });
+    };
+
     onRelaySelected = (relay: SingleRelayConnection) => async () => {
         await setState(this, {
             selectedRelay: relay.url,
+            showRelayList: false,
         });
         this.props.emit({
             type: "SelectRelay",
