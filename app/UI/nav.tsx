@@ -21,6 +21,7 @@ import { Profile_Nostr_Event } from "../nostr.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 import { RelaySwitchList } from "./relay-switch-list.tsx";
+import { SocialIcon } from "./icons/social-icon.tsx";
 
 export type InstallPrompt = {
     event: Event | undefined;
@@ -54,7 +55,7 @@ type State = {
     installPrompt: InstallPrompt;
 };
 
-type NavTabID = "DM" | "Profile" | "About" | "Setting";
+type NavTabID = "Social" | "DM" | "Profile" | "About" | "Setting";
 type NavTab = {
     icon: (active: boolean) => ComponentChild;
     id: NavTabID;
@@ -85,6 +86,10 @@ export class NavBar extends Component<Props, State> {
         installPrompt: this.props.installPrompt,
     };
     tabs: NavTab[] = [
+        {
+            icon: (active: boolean) => <SocialIcon class={this.styles.icons(active)} />,
+            id: "Social",
+        },
         {
             icon: (active: boolean) => <ChatIcon class={this.styles.icons(active)} />,
             id: "DM",
