@@ -44,6 +44,7 @@ import { RelayConfigChange, ViewRecommendedRelaysList, ViewRelayDetail } from ".
 import { SignInEvent } from "./signIn.tsx";
 import { TagSelected } from "./contact-tags.tsx";
 import { BlockUser, UnblockUser } from "./user-detail.tsx";
+import { RelayRecommendList } from "./relay-recommend-list.tsx";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -159,7 +160,7 @@ export async function* UI_Interaction_Update(args: {
             });
         } else if (event.type == "ViewRecommendedRelaysList") {
             app.popOverInputChan.put({
-                children: <div>RecommendedRelaysList</div>,
+                children: <RelayRecommendList />,
             });
         } //
         //
