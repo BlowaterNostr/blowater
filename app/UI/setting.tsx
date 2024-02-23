@@ -116,7 +116,6 @@ type RelaySettingState = {
     error: string;
     addRelayInput: string;
     relayStatus: { url: string; status: keyof typeof colors }[];
-    recommendedRelaysList: { url: string }[];
 };
 
 export class RelaySetting extends Component<RelaySettingProp, RelaySettingState> {
@@ -124,13 +123,8 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
         error: "",
         addRelayInput: "",
         relayStatus: [],
-        recommendedRelaysList: this.initializeRecommendedRelays(recommendedRelays),
     };
     private exit = false;
-
-    initializeRecommendedRelays(relays: string[]) {
-        return relays.map((url) => ({ url }));
-    }
 
     async componentDidMount() {
         while (this.exit == false) {
@@ -163,11 +157,9 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
     }
 
     computeRecommendedRelaysStatus() {
-        // remove the relay that is already in the relay list
-        const _recommendedRelaysStatus = this.state.recommendedRelaysList.filter((r) => {
-            return this.state.relayStatus.find((rs) => rs.url == r.url) == undefined;
+        return recommendedRelays.map((url) => ({ url })).filter((relay) => {
+            return this.state.relayStatus.every((r) => r.url != relay.url);
         });
-        return _recommendedRelaysStatus;
     }
 
     showRelayDetail = (url: string) => {
