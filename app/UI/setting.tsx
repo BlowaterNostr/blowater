@@ -36,7 +36,7 @@ export interface SettingProps {
     relayConfig: RelayConfig;
     relayPool: ConnectionPool;
     myAccountContext: NostrAccountContext;
-    emit: emitFunc<RelayConfigChange | ViewRelayDetail>;
+    emit: emitFunc<RelayConfigChange | ViewRelayDetail | ViewRecommendedRelaysList>;
     show: boolean;
 }
 
@@ -102,10 +102,14 @@ export type ViewRelayDetail = {
     url: string;
 };
 
+export type ViewRecommendedRelaysList = {
+    type: "ViewRecommendedRelaysList";
+};
+
 type RelaySettingProp = {
     relayConfig: RelayConfig;
     relayPool: ConnectionPool;
-    emit: emitFunc<RelayConfigChange | ViewRelayDetail>;
+    emit: emitFunc<RelayConfigChange | ViewRelayDetail | ViewRecommendedRelaysList>;
 };
 
 type RelaySettingState = {
@@ -170,6 +174,12 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
         this.props.emit({
             type: "ViewRelayDetail",
             url: url,
+        });
+    };
+
+    showRecommendedRelaysList = () => {
+        this.props.emit({
+            type: "ViewRecommendedRelaysList",
         });
     };
 
@@ -288,6 +298,12 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
                         );
                     })}
                 </ul>
+                <button
+                    class={`w-full p-[0.75rem] mt-[1.5rem] rounded-lg ${NoOutlineClass} ${CenterClass} ${LinearGradientsClass}  hover:bg-gradient-to-l text-[${PrimaryTextColor}]`}
+                    onClick={() => this.showRecommendedRelaysList()}
+                >
+                    View Recommended Relays
+                </button>
                 <p class={`mt-[1.75rem] text-[${PrimaryTextColor}]`}>
                     Recommended Relays
                 </p>
