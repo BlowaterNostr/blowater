@@ -22,7 +22,8 @@ import {
 } from "./style/colors.ts";
 import { RelayIcon } from "./icons/relay-icon.tsx";
 import { DeleteIcon } from "./icons/delete-icon.tsx";
-import { RelayConfig, RemoveBlowaterRelay } from "./relay-config.ts";
+import { AddIcon } from "./icons/add-icon.tsx";
+import { recommendedRelays, RelayConfig, RemoveBlowaterRelay } from "./relay-config.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 import { emitFunc } from "../event-bus.ts";
 import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
@@ -111,6 +112,7 @@ type RelaySettingState = {
     error: string;
     addRelayInput: string;
     relayStatus: { url: string; status: keyof typeof colors }[];
+    recommendedRelaysList: { url: string }[];
 };
 
 export class RelaySetting extends Component<RelaySettingProp, RelaySettingState> {
@@ -118,6 +120,13 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
         error: "",
         addRelayInput: "",
         relayStatus: [],
+        recommendedRelaysList: [
+            ...recommendedRelays,
+        ].map((url) => {
+            return {
+                url,
+            };
+        }),
     };
     private exit = false;
 
@@ -151,6 +160,14 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
         return _relayStatus;
     }
 
+    computeRecommendedRelaysStatus() {
+        // remove the relay that is already in the relay list
+        const _recommendedRelaysStatus = this.state.recommendedRelaysList.filter((r) => {
+            return this.state.relayStatus.find((rs) => rs.url == r.url) == undefined;
+        });
+        return _recommendedRelaysStatus;
+    }
+
     showRelayDetail = (url: string) => {
         this.props.emit({
             type: "ViewRelayDetail",
@@ -162,6 +179,7 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
         const addRelayInput = this.state.addRelayInput;
 
         const relayStatus = this.computeRelayStatus(props);
+        const recommendedRelaysStatus = this.computeRecommendedRelaysStatus();
 
         const addRelay = async () => {
             // props.eventBus.emit({ type: "AddRelay" });
@@ -260,6 +278,54 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
                                             }}
                                         >
                                             <DeleteIcon
+                                                class={`w-[1rem] h-[1rem]`}
+                                                style={{
+                                                    stroke: ErrorColor,
+                                                }}
+                                            />
+                                        </button>
+                                    )
+                                    : undefined}
+                            </li>
+                        );
+                    })}
+                </ul>
+                <p class={`mt-[1.75rem] text-[${PrimaryTextColor}]`}>
+                    Recommended Relays
+                </p>
+                <ul class={`mt-[0.5rem] text-[${PrimaryTextColor}]`}>
+                    {recommendedRelaysStatus.map((r) => {
+                        return (
+                            <li
+                                onClick={() => this.showRelayDetail(r.url)}
+                                class={`w-full px-[1rem] py-[0.75rem] rounded-lg bg-[${DividerBackgroundColor}80] mb-[0.5rem]  flex items-center justify-between cursor-pointer hover:bg-[${HoverButtonBackgroudColor}]`}
+                            >
+                                <div class={`flex items-center flex-1 overflow-hidden`}>
+                                    <span class={`truncate`}>{r.url}</span>
+                                </div>
+                                {r.url != blowater
+                                    ? (
+                                        <button
+                                            class={`w-[2rem] h-[2rem] rounded-lg bg-transparent hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
+                                            onClick={async (e) => {
+                                                e.stopPropagation();
+                                                const p = props.relayConfig.add(r.url);
+                                                this.setState({
+                                                    relayStatus: this.computeRelayStatus(props),
+                                                });
+                                                props.emit({
+                                                    type: "RelayConfigChange",
+                                                    kind: "add",
+                                                    url: r.url,
+                                                });
+                                                const relay = await p;
+                                                if (relay instanceof Error) {
+                                                    console.error(relay);
+                                                    return;
+                                                }
+                                            }}
+                                        >
+                                            <AddIcon
                                                 class={`w-[1rem] h-[1rem]`}
                                                 style={{
                                                     stroke: ErrorColor,
