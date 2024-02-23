@@ -120,15 +120,13 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
         error: "",
         addRelayInput: "",
         relayStatus: [],
-        recommendedRelaysList: [
-            ...recommendedRelays,
-        ].map((url) => {
-            return {
-                url,
-            };
-        }),
+        recommendedRelaysList: this.initializeRecommendedRelays(recommendedRelays),
     };
     private exit = false;
+
+    initializeRecommendedRelays(relays: string[]) {
+        return relays.map((url) => ({ url }));
+    }
 
     async componentDidMount() {
         while (this.exit == false) {
