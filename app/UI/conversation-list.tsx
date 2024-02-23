@@ -91,7 +91,6 @@ export class ConversationList extends Component<Props, State> {
         let listToRender: ConversationSummary[];
         const contacts = Array.from(props.convoListRetriever.getContacts());
         const strangers = Array.from(props.convoListRetriever.getStrangers());
-        // const groups = Array.from(props.groupChatListGetter.getConversationList());
         const blocked = props.userBlocker.getBlockedUsers();
         let isGroupChat = false;
         switch (this.state.selectedContactGroup) {
@@ -101,10 +100,6 @@ export class ConversationList extends Component<Props, State> {
             case "strangers":
                 listToRender = strangers;
                 break;
-            // case "Group":
-            //     listToRender = groups;
-            //     isGroupChat = true;
-            //     break;
             case "blocked":
                 listToRender = Array.from(props.convoListRetriever.getConversations(blocked));
         }
@@ -387,7 +382,7 @@ function ConversationListItem(props: ListItemProps) {
 }
 
 const selectConversation = (emit: emitFunc<SelectConversation>, pubkey: PublicKey) => () => {
-    emit({
+    return emit({
         type: "SelectConversation",
         pubkey,
     });

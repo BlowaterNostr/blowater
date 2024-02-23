@@ -5,7 +5,7 @@ import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/mas
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
-import { Datebase_View } from "../database.ts";
+import { Datebase_View, RelayRecordGetter } from "../database.ts";
 import { EventBus } from "../event-bus.ts";
 import { DirectedMessageController, getAllEncryptedMessagesOf, InvalidEvent } from "../features/dm.ts";
 import { group_GM_events, GroupChatSyncer, GroupMessageController } from "../features/gm.ts";
@@ -469,21 +469,6 @@ export class AppComponent extends Component<AppProps, AppState> {
         ) {
             if (model.navigationModel.activeNav == "DM" && this.state.selectedRelay) {
                 const messageGetter = app.dmController;
-                function f(messageGetter: ChatMessagesGetter, relay: SingleRelayConnection) {
-                    return {
-                        getChatMessages: (publicKey: string) => {
-                            const msgs = messageGetter.getChatMessages(publicKey);
-                            const ret = [];
-                            for (const msg of msgs) {
-                                const relays = app.database.getRelayRecord(msg.event.id);
-                                if (relays.has(relay.url)) {
-                                    ret.push(msg);
-                                }
-                            }
-                            return ret;
-                        },
-                    };
-                }
                 dmVNode = (
                     <DirectMessageContainer
                         {...model.dm}
@@ -496,7 +481,11 @@ export class AppComponent extends Component<AppProps, AppState> {
                         pinListGetter={app.otherConfig}
                         groupChatController={app.groupChatController}
                         newMessageChecker={app.conversationLists}
-                        messageGetter={f(messageGetter, this.state.selectedRelay)}
+                        messageGetter={PerRelayMessageGetter(
+                            this.state.selectedRelay.url,
+                            messageGetter,
+                            app.database,
+                        )}
                         newMessageListener={app.dmController}
                         relayRecordGetter={app.database}
                         userBlocker={app.conversationLists}
@@ -579,4 +568,24 @@ export function getFocusedContent(
             pubkey: focusedContent,
         };
     }
+}
+
+function PerRelayMessageGetter(
+    relay: string,
+    messageGetter: ChatMessagesGetter,
+    recordGetter: RelayRecordGetter,
+): ChatMessagesGetter {
+    return {
+        getChatMessages: (publicKey: string) => {
+            const msgs = messageGetter.getChatMessages(publicKey);
+            const ret = [];
+            for (const msg of msgs) {
+                const relays = recordGetter.getRelayRecord(msg.event.id);
+                if (relays.has(relay)) {
+                    ret.push(msg);
+                }
+            }
+            return ret;
+        },
+    };
 }
