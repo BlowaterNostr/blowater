@@ -89,7 +89,6 @@ export class Search extends Component<Props, State> {
         this.props.emit({
             type: "SelectConversation",
             pubkey: profile instanceof PublicKey ? profile : profile.publicKey,
-            isGroupChat: false, // todo
         });
     };
 

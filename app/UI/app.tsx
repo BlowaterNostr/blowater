@@ -468,7 +468,7 @@ export class AppComponent extends Component<AppProps, AppState> {
             model.navigationModel.activeNav == "About"
         ) {
             if (model.navigationModel.activeNav == "DM" && this.state.selectedRelay) {
-                const messageGetter = model.dm.isGroupMessage ? app.groupChatController : app.dmController;
+                const messageGetter = app.dmController;
                 function f(messageGetter: ChatMessagesGetter, relay: SingleRelayConnection) {
                     return {
                         getChatMessages: (publicKey: string) => {
@@ -497,9 +497,7 @@ export class AppComponent extends Component<AppProps, AppState> {
                         groupChatController={app.groupChatController}
                         newMessageChecker={app.conversationLists}
                         messageGetter={f(messageGetter, this.state.selectedRelay)}
-                        newMessageListener={model.dm.isGroupMessage
-                            ? app.groupChatController
-                            : app.dmController}
+                        newMessageListener={app.dmController}
                         relayRecordGetter={app.database}
                         userBlocker={app.conversationLists}
                     />

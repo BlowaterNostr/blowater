@@ -31,7 +31,6 @@ import {
 export type DM_Model = {
     currentEditor: EditorModel | undefined;
     focusedContent: Map<string, NostrEvent | PublicKey>;
-    isGroupMessage: boolean;
 };
 
 type DirectMessageContainerProps = {
@@ -99,54 +98,14 @@ export class DirectMessageContainer extends Component<DirectMessageContainerProp
         const currentEditor = props.currentEditor;
         let buttons = [];
         if (currentEditor && IS_BETA_VERSION) {
-            if (props.isGroupMessage) {
-                buttons.push(
-                    <button
-                        class={`w-8 h-8 ${CenterClass}`}
-                        onClick={() => {
-                            props.bus.emit({
-                                type: "ViewUserDetail",
-                                pubkey: currentEditor.pubkey,
-                            });
-                        }}
-                    >
-                        <UserIcon
-                            class={`w-6 h-6 text-[${PrimaryTextColor}] stroke-current`}
-                            style={{ fill: "none" }}
-                        />
-                    </button>,
-                );
-
-                const canEditGroupProfile = props.groupChatController.getGroupAdminCtx(currentEditor.pubkey);
-                if (canEditGroupProfile) {
-                    buttons.push(
-                        // setting button
-                        <button
-                            class={`w-8 h-8 ${CenterClass}`}
-                            onClick={() => {
-                                props.bus.emit({
-                                    type: "StartEditGroupChatProfile",
-                                    ctx: canEditGroupProfile,
-                                });
-                            }}
-                        >
-                            <SettingIcon
-                                class={`w-6 h-6 text-[${PrimaryTextColor}] stroke-current`}
-                                style={{ fill: "none" }}
-                            />
-                        </button>,
-                    );
-                }
-            } else {
-                buttons.push(
-                    <InviteButton
-                        groupChatController={props.groupChatController}
-                        profileGetter={props.profileGetter}
-                        userPublicKey={currentEditor.pubkey}
-                        emit={props.bus.emit}
-                    />,
-                );
-            }
+            buttons.push(
+                <InviteButton
+                    groupChatController={props.groupChatController}
+                    profileGetter={props.profileGetter}
+                    userPublicKey={currentEditor.pubkey}
+                    emit={props.bus.emit}
+                />,
+            );
         }
 
         const vDom = (
@@ -162,7 +121,6 @@ export class DirectMessageContainer extends Component<DirectMessageContainerProp
                         eventBus={props.bus}
                         emit={props.bus.emit}
                         convoListRetriever={props.conversationLists}
-                        groupChatListGetter={props.groupChatController}
                         hasNewMessages={props.newMessageChecker}
                         {...props}
                         userBlocker={props.userBlocker}

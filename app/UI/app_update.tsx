@@ -163,14 +163,13 @@ export async function* UI_Interaction_Update(args: {
         else if (event.type == "SelectConversation") {
             model.navigationModel.activeNav = "DM";
             model.search.isSearching = false;
-            updateConversation(app.model, event.pubkey, event.isGroupChat);
+            updateConversation(app.model, event.pubkey);
 
             if (!model.dm.focusedContent.get(event.pubkey.hex)) {
                 model.dm.focusedContent.set(event.pubkey.hex, event.pubkey);
             }
             app.popOverInputChan.put({ children: undefined });
-            app.model.dm.isGroupMessage = event.isGroupChat;
-            app.conversationLists.markRead(event.pubkey, event.isGroupChat);
+            app.conversationLists.markRead(event.pubkey);
         } else if (event.type == "BackToContactList") {
             model.dm.currentEditor = undefined;
         } else if (event.type == "PinConversation") {
@@ -432,9 +431,8 @@ export type ChatMessagesGetter = {
 export function updateConversation(
     model: Model,
     targetPublicKey: PublicKey,
-    isGroupChat: boolean,
 ) {
-    const editorMap = isGroupChat ? model.gmEditors : model.dmEditors;
+    const editorMap = model.dmEditors;
     let editor = editorMap.get(targetPublicKey.hex);
     // If this conversation is new
     if (editor == undefined) {
@@ -510,7 +508,6 @@ export async function* Database_Update(
                     updateConversation(
                         model,
                         model.dm.currentEditor.pubkey,
-                        false,
                     );
                 }
 
@@ -580,7 +577,6 @@ export async function* Database_Update(
                                 emit({
                                     type: "SelectConversation",
                                     pubkey: k,
-                                    isGroupChat: false,
                                 });
                             } else if (e.kind == NostrKind.Group_Message) {
                                 const k = PublicKey.FromHex(e.pubkey);
@@ -591,7 +587,6 @@ export async function* Database_Update(
                                 emit({
                                     type: "SelectConversation",
                                     pubkey: k,
-                                    isGroupChat: true,
                                 });
                             } else if (e.kind == NostrKind.TEXT_NOTE) {
                                 // todo

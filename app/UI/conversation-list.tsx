@@ -24,14 +24,14 @@ export interface ConversationListRetriever {
     getContacts: () => Iterable<ConversationSummary>;
     getStrangers: () => Iterable<ConversationSummary>;
     getConversations: (keys: Iterable<string>) => Iterable<ConversationSummary>;
-    getConversationType(pubkey: PublicKey, isGourpChat: boolean): ConversationType;
+    getConversationType(pubkey: PublicKey): ConversationType;
 }
 
 export interface GroupMessageListGetter {
     getConversationList: () => Iterable<ConversationSummary>;
 }
 
-export type ConversationType = ContactTag | "Group";
+export type ConversationType = ContactTag;
 
 export type ContactUpdate =
     | SearchUpdate
@@ -48,7 +48,7 @@ type Props = {
     emit: emitFunc<ContactUpdate | SearchUpdate | TagSelected>;
     eventBus: EventSubscriber<UI_Interaction_Event>;
     convoListRetriever: ConversationListRetriever;
-    groupChatListGetter: GroupMessageListGetter;
+    // groupChatListGetter: GroupMessageListGetter; // deprecated
     hasNewMessages: NewMessageChecker;
     pinListGetter: PinListGetter;
     profileGetter: ProfileGetter;
@@ -72,7 +72,6 @@ export class ConversationList extends Component<Props, State> {
                     currentSelected: e,
                     selectedContactGroup: this.props.convoListRetriever.getConversationType(
                         e.pubkey,
-                        e.isGroupChat,
                     ),
                 });
             } else if (e.type == "tagSelected") {
@@ -92,7 +91,7 @@ export class ConversationList extends Component<Props, State> {
         let listToRender: ConversationSummary[];
         const contacts = Array.from(props.convoListRetriever.getContacts());
         const strangers = Array.from(props.convoListRetriever.getStrangers());
-        const groups = Array.from(props.groupChatListGetter.getConversationList());
+        // const groups = Array.from(props.groupChatListGetter.getConversationList());
         const blocked = props.userBlocker.getBlockedUsers();
         let isGroupChat = false;
         switch (this.state.selectedContactGroup) {
@@ -102,10 +101,10 @@ export class ConversationList extends Component<Props, State> {
             case "strangers":
                 listToRender = strangers;
                 break;
-            case "Group":
-                listToRender = groups;
-                isGroupChat = true;
-                break;
+            // case "Group":
+            //     listToRender = groups;
+            //     isGroupChat = true;
+            //     break;
             case "blocked":
                 listToRender = Array.from(props.convoListRetriever.getConversations(blocked));
         }
@@ -180,7 +179,7 @@ export class ConversationList extends Component<Props, State> {
                     contacts={Array.from(convoListToRender.values())}
                     currentSelected={this.state.currentSelected}
                     pinListGetter={props.pinListGetter}
-                    isGroupChat={listToRender === groups}
+                    // isGroupChat={listToRender === groups}
                     emit={props.emit}
                     profileGetter={props.profileGetter}
                 />
@@ -197,7 +196,7 @@ type ConversationListProps = {
     contacts: { conversation: ConversationSummary; newMessageCount: number }[];
     currentSelected: SelectConversation | undefined;
     pinListGetter: PinListGetter;
-    isGroupChat: boolean;
+    // isGroupChat: boolean;
     emit: emitFunc<ContactUpdate>;
     profileGetter: ProfileGetter;
 };
@@ -229,15 +228,12 @@ function ContactGroup(props: ConversationListProps) {
                     <li
                         class={tw`${
                             props.currentSelected && contact.conversation.pubkey.hex ===
-                                    props.currentSelected.pubkey.hex &&
-                                props.isGroupChat == props.currentSelected.isGroupChat
-                                ? "bg-[#42464D] text-[#FFFFFF]"
-                                : "bg-[#42464D] text-[#96989D]"
+                                props.currentSelected.pubkey.hex &&
+                            "bg-[#42464D] text-[#96989D]"
                         } cursor-pointer p-2 hover:bg-[#3C3F45] mb-2 rounded-lg flex items-center w-full relative group`}
                         onClick={selectConversation(
                             props.emit,
                             contact.conversation.pubkey,
-                            props.isGroupChat,
                         )}
                     >
                         <ConversationListItem
@@ -284,15 +280,12 @@ function ContactGroup(props: ConversationListProps) {
                     <li
                         class={tw`${
                             props.currentSelected && contact.conversation?.pubkey.hex ===
-                                    props.currentSelected.pubkey.hex &&
-                                props.isGroupChat == props.currentSelected.isGroupChat
-                                ? "bg-[#42464D] text-[#FFFFFF]"
-                                : "bg-transparent text-[#96989D]"
+                                props.currentSelected.pubkey.hex &&
+                            "bg-transparent text-[#96989D]"
                         } cursor-pointer p-2 hover:bg-[#3C3F45] my-2 rounded-lg flex items-center w-full relative group`}
                         onClick={selectConversation(
                             props.emit,
                             contact.conversation.pubkey,
-                            props.isGroupChat,
                         )}
                     >
                         <ConversationListItem
@@ -393,11 +386,9 @@ function ConversationListItem(props: ListItemProps) {
     );
 }
 
-const selectConversation =
-    (emit: emitFunc<SelectConversation>, pubkey: PublicKey, isGroupChat: boolean) => () => {
-        emit({
-            type: "SelectConversation",
-            pubkey,
-            isGroupChat,
-        });
-    };
+const selectConversation = (emit: emitFunc<SelectConversation>, pubkey: PublicKey) => () => {
+    emit({
+        type: "SelectConversation",
+        pubkey,
+    });
+};

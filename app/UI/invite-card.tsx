@@ -39,7 +39,6 @@ export function InviteCard(props: {
         props.emit({
             type: "SelectConversation",
             pubkey: publicKey,
-            isGroupChat: true,
         });
     };
 

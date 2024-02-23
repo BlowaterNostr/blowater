@@ -12,7 +12,6 @@ export type Cancel = {
 export type SelectConversation = {
     type: "SelectConversation";
     pubkey: PublicKey;
-    isGroupChat: boolean;
 };
 
 export type SearchModel = {

@@ -32,7 +32,6 @@ export function initialModel(): Model {
         dm: {
             focusedContent: new Map(),
             currentEditor: undefined,
-            isGroupMessage: false,
         },
         dmEditors: editors,
         gmEditors: new Map(),
