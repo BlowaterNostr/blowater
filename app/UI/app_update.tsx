@@ -621,7 +621,7 @@ export async function handle_SendMessage(
 ) {
     if (event.isGroupChat) {
         const textEvent = await groupControl.prepareGroupMessageEvent(
-            event.pubkey,
+            event.editorID,
             event.text,
         );
         if (textEvent instanceof Error) {
@@ -634,7 +634,7 @@ export async function handle_SendMessage(
 
         for (const blob of event.files) {
             const imageEvent = await groupControl.prepareGroupMessageEvent(
-                event.pubkey,
+                event.editorID,
                 blob,
             );
             if (imageEvent instanceof Error) {
@@ -646,7 +646,7 @@ export async function handle_SendMessage(
                 return err;
             }
         }
-        const editor = gmEditors.get(event.pubkey.hex);
+        const editor = gmEditors.get(event.editorID.hex);
         if (editor) {
             editor.files = [];
             editor.text = "";
@@ -654,7 +654,7 @@ export async function handle_SendMessage(
     } else {
         const events = await sendDMandImages({
             sender: ctx,
-            receiverPublicKey: event.pubkey,
+            receiverPublicKey: event.editorID,
             message: event.text,
             files: event.files,
             lamport_timestamp: lamport.now(),
@@ -667,7 +667,7 @@ export async function handle_SendMessage(
         {
             // clearing the editor before sending the message to relays
             // so that even if the sending is awaiting, the UI will clear
-            const editor = dmEditors.get(event.pubkey.hex);
+            const editor = dmEditors.get(event.editorID.hex);
             if (editor) {
                 editor.files = [];
                 editor.text = "";

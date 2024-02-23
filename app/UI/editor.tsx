@@ -31,10 +31,18 @@ export type EditorEvent = SendMessage | UpdateEditorText | UpdateMessageFiles;
 
 export type SendMessage = {
     readonly type: "SendMessage";
-    readonly pubkey: PublicKey;
-    text: string;
-    files: Blob[];
-    isGroupChat: boolean;
+    readonly editorID: PublicKey;
+    readonly text: string;
+    readonly files: Blob[];
+    readonly isGroupChat: boolean; // deprecated
+};
+
+type EditorID = {
+    type: "Pubkey";
+    pubkey: PublicKey;
+} | {
+    type: "relay";
+    relay: string;
 };
 
 export type UpdateEditorText = {
@@ -92,7 +100,7 @@ export class Editor extends Component<EditorProps, EditorState> {
         const props = this.props;
         props.emit({
             type: "SendMessage",
-            pubkey: props.targetNpub,
+            editorID: props.targetNpub,
             files: props.files,
             text: props.text,
             isGroupChat: false,
@@ -101,7 +109,7 @@ export class Editor extends Component<EditorProps, EditorState> {
             "rows",
             "1",
         );
-        this.setState({ text: "", files: [] });
+        await setState(this, { text: "", files: [] });
     };
 
     removeFile = (index: number) => {
