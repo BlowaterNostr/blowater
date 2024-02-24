@@ -8,7 +8,7 @@ import { PinConversation, UnpinConversation } from "../nostr.ts";
 import { UI_Interaction_Event, UserBlocker } from "./app_update.tsx";
 import { Avatar } from "./components/avatar.tsx";
 import { CenterClass, LinearGradientsClass } from "./components/tw.ts";
-import { IS_BETA_VERSION } from "./config.js";
+
 import { ConversationSummary, sortUserInfo } from "./conversation-list.ts";
 import { StartCreateGroupChat } from "./create-group.tsx";
 import { ChatIcon } from "./icons/chat-icon.tsx";
@@ -143,26 +143,6 @@ export class ConversationList extends Component<Props, State> {
                             />
                             New Chat
                         </button>
-                        {IS_BETA_VERSION
-                            ? (
-                                <Fragment>
-                                    <div class={tw`h-4 w-1 bg-[${PrimaryTextColor}] !p-0`}></div>
-                                    <button
-                                        onClick={async () => {
-                                            props.emit({
-                                                type: "StartCreateGroupChat",
-                                            });
-                                        }}
-                                        class={tw`w-full h-10 ${CenterClass} text-sm text-[${PrimaryTextColor}] !hover:bg-transparent hover:font-bold group`}
-                                    >
-                                        <GroupIcon
-                                            class={tw`w-4 h-4 mr-1 text-[${PrimaryTextColor}] fill-current`}
-                                        />
-                                        New Group
-                                    </button>
-                                </Fragment>
-                            )
-                            : undefined}
                     </div>
                 </div>
 
