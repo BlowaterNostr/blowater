@@ -40,10 +40,11 @@ import { notify } from "./notification.ts";
 import { RelayInformationComponent } from "./relay-detail.tsx";
 import { Search } from "./search.tsx";
 import { SearchUpdate, SelectConversation } from "./search_model.ts";
-import { RelayConfigChange, ViewRelayDetail } from "./setting.tsx";
+import { RelayConfigChange, ViewRecommendedRelaysList, ViewRelayDetail } from "./setting.tsx";
 import { SignInEvent } from "./signIn.tsx";
 import { TagSelected } from "./contact-tags.tsx";
 import { BlockUser, UnblockUser } from "./user-detail.tsx";
+import { RelayRecommendList } from "./relay-recommend-list.tsx";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -63,6 +64,7 @@ export type UI_Interaction_Event =
     | StartInvite
     | InviteUsersToGroup
     | ViewRelayDetail
+    | ViewRecommendedRelaysList
     | TagSelected
     | BlockUser
     | UnblockUser
@@ -155,6 +157,10 @@ export async function* UI_Interaction_Update(args: {
         else if (event.type == "ViewRelayDetail") {
             app.popOverInputChan.put({
                 children: <RelayInformationComponent relayUrl={event.url} profileGetter={app.database} />,
+            });
+        } else if (event.type == "ViewRecommendedRelaysList") {
+            app.popOverInputChan.put({
+                children: <RelayRecommendList />,
             });
         } //
         //

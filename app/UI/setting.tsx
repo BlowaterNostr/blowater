@@ -22,7 +22,8 @@ import {
 } from "./style/colors.ts";
 import { RelayIcon } from "./icons/relay-icon.tsx";
 import { DeleteIcon } from "./icons/delete-icon.tsx";
-import { RelayConfig, RemoveBlowaterRelay } from "./relay-config.ts";
+import { AddIcon } from "./icons/add-icon.tsx";
+import { recommendedRelays, RelayConfig, RemoveBlowaterRelay } from "./relay-config.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 import { emitFunc } from "../event-bus.ts";
 import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
@@ -35,7 +36,7 @@ export interface SettingProps {
     relayConfig: RelayConfig;
     relayPool: ConnectionPool;
     myAccountContext: NostrAccountContext;
-    emit: emitFunc<RelayConfigChange | ViewRelayDetail>;
+    emit: emitFunc<RelayConfigChange | ViewRelayDetail | ViewRecommendedRelaysList>;
     show: boolean;
 }
 
@@ -101,10 +102,14 @@ export type ViewRelayDetail = {
     url: string;
 };
 
+export type ViewRecommendedRelaysList = {
+    type: "ViewRecommendedRelaysList";
+};
+
 type RelaySettingProp = {
     relayConfig: RelayConfig;
     relayPool: ConnectionPool;
-    emit: emitFunc<RelayConfigChange | ViewRelayDetail>;
+    emit: emitFunc<RelayConfigChange | ViewRelayDetail | ViewRecommendedRelaysList>;
 };
 
 type RelaySettingState = {
@@ -155,6 +160,12 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
         this.props.emit({
             type: "ViewRelayDetail",
             url: url,
+        });
+    };
+
+    showRecommendedRelaysList = () => {
+        this.props.emit({
+            type: "ViewRecommendedRelaysList",
         });
     };
 
@@ -272,6 +283,12 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
                         );
                     })}
                 </ul>
+                <button
+                    class={`w-full p-[0.75rem] mt-[1.5rem] rounded-lg ${NoOutlineClass} ${CenterClass} ${LinearGradientsClass}  hover:bg-gradient-to-l text-[${PrimaryTextColor}]`}
+                    onClick={this.showRecommendedRelaysList}
+                >
+                    View Recommended Relays
+                </button>
             </Fragment>
         );
     }
