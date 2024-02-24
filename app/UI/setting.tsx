@@ -104,6 +104,7 @@ export type ViewRelayDetail = {
 
 export type ViewRecommendedRelaysList = {
     type: "ViewRecommendedRelaysList";
+    relayConfig: RelayConfig;
 };
 
 type RelaySettingProp = {
@@ -166,6 +167,7 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
     showRecommendedRelaysList = () => {
         this.props.emit({
             type: "ViewRecommendedRelaysList",
+            relayConfig: this.props.relayConfig,
         });
     };
 

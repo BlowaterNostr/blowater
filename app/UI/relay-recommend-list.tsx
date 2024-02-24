@@ -9,9 +9,44 @@ import {
     HoverButtonBackgroudColor,
     PrimaryTextColor,
 } from "./style/colors.ts";
+import { emitFunc } from "../event-bus.ts";
+import { RelayConfigChange } from "./setting.tsx";
+import { RelayConfig } from "./relay-config.ts";
 
-export class RelayRecommendList extends Component {
-    render() {
+type RelayRecommendListProps = {
+    relayConfig: RelayConfig;
+    emit: emitFunc<RelayConfigChange>;
+};
+
+type RelayRecommendListState = {
+    relays: string[];
+};
+
+export class RelayRecommendList extends Component<RelayRecommendListProps, RelayRecommendListState> {
+    constructor(props: RelayRecommendListProps) {
+        super(props);
+        this.state = {
+            relays: this.computeRecommendedRelays(),
+        };
+    }
+
+    computeRecommendedRelays() {
+        // remove the relays that are already in the relayConfig
+        return recommendedRelays.filter((r) => !this.props.relayConfig.getRelayURLs().has(r));
+    }
+
+    handleAddRelay = (relayUrl: string) => {
+        // There is no need to get the relay status here
+        this.props.relayConfig.add(relayUrl);
+        this.props.emit({
+            type: "RelayConfigChange",
+            kind: "add",
+            url: relayUrl,
+        });
+        this.setState({ relays: this.computeRecommendedRelays() });
+    };
+
+    render(props: RelayRecommendListProps) {
         return (
             <div class={`text-[${PrimaryTextColor}] text-center`}>
                 <div class={`text-lg mt-4`}>
@@ -24,7 +59,7 @@ export class RelayRecommendList extends Component {
                 <ul
                     class={`mt-[0.5rem] text-[${PrimaryTextColor}] flex flex-col justify-center items-center w-full`}
                 >
-                    {recommendedRelays.map((r) => {
+                    {this.state.relays.map((r) => {
                         return (
                             <li
                                 class={`w-[80%] px-[1rem] py-[0.75rem] rounded-lg bg-[${DividerBackgroundColor}80] mb-[0.5rem]  flex items-center justify-between cursor-pointer hover:bg-[${HoverButtonBackgroudColor}]`}
@@ -34,23 +69,7 @@ export class RelayRecommendList extends Component {
                                 </div>
                                 <button
                                     class={`w-[2rem] h-[2rem] rounded-lg bg-transparent hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
-                                    onClick={async (e) => {
-                                        e.stopPropagation();
-                                        // const p = props.relayConfig.add(r.url);
-                                        // this.setState({
-                                        //     relayStatus: this.computeRelayStatus(props),
-                                        // });
-                                        // props.emit({
-                                        //     type: "RelayConfigChange",
-                                        //     kind: "add",
-                                        //     url: r.url,
-                                        // });
-                                        // const relay = await p;
-                                        // if (relay instanceof Error) {
-                                        //     console.error(relay);
-                                        //     return;
-                                        // }
-                                    }}
+                                    onClick={() => this.handleAddRelay(r)}
                                 >
                                     <AddIcon
                                         class={`w-[1rem] h-[1rem]`}
