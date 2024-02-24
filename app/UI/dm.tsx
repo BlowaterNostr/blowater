@@ -118,7 +118,7 @@ export class DirectMessageContainer extends Component<DirectMessageContainerProp
                     ${props.currentEditor ? "max-sm:hidden" : ""}`}
                 >
                     <ConversationList
-                        eventBus={props.bus}
+                        eventSub={props.bus}
                         emit={props.bus.emit}
                         getters={props.getters}
                         userBlocker={props.userBlocker}

@@ -46,7 +46,7 @@ export interface NewMessageChecker {
 
 type Props = {
     emit: emitFunc<ContactUpdate | SearchUpdate | TagSelected>;
-    eventBus: EventSubscriber<UI_Interaction_Event>;
+    eventSub: EventSubscriber<UI_Interaction_Event>;
     getters: {
         convoListRetriever: ConversationListRetriever;
         newMessageChecker: NewMessageChecker;
@@ -67,7 +67,7 @@ export class ConversationList extends Component<Props, State> {
     }
 
     async componentDidMount() {
-        for await (const e of this.props.eventBus.onChange()) {
+        for await (const e of this.props.eventSub.onChange()) {
             if (e.type == "SelectConversation") {
                 this.setState({
                     currentSelected: e,
