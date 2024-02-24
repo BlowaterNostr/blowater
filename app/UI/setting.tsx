@@ -285,7 +285,7 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
                 </ul>
                 <button
                     class={`w-full p-[0.75rem] mt-[1.5rem] rounded-lg ${NoOutlineClass} ${CenterClass} ${LinearGradientsClass}  hover:bg-gradient-to-l text-[${PrimaryTextColor}]`}
-                    onClick={() => this.showRecommendedRelaysList()}
+                    onClick={this.showRecommendedRelaysList}
                 >
                     View Recommended Relays
                 </button>

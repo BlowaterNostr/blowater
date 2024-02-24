@@ -12,7 +12,6 @@ import {
 
 export class RelayRecommendList extends Component {
     render() {
-        const recommendedRelaysStatus = recommendedRelays.map((url) => ({ url }));
         return (
             <div class={`text-[${PrimaryTextColor}] text-center`}>
                 <div class={`text-lg mt-4`}>
@@ -25,13 +24,13 @@ export class RelayRecommendList extends Component {
                 <ul
                     class={`mt-[0.5rem] text-[${PrimaryTextColor}] flex flex-col justify-center items-center w-full`}
                 >
-                    {recommendedRelaysStatus.map((r) => {
+                    {recommendedRelays.map((r) => {
                         return (
                             <li
                                 class={`w-[80%] px-[1rem] py-[0.75rem] rounded-lg bg-[${DividerBackgroundColor}80] mb-[0.5rem]  flex items-center justify-between cursor-pointer hover:bg-[${HoverButtonBackgroudColor}]`}
                             >
                                 <div class={`flex items-center flex-1 overflow-hidden`}>
-                                    <span class={`truncate`}>{r.url}</span>
+                                    <span class={`truncate`}>{r}</span>
                                 </div>
                                 <button
                                     class={`w-[2rem] h-[2rem] rounded-lg bg-transparent hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
