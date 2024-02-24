@@ -43,7 +43,6 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
     render() {
         const relayList = [];
         for (const relay of this.props.pool.getRelays()) {
-            const domain = new URL(relay.url).hostname.split(".");
             relayList.push(
                 <div
                     class="flex flex-row mx-1 my-1 hover:bg-[rgb(244,244,244)] hover:cursor-pointer"
@@ -52,7 +51,7 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
                     <div class="w-16 h-16 border rounded-md mx-1">
                         <RelayAvatar
                             icon={this.state.relayInformation.get(relay.url)?.icon}
-                            name={domain[domain.length - 2]}
+                            name={getSecondaryDomainName(relay.url)}
                         />
                     </div>
                     <div>
@@ -63,15 +62,19 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
             );
         }
         return (
-            <div class="px-2">
+            <div class="">
                 <div
-                    class="w-14 h-14 border rounded-md mx-1 my-1 hover:hover:cursor-pointer"
+                    class="bg-white w-14 h-14 border rounded-md my-1 hover:hover:cursor-pointer"
                     onClick={this.toggleRelayList}
                 >
-                    <RelayAvatar
-                        icon={this.state.relayInformation.get(this.state.selectedRelay)?.icon || "logo.webp"}
-                        name={this.state.relayInformation.get(this.state.selectedRelay)?.name || "relay"}
-                    />
+                    {this.state.selectedRelay
+                        ? (
+                            <RelayAvatar
+                                icon={this.state.relayInformation.get(this.state.selectedRelay)?.icon}
+                                name={getSecondaryDomainName(this.state.selectedRelay)}
+                            />
+                        )
+                        : <RelayAvatar icon="logo.webp" name="" />}
                 </div>
                 {this.state.showRelayList
                     ? (
@@ -100,6 +103,11 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
             relay,
         });
     };
+}
+
+function getSecondaryDomainName(url: string) {
+    const domain = new URL(url).hostname.split(".");
+    return domain[domain.length - 2];
 }
 
 export async function getRelayInformation(url: string) {

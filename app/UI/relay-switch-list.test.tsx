@@ -5,7 +5,7 @@ import { testEventBus } from "./_setup.test.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 
 const pool = new ConnectionPool();
-pool.addRelayURLs(["nostr.wine", "nos.lol", "relay.damus.io"]);
+pool.addRelayURLs(["relay.blowater.app", "nos.lol", "relay.damus.io"]);
 
 render(
     <RelaySwitchList emit={testEventBus.emit} pool={pool} />,

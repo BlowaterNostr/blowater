@@ -103,6 +103,10 @@ export function RelayAvatar(props: {
             </img>
         );
     } else {
-        return <div>{props.name}</div>;
+        return (
+            <div class="break-all">
+                {props.name}
+            </div>
+        );
     }
 }

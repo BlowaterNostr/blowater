@@ -1,6 +1,5 @@
 /** @jsx h */
 import { ComponentChild, h } from "https://esm.sh/preact@10.17.1";
-import { Avatar, RelayAvatar } from "./components/avatar.tsx";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import {
     PrimaryBackgroundColor,
