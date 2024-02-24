@@ -23,12 +23,9 @@ type RelayRecommendListState = {
 };
 
 export class RelayRecommendList extends Component<RelayRecommendListProps, RelayRecommendListState> {
-    constructor(props: RelayRecommendListProps) {
-        super(props);
-        this.state = {
-            relays: this.computeRecommendedRelays(),
-        };
-    }
+    state: Readonly<RelayRecommendListState> = {
+        relays: this.computeRecommendedRelays(),
+    };
 
     computeRecommendedRelays() {
         // remove the relays that are already in the relayConfig
@@ -46,7 +43,7 @@ export class RelayRecommendList extends Component<RelayRecommendListProps, Relay
         this.setState({ relays: this.computeRecommendedRelays() });
     };
 
-    render(props: RelayRecommendListProps) {
+    render() {
         return (
             <div class={`text-[${PrimaryTextColor}] text-center`}>
                 <div class={`text-lg mt-4`}>
