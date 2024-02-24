@@ -47,11 +47,12 @@ export interface NewMessageChecker {
 type Props = {
     emit: emitFunc<ContactUpdate | SearchUpdate | TagSelected>;
     eventBus: EventSubscriber<UI_Interaction_Event>;
-    convoListRetriever: ConversationListRetriever;
-    // groupChatListGetter: GroupMessageListGetter; // deprecated
-    hasNewMessages: NewMessageChecker;
-    pinListGetter: PinListGetter;
-    profileGetter: ProfileGetter;
+    getters: {
+        convoListRetriever: ConversationListRetriever;
+        hasNewMessages: NewMessageChecker;
+        pinListGetter: PinListGetter;
+        profileGetter: ProfileGetter;
+    };
     userBlocker: UserBlocker;
 };
 
@@ -70,7 +71,7 @@ export class ConversationList extends Component<Props, State> {
             if (e.type == "SelectConversation") {
                 this.setState({
                     currentSelected: e,
-                    selectedContactGroup: this.props.convoListRetriever.getConversationType(
+                    selectedContactGroup: this.props.getters.convoListRetriever.getConversationType(
                         e.pubkey,
                     ),
                 });
@@ -89,8 +90,8 @@ export class ConversationList extends Component<Props, State> {
 
     render(props: Props) {
         let listToRender: ConversationSummary[];
-        const contacts = Array.from(props.convoListRetriever.getContacts());
-        const strangers = Array.from(props.convoListRetriever.getStrangers());
+        const contacts = Array.from(props.getters.convoListRetriever.getContacts());
+        const strangers = Array.from(props.getters.convoListRetriever.getStrangers());
         const blocked = props.userBlocker.getBlockedUsers();
         let isGroupChat = false;
         switch (this.state.selectedContactGroup) {
@@ -101,14 +102,14 @@ export class ConversationList extends Component<Props, State> {
                 listToRender = strangers;
                 break;
             case "blocked":
-                listToRender = Array.from(props.convoListRetriever.getConversations(blocked));
+                listToRender = Array.from(props.getters.convoListRetriever.getConversations(blocked));
         }
         const convoListToRender = [];
         console.log(contacts, strangers, blocked);
         for (const conversationSummary of listToRender) {
             convoListToRender.push({
                 conversation: conversationSummary,
-                newMessageCount: props.hasNewMessages.newNessageCount(
+                newMessageCount: props.getters.hasNewMessages.newNessageCount(
                     conversationSummary.pubkey,
                     isGroupChat,
                 ),
@@ -173,10 +174,9 @@ export class ConversationList extends Component<Props, State> {
                 <ContactGroup
                     contacts={Array.from(convoListToRender.values())}
                     currentSelected={this.state.currentSelected}
-                    pinListGetter={props.pinListGetter}
-                    // isGroupChat={listToRender === groups}
+                    pinListGetter={props.getters.pinListGetter}
                     emit={props.emit}
-                    profileGetter={props.profileGetter}
+                    profileGetter={props.getters.profileGetter}
                 />
             </div>
         );

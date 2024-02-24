@@ -9,6 +9,7 @@ export interface ConversationSummary {
     pubkey: PublicKey;
     newestEventSendByMe?: NostrEvent;
     newestEventReceivedByMe?: NostrEvent;
+    relays?: string[];
 }
 
 export class DM_List implements ConversationListRetriever, NewMessageChecker, UserBlocker {

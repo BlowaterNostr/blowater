@@ -46,6 +46,7 @@ import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 import { ChannelList } from "./channel-list.tsx";
 import { ChannelContainer } from "./channel-container.tsx";
 import { setState } from "./_helper.ts";
+import { ConversationListRetriever } from "./conversation-list.tsx";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");

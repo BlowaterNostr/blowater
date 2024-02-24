@@ -113,16 +113,18 @@ export class DirectMessageContainer extends Component<DirectMessageContainerProp
                 class={`h-full w-full flex bg-[#36393F] overflow-hidden`}
             >
                 <div
-                    class={`w-fit
-                    max-sm:w-full
+                    class={`w-fit max-sm:w-full
                     ${props.currentEditor ? "max-sm:hidden" : ""}`}
                 >
                     <ConversationList
                         eventBus={props.bus}
                         emit={props.bus.emit}
-                        convoListRetriever={props.conversationLists}
-                        hasNewMessages={props.newMessageChecker}
-                        {...props}
+                        getters={{
+                            convoListRetriever: props.conversationLists,
+                            hasNewMessages: props.newMessageChecker,
+                            pinListGetter: props.pinListGetter,
+                            profileGetter: props.profileGetter,
+                        }}
                         userBlocker={props.userBlocker}
                     />
                 </div>
