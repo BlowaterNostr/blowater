@@ -154,9 +154,8 @@ export class ConversationList extends Component<Props, State> {
                 <ContactGroup
                     contacts={Array.from(convoListToRender.values())}
                     currentSelected={this.state.currentSelected}
-                    pinListGetter={props.getters.pinListGetter}
                     emit={props.emit}
-                    profileGetter={props.getters.profileGetter}
+                    getters={props.getters}
                 />
             </div>
         );
@@ -170,17 +169,18 @@ export interface PinListGetter {
 type ConversationListProps = {
     contacts: { conversation: ConversationSummary; newMessageCount: number }[];
     currentSelected: SelectConversation | undefined;
-    pinListGetter: PinListGetter;
-    // isGroupChat: boolean;
     emit: emitFunc<ContactUpdate>;
-    profileGetter: ProfileGetter;
+    getters: {
+        pinListGetter: PinListGetter;
+        profileGetter: ProfileGetter;
+    };
 };
 
 function ContactGroup(props: ConversationListProps) {
     props.contacts.sort((a, b) => {
         return sortUserInfo(a.conversation, b.conversation);
     });
-    const pinList = props.pinListGetter.getPinList();
+    const pinList = props.getters.pinListGetter.getPinList();
     const pinned = [];
     const unpinned = [];
     for (const contact of props.contacts) {
@@ -195,7 +195,9 @@ function ContactGroup(props: ConversationListProps) {
         <ul class={tw`overflow-auto flex-1 p-2 text-[#96989D]`}>
             {pinned.map((contact) => {
                 let profile;
-                const profileEvent = props.profileGetter.getProfilesByPublicKey(contact.conversation.pubkey);
+                const profileEvent = props.getters.profileGetter.getProfilesByPublicKey(
+                    contact.conversation.pubkey,
+                );
                 if (profileEvent) {
                     profile = profileEvent.profile;
                 }
@@ -247,7 +249,9 @@ function ContactGroup(props: ConversationListProps) {
 
             {unpinned.map((contact) => {
                 let profile;
-                const profileEvent = props.profileGetter.getProfilesByPublicKey(contact.conversation.pubkey);
+                const profileEvent = props.getters.profileGetter.getProfilesByPublicKey(
+                    contact.conversation.pubkey,
+                );
                 if (profileEvent) {
                     profile = profileEvent.profile;
                 }
