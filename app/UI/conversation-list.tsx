@@ -49,7 +49,7 @@ type Props = {
     eventBus: EventSubscriber<UI_Interaction_Event>;
     getters: {
         convoListRetriever: ConversationListRetriever;
-        hasNewMessages: NewMessageChecker;
+        newMessageChecker: NewMessageChecker;
         pinListGetter: PinListGetter;
         profileGetter: ProfileGetter;
     };
@@ -109,7 +109,7 @@ export class ConversationList extends Component<Props, State> {
         for (const conversationSummary of listToRender) {
             convoListToRender.push({
                 conversation: conversationSummary,
-                newMessageCount: props.getters.hasNewMessages.newNessageCount(
+                newMessageCount: props.getters.newMessageChecker.newNessageCount(
                     conversationSummary.pubkey,
                     isGroupChat,
                 ),

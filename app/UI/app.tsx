@@ -475,20 +475,22 @@ export class AppComponent extends Component<AppProps, AppState> {
                         {...model.dm}
                         bus={app.eventBus}
                         ctx={myAccountCtx}
-                        profileGetter={app.database}
-                        conversationLists={app.conversationLists}
+                        getters={{
+                            convoListRetriever: app.conversationLists,
+                            messageGetter: PerRelayMessageGetter(
+                                this.state.selectedRelay.url,
+                                messageGetter,
+                                app.database,
+                            ),
+                            newMessageChecker: app.conversationLists,
+                            newMessageListener: app.dmController,
+                            relayRecordGetter: app.database,
+                            pinListGetter: app.otherConfig,
+                            profileGetter: app.database,
+                        }}
                         profilesSyncer={app.profileSyncer}
                         eventSyncer={app.eventSyncer}
-                        pinListGetter={app.otherConfig}
                         groupChatController={app.groupChatController}
-                        newMessageChecker={app.conversationLists}
-                        messageGetter={PerRelayMessageGetter(
-                            this.state.selectedRelay.url,
-                            messageGetter,
-                            app.database,
-                        )}
-                        newMessageListener={app.dmController}
-                        relayRecordGetter={app.database}
                         userBlocker={app.conversationLists}
                     />
                 );

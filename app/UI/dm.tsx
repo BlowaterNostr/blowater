@@ -39,14 +39,15 @@ type DirectMessageContainerProps = {
     profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
     groupChatController: GroupMessageController;
-    // getters
-    profileGetter: ProfileGetter;
-    messageGetter: ChatMessagesGetter;
-    newMessageListener: NewMessageListener;
-    pinListGetter: PinListGetter;
-    conversationLists: ConversationListRetriever;
-    newMessageChecker: NewMessageChecker;
-    relayRecordGetter: RelayRecordGetter;
+    getters: {
+        profileGetter: ProfileGetter;
+        messageGetter: ChatMessagesGetter;
+        newMessageListener: NewMessageListener;
+        pinListGetter: PinListGetter;
+        convoListRetriever: ConversationListRetriever;
+        newMessageChecker: NewMessageChecker;
+        relayRecordGetter: RelayRecordGetter;
+    };
     userBlocker: UserBlocker;
 } & DM_Model;
 
@@ -101,7 +102,7 @@ export class DirectMessageContainer extends Component<DirectMessageContainerProp
             buttons.push(
                 <InviteButton
                     groupChatController={props.groupChatController}
-                    profileGetter={props.profileGetter}
+                    profileGetter={props.getters.profileGetter}
                     userPublicKey={currentEditor.pubkey}
                     emit={props.bus.emit}
                 />,
@@ -119,12 +120,7 @@ export class DirectMessageContainer extends Component<DirectMessageContainerProp
                     <ConversationList
                         eventBus={props.bus}
                         emit={props.bus.emit}
-                        getters={{
-                            convoListRetriever: props.conversationLists,
-                            hasNewMessages: props.newMessageChecker,
-                            pinListGetter: props.pinListGetter,
-                            profileGetter: props.profileGetter,
-                        }}
+                        getters={props.getters}
                         userBlocker={props.userBlocker}
                     />
                 </div>
@@ -136,24 +132,24 @@ export class DirectMessageContainer extends Component<DirectMessageContainerProp
                                 bus={this.props.bus}
                                 buttons={buttons}
                                 currentEditor={this.state.currentEditor}
-                                profileGetter={this.props.profileGetter}
+                                profileGetter={this.props.getters.profileGetter}
                             />
                             <div class={`flex-1 overflow-auto`}>
                                 <MessagePanel
                                     myPublicKey={props.ctx.publicKey}
                                     emit={props.bus.emit}
                                     eventSub={props.bus}
-                                    newMessageListener={props.newMessageListener}
+                                    newMessageListener={props.getters.newMessageListener}
                                     focusedContent={getFocusedContent(
                                         props.focusedContent.get(this.state.currentEditor.pubkey.hex),
-                                        props.profileGetter,
+                                        props.getters.profileGetter,
                                     )}
                                     profilesSyncer={props.profilesSyncer}
                                     eventSyncer={props.eventSyncer}
-                                    profileGetter={props.profileGetter}
+                                    profileGetter={props.getters.profileGetter}
                                     editorModel={this.state.currentEditor}
-                                    messageGetter={props.messageGetter}
-                                    relayRecordGetter={props.relayRecordGetter}
+                                    messageGetter={props.getters.messageGetter}
+                                    relayRecordGetter={props.getters.relayRecordGetter}
                                     userBlocker={props.userBlocker}
                                 />
                             </div>
