@@ -5,7 +5,6 @@ import { PrivateKey } from "../../libs/nostr.ts/key.ts";
 import { InMemoryAccountContext, NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { relays } from "../../libs/nostr.ts/relay-list.test.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
-import { GroupChatSyncer, GroupMessageController } from "../features/gm.ts";
 import { ProfileSyncer } from "../features/profile.ts";
 import { LamportTime } from "../time.ts";
 import { test_db_view, testEventBus } from "./_setup.test.ts";
@@ -14,6 +13,7 @@ import { handle_SendMessage } from "./app_update.tsx";
 import { EventSyncer } from "./event_syncer.ts";
 import { MessagePanel } from "./message-panel.tsx";
 import { DirectedMessageController } from "../features/dm.ts";
+import { DM_List } from "./conversation-list.ts";
 
 const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
 const database = await test_db_view();
@@ -41,11 +41,6 @@ await database.addEvent(
 const pool = new ConnectionPool();
 const model = initialModel();
 pool.addRelayURL(relays[0]);
-const groupMessageController = new GroupMessageController(
-    ctx,
-    new GroupChatSyncer(database, pool),
-    new ProfileSyncer(database, pool),
-);
 
 const editor = model.dmEditors.get(ctx.publicKey.hex);
 
@@ -66,13 +61,11 @@ const view = () => {
             myPublicKey={ctx.publicKey}
             profilesSyncer={new ProfileSyncer(database, pool)}
             emit={testEventBus.emit}
-            rightPanelModel={{
-                show: true,
-            }}
-            isGroupMessage={true}
-            messageGetter={groupMessageController}
             newMessageListener={new DirectedMessageController(ctx)}
             relayRecordGetter={database}
+            eventSub={testEventBus}
+            userBlocker={new DM_List(ctx)}
+            messageGetter={new DirectedMessageController(ctx)}
         />
     );
 };
@@ -90,7 +83,6 @@ for await (const e of testEventBus.onChange()) {
             model.dmEditors,
             model.gmEditors,
             database,
-            groupMessageController,
         );
         if (err instanceof Error) {
             console.error("update:SendMessage", err);
