@@ -9,7 +9,6 @@ import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 import { Datebase_View } from "../database.ts";
 import { emitFunc, EventBus } from "../event-bus.ts";
 import { DirectedMessageController, sendDMandImages } from "../features/dm.ts";
-import { GroupMessageController } from "../features/gm.ts";
 import { ProfileSyncer, saveProfile } from "../features/profile.ts";
 import {
     Encrypted_Event,
@@ -26,13 +25,12 @@ import { PopOverInputChannel } from "./components/popover.tsx";
 import { OtherConfig } from "./config-other.ts";
 import { DM_List } from "./conversation-list.ts";
 import { ContactUpdate } from "./conversation-list.tsx";
-import { CreateGroup, CreateGroupChat, StartCreateGroupChat } from "./create-group.tsx";
 import { StartInvite } from "./dm.tsx";
 import { EditGroup, StartEditGroupChatProfile } from "./edit-group.tsx";
 import { SaveProfile } from "./edit-profile.tsx";
 import { EditorEvent, EditorModel, new_DM_EditorModel, SendMessage } from "./editor.tsx";
 import { EventDetail, EventDetailItem } from "./event-detail.tsx";
-import { InviteUsersToGroup } from "./invite-button.tsx";
+
 import { DirectMessagePanelUpdate } from "./message-panel.tsx";
 import { ChatMessage } from "./message.ts";
 import { InstallPrompt, NavigationUpdate, SelectRelay } from "./nav.tsx";
@@ -59,11 +57,8 @@ export type UI_Interaction_Event =
     | UnpinConversation
     | SignInEvent
     | RelayConfigChange
-    | CreateGroupChat
-    | StartCreateGroupChat
     | StartEditGroupChatProfile
     | StartInvite
-    | InviteUsersToGroup
     | ViewRelayDetail
     | ViewRecommendedRelaysList
     | TagSelected
@@ -210,7 +205,6 @@ export async function* UI_Interaction_Update(args: {
                 app.model.dmEditors,
                 app.model.gmEditors,
                 app.database,
-                app.groupChatController,
             ).then((res) => {
                 if (res instanceof Error) {
                     console.error("update:SendMessage", res);
@@ -262,23 +256,7 @@ export async function* UI_Interaction_Update(args: {
         //
         // DM
         //
-        else if (event.type == "InviteUsersToGroup") {
-            for (const pubkey of event.usersPublicKey) {
-                const invitationEvent = await app.groupChatController.createInvitation(
-                    event.groupPublicKey,
-                    pubkey,
-                );
-                if (invitationEvent instanceof Error) {
-                    console.error(invitationEvent);
-                    continue;
-                }
-                const err = await pool.sendEvent(invitationEvent);
-                if (err instanceof Error) {
-                    console.error(err);
-                    continue;
-                }
-            }
-        } else if (event.type == "ViewThread") {
+        else if (event.type == "ViewThread") {
             if (model.navigationModel.activeNav == "DM") {
                 if (model.dm.currentEditor) {
                     model.dm.focusedContent.set(
@@ -304,38 +282,6 @@ export async function* UI_Interaction_Update(args: {
             }
         } else if (event.type == "OpenNote") {
             open(`https://nostrapp.link/#${NoteID.FromHex(event.event.id).bech32()}?select=true`);
-        } else if (event.type == "StartCreateGroupChat") {
-            app.popOverInputChan.put({
-                children: <CreateGroup emit={eventBus.emit} />,
-            });
-        } else if (event.type == "CreateGroupChat") {
-            const profileData = event.profileData;
-
-            const groupCreation = app.groupChatController.createGroupChat();
-            const creationEvent = await app.groupChatController.encodeCreationToNostrEvent(groupCreation);
-            if (creationEvent instanceof Error) {
-                console.error(creationEvent);
-                continue;
-            }
-            const err = await pool.sendEvent(creationEvent);
-            if (err instanceof Error) {
-                console.error(err);
-                continue;
-            }
-            const profileEvent = await prepareNormalNostrEvent(
-                groupCreation.groupKey,
-                {
-                    kind: NostrKind.META_DATA,
-                    content: JSON.stringify(profileData),
-                },
-            );
-            const err2 = pool.sendEvent(profileEvent);
-            if (err2 instanceof Error) {
-                console.error(err2);
-                continue;
-            }
-            app.popOverInputChan.put({ children: undefined });
-            app.profileSyncer.add(groupCreation.groupKey.publicKey.hex);
         } else if (event.type == "StartEditGroupChatProfile") {
             app.popOverInputChan.put({
                 children: (
@@ -469,7 +415,6 @@ export async function* Database_Update(
     profileSyncer: ProfileSyncer,
     lamport: LamportTime,
     convoLists: DM_List,
-    groupController: GroupMessageController,
     dmController: DirectedMessageController,
     emit: emitFunc<SelectConversation>,
     args: {
@@ -542,27 +487,6 @@ export async function* Database_Update(
                         console.error(err);
                     }
                 }
-            } else if (e.kind == NostrKind.Group_Message) {
-                {
-                    const err = await groupController.addEvent({
-                        ...e,
-                        kind: e.kind,
-                    });
-                    if (err instanceof Error) {
-                        console.error(err, e);
-                        await database.remove(e.id);
-                    }
-                }
-                {
-                    const err = await dmController.addEvent({
-                        ...e,
-                        kind: e.kind,
-                    });
-                    if (err instanceof Error) {
-                        console.error(err);
-                        await database.remove(e.id);
-                    }
-                }
             } else if (e.kind == NostrKind.Encrypted_Custom_App_Data) {
                 console.log(e);
                 const err = await args.otherConfig.addEvent(e);
@@ -582,16 +506,6 @@ export async function* Database_Update(
                         author?.picture ? author.picture : "",
                         () => {
                             if (e.kind == NostrKind.DIRECT_MESSAGE) {
-                                const k = PublicKey.FromHex(e.pubkey);
-                                if (k instanceof Error) {
-                                    console.error(k);
-                                    return;
-                                }
-                                emit({
-                                    type: "SelectConversation",
-                                    pubkey: k,
-                                });
-                            } else if (e.kind == NostrKind.Group_Message) {
                                 const k = PublicKey.FromHex(e.pubkey);
                                 if (k instanceof Error) {
                                     console.error(k);
@@ -625,67 +539,32 @@ export async function handle_SendMessage(
     dmEditors: Map<string, EditorModel>,
     gmEditors: Map<string, EditorModel>,
     db: Datebase_View,
-    groupControl: GroupMessageController,
 ) {
-    if (event.isGroupChat) {
-        const textEvent = await groupControl.prepareGroupMessageEvent(
-            event.editorID,
-            event.text,
-        );
-        if (textEvent instanceof Error) {
-            return textEvent;
-        }
-        const err = await pool.sendEvent(textEvent);
-        if (err instanceof Error) {
-            return err;
-        }
-
-        for (const blob of event.files) {
-            const imageEvent = await groupControl.prepareGroupMessageEvent(
-                event.editorID,
-                blob,
-            );
-            if (imageEvent instanceof Error) {
-                return imageEvent;
-            }
-
-            const err = await pool.sendEvent(imageEvent);
-            if (err instanceof Error) {
-                return err;
-            }
-        }
-        const editor = gmEditors.get(event.editorID.hex);
+    const events = await sendDMandImages({
+        sender: ctx,
+        receiverPublicKey: event.editorID,
+        message: event.text,
+        files: event.files,
+        lamport_timestamp: lamport.now(),
+        pool,
+        tags: [],
+    });
+    if (events instanceof Error) {
+        return events;
+    }
+    {
+        // clearing the editor before sending the message to relays
+        // so that even if the sending is awaiting, the UI will clear
+        const editor = dmEditors.get(event.editorID.hex);
         if (editor) {
             editor.files = [];
             editor.text = "";
         }
-    } else {
-        const events = await sendDMandImages({
-            sender: ctx,
-            receiverPublicKey: event.editorID,
-            message: event.text,
-            files: event.files,
-            lamport_timestamp: lamport.now(),
-            pool,
-            tags: [],
-        });
-        if (events instanceof Error) {
-            return events;
-        }
-        {
-            // clearing the editor before sending the message to relays
-            // so that even if the sending is awaiting, the UI will clear
-            const editor = dmEditors.get(event.editorID.hex);
-            if (editor) {
-                editor.files = [];
-                editor.text = "";
-            }
-        }
-        for (const eventSent of events) {
-            const err = await db.addEvent(eventSent);
-            if (err instanceof Error) {
-                console.error(err);
-            }
+    }
+    for (const eventSent of events) {
+        const err = await db.addEvent(eventSent);
+        if (err instanceof Error) {
+            console.error(err);
         }
     }
 }

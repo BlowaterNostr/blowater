@@ -8,7 +8,6 @@ import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 import { Datebase_View, RelayRecordGetter } from "../database.ts";
 import { EventBus } from "../event-bus.ts";
 import { DirectedMessageController, getAllEncryptedMessagesOf, InvalidEvent } from "../features/dm.ts";
-import { group_GM_events, GroupChatSyncer, GroupMessageController } from "../features/gm.ts";
 import { ProfileSyncer } from "../features/profile.ts";
 import { About } from "./about.tsx";
 import { initialModel, Model } from "./app_model.ts";
@@ -161,7 +160,6 @@ export class App {
         public readonly eventSyncer: EventSyncer,
         public readonly conversationLists: DM_List,
         public readonly relayConfig: RelayConfig,
-        public readonly groupChatController: GroupMessageController,
         public readonly lamport: LamportTime,
         public readonly dmController: DirectedMessageController,
     ) {}
@@ -201,12 +199,6 @@ export class App {
         }
 
         const dmController = new DirectedMessageController(args.ctx);
-        const groupSyncer = new GroupChatSyncer(args.database, args.pool);
-        const groupChatController = new GroupMessageController(
-            args.ctx,
-            groupSyncer,
-            profileSyncer,
-        );
 
         (async () => {
             // load DMs
@@ -224,29 +216,6 @@ export class App {
                     continue;
                 }
             }
-            // load GMs
-            const group_events = await group_GM_events(args.ctx, Array.from(args.database.getAllEvents()));
-            for (const e of group_events.creataions) {
-                const error = await groupChatController.addEvent(e);
-                if (error instanceof Error) {
-                    console.error(error, e);
-                    await args.database.remove(e.id);
-                }
-            }
-            for (const e of group_events.invites) {
-                const error = await groupChatController.addEvent(e);
-                if (error instanceof Error) {
-                    console.error(error, e);
-                    await args.database.remove(e.id);
-                }
-            }
-            for (const e of group_events.messages) {
-                const error = await groupChatController.addEvent(e);
-                if (error instanceof Error) {
-                    console.error(error, e);
-                    await args.database.remove(e.id);
-                }
-            }
         })();
 
         const app = new App(
@@ -261,7 +230,6 @@ export class App {
             eventSyncer,
             conversationLists,
             relayConfig,
-            groupChatController,
             args.lamport,
             dmController,
         );
@@ -277,46 +245,6 @@ export class App {
             const stream = await this.pool.newSub(OtherConfig.name, {
                 authors: [this.ctx.publicKey.hex],
                 kinds: [NostrKind.Encrypted_Custom_App_Data],
-            });
-            if (stream instanceof Error) {
-                throw stream; // crash the app
-            }
-            for await (const msg of stream.chan) {
-                if (msg.res.type == "EOSE") {
-                    continue;
-                }
-                const ok = await this.database.addEvent(msg.res.event, msg.url);
-                if (ok instanceof Error) {
-                    console.error(msg.res.event);
-                    console.error(ok);
-                }
-            }
-        })();
-
-        // group chat synchronization
-        (async () => {
-            const stream = await this.pool.newSub("gm_send", {
-                authors: [this.ctx.publicKey.hex],
-                kinds: [NostrKind.Group_Message],
-            });
-            if (stream instanceof Error) {
-                throw stream; // crash the app
-            }
-            for await (const msg of stream.chan) {
-                if (msg.res.type == "EOSE") {
-                    continue;
-                }
-                const ok = await this.database.addEvent(msg.res.event, msg.url);
-                if (ok instanceof Error) {
-                    console.error(msg.res.event);
-                    console.error(ok);
-                }
-            }
-        })();
-        (async () => {
-            const stream = await this.pool.newSub("gm_receive", {
-                "#p": [this.ctx.publicKey.hex],
-                kinds: [NostrKind.Group_Message],
             });
             if (stream instanceof Error) {
                 throw stream; // crash the app
@@ -392,7 +320,6 @@ export class App {
                     this.profileSyncer,
                     this.lamport,
                     this.conversationLists,
-                    this.groupChatController,
                     this.dmController,
                     this.eventBus.emit,
                     {
@@ -490,7 +417,6 @@ export class AppComponent extends Component<AppProps, AppState> {
                         }}
                         profilesSyncer={app.profileSyncer}
                         eventSyncer={app.eventSyncer}
-                        groupChatController={app.groupChatController}
                         userBlocker={app.conversationLists}
                     />
                 );

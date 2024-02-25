@@ -34,7 +34,6 @@ export type SendMessage = {
     readonly editorID: PublicKey;
     readonly text: string;
     readonly files: Blob[];
-    readonly isGroupChat: boolean; // deprecated
 };
 
 type EditorID = {
@@ -103,7 +102,6 @@ export class Editor extends Component<EditorProps, EditorState> {
             editorID: props.targetNpub,
             files: props.files,
             text: props.text,
-            isGroupChat: false,
         });
         this.textareaElement.current.setAttribute(
             "rows",

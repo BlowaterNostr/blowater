@@ -486,16 +486,7 @@ export function ParseMessageContent(
         );
     }
 
-    let parsedContentItems;
-    if (message.type == "gm_invitation") {
-        return (
-            <InviteCard publicKey={message.invitation.groupAddr} profileGetter={profileGetter} emit={emit} />
-        );
-    } else if (message.event.kind == NostrKind.Group_Message) {
-        parsedContentItems = parseContent(message.content);
-    } else {
-        parsedContentItems = parseContent(message.content);
-    }
+    const parsedContentItems = parseContent(message.content);
 
     const vnode = [];
     let start = 0;

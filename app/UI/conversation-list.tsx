@@ -10,9 +10,8 @@ import { Avatar } from "./components/avatar.tsx";
 import { CenterClass, LinearGradientsClass } from "./components/tw.ts";
 
 import { ConversationSummary, sortUserInfo } from "./conversation-list.ts";
-import { StartCreateGroupChat } from "./create-group.tsx";
+
 import { ChatIcon } from "./icons/chat-icon.tsx";
-import { GroupIcon } from "./icons/group-icon.tsx";
 import { PinIcon } from "./icons/pin-icon.tsx";
 import { UnpinIcon } from "./icons/unpin-icon.tsx";
 import { ProfileGetter } from "./search.tsx";
@@ -36,8 +35,7 @@ export type ConversationType = ContactTag;
 export type ContactUpdate =
     | SearchUpdate
     | PinConversation
-    | UnpinConversation
-    | StartCreateGroupChat;
+    | UnpinConversation;
 
 export interface NewMessageChecker {
     newNessageCount(pubkey: PublicKey, isGourpChat: boolean): number;
