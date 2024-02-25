@@ -45,6 +45,7 @@ import { SignInEvent } from "./signIn.tsx";
 import { TagSelected } from "./contact-tags.tsx";
 import { BlockUser, UnblockUser } from "./user-detail.tsx";
 import { RelayRecommendList } from "./relay-recommend-list.tsx";
+import { HidePopOver } from "./components/popover.tsx";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -68,7 +69,8 @@ export type UI_Interaction_Event =
     | TagSelected
     | BlockUser
     | UnblockUser
-    | SelectRelay;
+    | SelectRelay
+    | HidePopOver;
 
 type BackToContactList = {
     type: "BackToContactList";
@@ -138,10 +140,11 @@ export async function* UI_Interaction_Update(args: {
         //
         // Searchx
         //
-        else if (event.type == "CancelPopOver") {
-            model.search.isSearching = false;
+        else if (event.type == "HidePopOver") {
+            app.popOverInputChan.put({
+                children: undefined,
+            });
         } else if (event.type == "StartSearch") {
-            model.search.isSearching = true;
             const search = (
                 <Search
                     placeholder={"Search a user's public key or name"}
@@ -173,7 +176,6 @@ export async function* UI_Interaction_Update(args: {
         //
         else if (event.type == "SelectConversation") {
             model.navigationModel.activeNav = "DM";
-            model.search.isSearching = false;
             updateConversation(app.model, event.pubkey);
 
             if (!model.dm.focusedContent.get(event.pubkey.hex)) {

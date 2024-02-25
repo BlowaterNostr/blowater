@@ -11,11 +11,11 @@ import {
 } from "./style/colors.ts";
 import { emitFunc } from "../event-bus.ts";
 import { RelayConfig } from "./relay-config.ts";
-import { Cancel } from "./search_model.ts";
+import { HidePopOver } from "./components/popover.tsx";
 
 type RelayRecommendListProps = {
     relayConfig: RelayConfig;
-    emit: emitFunc<Cancel>;
+    emit: emitFunc<HidePopOver>;
 };
 
 export class RelayRecommendList extends Component<RelayRecommendListProps> {
@@ -27,16 +27,16 @@ export class RelayRecommendList extends Component<RelayRecommendListProps> {
     }
 
     handleAddRelay = async (relayUrl: string) => {
-        // There is no need to get the relay status here
-        const relay = await this.props.relayConfig.add(relayUrl);
+        const p = this.props.relayConfig.add(relayUrl);
+        this.props.emit({
+            type: "HidePopOver",
+        });
+        const relay = await p;
         if (relay instanceof Error) {
             console.error(relay);
             return;
         }
         this.forceUpdate();
-        this.props.emit({
-            type: "CancelPopOver",
-        });
     };
 
     render() {

@@ -3,6 +3,10 @@ import { Component, ComponentChildren, h } from "https://esm.sh/preact@10.17.1";
 import { SecondaryBackgroundColor } from "../style/colors.ts";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 
+export type HidePopOver = {
+    type: "HidePopOver";
+};
+
 type State = {
     show: boolean;
 };
