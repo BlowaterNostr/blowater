@@ -160,7 +160,12 @@ export async function* UI_Interaction_Update(args: {
             });
         } else if (event.type == "ViewRecommendedRelaysList") {
             app.popOverInputChan.put({
-                children: <RelayRecommendList />,
+                children: (
+                    <RelayRecommendList
+                        relayConfig={event.relayConfig}
+                        emit={eventBus.emit}
+                    />
+                ),
             });
         } //
         //

@@ -9,8 +9,36 @@ import {
     HoverButtonBackgroudColor,
     PrimaryTextColor,
 } from "./style/colors.ts";
+import { emitFunc } from "../event-bus.ts";
+import { RelayConfig } from "./relay-config.ts";
+import { Cancel } from "./search_model.ts";
 
-export class RelayRecommendList extends Component {
+type RelayRecommendListProps = {
+    relayConfig: RelayConfig;
+    emit: emitFunc<Cancel>;
+};
+
+export class RelayRecommendList extends Component<RelayRecommendListProps> {
+    computeRecommendedRelays() {
+        // remove the relays that are already in the relayConfig
+        return recommendedRelays.filter((r) => {
+            return !this.props.relayConfig.getRelayURLs().has(r);
+        });
+    }
+
+    handleAddRelay = async (relayUrl: string) => {
+        // There is no need to get the relay status here
+        const relay = await this.props.relayConfig.add(relayUrl);
+        if (relay instanceof Error) {
+            console.error(relay);
+            return;
+        }
+        this.forceUpdate();
+        this.props.emit({
+            type: "CancelPopOver",
+        });
+    };
+
     render() {
         return (
             <div class={`text-[${PrimaryTextColor}] text-center`}>
@@ -24,7 +52,7 @@ export class RelayRecommendList extends Component {
                 <ul
                     class={`mt-[0.5rem] text-[${PrimaryTextColor}] flex flex-col justify-center items-center w-full`}
                 >
-                    {recommendedRelays.map((r) => {
+                    {this.computeRecommendedRelays().map((r) => {
                         return (
                             <li
                                 class={`w-[80%] px-[1rem] py-[0.75rem] rounded-lg bg-[${DividerBackgroundColor}80] mb-[0.5rem]  flex items-center justify-between cursor-pointer hover:bg-[${HoverButtonBackgroudColor}]`}
@@ -34,23 +62,7 @@ export class RelayRecommendList extends Component {
                                 </div>
                                 <button
                                     class={`w-[2rem] h-[2rem] rounded-lg bg-transparent hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
-                                    onClick={async (e) => {
-                                        e.stopPropagation();
-                                        // const p = props.relayConfig.add(r.url);
-                                        // this.setState({
-                                        //     relayStatus: this.computeRelayStatus(props),
-                                        // });
-                                        // props.emit({
-                                        //     type: "RelayConfigChange",
-                                        //     kind: "add",
-                                        //     url: r.url,
-                                        // });
-                                        // const relay = await p;
-                                        // if (relay instanceof Error) {
-                                        //     console.error(relay);
-                                        //     return;
-                                        // }
-                                    }}
+                                    onClick={() => this.handleAddRelay(r)}
                                 >
                                     <AddIcon
                                         class={`w-[1rem] h-[1rem]`}
