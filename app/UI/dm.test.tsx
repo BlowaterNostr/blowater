@@ -9,7 +9,6 @@ import { relays } from "../../libs/nostr.ts/relay-list.test.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 import { Datebase_View } from "../database.ts";
 import { DirectedMessageController } from "../features/dm.ts";
-import { GroupMessageController } from "../features/gm.ts";
 import { ProfileSyncer } from "../features/profile.ts";
 import { LamportTime } from "../time.ts";
 import { testEventBus } from "./_setup.test.ts";
@@ -65,30 +64,26 @@ const model = initialModel();
 
 pool.addRelayURL(relays[0]);
 
-const gmControl = new GroupMessageController(ctx, { add: (_) => {} }, { add: (_) => {} });
 const dmControl = new DirectedMessageController(ctx);
 
 render(
     <DirectMessageContainer
-        conversationLists={dm_list}
         eventSyncer={new EventSyncer(pool, database)}
         profilesSyncer={new ProfileSyncer(database, pool)}
         bus={testEventBus}
-        rightPanelModel={{
-            show: true,
-        }}
         currentEditor={model.dm.currentEditor}
         focusedContent={model.dm.focusedContent}
         ctx={ctx}
-        pool={pool}
-        isGroupMessage={false}
-        pinListGetter={OtherConfig.Empty(new Channel(), ctx, lamport)}
-        profileGetter={database}
-        groupChatController={gmControl}
-        messageGetter={gmControl}
-        newMessageChecker={dm_list}
-        newMessageListener={dmControl}
-        relayRecordGetter={database}
+        getters={{
+            convoListRetriever: dm_list,
+            messageGetter: dmControl,
+            newMessageChecker: dm_list,
+            newMessageListener: dmControl,
+            pinListGetter: OtherConfig.Empty(new Channel(), ctx, lamport),
+            profileGetter: database,
+            relayRecordGetter: database,
+        }}
+        userBlocker={dm_list}
     />,
     document.body,
 );

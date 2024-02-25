@@ -5,7 +5,6 @@ import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { NostrAccountContext, NostrEvent } from "../../libs/nostr.ts/nostr.ts";
 import { RelayRecordGetter } from "../database.ts";
 import { EventBus } from "../event-bus.ts";
-import { GroupMessageController } from "../features/gm.ts";
 import { ProfileSyncer } from "../features/profile.ts";
 import { getFocusedContent } from "./app.tsx";
 import { ChatMessagesGetter, UI_Interaction_Event, UserBlocker } from "./app_update.tsx";
@@ -14,7 +13,6 @@ import { IconButtonClass } from "./components/tw.ts";
 import { EditorModel } from "./editor.tsx";
 import { EventSyncer } from "./event_syncer.ts";
 import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
-import { InviteButton } from "./invite-button.tsx";
 import { MessagePanel, NewMessageListener } from "./message-panel.tsx";
 import { ProfileGetter } from "./search.tsx";
 
@@ -44,7 +42,6 @@ type DirectMessageContainerProps = {
     };
     profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
-    groupChatController: GroupMessageController;
     userBlocker: UserBlocker;
 } & DM_Model;
 
@@ -92,7 +89,7 @@ export class DirectMessageContainer extends Component<DirectMessageContainerProp
 
     render(props: DirectMessageContainerProps) {
         const t = Date.now();
-
+        console.log(DirectMessageContainer.name, "?");
         const vDom = (
             <div
                 class={`h-full w-full flex bg-[#36393F] overflow-hidden`}

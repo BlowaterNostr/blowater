@@ -6,7 +6,7 @@ import { DirectMessageGetter } from "../UI/app_update.tsx";
 import { NewMessageListener } from "../UI/message-panel.tsx";
 import { ChatMessage, parseContent } from "../UI/message.ts";
 import { compare, getTags, Parsed_Event, prepareNostrImageEvent, Tag, Tags } from "../nostr.ts";
-import { decodeInvitation, gmEventType } from "./gm.ts";
+
 import {
     chan,
     Channel,
@@ -192,91 +192,69 @@ export class DirectedMessageController implements DirectMessageGetter, NewMessag
 
     async addEvent(
         event:
-            | Parsed_Event<NostrKind.DIRECT_MESSAGE | NostrKind.Group_Message>
+            | Parsed_Event<NostrKind.DIRECT_MESSAGE>
             | NostrEvent<NostrKind.DIRECT_MESSAGE>,
     ) {
         const kind = event.kind;
-        if (kind == NostrKind.Group_Message) {
-            const gmEvent = { ...event, kind };
-            const type = await gmEventType(this.ctx, gmEvent);
-            if (type == "gm_invitation") {
-                const invitation = await decodeInvitation(this.ctx, gmEvent);
-                if (invitation instanceof Error) {
-                    return invitation;
-                }
-                const message: ChatMessage = {
-                    type: "gm_invitation",
-                    event: gmEvent,
-                    invitation: invitation,
-                    author: gmEvent.publicKey,
-                    created_at: new Date(gmEvent.created_at * 1000),
-                    lamport: gmEvent.parsedTags.lamport_timestamp,
-                    content: gmEvent.content,
-                };
-                this.directed_messages.set(gmEvent.id, message);
-                /* do not await */ this.new_message_chan.put(message);
-            }
-            // else ignore
+
+        let parsedTags;
+        if ("parsedTags" in event) {
+            parsedTags = event.parsedTags;
         } else {
-            let parsedTags;
-            if ("parsedTags" in event) {
-                parsedTags = event.parsedTags;
-            } else {
-                parsedTags = getTags(event);
-            }
-            let publicKey;
-            if ("publicKey" in event) {
-                publicKey = event.publicKey;
-            } else {
-                publicKey = PublicKey.FromHex(event.pubkey);
-                if (publicKey instanceof Error) {
-                    return publicKey;
-                }
-            }
-            let dmEvent = await parseDM(
-                {
-                    ...event,
-                    kind,
-                },
-                this.ctx,
-                parsedTags,
-                publicKey,
-            );
-            if ("type" in dmEvent) {
-                if (dmEvent.type == "Other") {
-                    return dmEvent.error;
-                } else if (dmEvent.type == "NotMyMessage") {
-                    return; // ignore
-                }
-            }
-            if (dmEvent instanceof Error) {
-                return dmEvent;
-            }
-            const isImage = dmEvent.parsedTags.image;
-            let chatMessage: ChatMessage;
-            if (isImage) {
-                const imageBase64 = dmEvent.decryptedContent;
-                chatMessage = {
-                    event: dmEvent,
-                    author: dmEvent.publicKey,
-                    content: imageBase64,
-                    type: "image",
-                    created_at: new Date(dmEvent.created_at * 1000),
-                    lamport: dmEvent.parsedTags.lamport_timestamp,
-                };
-            } else {
-                chatMessage = {
-                    event: dmEvent,
-                    author: dmEvent.publicKey,
-                    content: dmEvent.decryptedContent,
-                    type: "text",
-                    created_at: new Date(dmEvent.created_at * 1000),
-                    lamport: dmEvent.parsedTags.lamport_timestamp,
-                };
-            }
-            this.directed_messages.set(event.id, chatMessage);
-            /* do not await */ this.new_message_chan.put(chatMessage);
+            parsedTags = getTags(event);
         }
+        let publicKey;
+        if ("publicKey" in event) {
+            publicKey = event.publicKey;
+        } else {
+            publicKey = PublicKey.FromHex(event.pubkey);
+            if (publicKey instanceof Error) {
+                return publicKey;
+            }
+        }
+        let dmEvent = await parseDM(
+            {
+                ...event,
+                kind,
+            },
+            this.ctx,
+            parsedTags,
+            publicKey,
+        );
+        if ("type" in dmEvent) {
+            if (dmEvent.type == "Other") {
+                return dmEvent.error;
+            } else if (dmEvent.type == "NotMyMessage") {
+                return; // ignore
+            }
+        }
+        if (dmEvent instanceof Error) {
+            return dmEvent;
+        }
+        const isImage = dmEvent.parsedTags.image;
+        let chatMessage: ChatMessage;
+        if (isImage) {
+            const imageBase64 = dmEvent.decryptedContent;
+            chatMessage = {
+                event: dmEvent,
+                author: dmEvent.publicKey,
+                content: imageBase64,
+                type: "image",
+                created_at: new Date(dmEvent.created_at * 1000),
+                lamport: dmEvent.parsedTags.lamport_timestamp,
+            };
+        } else {
+            chatMessage = {
+                event: dmEvent,
+                author: dmEvent.publicKey,
+                content: dmEvent.decryptedContent,
+                type: "text",
+                created_at: new Date(dmEvent.created_at * 1000),
+                lamport: dmEvent.parsedTags.lamport_timestamp,
+            };
+        }
+        this.directed_messages.set(event.id, chatMessage);
+        /* do not await */ this.new_message_chan.put(chatMessage);
     }
 
     onChange() {
