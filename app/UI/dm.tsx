@@ -13,7 +13,7 @@ import { IconButtonClass } from "./components/tw.ts";
 import { EditorModel } from "./editor.tsx";
 import { EventSyncer } from "./event_syncer.ts";
 import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
-import { MessagePanel, NewMessageListener } from "./message-panel.tsx";
+import { MessagePanel } from "./message-panel.tsx";
 import { ProfileGetter } from "./search.tsx";
 
 import {
@@ -34,7 +34,6 @@ type DirectMessageContainerProps = {
     getters: {
         profileGetter: ProfileGetter;
         messageGetter: ChatMessagesGetter;
-        newMessageListener: NewMessageListener;
         pinListGetter: PinListGetter;
         convoListRetriever: ConversationListRetriever;
         newMessageChecker: NewMessageChecker;
@@ -120,7 +119,6 @@ export class DirectMessageContainer extends Component<DirectMessageContainerProp
                                     myPublicKey={props.ctx.publicKey}
                                     emit={props.bus.emit}
                                     eventSub={props.bus}
-                                    newMessageListener={props.getters.newMessageListener}
                                     focusedContent={getFocusedContent(
                                         props.focusedContent.get(this.state.currentEditor.pubkey.hex),
                                         props.getters.profileGetter,

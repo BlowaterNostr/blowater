@@ -203,7 +203,6 @@ export async function* UI_Interaction_Update(args: {
                 app.lamport,
                 pool,
                 app.model.dmEditors,
-                app.model.gmEditors,
                 app.database,
             ).then((res) => {
                 if (res instanceof Error) {
@@ -211,7 +210,7 @@ export async function* UI_Interaction_Update(args: {
                 }
             });
         } else if (event.type == "UpdateMessageFiles") {
-            const editors = event.isGroupChat ? model.gmEditors : model.dmEditors;
+            const editors = model.dmEditors;
             const editor = editors.get(event.pubkey.hex);
             if (editor) {
                 editor.files = event.files;
@@ -223,7 +222,7 @@ export async function* UI_Interaction_Update(args: {
                 });
             }
         } else if (event.type == "UpdateEditorText") {
-            const editorMap = event.isGroupChat ? model.gmEditors : model.dmEditors;
+            const editorMap = model.dmEditors;
             const editor = editorMap.get(event.pubkey.hex);
             if (editor) {
                 editor.text = event.text;
@@ -479,6 +478,7 @@ export async function* Database_Update(
                         model.myProfile = newProfile.profile;
                     }
                 } else if (e.kind == NostrKind.DIRECT_MESSAGE) {
+                    console.log("add event");
                     const err = await dmController.addEvent({
                         ...e,
                         kind: e.kind,
@@ -486,6 +486,7 @@ export async function* Database_Update(
                     if (err instanceof Error) {
                         console.error(err);
                     }
+                    console.log("add event done");
                 }
             } else if (e.kind == NostrKind.Encrypted_Custom_App_Data) {
                 console.log(e);
@@ -537,7 +538,6 @@ export async function handle_SendMessage(
     lamport: LamportTime,
     pool: ConnectionPool,
     dmEditors: Map<string, EditorModel>,
-    gmEditors: Map<string, EditorModel>,
     db: Datebase_View,
 ) {
     const events = await sendDMandImages({

@@ -1,7 +1,6 @@
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { DirectedMessage_Event, Parsed_Event } from "../nostr.ts";
 import { Nevent, NostrAddress, NostrProfile, NoteID } from "../../libs/nostr.ts/nip19.ts";
-import { NostrKind } from "../../libs/nostr.ts/nostr.ts";
 
 export function* parseContent(content: string) {
     // URLs

@@ -404,13 +404,8 @@ export class AppComponent extends Component<AppProps, AppState> {
                         ctx={myAccountCtx}
                         getters={{
                             convoListRetriever: app.conversationLists,
-                            messageGetter: PerRelayMessageGetter(
-                                this.state.selectedRelay.url,
-                                messageGetter,
-                                app.database,
-                            ),
+                            messageGetter: messageGetter,
                             newMessageChecker: app.conversationLists,
-                            newMessageListener: app.dmController,
                             relayRecordGetter: app.database,
                             pinListGetter: app.otherConfig,
                             profileGetter: app.database,
@@ -497,24 +492,4 @@ export function getFocusedContent(
             pubkey: focusedContent,
         };
     }
-}
-
-function PerRelayMessageGetter(
-    relay: string,
-    messageGetter: ChatMessagesGetter,
-    recordGetter: RelayRecordGetter,
-): ChatMessagesGetter {
-    return {
-        getChatMessages: (publicKey: string) => {
-            const msgs = messageGetter.getChatMessages(publicKey);
-            const ret = [];
-            for (const msg of msgs) {
-                const relays = recordGetter.getRelayRecord(msg.event.id);
-                if (relays.has(relay)) {
-                    ret.push(msg);
-                }
-            }
-            return ret;
-        },
-    };
 }

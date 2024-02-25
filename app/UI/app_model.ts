@@ -7,9 +7,7 @@ import { App } from "./app.tsx";
 export type Model = {
     app: App | undefined; // app is only available after sign-in
     dm: DM_Model;
-
     dmEditors: Map<string, EditorModel>;
-    gmEditors: Map<string, EditorModel>;
 
     // profile
     myProfile: ProfileData | undefined;
@@ -31,7 +29,6 @@ export function initialModel(): Model {
             currentEditor: undefined,
         },
         dmEditors: editors,
-        gmEditors: new Map(),
         newProfileField: {
             key: "",
             value: "",

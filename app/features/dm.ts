@@ -3,7 +3,6 @@ import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 import { DirectMessageGetter } from "../UI/app_update.tsx";
-import { NewMessageListener } from "../UI/message-panel.tsx";
 import { ChatMessage, parseContent } from "../UI/message.ts";
 import { compare, getTags, Parsed_Event, prepareNostrImageEvent, Tag, Tags } from "../nostr.ts";
 
@@ -150,7 +149,7 @@ function merge<T>(...iters: AsyncIterable<T>[]) {
     return merged;
 }
 
-export class DirectedMessageController implements DirectMessageGetter, NewMessageListener {
+export class DirectedMessageController implements DirectMessageGetter {
     constructor(
         public readonly ctx: NostrAccountContext,
     ) {}
@@ -168,6 +167,7 @@ export class DirectedMessageController implements DirectMessageGetter, NewMessag
             }
         }
         messages.sort((a, b) => compare(a.event, b.event));
+        console.log("c", messages);
         return messages;
     }
 
