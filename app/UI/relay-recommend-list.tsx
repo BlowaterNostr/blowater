@@ -18,29 +18,27 @@ type RelayRecommendListProps = {
     emit: emitFunc<RelayConfigChange>;
 };
 
-type RelayRecommendListState = {
-    relays: string[];
-};
-
-export class RelayRecommendList extends Component<RelayRecommendListProps, RelayRecommendListState> {
-    state: Readonly<RelayRecommendListState> = {
-        relays: this.computeRecommendedRelays(),
-    };
-
+export class RelayRecommendList extends Component<RelayRecommendListProps> {
     computeRecommendedRelays() {
         // remove the relays that are already in the relayConfig
-        return recommendedRelays.filter((r) => !this.props.relayConfig.getRelayURLs().has(r));
+        return recommendedRelays.filter((r) => {
+            return !this.props.relayConfig.getRelayURLs().has(r);
+        });
     }
 
-    handleAddRelay = (relayUrl: string) => {
+    handleAddRelay = async (relayUrl: string) => {
         // There is no need to get the relay status here
-        this.props.relayConfig.add(relayUrl);
+        const relay = await this.props.relayConfig.add(relayUrl);
+        if (relay instanceof Error) {
+            console.error(relay);
+            return;
+        }
         this.props.emit({
             type: "RelayConfigChange",
             kind: "add",
             url: relayUrl,
         });
-        this.setState({ relays: this.computeRecommendedRelays() });
+        this.forceUpdate();
     };
 
     render() {
@@ -56,7 +54,7 @@ export class RelayRecommendList extends Component<RelayRecommendListProps, Relay
                 <ul
                     class={`mt-[0.5rem] text-[${PrimaryTextColor}] flex flex-col justify-center items-center w-full`}
                 >
-                    {this.state.relays.map((r) => {
+                    {this.computeRecommendedRelays().map((r) => {
                         return (
                             <li
                                 class={`w-[80%] px-[1rem] py-[0.75rem] rounded-lg bg-[${DividerBackgroundColor}80] mb-[0.5rem]  flex items-center justify-between cursor-pointer hover:bg-[${HoverButtonBackgroudColor}]`}
@@ -66,7 +64,7 @@ export class RelayRecommendList extends Component<RelayRecommendListProps, Relay
                                 </div>
                                 <button
                                     class={`w-[2rem] h-[2rem] rounded-lg bg-transparent hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
-                                    onClick={() => this.handleAddRelay(r)}
+                                    onClick={async () => await this.handleAddRelay(r)}
                                 >
                                     <AddIcon
                                         class={`w-[1rem] h-[1rem]`}
