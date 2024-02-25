@@ -10,12 +10,12 @@ import {
     PrimaryTextColor,
 } from "./style/colors.ts";
 import { emitFunc } from "../event-bus.ts";
-import { RelayConfigChange } from "./setting.tsx";
 import { RelayConfig } from "./relay-config.ts";
+import { Cancel } from "./search_model.ts";
 
 type RelayRecommendListProps = {
     relayConfig: RelayConfig;
-    emit: emitFunc<RelayConfigChange>;
+    emit: emitFunc<Cancel>;
 };
 
 export class RelayRecommendList extends Component<RelayRecommendListProps> {
@@ -33,12 +33,10 @@ export class RelayRecommendList extends Component<RelayRecommendListProps> {
             console.error(relay);
             return;
         }
-        this.props.emit({
-            type: "RelayConfigChange",
-            kind: "add",
-            url: relayUrl,
-        });
         this.forceUpdate();
+        this.props.emit({
+            type: "CancelPopOver",
+        });
     };
 
     render() {
@@ -64,7 +62,7 @@ export class RelayRecommendList extends Component<RelayRecommendListProps> {
                                 </div>
                                 <button
                                     class={`w-[2rem] h-[2rem] rounded-lg bg-transparent hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
-                                    onClick={async () => await this.handleAddRelay(r)}
+                                    onClick={() => this.handleAddRelay(r)}
                                 >
                                     <AddIcon
                                         class={`w-[1rem] h-[1rem]`}
