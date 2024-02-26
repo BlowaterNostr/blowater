@@ -35,10 +35,7 @@ import { LamportTime } from "../time.ts";
 import { InstallPrompt, NavBar } from "./nav.tsx";
 import { Component } from "https://esm.sh/preact@10.17.1";
 import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
-import { ChannelList } from "./channel-list.tsx";
-import { ChannelContainer } from "./channel-container.tsx";
 import { setState } from "./_helper.ts";
-import { ConversationListRetriever } from "./conversation-list.tsx";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
@@ -248,25 +245,11 @@ export class App {
             }
         })();
 
-        // Sync DM events
-        (async function sync_dm_events(
-            database: Datebase_View,
-            ctx: NostrAccountContext,
-            pool: ConnectionPool,
-        ) {
-            const messageStream = getAllEncryptedMessagesOf(
-                ctx.publicKey,
-                pool,
-            );
-            for await (const msg of messageStream) {
-                if (msg.res.type == "EVENT") {
-                    const err = await database.addEvent(msg.res.event, msg.url);
-                    if (err instanceof Error) {
-                        console.log(err);
-                    }
-                }
-            }
-        })(this.database, this.ctx, this.pool);
+        // Sync events
+        {
+            forever(sync_dm_events(this.database, this.ctx, this.pool));
+            forever(sync_profile_events(this.database, this.pool));
+        }
 
         /* my profile */
         const myProfileEvent = this.database.getProfilesByPublicKey(this.ctx.publicKey);
@@ -470,4 +453,52 @@ export function getFocusedContent(
             pubkey: focusedContent,
         };
     }
+}
+
+async function sync_dm_events(
+    database: Datebase_View,
+    ctx: NostrAccountContext,
+    pool: ConnectionPool,
+) {
+    const messageStream = getAllEncryptedMessagesOf(
+        ctx.publicKey,
+        pool,
+    );
+    for await (const msg of messageStream) {
+        if (msg.res.type == "EVENT") {
+            const err = await database.addEvent(msg.res.event, msg.url);
+            if (err instanceof Error) {
+                console.log(err);
+            }
+        }
+    }
+}
+
+async function sync_profile_events(
+    database: Datebase_View,
+    pool: ConnectionPool,
+) {
+    const messageStream = await pool.newSub("sync_profile_events", {
+        kinds: [NostrKind.META_DATA],
+    });
+    if (messageStream instanceof Error) {
+        return messageStream;
+    }
+    for await (const msg of messageStream.chan) {
+        if (msg.res.type == "EVENT") {
+            const err = await database.addEvent(msg.res.event, msg.url);
+            if (err instanceof Error) {
+                console.log(err);
+            }
+        }
+    }
+}
+
+// f should not resolve, if it does resolve, it should only throw an error
+async function forever(f: Promise<Error | undefined | void>) {
+    const r = await f;
+    if (r == undefined) {
+        throw new Error(`${f} should not resolve`);
+    }
+    throw r;
 }
