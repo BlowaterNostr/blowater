@@ -1,5 +1,6 @@
 import { Component, h } from "https://esm.sh/preact@10.17.1";
 import { setState } from "./_helper.ts";
+import { SecondaryBackgroundColor } from "./style/colors.ts";
 
 type Props = {
     channels: string[];
@@ -12,7 +13,7 @@ type State = {
 export class ChannelList extends Component<Props, State> {
     render() {
         return (
-            <div class="border w-32 bg-[rgb(242,243,245)]">
+            <div>
                 {this.props.channels.map((c) => this.ChannelListItem(c, c == this.state.selectedChannel))}
             </div>
         );
