@@ -224,29 +224,9 @@ export class App {
     private initApp = async (installPrompt: InstallPrompt) => {
         console.log("App.initApp");
 
-        // configurations: pin list
-        (async () => {
-            const stream = await this.pool.newSub(OtherConfig.name, {
-                authors: [this.ctx.publicKey.hex],
-                kinds: [NostrKind.Encrypted_Custom_App_Data],
-            });
-            if (stream instanceof Error) {
-                throw stream; // crash the app
-            }
-            for await (const msg of stream.chan) {
-                if (msg.res.type == "EOSE") {
-                    continue;
-                }
-                const ok = await this.database.addEvent(msg.res.event, msg.url);
-                if (ok instanceof Error) {
-                    console.error(msg.res.event);
-                    console.error(ok);
-                }
-            }
-        })();
-
         // Sync events
         {
+            forever(sync_client_specific_data(this.pool, this.ctx, this.database));
             forever(sync_dm_events(this.database, this.ctx, this.pool));
             forever(sync_profile_events(this.database, this.pool));
         }
@@ -493,6 +473,30 @@ async function sync_profile_events(
         }
     }
 }
+
+const sync_client_specific_data = async (
+    pool: ConnectionPool,
+    ctx: NostrAccountContext,
+    database: Datebase_View,
+) => {
+    const stream = await pool.newSub(OtherConfig.name, {
+        authors: [ctx.publicKey.hex],
+        kinds: [NostrKind.Encrypted_Custom_App_Data],
+    });
+    if (stream instanceof Error) {
+        throw stream; // crash the app
+    }
+    for await (const msg of stream.chan) {
+        if (msg.res.type == "EOSE") {
+            continue;
+        }
+        const ok = await database.addEvent(msg.res.event, msg.url);
+        if (ok instanceof Error) {
+            console.error(msg.res.event);
+            console.error(ok);
+        }
+    }
+};
 
 // f should not resolve, if it does resolve, it should only throw an error
 async function forever(f: Promise<Error | undefined | void>) {
