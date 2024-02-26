@@ -44,6 +44,7 @@ import { TagSelected } from "./contact-tags.tsx";
 import { BlockUser, UnblockUser } from "./user-detail.tsx";
 import { RelayRecommendList } from "./relay-recommend-list.tsx";
 import { HidePopOver } from "./components/popover.tsx";
+import { Social_Model } from "./channel-container.tsx";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -257,7 +258,7 @@ export async function* UI_Interaction_Update(args: {
         //
         else if (event.type == "SelectChannel") {
             model.navigationModel.activeNav = "Social";
-            updateChannel(app.model, event.name);
+            model.social.currentChannel = event.name;
 
             // if (!model.dm.focusedContent.get(event.pubkey.hex)) {
             //     model.dm.focusedContent.set(event.pubkey.hex, event.pubkey);
@@ -415,17 +416,6 @@ export function updateConversation(
         editorMap.set(targetPublicKey.hex, editor);
     }
     model.dm.currentEditor = editor;
-}
-
-export function updateChannel(
-    model: Model,
-    name: string,
-) {
-    model.navigationModel.activeNav = "Social";
-    let channelModel = {
-        name,
-    };
-    model.social.currentChannel = channelModel;
 }
 
 //////////////

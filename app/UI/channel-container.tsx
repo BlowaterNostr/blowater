@@ -11,7 +11,7 @@ import { IconButtonClass } from "./components/tw.ts";
 import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
 
 export type Social_Model = {
-    currentChannel: ChannelModel | undefined;
+    currentChannel: string | undefined;
 };
 
 interface Kind1Getter {
@@ -23,11 +23,6 @@ type ChannelContainerProps = {
     bus: EventBus<UI_Interaction_Event>;
     // kind1Getter: Kind1Getter;
 } & Social_Model;
-
-// NOTE: Temporary type, which may change later
-export type ChannelModel = {
-    name: string;
-};
 
 type ChannelContainerState = {} & Social_Model;
 
@@ -104,7 +99,7 @@ class ChannelMessagePanel extends Component<ChannelMessagePanelProps> {
 }
 
 function TopBar(props: {
-    currentChannel: ChannelModel;
+    currentChannel: string;
 }) {
     return (
         <div
@@ -113,11 +108,6 @@ function TopBar(props: {
         >
             <div class={`flex items-center overflow-hidden`}>
                 <button
-                    onClick={() => {
-                        // props.bus.emit({
-                        //     type: "BackToContactList",
-                        // });
-                    }}
                     class={`w-6 h-6 mx-2 ${IconButtonClass}`}
                 >
                     <LeftArrowIcon
@@ -131,17 +121,8 @@ function TopBar(props: {
                     class={`text-[#F3F4EA] text-[1.2rem]
                             hover:text-[#60a5fa] hover:cursor-pointer
                             whitespace-nowrap truncate`}
-                    onClick={() => {
-                        // if (!props.currentEditor) {
-                        //     return;
-                        // }
-                        // props.bus.emit({
-                        //     type: "ViewUserDetail",
-                        //     pubkey: props.currentEditor.pubkey,
-                        // });
-                    }}
                 >
-                    {props.currentChannel ? props.currentChannel.name : "Channel Name"}
+                    {props.currentChannel}
                 </span>
             </div>
         </div>
