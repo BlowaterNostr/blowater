@@ -508,6 +508,8 @@ export function ParseMessageContent(
                         // profilesSyncer.add(item.pubkey.hex);
                         // todo: what to do?
                         // maybe signal an event to the bus
+                        // or maybe it's not necessary because now we
+                        // are syncing all kind 0s
                     }
                     vnode.push(
                         <ProfileCard publicKey={item.pubkey} emit={emit} />,
