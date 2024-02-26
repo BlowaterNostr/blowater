@@ -20,11 +20,14 @@ export class ChannelList extends Component<Props, State> {
     }
 
     ChannelListItem(name: string, isSelected: boolean) {
-        const selected = isSelected ? " bg-[rgb(214,216,220)]" : "";
+        const selected = isSelected ? " bg-[#404248] text-[#fff]" : "";
         return (
             <div
-                class={`border m-1 pl-1
-                hover:bg-[rgb(214,216,220)]
+                class={`m-1 pl-1
+                rounded
+                text-[#959BA3]
+                hover:text-[#fff]
+                hover:bg-[#36373C]
                 hover:cursor-pointer` + selected}
                 onClick={onChannelSelected(this, name)}
             >
