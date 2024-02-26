@@ -5,19 +5,12 @@ import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/mas
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
-import { Datebase_View, RelayRecordGetter } from "../database.ts";
+import { Datebase_View } from "../database.ts";
 import { EventBus } from "../event-bus.ts";
 import { DirectedMessageController, getAllEncryptedMessagesOf, InvalidEvent } from "../features/dm.ts";
-import { ProfileSyncer } from "../features/profile.ts";
 import { About } from "./about.tsx";
 import { initialModel, Model } from "./app_model.ts";
-import {
-    AppEventBus,
-    ChatMessagesGetter,
-    Database_Update,
-    UI_Interaction_Event,
-    UI_Interaction_Update,
-} from "./app_update.tsx";
+import { AppEventBus, Database_Update, UI_Interaction_Event, UI_Interaction_Update } from "./app_update.tsx";
 import { Popover, PopOverInputChannel } from "./components/popover.tsx";
 import { OtherConfig } from "./config-other.ts";
 import { DM_List } from "./conversation-list.ts";
@@ -156,7 +149,6 @@ export class App {
         public readonly pool: ConnectionPool,
         public readonly popOverInputChan: PopOverInputChannel,
         public readonly otherConfig: OtherConfig,
-        public readonly profileSyncer: ProfileSyncer,
         public readonly eventSyncer: EventSyncer,
         public readonly conversationLists: DM_List,
         public readonly relayConfig: RelayConfig,
@@ -184,10 +176,6 @@ export class App {
             relayPool: args.pool,
         });
         console.log(relayConfig.getRelayURLs());
-
-        // init profile syncer
-        const profileSyncer = new ProfileSyncer(args.database, args.pool);
-        profileSyncer.add(args.ctx.publicKey.hex);
 
         // init conversation list
         const all_events = Array.from(args.database.getAllEvents());
@@ -226,7 +214,6 @@ export class App {
             args.pool,
             args.popOverInputChan,
             args.otherConfig,
-            profileSyncer,
             eventSyncer,
             conversationLists,
             relayConfig,
@@ -303,12 +290,6 @@ export class App {
                 );
             }
         }
-
-        this.profileSyncer.add(
-            ...Array.from(this.conversationLists.convoSummaries.keys()),
-        );
-        console.log("user set", this.profileSyncer.userSet);
-
         // Database
         (async () => {
             let i = 0;
@@ -317,7 +298,6 @@ export class App {
                     this.ctx,
                     this.database,
                     this.model,
-                    this.profileSyncer,
                     this.lamport,
                     this.conversationLists,
                     this.dmController,
@@ -409,7 +389,6 @@ export class AppComponent extends Component<AppProps, AppState> {
                             pinListGetter: app.otherConfig,
                             profileGetter: app.database,
                         }}
-                        profilesSyncer={app.profileSyncer}
                         eventSyncer={app.eventSyncer}
                         userBlocker={app.conversationLists}
                     />

@@ -1,23 +1,23 @@
 /** @jsx h */
 import { Component, createRef, h } from "https://esm.sh/preact@10.17.1";
 import { tw } from "https://esm.sh/twind@0.16.16";
-import { Channel, sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { NoteID } from "../../libs/nostr.ts/nip19.ts";
 import { NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { RelayRecordGetter } from "../database.ts";
 import { emitFunc, EventSubscriber } from "../event-bus.ts";
-import { ProfileData, ProfileSyncer } from "../features/profile.ts";
+import { ProfileData } from "../features/profile.ts";
 import { Parsed_Event, PinConversation, UnpinConversation } from "../nostr.ts";
 import { isMobile } from "./_helper.ts";
-import { ChatMessagesGetter, UI_Interaction_Event, UserBlocker } from "./app_update.tsx";
+import { UI_Interaction_Event, UserBlocker } from "./app_update.tsx";
 import { Avatar } from "./components/avatar.tsx";
 import { IconButtonClass } from "./components/tw.ts";
 import { Editor, EditorEvent, EditorModel } from "./editor.tsx";
 import { EventSyncer } from "./event_syncer.ts";
 import { AboutIcon } from "./icons/about-icon.tsx";
 import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
-import { InviteCard } from "./invite-card.tsx";
+
 import {
     ChatMessage,
     groupContinuousMessages,
@@ -85,7 +85,6 @@ interface DirectMessagePanelProps {
         | UnblockUser
     >;
     eventSub: EventSubscriber<UI_Interaction_Event>;
-    profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
     profileGetter: ProfileGetter;
     messages: ChatMessage[];
@@ -133,7 +132,6 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
                         myPublicKey={props.myPublicKey}
                         messages={props.messages}
                         emit={props.emit}
-                        profilesSyncer={props.profilesSyncer}
                         eventSyncer={props.eventSyncer}
                         profileGetter={props.profileGetter}
                         relayRecordGetter={props.relayRecordGetter}
@@ -158,7 +156,6 @@ interface MessageListProps {
     myPublicKey: PublicKey;
     messages: ChatMessage[];
     emit: emitFunc<DirectMessagePanelUpdate | SelectConversation>;
-    profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
     profileGetter: ProfileGetter;
     relayRecordGetter: RelayRecordGetter;
@@ -226,7 +223,6 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
                     messages: messages,
                     myPublicKey: this.props.myPublicKey,
                     emit: this.props.emit,
-                    profilesSyncer: this.props.profilesSyncer,
                     eventSyncer: this.props.eventSyncer,
                     authorProfile: profileEvent ? profileEvent.profile : undefined,
                     profileGetter: this.props.profileGetter,
@@ -280,7 +276,6 @@ function MessageBoxGroup(props: {
     messages: ChatMessage[];
     myPublicKey: PublicKey;
     emit: emitFunc<DirectMessagePanelUpdate | ViewUserDetail | SelectConversation>;
-    profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
     profileGetter: ProfileGetter;
     relayRecordGetter: RelayRecordGetter;
@@ -327,7 +322,6 @@ function MessageBoxGroup(props: {
                     {ParseMessageContent(
                         first_group,
                         props.authorProfile,
-                        props.profilesSyncer,
                         props.eventSyncer,
                         props.emit,
                         props.profileGetter,
@@ -359,7 +353,6 @@ function MessageBoxGroup(props: {
                     {ParseMessageContent(
                         msg,
                         props.authorProfile,
-                        props.profilesSyncer,
                         props.eventSyncer,
                         props.emit,
                         props.profileGetter
@@ -451,7 +444,6 @@ export function NameAndTime(
 export function ParseMessageContent(
     message: ChatMessage,
     authorProfile: ProfileData | undefined,
-    profilesSyncer: ProfileSyncer,
     eventSyncer: EventSyncer,
     emit: emitFunc<ViewUserDetail | ViewThread | OpenNote | SelectConversation>,
     profileGetter: ProfileGetter,
@@ -513,7 +505,9 @@ export function ParseMessageContent(
                         );
                         break;
                     } else {
-                        profilesSyncer.add(item.pubkey.hex);
+                        // profilesSyncer.add(item.pubkey.hex);
+                        // todo: what to do?
+                        // maybe signal an event to the bus
                     }
                     vnode.push(
                         <ProfileCard publicKey={item.pubkey} emit={emit} />,

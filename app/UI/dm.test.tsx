@@ -9,7 +9,6 @@ import { relays } from "../../libs/nostr.ts/relay-list.test.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 import { Datebase_View } from "../database.ts";
 import { DirectedMessageController } from "../features/dm.ts";
-import { ProfileSyncer } from "../features/profile.ts";
 import { LamportTime } from "../time.ts";
 import { testEventBus } from "./_setup.test.ts";
 import { initialModel } from "./app_model.ts";
@@ -69,7 +68,6 @@ const dmControl = new DirectedMessageController(ctx);
 render(
     <DirectMessageContainer
         eventSyncer={new EventSyncer(pool, database)}
-        profilesSyncer={new ProfileSyncer(database, pool)}
         bus={testEventBus}
         currentEditor={model.dm.currentEditor}
         focusedContent={model.dm.focusedContent}
@@ -78,7 +76,6 @@ render(
             convoListRetriever: dm_list,
             messageGetter: dmControl,
             newMessageChecker: dm_list,
-            newMessageListener: dmControl,
             pinListGetter: OtherConfig.Empty(new Channel(), ctx, lamport),
             profileGetter: database,
             relayRecordGetter: database,

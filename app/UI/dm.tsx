@@ -5,7 +5,6 @@ import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { NostrAccountContext, NostrEvent } from "../../libs/nostr.ts/nostr.ts";
 import { RelayRecordGetter } from "../database.ts";
 import { EventBus } from "../event-bus.ts";
-import { ProfileSyncer } from "../features/profile.ts";
 import { getFocusedContent } from "./app.tsx";
 import { ChatMessagesGetter, UI_Interaction_Event, UserBlocker } from "./app_update.tsx";
 import { IconButtonClass } from "./components/tw.ts";
@@ -40,7 +39,6 @@ type DirectMessageContainerProps = {
         newMessageChecker: NewMessageChecker;
         relayRecordGetter: RelayRecordGetter;
     };
-    profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
     userBlocker: UserBlocker;
 } & DM_Model;
@@ -116,7 +114,6 @@ export class DirectMessageContainer extends Component<DirectMessageContainerProp
                                         props.focusedContent.get(this.state.currentEditor.pubkey.hex),
                                         props.getters.profileGetter,
                                     )}
-                                    profilesSyncer={props.profilesSyncer}
                                     eventSyncer={props.eventSyncer}
                                     profileGetter={props.getters.profileGetter}
                                     editorModel={this.state.currentEditor}

@@ -9,7 +9,7 @@ import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 import { Datebase_View } from "../database.ts";
 import { emitFunc, EventBus } from "../event-bus.ts";
 import { DirectedMessageController, sendDMandImages } from "../features/dm.ts";
-import { ProfileSyncer, saveProfile } from "../features/profile.ts";
+import { saveProfile } from "../features/profile.ts";
 import {
     Encrypted_Event,
     getTags,
@@ -411,7 +411,6 @@ export async function* Database_Update(
     ctx: NostrAccountContext,
     database: Datebase_View,
     model: Model,
-    profileSyncer: ProfileSyncer,
     lamport: LamportTime,
     convoLists: DM_List,
     dmController: DirectedMessageController,
@@ -437,7 +436,6 @@ export async function* Database_Update(
             changes_events.push(e);
         }
 
-        profileSyncer.add(...changes_events.map((e) => e.pubkey));
         convoLists.addEvents(changes_events, true);
         for (let e of changes_events) {
             const t = getTags(e).lamport_timestamp;
@@ -562,7 +560,7 @@ export async function handle_SendMessage(
         }
     }
     for (const eventSent of events) {
-        const err = await db.addEvent(eventSent);
+        const err = await db.addEvent(eventSent, undefined);
         if (err instanceof Error) {
             console.error(err);
         }

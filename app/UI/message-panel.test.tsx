@@ -5,7 +5,6 @@ import { PrivateKey } from "../../libs/nostr.ts/key.ts";
 import { InMemoryAccountContext, NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { relays } from "../../libs/nostr.ts/relay-list.test.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
-import { ProfileSyncer } from "../features/profile.ts";
 import { LamportTime } from "../time.ts";
 import { test_db_view, testEventBus } from "./_setup.test.ts";
 import { initialModel } from "./app_model.ts";
@@ -59,13 +58,11 @@ const view = () => {
             eventSyncer={new EventSyncer(pool, database)}
             focusedContent={undefined}
             myPublicKey={ctx.publicKey}
-            profilesSyncer={new ProfileSyncer(database, pool)}
             emit={testEventBus.emit}
-            newMessageListener={new DirectedMessageController(ctx)}
             relayRecordGetter={database}
             eventSub={testEventBus}
             userBlocker={new DM_List(ctx)}
-            messageGetter={new DirectedMessageController(ctx)}
+            messages={new DirectedMessageController(ctx).getChatMessages(ctx.publicKey.hex)}
         />
     );
 };
@@ -81,7 +78,6 @@ for await (const e of testEventBus.onChange()) {
             lamport,
             pool,
             model.dmEditors,
-            model.gmEditors,
             database,
         );
         if (err instanceof Error) {

@@ -22,10 +22,8 @@ type SearchResult = {
     id: string;
 };
 
-export type ProfileController = ProfileSetter & ProfileGetter;
-
 export interface ProfileSetter {
-    setProfile(profileEvent: Profile_Nostr_Event): void;
+    setProfile(profileEvent: Profile_Nostr_Event, relayURL: string): void;
 }
 
 export interface ProfileGetter {
