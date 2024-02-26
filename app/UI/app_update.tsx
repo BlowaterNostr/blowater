@@ -255,7 +255,16 @@ export async function* UI_Interaction_Update(args: {
         //
         // Channel
         //
-        //
+        else if (event.type == "SelectChannel") {
+            model.navigationModel.activeNav = "Social";
+            updateChannel(app.model, event.name);
+
+            // if (!model.dm.focusedContent.get(event.pubkey.hex)) {
+            //     model.dm.focusedContent.set(event.pubkey.hex, event.pubkey);
+            // }
+            app.popOverInputChan.put({ children: undefined });
+            // app.conversationLists.markRead(event.pubkey);
+        } //
         //
         // DM
         //
@@ -406,6 +415,17 @@ export function updateConversation(
         editorMap.set(targetPublicKey.hex, editor);
     }
     model.dm.currentEditor = editor;
+}
+
+export function updateChannel(
+    model: Model,
+    name: string,
+) {
+    model.navigationModel.activeNav = "Social";
+    let channelModel = {
+        name,
+    };
+    model.social.currentChannel = channelModel;
 }
 
 //////////////

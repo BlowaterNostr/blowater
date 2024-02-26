@@ -367,7 +367,9 @@ export class AppComponent extends Component<AppProps, AppState> {
         if (model.navigationModel.activeNav == "Social" && this.state.selectedRelay) {
             socialNode = (
                 <ChannelContainer
+                    {...model.social}
                     relay={this.state.selectedRelay}
+                    bus={app.eventBus}
                 />
             );
         }

@@ -1,11 +1,18 @@
 import { Component, h } from "https://esm.sh/preact@10.17.1";
 import { ChannelList } from "./channel-list.tsx";
+import { PopChannel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
+import { EventBus } from "../event-bus.ts";
+import { UI_Interaction_Event } from "./app_update.tsx";
 
 import { PrimaryTextColor, SecondaryBackgroundColor } from "./style/colors.ts";
 import { IconButtonClass } from "./components/tw.ts";
 import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
+
+export type Social_Model = {
+    currentChannel: ChannelModel | undefined;
+};
 
 interface Kind1Getter {
     getEvents(relay: string): NostrEvent<NostrKind.TEXT_NOTE>[];
@@ -13,26 +20,42 @@ interface Kind1Getter {
 
 type ChannelContainerProps = {
     relay: SingleRelayConnection;
+    bus: EventBus<UI_Interaction_Event>;
     // kind1Getter: Kind1Getter;
-};
+} & Social_Model;
 
 // NOTE: Temporary type, which may change later
 export type ChannelModel = {
-    tag: string;
+    name: string;
 };
 
-type ChannelContainerState = {
-    currentChannel: ChannelModel;
-};
+type ChannelContainerState = {} & Social_Model;
 
 export class ChannelContainer extends Component<ChannelContainerProps, ChannelContainerState> {
-    componentDidUpdate(
-        previousProps: Readonly<ChannelContainerProps>,
-        previousState: Readonly<ChannelContainerState>,
-        snapshot: any,
-    ): void {
-        console.log(this.props.relay);
+    changes?: PopChannel<UI_Interaction_Event>;
+
+    state: ChannelContainerState = {
+        currentChannel: undefined,
+    };
+
+    componentWillUpdate(nextProps: Readonly<ChannelContainerProps>): void {
+        this.setState({
+            currentChannel: nextProps.currentChannel,
+        });
     }
+
+    async componentDidMount() {
+        this.setState({
+            currentChannel: this.props.currentChannel,
+        });
+    }
+
+    componentWillUnmount(): void {
+        if (this.changes) {
+            this.changes.close();
+        }
+    }
+
     render() {
         return (
             <div class="flex flex-row h-full w-full flex bg-[#36393F] overflow-hidden">
@@ -45,16 +68,20 @@ export class ChannelContainer extends Component<ChannelContainerProps, ChannelCo
                     >
                         {this.props.relay.url}
                     </div>
-                    <ChannelList channels={["general", "games", "work"]}></ChannelList>
+                    <ChannelList
+                        channels={["general", "games", "work"]}
+                        eventSub={this.props.bus}
+                        emit={this.props.bus.emit}
+                    />
                 </div>
-                {!this.state.currentChannel
+                {this.state.currentChannel
                     ? (
                         <div class={`flex flex-col flex-1 overflow-hidden`}>
                             <TopBar
                                 currentChannel={this.state.currentChannel}
                             />
                             <div class={`flex-1 overflow-auto`}>
-                                <ChannelMessagePanel></ChannelMessagePanel>
+                                <ChannelMessagePanel />
                             </div>
                         </div>
                     )
@@ -114,7 +141,7 @@ function TopBar(props: {
                         // });
                     }}
                 >
-                    {props.currentChannel ? props.currentChannel.tag : "Channel Name"}
+                    {props.currentChannel ? props.currentChannel.name : "Channel Name"}
                 </span>
             </div>
         </div>
