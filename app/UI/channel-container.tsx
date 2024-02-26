@@ -11,15 +11,15 @@ interface Kind1Getter {
 }
 
 type ChannelContainerProps = {
-    relay: SingleRelayConnection;
-    kind1Getter: Kind1Getter;
+    // relay: SingleRelayConnection;
+    // kind1Getter: Kind1Getter;
 };
 
 export class ChannelContainer extends Component<ChannelContainerProps> {
     render() {
         return (
             <div class="flex flex-row">
-                <ChannelList channels={["general"]}></ChannelList>
+                <ChannelList channels={["general", "games", "work"]}></ChannelList>
                 <ChannelMessagePanel></ChannelMessagePanel>
             </div>
         );
