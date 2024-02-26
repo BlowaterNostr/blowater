@@ -364,8 +364,12 @@ export class AppComponent extends Component<AppProps, AppState> {
         }
 
         let socialNode: VNode | undefined;
-        if (model.navigationModel.activeNav == "Social") {
-            socialNode = <ChannelContainer />;
+        if (model.navigationModel.activeNav == "Social" && this.state.selectedRelay) {
+            socialNode = (
+                <ChannelContainer
+                    relay={this.state.selectedRelay}
+                />
+            );
         }
 
         console.debug("AppComponent:2", Date.now() - t);

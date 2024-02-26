@@ -1,6 +1,7 @@
 import { Component, h } from "https://esm.sh/preact@10.17.1";
 import { ChannelList } from "./channel-list.tsx";
 import { NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
+import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 
 import { PrimaryTextColor, SecondaryBackgroundColor } from "./style/colors.ts";
 import { IconButtonClass } from "./components/tw.ts";
@@ -11,7 +12,7 @@ interface Kind1Getter {
 }
 
 type ChannelContainerProps = {
-    // relay: SingleRelayConnection;
+    relay: SingleRelayConnection;
     // kind1Getter: Kind1Getter;
 };
 
@@ -25,6 +26,13 @@ type ChannelContainerState = {
 };
 
 export class ChannelContainer extends Component<ChannelContainerProps, ChannelContainerState> {
+    componentDidUpdate(
+        previousProps: Readonly<ChannelContainerProps>,
+        previousState: Readonly<ChannelContainerState>,
+        snapshot: any,
+    ): void {
+        console.log(this.props.relay);
+    }
     render() {
         return (
             <div class="flex flex-row h-full w-full flex bg-[#36393F] overflow-hidden">
@@ -35,7 +43,7 @@ export class ChannelContainer extends Component<ChannelContainerProps, ChannelCo
                     <div
                         class={`flex items-center w-full h-20  text-xl text-[${PrimaryTextColor}] p-1 border-b border-[#36393F]`}
                     >
-                        {" Blowater (Relay Name) "}
+                        {this.props.relay.url}
                     </div>
                     <ChannelList channels={["general", "games", "work"]}></ChannelList>
                 </div>

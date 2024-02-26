@@ -253,6 +253,10 @@ export async function* UI_Interaction_Update(args: {
             model.navigationModel.activeNav = event.id;
         } //
         //
+        // Channel
+        //
+        //
+        //
         // DM
         //
         else if (event.type == "ViewThread") {
