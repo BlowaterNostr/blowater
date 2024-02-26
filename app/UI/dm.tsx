@@ -22,6 +22,7 @@ import {
     NewMessageChecker,
     PinListGetter,
 } from "./conversation-list.tsx";
+import { ChatMessage } from "./message.ts";
 
 export type DM_Model = {
     currentEditor: EditorModel | undefined;
@@ -70,14 +71,6 @@ export class DirectMessageContainer extends Component<DirectMessageContainerProp
         this.setState({
             currentEditor: this.props.currentEditor,
         });
-
-        const changes = this.props.bus.onChange();
-        this.changes = changes;
-        for await (const change of changes) {
-            if (change.type == "SelectConversation") {
-                // todo
-            }
-        }
     }
 
     componentWillUnmount(): void {
@@ -127,7 +120,9 @@ export class DirectMessageContainer extends Component<DirectMessageContainerProp
                                     eventSyncer={props.eventSyncer}
                                     profileGetter={props.getters.profileGetter}
                                     editorModel={this.state.currentEditor}
-                                    messageGetter={props.getters.messageGetter}
+                                    messages={props.getters.messageGetter.getChatMessages(
+                                        this.state.currentEditor.pubkey.hex,
+                                    )}
                                     relayRecordGetter={props.getters.relayRecordGetter}
                                     userBlocker={props.userBlocker}
                                 />

@@ -396,7 +396,6 @@ export class AppComponent extends Component<AppProps, AppState> {
             model.navigationModel.activeNav == "About"
         ) {
             if (model.navigationModel.activeNav == "DM" && this.state.selectedRelay) {
-                const messageGetter = app.dmController;
                 dmVNode = (
                     <DirectMessageContainer
                         {...model.dm}
@@ -404,7 +403,7 @@ export class AppComponent extends Component<AppProps, AppState> {
                         ctx={myAccountCtx}
                         getters={{
                             convoListRetriever: app.conversationLists,
-                            messageGetter: messageGetter,
+                            messageGetter: app.dmController,
                             newMessageChecker: app.conversationLists,
                             relayRecordGetter: app.database,
                             pinListGetter: app.otherConfig,

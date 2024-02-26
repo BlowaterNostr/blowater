@@ -88,28 +88,12 @@ interface DirectMessagePanelProps {
     profilesSyncer: ProfileSyncer;
     eventSyncer: EventSyncer;
     profileGetter: ProfileGetter;
-    messageGetter: ChatMessagesGetter;
+    messages: ChatMessage[];
     relayRecordGetter: RelayRecordGetter;
     userBlocker: UserBlocker;
 }
 
 export class MessagePanel extends Component<DirectMessagePanelProps> {
-    async componentDidMount() {
-        // const changes = this.props.newMessageListener.onChange();
-        // for (;;) {
-        //     await sleep(333);
-        //     await changes.ready();
-        //     for (;;) {
-        //         if (changes.isReadyToPop()) {
-        //             await changes.pop();
-        //             continue;
-        //         }
-        //         break;
-        //     }
-        //     this.setState({});
-        // }
-    }
-
     render() {
         const props = this.props;
 
@@ -140,9 +124,6 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
             </RightPanel>
         );
 
-        const messages = props.messageGetter.getChatMessages(props.editorModel.pubkey.hex);
-        console.log(messages);
-
         let vnode = (
             <div class={tw`flex h-full w-full relative bg-[#36393F]`}>
                 <div class={tw`flex flex-col h-full flex-1 overflow-hidden`}>
@@ -150,7 +131,7 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
 
                     <MessageList
                         myPublicKey={props.myPublicKey}
-                        messages={messages}
+                        messages={props.messages}
                         emit={props.emit}
                         profilesSyncer={props.profilesSyncer}
                         eventSyncer={props.eventSyncer}
