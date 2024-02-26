@@ -1,7 +1,5 @@
 import { Component, h } from "https://esm.sh/preact@10.17.1";
 import { ChannelList } from "./channel-list.tsx";
-import { PopChannel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 import { EventBus } from "../event-bus.ts";
 import { UI_Interaction_Event } from "./app_update.tsx";
@@ -14,43 +12,12 @@ export type Social_Model = {
     currentChannel: string | undefined;
 };
 
-interface Kind1Getter {
-    getEvents(relay: string): NostrEvent<NostrKind.TEXT_NOTE>[];
-}
-
 type ChannelContainerProps = {
     relay: SingleRelayConnection;
     bus: EventBus<UI_Interaction_Event>;
-    // kind1Getter: Kind1Getter;
 } & Social_Model;
 
-type ChannelContainerState = {} & Social_Model;
-
-export class ChannelContainer extends Component<ChannelContainerProps, ChannelContainerState> {
-    changes?: PopChannel<UI_Interaction_Event>;
-
-    state: ChannelContainerState = {
-        currentChannel: undefined,
-    };
-
-    componentWillUpdate(nextProps: Readonly<ChannelContainerProps>): void {
-        this.setState({
-            currentChannel: nextProps.currentChannel,
-        });
-    }
-
-    async componentDidMount() {
-        this.setState({
-            currentChannel: this.props.currentChannel,
-        });
-    }
-
-    componentWillUnmount(): void {
-        if (this.changes) {
-            this.changes.close();
-        }
-    }
-
+export class ChannelContainer extends Component<ChannelContainerProps> {
     render() {
         return (
             <div class="flex flex-row h-full w-full flex bg-[#36393F] overflow-hidden">
@@ -69,11 +36,11 @@ export class ChannelContainer extends Component<ChannelContainerProps, ChannelCo
                         emit={this.props.bus.emit}
                     />
                 </div>
-                {this.state.currentChannel
+                {this.props.currentChannel
                     ? (
                         <div class={`flex flex-col flex-1 overflow-hidden`}>
                             <TopBar
-                                currentChannel={this.state.currentChannel}
+                                currentChannel={this.props.currentChannel}
                             />
                             <div class={`flex-1 overflow-auto`}>
                                 <ChannelMessagePanel />

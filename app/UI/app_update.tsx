@@ -259,12 +259,7 @@ export async function* UI_Interaction_Update(args: {
         else if (event.type == "SelectChannel") {
             model.navigationModel.activeNav = "Social";
             model.social.currentChannel = event.name;
-
-            // if (!model.dm.focusedContent.get(event.pubkey.hex)) {
-            //     model.dm.focusedContent.set(event.pubkey.hex, event.pubkey);
-            // }
             app.popOverInputChan.put({ children: undefined });
-            // app.conversationLists.markRead(event.pubkey);
         } //
         //
         // DM
