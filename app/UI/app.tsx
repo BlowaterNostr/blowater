@@ -5,19 +5,12 @@ import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/mas
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
-import { Datebase_View, RelayRecordGetter } from "../database.ts";
+import { Datebase_View } from "../database.ts";
 import { EventBus } from "../event-bus.ts";
 import { DirectedMessageController, getAllEncryptedMessagesOf, InvalidEvent } from "../features/dm.ts";
-import { ProfileSyncer } from "../features/profile.ts";
 import { About } from "./about.tsx";
 import { initialModel, Model } from "./app_model.ts";
-import {
-    AppEventBus,
-    ChatMessagesGetter,
-    Database_Update,
-    UI_Interaction_Event,
-    UI_Interaction_Update,
-} from "./app_update.tsx";
+import { AppEventBus, Database_Update, UI_Interaction_Event, UI_Interaction_Update } from "./app_update.tsx";
 import { Popover, PopOverInputChannel } from "./components/popover.tsx";
 import { OtherConfig } from "./config-other.ts";
 import { DM_List } from "./conversation-list.ts";
@@ -42,10 +35,7 @@ import { LamportTime } from "../time.ts";
 import { InstallPrompt, NavBar } from "./nav.tsx";
 import { Component } from "https://esm.sh/preact@10.17.1";
 import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
-import { ChannelList } from "./channel-list.tsx";
-import { ChannelContainer } from "./channel-container.tsx";
 import { setState } from "./_helper.ts";
-import { ConversationListRetriever } from "./conversation-list.tsx";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
@@ -156,7 +146,6 @@ export class App {
         public readonly pool: ConnectionPool,
         public readonly popOverInputChan: PopOverInputChannel,
         public readonly otherConfig: OtherConfig,
-        public readonly profileSyncer: ProfileSyncer,
         public readonly eventSyncer: EventSyncer,
         public readonly conversationLists: DM_List,
         public readonly relayConfig: RelayConfig,
@@ -184,10 +173,6 @@ export class App {
             relayPool: args.pool,
         });
         console.log(relayConfig.getRelayURLs());
-
-        // init profile syncer
-        const profileSyncer = new ProfileSyncer(args.database, args.pool);
-        profileSyncer.add(args.ctx.publicKey.hex);
 
         // init conversation list
         const all_events = Array.from(args.database.getAllEvents());
@@ -226,7 +211,6 @@ export class App {
             args.pool,
             args.popOverInputChan,
             args.otherConfig,
-            profileSyncer,
             eventSyncer,
             conversationLists,
             relayConfig,
@@ -240,46 +224,12 @@ export class App {
     private initApp = async (installPrompt: InstallPrompt) => {
         console.log("App.initApp");
 
-        // configurations: pin list
-        (async () => {
-            const stream = await this.pool.newSub(OtherConfig.name, {
-                authors: [this.ctx.publicKey.hex],
-                kinds: [NostrKind.Encrypted_Custom_App_Data],
-            });
-            if (stream instanceof Error) {
-                throw stream; // crash the app
-            }
-            for await (const msg of stream.chan) {
-                if (msg.res.type == "EOSE") {
-                    continue;
-                }
-                const ok = await this.database.addEvent(msg.res.event, msg.url);
-                if (ok instanceof Error) {
-                    console.error(msg.res.event);
-                    console.error(ok);
-                }
-            }
-        })();
-
-        // Sync DM events
-        (async function sync_dm_events(
-            database: Datebase_View,
-            ctx: NostrAccountContext,
-            pool: ConnectionPool,
-        ) {
-            const messageStream = getAllEncryptedMessagesOf(
-                ctx.publicKey,
-                pool,
-            );
-            for await (const msg of messageStream) {
-                if (msg.res.type == "EVENT") {
-                    const err = await database.addEvent(msg.res.event, msg.url);
-                    if (err instanceof Error) {
-                        console.log(err);
-                    }
-                }
-            }
-        })(this.database, this.ctx, this.pool);
+        // Sync events
+        {
+            forever(sync_client_specific_data(this.pool, this.ctx, this.database));
+            forever(sync_dm_events(this.database, this.ctx, this.pool));
+            forever(sync_profile_events(this.database, this.pool));
+        }
 
         /* my profile */
         const myProfileEvent = this.database.getProfilesByPublicKey(this.ctx.publicKey);
@@ -303,12 +253,6 @@ export class App {
                 );
             }
         }
-
-        this.profileSyncer.add(
-            ...Array.from(this.conversationLists.convoSummaries.keys()),
-        );
-        console.log("user set", this.profileSyncer.userSet);
-
         // Database
         (async () => {
             let i = 0;
@@ -317,7 +261,6 @@ export class App {
                     this.ctx,
                     this.database,
                     this.model,
-                    this.profileSyncer,
                     this.lamport,
                     this.conversationLists,
                     this.dmController,
@@ -409,7 +352,6 @@ export class AppComponent extends Component<AppProps, AppState> {
                             pinListGetter: app.otherConfig,
                             profileGetter: app.database,
                         }}
-                        profilesSyncer={app.profileSyncer}
                         eventSyncer={app.eventSyncer}
                         userBlocker={app.conversationLists}
                     />
@@ -491,4 +433,76 @@ export function getFocusedContent(
             pubkey: focusedContent,
         };
     }
+}
+
+async function sync_dm_events(
+    database: Datebase_View,
+    ctx: NostrAccountContext,
+    pool: ConnectionPool,
+) {
+    const messageStream = getAllEncryptedMessagesOf(
+        ctx.publicKey,
+        pool,
+    );
+    for await (const msg of messageStream) {
+        if (msg.res.type == "EVENT") {
+            const err = await database.addEvent(msg.res.event, msg.url);
+            if (err instanceof Error) {
+                console.log(err);
+            }
+        }
+    }
+}
+
+async function sync_profile_events(
+    database: Datebase_View,
+    pool: ConnectionPool,
+) {
+    const messageStream = await pool.newSub("sync_profile_events", {
+        kinds: [NostrKind.META_DATA],
+    });
+    if (messageStream instanceof Error) {
+        return messageStream;
+    }
+    for await (const msg of messageStream.chan) {
+        if (msg.res.type == "EVENT") {
+            const err = await database.addEvent(msg.res.event, msg.url);
+            if (err instanceof Error) {
+                console.log(err);
+            }
+        }
+    }
+}
+
+const sync_client_specific_data = async (
+    pool: ConnectionPool,
+    ctx: NostrAccountContext,
+    database: Datebase_View,
+) => {
+    const stream = await pool.newSub(OtherConfig.name, {
+        authors: [ctx.publicKey.hex],
+        kinds: [NostrKind.Encrypted_Custom_App_Data],
+    });
+    if (stream instanceof Error) {
+        throw stream; // crash the app
+    }
+    for await (const msg of stream.chan) {
+        if (msg.res.type == "EOSE") {
+            continue;
+        }
+        const ok = await database.addEvent(msg.res.event, msg.url);
+        if (ok instanceof Error) {
+            console.error(msg.res.event);
+            console.error(ok);
+        }
+    }
+};
+
+// f should not resolve, if it does resolve, it should only throw an error
+async function forever(f: Promise<Error | undefined | void>) {
+    const r = await f;
+    if (r == undefined) {
+        throw new Error(`${f} should not resolve`);
+    }
+    throw r;
 }
