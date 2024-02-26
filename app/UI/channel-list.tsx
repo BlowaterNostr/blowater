@@ -1,6 +1,5 @@
 import { Component, h } from "https://esm.sh/preact@10.17.1";
 import { setState } from "./_helper.ts";
-import { SecondaryBackgroundColor } from "./style/colors.ts";
 import { SelectChannel } from "./search_model.ts";
 import { UI_Interaction_Event } from "./app_update.tsx";
 import { emitFunc, EventSubscriber } from "../event-bus.ts";
@@ -12,7 +11,7 @@ type ChannelListProps = {
 };
 
 type ChannelListState = {
-    currentSelected: SelectChannel | undefined;
+    currentSelected: string | undefined;
 };
 
 export class ChannelList extends Component<ChannelListProps, ChannelListState> {
@@ -23,8 +22,8 @@ export class ChannelList extends Component<ChannelListProps, ChannelListState> {
     async componentDidMount() {
         for await (const e of this.props.eventSub.onChange()) {
             if (e.type == "SelectChannel") {
-                this.setState({
-                    currentSelected: e,
+                await setState(this, {
+                    currentSelected: e.name,
                 });
             }
         }
@@ -34,7 +33,7 @@ export class ChannelList extends Component<ChannelListProps, ChannelListState> {
         return (
             <div>
                 {this.props.channels.map((c) =>
-                    this.ChannelListItem(this.props, c, c == this.state.currentSelected?.name)
+                    this.ChannelListItem(this.props, c, c == this.state.currentSelected)
                 )}
             </div>
         );
