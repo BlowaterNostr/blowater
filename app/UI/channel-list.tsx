@@ -24,7 +24,7 @@ export class ChannelList extends Component<ChannelListProps> {
         const selected = isSelected ? " bg-[#404248] text-[#fff]" : "";
         return (
             <div
-                class={`m-1 p-2
+                class={`m-2 p-1
                 rounded
                 text-[#959BA3]
                 hover:text-[#fff]
