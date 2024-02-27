@@ -45,7 +45,7 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
         for (const relay of this.props.pool.getRelays()) {
             relayList.push(
                 <div
-                    class="flex flex-row mx-1 my-1 hover:bg-[rgb(244,244,244)] hover:cursor-pointer"
+                    class="flex flex-row mx-1 my-1 hover:bg-[rgb(244,244,244)] hover:cursor-pointer items-center"
                     onClick={this.onRelaySelected(relay)}
                 >
                     <div class="w-10 h-10 border rounded-md mx-1">
@@ -55,8 +55,8 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
                         />
                     </div>
                     <div>
-                        <div>{this.state.relayInformation.get(relay.url)?.name}</div>
-                        <div>{relay.url}</div>
+                        <div class="font-bold">{this.state.relayInformation.get(relay.url)?.name}</div>
+                        <div class="text-sm font-light">{relay.url}</div>
                     </div>
                 </div>,
             );
@@ -78,7 +78,7 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
                 </div>
                 {this.state.showRelayList
                     ? (
-                        <div class="absolute z-10 flex flex-col border w-64 rounded-lg bg-white">
+                        <div class="absolute z-10 flex flex-col border min-w-64 rounded-lg bg-white">
                             {relayList}
                         </div>
                     )

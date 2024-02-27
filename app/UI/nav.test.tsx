@@ -7,8 +7,7 @@ import { PrivateKey } from "../../libs/nostr.ts/key.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 
 const pool = new ConnectionPool();
-await pool.addRelayURL("relay.blowater.app");
-await pool.addRelayURL("nos.lol");
+await pool.addRelayURLs(["relay.blowater.app", "nos.lol", "relay.damus.io", "nostr.wine"]);
 
 render(
     <NavBar
