@@ -10,7 +10,11 @@ import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
 
 export type Social_Model = {
     currentChannel: string | undefined;
+    relaySelectedChannel: Map<Relay, Channel>;
 };
+
+type Relay = string;
+type Channel = string;
 
 type ChannelContainerProps = {
     relay: SingleRelayConnection;
@@ -31,6 +35,8 @@ export class ChannelContainer extends Component<ChannelContainerProps> {
                         {this.props.relay.url}
                     </div>
                     <ChannelList
+                        relay={this.props.relay.url}
+                        relaySelectedChannel={this.props.relaySelectedChannel}
                         channels={["general", "games", "work"]}
                         eventSub={this.props.bus}
                         emit={this.props.bus.emit}
@@ -41,6 +47,7 @@ export class ChannelContainer extends Component<ChannelContainerProps> {
                         <div class={`flex flex-col flex-1 overflow-hidden`}>
                             <TopBar
                                 currentChannel={this.props.currentChannel}
+                                relaySelectedChannel={this.props.relaySelectedChannel}
                             />
                             <div class={`flex-1 overflow-auto`}>
                                 <ChannelMessagePanel />
@@ -67,6 +74,7 @@ class ChannelMessagePanel extends Component<ChannelMessagePanelProps> {
 
 function TopBar(props: {
     currentChannel: string;
+    relaySelectedChannel: Map<Relay, Channel>;
 }) {
     return (
         <div

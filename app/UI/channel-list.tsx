@@ -5,6 +5,8 @@ import { UI_Interaction_Event } from "./app_update.tsx";
 import { emitFunc, EventSubscriber } from "../event-bus.ts";
 
 type ChannelListProps = {
+    relay: string;
+    relaySelectedChannel: Map<string, string>;
     emit: emitFunc<SelectChannel>;
     eventSub: EventSubscriber<UI_Interaction_Event>;
     channels: string[];
@@ -16,14 +18,22 @@ type ChannelListState = {
 
 export class ChannelList extends Component<ChannelListProps, ChannelListState> {
     state: Readonly<ChannelListState> = {
-        currentSelected: undefined,
+        currentSelected: this.initialSelected(),
     };
+
+    initialSelected() {
+        return this.props.relaySelectedChannel.get(this.props.relay);
+    }
 
     async componentDidMount() {
         for await (const e of this.props.eventSub.onChange()) {
             if (e.type == "SelectChannel") {
                 await setState(this, {
-                    currentSelected: e.name,
+                    currentSelected: e.channel,
+                });
+            } else if (e.type == "SelectRelay") {
+                await setState(this, {
+                    currentSelected: this.props.relaySelectedChannel.get(e.relay.url),
                 });
             }
         }
@@ -51,6 +61,7 @@ export class ChannelList extends Component<ChannelListProps, ChannelListState> {
                 hover:cursor-pointer` + selected}
                 onClick={selectChannel(
                     props.emit,
+                    props.relay,
                     name,
                 )}
             >
@@ -60,9 +71,10 @@ export class ChannelList extends Component<ChannelListProps, ChannelListState> {
     }
 }
 
-const selectChannel = (emit: emitFunc<SelectChannel>, name: string) => () => {
+const selectChannel = (emit: emitFunc<SelectChannel>, relay: string, channel: string) => () => {
     return emit({
         type: "SelectChannel",
-        name,
+        relay,
+        channel,
     });
 };

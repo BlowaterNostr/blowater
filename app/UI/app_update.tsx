@@ -258,7 +258,8 @@ export async function* UI_Interaction_Update(args: {
         //
         else if (event.type == "SelectChannel") {
             model.navigationModel.activeNav = "Social";
-            model.social.currentChannel = event.name;
+            model.social.currentChannel = event.channel;
+            model.social.relaySelectedChannel.set(event.relay, event.channel);
             app.popOverInputChan.put({ children: undefined });
         } //
         //
