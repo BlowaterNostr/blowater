@@ -47,6 +47,7 @@ type Props = {
     emit: emitFunc<NavigationUpdate | SelectRelay>;
     installPrompt: InstallPrompt;
     pool: ConnectionPool;
+    activeNav: string;
 };
 
 type State = {
@@ -80,11 +81,29 @@ export class NavBar extends Component<Props, State> {
         mobileContainer: `h-[4.5rem] flex justify-evenly bg-[${PrimaryBackgroundColor}] items-start pt-2`,
     };
 
+    initialActiveIndex = () => {
+        switch (this.props.activeNav) {
+            case "Social":
+                return 0;
+            case "DM":
+                return 1;
+            case "Profile":
+                return 2;
+            case "About":
+                return 3;
+            case "Setting":
+                return 4;
+            default:
+                return 0;
+        }
+    };
+
     state: State = {
         selectedRelay: "",
-        activeIndex: 0,
+        activeIndex: this.initialActiveIndex(),
         installPrompt: this.props.installPrompt,
     };
+
     tabs: NavTab[] = [
         {
             icon: (active: boolean) => <SocialIcon class={this.styles.icons(active)} />,

@@ -41,6 +41,7 @@ render(
         profile={undefined}
         installPrompt={{ event: undefined }}
         publicKey={PrivateKey.Generate().toPublicKey()}
+        activeNav="DM"
         pool={pool}
     />,
     document.body,
