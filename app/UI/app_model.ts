@@ -2,12 +2,15 @@ import { NavigationModel } from "./nav.tsx";
 import { ProfileData } from "../features/profile.ts";
 import { EditorModel } from "./editor.tsx";
 import { DM_Model } from "./dm.tsx";
+import { Social_Model } from "./channel-container.tsx";
 import { App } from "./app.tsx";
 
 export type Model = {
     app: App | undefined; // app is only available after sign-in
     dm: DM_Model;
     dmEditors: Map<string, EditorModel>;
+
+    social: Social_Model;
 
     // profile
     myProfile: ProfileData | undefined;
@@ -29,6 +32,9 @@ export function initialModel(): Model {
             currentEditor: undefined,
         },
         dmEditors: editors,
+        social: {
+            currentChannel: undefined,
+        },
         newProfileField: {
             key: "",
             value: "",

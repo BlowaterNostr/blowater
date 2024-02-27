@@ -36,6 +36,7 @@ import { InstallPrompt, NavBar } from "./nav.tsx";
 import { Component } from "https://esm.sh/preact@10.17.1";
 import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 import { setState } from "./_helper.ts";
+import { ChannelContainer } from "./channel-container.tsx";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
@@ -364,8 +365,14 @@ export class AppComponent extends Component<AppProps, AppState> {
         }
 
         let socialNode: VNode | undefined;
-        if (model.navigationModel.activeNav == "Social") {
-            // socialNode = <ChannelContainer ></ChannelContainer>;
+        if (model.navigationModel.activeNav == "Social" && this.state.selectedRelay) {
+            socialNode = (
+                <ChannelContainer
+                    {...model.social}
+                    relay={this.state.selectedRelay}
+                    bus={app.eventBus}
+                />
+            );
         }
 
         console.debug("AppComponent:2", Date.now() - t);

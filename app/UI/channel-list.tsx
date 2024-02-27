@@ -1,31 +1,58 @@
 import { Component, h } from "https://esm.sh/preact@10.17.1";
 import { setState } from "./_helper.ts";
+import { SelectChannel } from "./search_model.ts";
+import { UI_Interaction_Event } from "./app_update.tsx";
+import { emitFunc, EventSubscriber } from "../event-bus.ts";
 
-type Props = {
+type ChannelListProps = {
+    emit: emitFunc<SelectChannel>;
+    eventSub: EventSubscriber<UI_Interaction_Event>;
     channels: string[];
 };
 
-type State = {
-    selectedChannel: string | undefined;
+type ChannelListState = {
+    currentSelected: string | undefined;
 };
 
-export class ChannelList extends Component<Props, State> {
+export class ChannelList extends Component<ChannelListProps, ChannelListState> {
+    state: Readonly<ChannelListState> = {
+        currentSelected: undefined,
+    };
+
+    async componentDidMount() {
+        for await (const e of this.props.eventSub.onChange()) {
+            if (e.type == "SelectChannel") {
+                await setState(this, {
+                    currentSelected: e.name,
+                });
+            }
+        }
+    }
+
     render() {
         return (
-            <div class="border w-32 bg-[rgb(242,243,245)]">
-                {this.props.channels.map((c) => this.ChannelListItem(c, c == this.state.selectedChannel))}
+            <div>
+                {this.props.channels.map((c) =>
+                    this.ChannelListItem(this.props, c, c == this.state.currentSelected)
+                )}
             </div>
         );
     }
 
-    ChannelListItem(name: string, isSelected: boolean) {
-        const selected = isSelected ? " bg-[rgb(214,216,220)]" : "";
+    ChannelListItem(props: ChannelListProps, name: string, isSelected: boolean) {
+        const selected = isSelected ? " bg-[#404248] text-[#fff]" : "";
         return (
             <div
-                class={`border m-1 pl-1
-                hover:bg-[rgb(214,216,220)]
+                class={`m-1 pl-1
+                rounded
+                text-[#959BA3]
+                hover:text-[#fff]
+                hover:bg-[#36373C]
                 hover:cursor-pointer` + selected}
-                onClick={onChannelSelected(this, name)}
+                onClick={selectChannel(
+                    props.emit,
+                    name,
+                )}
             >
                 # {name}
             </div>
@@ -33,8 +60,9 @@ export class ChannelList extends Component<Props, State> {
     }
 }
 
-const onChannelSelected = (channelList: ChannelList, channel: string) => async () => {
-    await setState(channelList, {
-        selectedChannel: channel,
+const selectChannel = (emit: emitFunc<SelectChannel>, name: string) => () => {
+    return emit({
+        type: "SelectChannel",
+        name,
     });
 };

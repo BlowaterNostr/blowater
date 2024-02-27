@@ -44,6 +44,7 @@ import { TagSelected } from "./contact-tags.tsx";
 import { BlockUser, UnblockUser } from "./user-detail.tsx";
 import { RelayRecommendList } from "./relay-recommend-list.tsx";
 import { HidePopOver } from "./components/popover.tsx";
+import { Social_Model } from "./channel-container.tsx";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -251,6 +252,14 @@ export async function* UI_Interaction_Update(args: {
         //
         else if (event.type == "ChangeNavigation") {
             model.navigationModel.activeNav = event.id;
+        } //
+        //
+        // Channel
+        //
+        else if (event.type == "SelectChannel") {
+            model.navigationModel.activeNav = "Social";
+            model.social.currentChannel = event.name;
+            app.popOverInputChan.put({ children: undefined });
         } //
         //
         // DM
