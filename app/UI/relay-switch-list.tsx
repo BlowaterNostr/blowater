@@ -65,7 +65,7 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
                             name={getSecondaryDomainName(relay.url)}
                         />
                     </div>
-                    <div>
+                    <div class="px-1">
                         <div class="font-bold">{this.state.relayInformation.get(relay.url)?.name}</div>
                         <div class="text-sm font-light">{relay.url}</div>
                     </div>
@@ -75,7 +75,7 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
         return (
             <div class="">
                 <div
-                    class="bg-white w-10 h-10 border rounded-md hover:hover:cursor-pointer"
+                    class="bg-white w-10 h-10 border rounded-md hover:hover:cursor-pointer mb-1"
                     onClick={this.toggleRelayList}
                 >
                     {this.state.selectedRelay
@@ -99,7 +99,10 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
                                     onInput={this.handleSearchRelayInput}
                                 />
                             </div>
-                            <div class="flex flex-col ">
+                            <div
+                                class="flex flex-col overflow-y-auto overflow-x-hidde"
+                                style={{ maxHeight: "70vh" }}
+                            >
                                 {relayList}
                             </div>
                         </div>
