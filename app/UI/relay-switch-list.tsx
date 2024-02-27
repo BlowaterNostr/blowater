@@ -48,7 +48,7 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
                     class="flex flex-row mx-1 my-1 hover:bg-[rgb(244,244,244)] hover:cursor-pointer"
                     onClick={this.onRelaySelected(relay)}
                 >
-                    <div class="w-16 h-16 border rounded-md mx-1">
+                    <div class="w-10 h-10 border rounded-md mx-1">
                         <RelayAvatar
                             icon={this.state.relayInformation.get(relay.url)?.icon}
                             name={getSecondaryDomainName(relay.url)}
@@ -64,7 +64,7 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
         return (
             <div class="">
                 <div
-                    class="bg-white w-14 h-14 border rounded-md my-1 hover:hover:cursor-pointer"
+                    class="bg-white w-10 h-10 border rounded-md my-1 hover:hover:cursor-pointer"
                     onClick={this.toggleRelayList}
                 >
                     {this.state.selectedRelay
@@ -125,6 +125,9 @@ export async function getRelayInformation(url: string) {
         }
 
         const detail: RelayInformation = await res.json();
+        if (!detail.icon) {
+            detail.icon = httpURL + "favicon.ico";
+        }
         return detail;
     } catch (e) {
         return e as Error;
