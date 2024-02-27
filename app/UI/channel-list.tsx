@@ -1,49 +1,20 @@
 import { Component, h } from "https://esm.sh/preact@10.17.1";
-import { setState } from "./_helper.ts";
 import { SelectChannel } from "./search_model.ts";
-import { UI_Interaction_Event } from "./app_update.tsx";
-import { emitFunc, EventSubscriber } from "../event-bus.ts";
+import { emitFunc } from "../event-bus.ts";
 
 type ChannelListProps = {
     relay: string;
-    relaySelectedChannel: Map<string, string>;
+    currentSelected: string | undefined;
     emit: emitFunc<SelectChannel>;
-    eventSub: EventSubscriber<UI_Interaction_Event>;
     channels: string[];
 };
 
-type ChannelListState = {
-    currentSelected: string | undefined;
-};
-
-export class ChannelList extends Component<ChannelListProps, ChannelListState> {
-    state: Readonly<ChannelListState> = {
-        currentSelected: this.initialSelected(),
-    };
-
-    initialSelected() {
-        return this.props.relaySelectedChannel.get(this.props.relay);
-    }
-
-    async componentDidMount() {
-        for await (const e of this.props.eventSub.onChange()) {
-            if (e.type == "SelectChannel") {
-                await setState(this, {
-                    currentSelected: e.channel,
-                });
-            } else if (e.type == "SelectRelay") {
-                await setState(this, {
-                    currentSelected: this.props.relaySelectedChannel.get(e.relay.url),
-                });
-            }
-        }
-    }
-
+export class ChannelList extends Component<ChannelListProps> {
     render() {
         return (
             <div>
                 {this.props.channels.map((c) =>
-                    this.ChannelListItem(this.props, c, c == this.state.currentSelected)
+                    this.ChannelListItem(this.props, c, c == this.props.currentSelected)
                 )}
             </div>
         );
