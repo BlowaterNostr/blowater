@@ -53,7 +53,7 @@ export class ChannelList extends Component<ChannelListProps, ChannelListState> {
         const selected = isSelected ? " bg-[#404248] text-[#fff]" : "";
         return (
             <div
-                class={`m-1 pl-1
+                class={`m-1 p-2
                 rounded
                 text-[#959BA3]
                 hover:text-[#fff]

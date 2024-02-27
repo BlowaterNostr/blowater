@@ -30,7 +30,7 @@ export class ChannelContainer extends Component<ChannelContainerProps> {
             flex flex-col bg-[${SecondaryBackgroundColor}]  `}
                 >
                     <div
-                        class={`flex items-center w-full h-20  text-xl text-[${PrimaryTextColor}] p-1 border-b border-[#36393F]`}
+                        class={`flex items-center w-full h-20 font-bold text-xl text-[${PrimaryTextColor}] m-1 p-3 border-b border-[#36393F]`}
                     >
                         {this.props.relay.url}
                     </div>
