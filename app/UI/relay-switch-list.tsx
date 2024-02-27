@@ -17,6 +17,7 @@ type RelaySwitchListState = {
     selectedRelay: string;
     showRelayList: boolean;
     relayInformation: Map<string, RelayInformation>;
+    searchRelayValue: string;
 };
 
 export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitchListState> {
@@ -24,6 +25,7 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
         selectedRelay: "",
         relayInformation: new Map(),
         showRelayList: false,
+        searchRelayValue: "",
     };
 
     async componentDidMount() {
@@ -40,9 +42,18 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
         }
     }
 
+    handleSearchRelayInput = async (e: Event) => {
+        await setState(this, {
+            searchRelayValue: (e.target as HTMLInputElement).value,
+        });
+    };
+
     render() {
         const relayList = [];
         for (const relay of this.props.pool.getRelays()) {
+            if (!relay.url.includes(this.state.searchRelayValue)) {
+                continue;
+            }
             relayList.push(
                 <div
                     class="flex flex-row mx-1 my-1 hover:bg-[rgb(244,244,244)] hover:cursor-pointer items-center"
@@ -64,7 +75,7 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
         return (
             <div class="">
                 <div
-                    class="bg-white w-10 h-10 border rounded-md my-1 hover:hover:cursor-pointer"
+                    class="bg-white w-10 h-10 border rounded-md hover:hover:cursor-pointer"
                     onClick={this.toggleRelayList}
                 >
                     {this.state.selectedRelay
@@ -78,8 +89,19 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
                 </div>
                 {this.state.showRelayList
                     ? (
-                        <div class="absolute z-10 flex flex-col border min-w-64 rounded-lg bg-white">
-                            {relayList}
+                        <div class="absolute z-10 border min-w-64 rounded-lg bg-white py-1">
+                            <div class="w-full flex">
+                                <input
+                                    type="text"
+                                    class="flex-grow border rounded-md mx-2 my-1 px-2"
+                                    placeholder="Search relay"
+                                    value={this.state.searchRelayValue}
+                                    onInput={this.handleSearchRelayInput}
+                                />
+                            </div>
+                            <div class="flex flex-col ">
+                                {relayList}
+                            </div>
                         </div>
                     )
                     : undefined}
