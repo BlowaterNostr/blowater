@@ -54,27 +54,13 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
                 continue;
             }
             relayList.push(
-                <div
-                    class="flex flex-row mx-1 my-1 hover:bg-[rgb(244,244,244)] hover:cursor-pointer items-center"
-                    onClick={this.onRelaySelected(relay)}
-                >
-                    <div class="w-10 h-10 border rounded-md mx-1">
-                        <RelayAvatar
-                            icon={this.state.relayInformation.get(relay.url)?.icon}
-                            name={getSecondaryDomainName(relay.url)}
-                        />
-                    </div>
-                    <div class="px-1">
-                        <div class="font-bold">{this.state.relayInformation.get(relay.url)?.name}</div>
-                        <div class="text-sm font-light">{relay.url}</div>
-                    </div>
-                </div>,
+                this.RelayListItem(relay, this.props.currentRelay),
             );
         }
         return (
             <div class="">
                 <div
-                    class="bg-white w-10 h-10 border rounded-md hover:hover:cursor-pointer mb-1"
+                    class="bg-white w-10 h-10 border rounded-lg hover:hover:cursor-pointer mb-1"
                     onClick={this.toggleRelayList}
                 >
                     {this.props.currentRelay
@@ -92,7 +78,7 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
                             <div class="w-full flex">
                                 <input
                                     type="text"
-                                    class="flex-grow border rounded-md mx-2 my-1 px-2"
+                                    class="flex-grow border rounded-lg mx-2 my-1 px-2"
                                     placeholder="Search relay"
                                     value={this.state.searchRelayValue}
                                     onInput={this.handleSearchRelayInput}
@@ -107,6 +93,29 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
                         </div>
                     )
                     : undefined}
+            </div>
+        );
+    }
+
+    RelayListItem(relay: SingleRelayConnection, currentRelay?: string) {
+        const selected = relay.url === currentRelay ? " border-[#000] border-2" : "";
+        return (
+            <div
+                class={`flex flex-row mx-1 my-1 hover:bg-[rgb(244,244,244)] hover:cursor-pointer items-center rounded`}
+                onClick={this.onRelaySelected(relay)}
+            >
+                <div class={`flex justify-center items-center w-12 h-12 rounded-md ${selected}`}>
+                    <div class={`w-10 h-10 border rounded-md `}>
+                        <RelayAvatar
+                            icon={this.state.relayInformation.get(relay.url)?.icon}
+                            name={getSecondaryDomainName(relay.url)}
+                        />
+                    </div>
+                </div>
+                <div class="px-1">
+                    <div class="font-bold">{this.state.relayInformation.get(relay.url)?.name}</div>
+                    <div class="text-sm font-light">{relay.url}</div>
+                </div>
             </div>
         );
     }
