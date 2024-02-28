@@ -151,7 +151,7 @@ export async function getRelayInformation(url: string) {
 
         const detail: RelayInformation = await res.json();
         if (!detail.icon) {
-            detail.icon = httpURL + "favicon.ico";
+            detail.icon = httpURL.origin + "/favicon.ico";
         }
         return detail;
     } catch (e) {
