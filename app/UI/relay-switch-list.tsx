@@ -9,21 +9,22 @@ import { RelayInformation } from "./relay-detail.tsx";
 import { setState } from "./_helper.ts";
 
 type RelaySwitchListProps = {
+    currentRelay?: string;
     pool: ConnectionPool;
     emit: emitFunc<SelectRelay>;
 };
 
 type RelaySwitchListState = {
-    selectedRelay: string;
     showRelayList: boolean;
     relayInformation: Map<string, RelayInformation>;
+    searchRelayValue: string;
 };
 
 export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitchListState> {
     state: Readonly<RelaySwitchListState> = {
-        selectedRelay: "",
         relayInformation: new Map(),
         showRelayList: false,
+        searchRelayValue: "",
     };
 
     async componentDidMount() {
@@ -40,49 +41,81 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
         }
     }
 
+    handleSearchRelayInput = async (e: Event) => {
+        await setState(this, {
+            searchRelayValue: (e.target as HTMLInputElement).value,
+        });
+    };
+
     render() {
         const relayList = [];
         for (const relay of this.props.pool.getRelays()) {
+            if (!relay.url.includes(this.state.searchRelayValue)) {
+                continue;
+            }
             relayList.push(
-                <div
-                    class="flex flex-row mx-1 my-1 hover:bg-[rgb(244,244,244)] hover:cursor-pointer"
-                    onClick={this.onRelaySelected(relay)}
-                >
-                    <div class="w-16 h-16 border rounded-md mx-1">
-                        <RelayAvatar
-                            icon={this.state.relayInformation.get(relay.url)?.icon}
-                            name={getSecondaryDomainName(relay.url)}
-                        />
-                    </div>
-                    <div>
-                        <div>{this.state.relayInformation.get(relay.url)?.name}</div>
-                        <div>{relay.url}</div>
-                    </div>
-                </div>,
+                this.RelayListItem(relay, this.props.currentRelay),
             );
         }
         return (
             <div class="">
                 <div
-                    class="bg-white w-14 h-14 border rounded-md my-1 hover:hover:cursor-pointer"
+                    class="bg-white w-10 h-10 border rounded-lg hover:hover:cursor-pointer mb-1"
                     onClick={this.toggleRelayList}
                 >
-                    {this.state.selectedRelay
+                    {this.props.currentRelay
                         ? (
                             <RelayAvatar
-                                icon={this.state.relayInformation.get(this.state.selectedRelay)?.icon}
-                                name={getSecondaryDomainName(this.state.selectedRelay)}
+                                icon={this.state.relayInformation.get(this.props.currentRelay)?.icon}
+                                name={getSecondaryDomainName(this.props.currentRelay)}
                             />
                         )
                         : <RelayAvatar icon="logo.webp" name="" />}
                 </div>
                 {this.state.showRelayList
                     ? (
-                        <div class="absolute z-10 flex flex-col border w-64 rounded-lg bg-white">
-                            {relayList}
+                        <div class="absolute z-10 border min-w-64 rounded-lg bg-white py-1">
+                            <div class="w-full flex">
+                                <input
+                                    type="text"
+                                    class="flex-grow border rounded-lg mx-2 my-1 px-2"
+                                    placeholder="Search relay"
+                                    value={this.state.searchRelayValue}
+                                    onInput={this.handleSearchRelayInput}
+                                />
+                            </div>
+                            <div
+                                class="flex flex-col overflow-y-auto overflow-x-hidde"
+                                style={{ maxHeight: "70vh" }}
+                            >
+                                {relayList}
+                            </div>
                         </div>
                     )
                     : undefined}
+            </div>
+        );
+    }
+
+    RelayListItem(relay: SingleRelayConnection, currentRelay?: string) {
+        const selected = relay.url === currentRelay ? " border-[#000] border-2" : "";
+        return (
+            <div
+                class={`flex flex-row mx-1 my-1 hover:bg-[rgb(244,244,244)] hover:cursor-pointer items-center rounded`}
+                onClick={this.onRelaySelected(relay)}
+            >
+                <div class={`flex justify-center items-center w-12 h-12 rounded-md ${selected}`}>
+                    <div class={`w-10 h-10 border rounded-md `}>
+                        <RelayAvatar
+                            icon={this.state.relayInformation.get(relay.url)?.icon}
+                            name={getSecondaryDomainName(relay.url)}
+                        />
+                    </div>
+                </div>
+                <div class="px-1">
+                    <div>{this.state.relayInformation.get(relay.url)?.name}</div>
+                    <div class="text-sm font-light">{new URL(relay.url).hostname}</div>
+                </div>
             </div>
         );
     }
@@ -95,7 +128,6 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
 
     onRelaySelected = (relay: SingleRelayConnection) => async () => {
         await setState(this, {
-            selectedRelay: relay.url,
             showRelayList: false,
         });
         this.props.emit({
@@ -125,6 +157,9 @@ export async function getRelayInformation(url: string) {
         }
 
         const detail: RelayInformation = await res.json();
+        if (!detail.icon) {
+            detail.icon = httpURL + "favicon.ico";
+        }
         return detail;
     } catch (e) {
         return e as Error;

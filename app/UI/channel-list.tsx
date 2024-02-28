@@ -1,39 +1,20 @@
 import { Component, h } from "https://esm.sh/preact@10.17.1";
-import { setState } from "./_helper.ts";
 import { SelectChannel } from "./search_model.ts";
-import { UI_Interaction_Event } from "./app_update.tsx";
-import { emitFunc, EventSubscriber } from "../event-bus.ts";
+import { emitFunc } from "../event-bus.ts";
 
 type ChannelListProps = {
+    relay: string;
+    currentSelected: string | undefined;
     emit: emitFunc<SelectChannel>;
-    eventSub: EventSubscriber<UI_Interaction_Event>;
     channels: string[];
 };
 
-type ChannelListState = {
-    currentSelected: string | undefined;
-};
-
-export class ChannelList extends Component<ChannelListProps, ChannelListState> {
-    state: Readonly<ChannelListState> = {
-        currentSelected: undefined,
-    };
-
-    async componentDidMount() {
-        for await (const e of this.props.eventSub.onChange()) {
-            if (e.type == "SelectChannel") {
-                await setState(this, {
-                    currentSelected: e.name,
-                });
-            }
-        }
-    }
-
+export class ChannelList extends Component<ChannelListProps> {
     render() {
         return (
             <div>
                 {this.props.channels.map((c) =>
-                    this.ChannelListItem(this.props, c, c == this.state.currentSelected)
+                    this.ChannelListItem(this.props, c, c == this.props.currentSelected)
                 )}
             </div>
         );
@@ -43,7 +24,7 @@ export class ChannelList extends Component<ChannelListProps, ChannelListState> {
         const selected = isSelected ? " bg-[#404248] text-[#fff]" : "";
         return (
             <div
-                class={`m-1 pl-1
+                class={`m-2 p-1
                 rounded
                 text-[#959BA3]
                 hover:text-[#fff]
@@ -60,9 +41,9 @@ export class ChannelList extends Component<ChannelListProps, ChannelListState> {
     }
 }
 
-const selectChannel = (emit: emitFunc<SelectChannel>, name: string) => () => {
+const selectChannel = (emit: emitFunc<SelectChannel>, channel: string) => () => {
     return emit({
         type: "SelectChannel",
-        name,
+        channel,
     });
 };
