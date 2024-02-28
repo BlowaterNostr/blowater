@@ -301,21 +301,8 @@ type AppProps = {
     installPrompt: InstallPrompt;
 };
 
-type AppState = {
-    selectedRelay: SingleRelayConnection | undefined;
-};
-
-export class AppComponent extends Component<AppProps, AppState> {
+export class AppComponent extends Component<AppProps> {
     events = this.props.eventBus.onChange();
-
-    async componentDidMount() {
-        for await (const event of this.events) {
-            if (event.type == "SelectRelay") {
-                console.log(event);
-                await setState(this, { selectedRelay: event.relay });
-            }
-        }
-    }
 
     componentWillUnmount() {
         this.events.close();
@@ -339,7 +326,7 @@ export class AppComponent extends Component<AppProps, AppState> {
             model.navigationModel.activeNav == "DM" ||
             model.navigationModel.activeNav == "About"
         ) {
-            if (model.navigationModel.activeNav == "DM" && this.state.selectedRelay) {
+            if (model.navigationModel.activeNav == "DM" && model.currentRelay) {
                 dmVNode = (
                     <DirectMessageContainer
                         {...model.dm}
@@ -365,11 +352,11 @@ export class AppComponent extends Component<AppProps, AppState> {
         }
 
         let socialNode: VNode | undefined;
-        if (model.navigationModel.activeNav == "Social" && this.state.selectedRelay) {
+        if (model.navigationModel.activeNav == "Social" && model.currentRelay) {
             socialNode = (
                 <ChannelContainer
                     {...model.social}
-                    relay={this.state.selectedRelay}
+                    relay={props.pool.getRelay(model.currentRelay) as SingleRelayConnection}
                     bus={app.eventBus}
                 />
             );

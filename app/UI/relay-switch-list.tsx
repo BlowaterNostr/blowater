@@ -113,8 +113,8 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
                     </div>
                 </div>
                 <div class="px-1">
-                    <div class="font-bold">{this.state.relayInformation.get(relay.url)?.name}</div>
-                    <div class="text-sm font-light">{relay.url}</div>
+                    <div>{this.state.relayInformation.get(relay.url)?.name}</div>
+                    <div class="text-sm font-light">{new URL(relay.url).hostname}</div>
                 </div>
             </div>
         );

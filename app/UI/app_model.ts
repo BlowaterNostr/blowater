@@ -7,7 +7,7 @@ import { App } from "./app.tsx";
 
 export type Model = {
     app?: App; // app is only available after sign-in
-    currentRelay?: string;
+    currentRelay: string;
     dm: DM_Model;
     dmEditors: Map<string, EditorModel>;
 
@@ -28,7 +28,7 @@ export function initialModel(): Model {
     const editors: Map<string, EditorModel> = new Map();
     return {
         app: undefined,
-        currentRelay: undefined,
+        currentRelay: "wss://relay.blowater.app",
         dm: {
             focusedContent: new Map(),
             currentEditor: undefined,
