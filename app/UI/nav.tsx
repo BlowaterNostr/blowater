@@ -48,11 +48,10 @@ type Props = {
     installPrompt: InstallPrompt;
     pool: ConnectionPool;
     currentRelay?: string;
-    activeNav: string;
+    activeNav: NavTabID;
 };
 
 type State = {
-    activeIndex: number;
     installPrompt: InstallPrompt;
 };
 
@@ -81,25 +80,7 @@ export class NavBar extends Component<Props, State> {
         mobileContainer: `h-[4.5rem] flex justify-evenly bg-[${PrimaryBackgroundColor}] items-start pt-2`,
     };
 
-    initialActiveIndex = () => {
-        switch (this.props.activeNav) {
-            case "Social":
-                return 0;
-            case "DM":
-                return 1;
-            case "Profile":
-                return 2;
-            case "About":
-                return 3;
-            case "Setting":
-                return 4;
-            default:
-                return 0;
-        }
-    };
-
     state: State = {
-        activeIndex: this.initialActiveIndex(),
         installPrompt: this.props.installPrompt,
     };
 
@@ -126,16 +107,13 @@ export class NavBar extends Component<Props, State> {
         },
     ];
 
-    changeTab = async (activeIndex: number) => {
-        if (activeIndex == this.state.activeIndex) {
+    changeTab = async (activeNav: NavTabID) => {
+        if (activeNav == this.props.activeNav) {
             return;
         }
-        await setState(this, {
-            activeIndex: activeIndex,
-        });
         this.props.emit({
             type: "ChangeNavigation",
-            id: this.tabs[activeIndex].id,
+            id: activeNav,
         });
     };
 
@@ -160,9 +138,9 @@ export class NavBar extends Component<Props, State> {
             <div class={this.styles.container}>
                 {/* <Avatar class={this.styles.avatar} picture={this.props.profile?.profile?.picture} /> */}
                 {<RelaySwitchList emit={props.emit} pool={props.pool} currentRelay={props.currentRelay} />}
-                {this.tabs.map((tab, index) => (
+                {this.tabs.map(({ icon, id }) => (
                     <div class={this.styles.tabsContainer}>
-                        {index == this.tabs.length - 1 && this.state.installPrompt.event
+                        {id === "Setting" && this.state.installPrompt.event
                             ? (
                                 <button class={this.styles.tabs(false)} onClick={this.install}>
                                     <DownloadIcon class={this.styles.icons(false)} />
@@ -171,10 +149,10 @@ export class NavBar extends Component<Props, State> {
                             : undefined}
 
                         <button
-                            onClick={() => this.changeTab(index)}
-                            class={this.styles.tabs(this.state.activeIndex == index)}
+                            onClick={() => this.changeTab(id)}
+                            class={this.styles.tabs(this.props.activeNav === id)}
                         >
-                            {tab.icon(this.state.activeIndex == index)}
+                            {icon(this.props.activeNav === id)}
                         </button>
                     </div>
                 ))}
