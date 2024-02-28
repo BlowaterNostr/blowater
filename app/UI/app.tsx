@@ -384,6 +384,7 @@ export class AppComponent extends Component<AppProps, AppState> {
                     profile={app.database.getProfilesByPublicKey(myAccountCtx.publicKey)}
                     emit={app.eventBus.emit}
                     installPrompt={props.installPrompt}
+                    currentRelay={model.currentRelay}
                     activeNav={model.navigationModel.activeNav}
                     pool={app.pool}
                 />

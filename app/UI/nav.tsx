@@ -47,11 +47,11 @@ type Props = {
     emit: emitFunc<NavigationUpdate | SelectRelay>;
     installPrompt: InstallPrompt;
     pool: ConnectionPool;
+    currentRelay?: string;
     activeNav: string;
 };
 
 type State = {
-    selectedRelay: string;
     activeIndex: number;
     installPrompt: InstallPrompt;
 };
@@ -99,7 +99,6 @@ export class NavBar extends Component<Props, State> {
     };
 
     state: State = {
-        selectedRelay: "",
         activeIndex: this.initialActiveIndex(),
         installPrompt: this.props.installPrompt,
     };
@@ -160,7 +159,7 @@ export class NavBar extends Component<Props, State> {
         return (
             <div class={this.styles.container}>
                 {/* <Avatar class={this.styles.avatar} picture={this.props.profile?.profile?.picture} /> */}
-                {<RelaySwitchList emit={props.emit} pool={props.pool} />}
+                {<RelaySwitchList emit={props.emit} pool={props.pool} currentRelay={props.currentRelay} />}
                 {this.tabs.map((tab, index) => (
                     <div class={this.styles.tabsContainer}>
                         {index == this.tabs.length - 1 && this.state.installPrompt.event

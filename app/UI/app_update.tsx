@@ -132,8 +132,9 @@ export async function* UI_Interaction_Update(args: {
             continue;
         } // All events below are only valid after signning in
         //
-
-        //
+        else if (event.type == "SelectRelay") {
+            model.currentRelay = event.relay.url;
+        } //
         // Searchx
         //
         else if (event.type == "HidePopOver") {
@@ -257,9 +258,13 @@ export async function* UI_Interaction_Update(args: {
         // Channel
         //
         else if (event.type == "SelectChannel") {
+            if (!model.currentRelay) {
+                console.error("currentRelay is not set");
+                continue;
+            }
             model.navigationModel.activeNav = "Social";
             model.social.currentChannel = event.channel;
-            model.social.relaySelectedChannel.set(event.relay, event.channel);
+            model.social.relaySelectedChannel.set(model.currentRelay, event.channel);
             app.popOverInputChan.put({ children: undefined });
         } //
         //

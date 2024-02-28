@@ -32,7 +32,6 @@ export class ChannelList extends Component<ChannelListProps> {
                 hover:cursor-pointer` + selected}
                 onClick={selectChannel(
                     props.emit,
-                    props.relay,
                     name,
                 )}
             >
@@ -42,10 +41,9 @@ export class ChannelList extends Component<ChannelListProps> {
     }
 }
 
-const selectChannel = (emit: emitFunc<SelectChannel>, relay: string, channel: string) => () => {
+const selectChannel = (emit: emitFunc<SelectChannel>, channel: string) => () => {
     return emit({
         type: "SelectChannel",
-        relay,
         channel,
     });
 };

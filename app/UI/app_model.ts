@@ -7,6 +7,7 @@ import { App } from "./app.tsx";
 
 export type Model = {
     app: App | undefined; // app is only available after sign-in
+    currentRelay: string | undefined;
     dm: DM_Model;
     dmEditors: Map<string, EditorModel>;
 
@@ -27,6 +28,7 @@ export function initialModel(): Model {
     const editors: Map<string, EditorModel> = new Map();
     return {
         app: undefined,
+        currentRelay: undefined,
         dm: {
             focusedContent: new Map(),
             currentEditor: undefined,

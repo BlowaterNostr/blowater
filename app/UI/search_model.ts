@@ -10,6 +10,5 @@ export type SelectConversation = {
 };
 export type SelectChannel = {
     type: "SelectChannel";
-    relay: string;
     channel: string;
 };

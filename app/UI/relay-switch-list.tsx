@@ -9,12 +9,12 @@ import { RelayInformation } from "./relay-detail.tsx";
 import { setState } from "./_helper.ts";
 
 type RelaySwitchListProps = {
+    currentRelay?: string;
     pool: ConnectionPool;
     emit: emitFunc<SelectRelay>;
 };
 
 type RelaySwitchListState = {
-    selectedRelay: string;
     showRelayList: boolean;
     relayInformation: Map<string, RelayInformation>;
     searchRelayValue: string;
@@ -22,7 +22,6 @@ type RelaySwitchListState = {
 
 export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitchListState> {
     state: Readonly<RelaySwitchListState> = {
-        selectedRelay: "",
         relayInformation: new Map(),
         showRelayList: false,
         searchRelayValue: "",
@@ -78,11 +77,11 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
                     class="bg-white w-10 h-10 border rounded-md hover:hover:cursor-pointer mb-1"
                     onClick={this.toggleRelayList}
                 >
-                    {this.state.selectedRelay
+                    {this.props.currentRelay
                         ? (
                             <RelayAvatar
-                                icon={this.state.relayInformation.get(this.state.selectedRelay)?.icon}
-                                name={getSecondaryDomainName(this.state.selectedRelay)}
+                                icon={this.state.relayInformation.get(this.props.currentRelay)?.icon}
+                                name={getSecondaryDomainName(this.props.currentRelay)}
                             />
                         )
                         : <RelayAvatar icon="logo.webp" name="" />}
@@ -120,7 +119,6 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
 
     onRelaySelected = (relay: SingleRelayConnection) => async () => {
         await setState(this, {
-            selectedRelay: relay.url,
             showRelayList: false,
         });
         this.props.emit({
@@ -151,7 +149,7 @@ export async function getRelayInformation(url: string) {
 
         const detail: RelayInformation = await res.json();
         if (!detail.icon) {
-            detail.icon = httpURL.origin + "/favicon.ico";
+            detail.icon = httpURL + "favicon.ico";
         }
         return detail;
     } catch (e) {
