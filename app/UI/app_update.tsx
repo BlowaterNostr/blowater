@@ -30,6 +30,7 @@ import { EditGroup, StartEditGroupChatProfile } from "./edit-group.tsx";
 import { SaveProfile } from "./edit-profile.tsx";
 import { EditorEvent, EditorModel, new_DM_EditorModel, SendMessage } from "./editor.tsx";
 import { EventDetail, EventDetailItem } from "./event-detail.tsx";
+import { EventSender } from "../../libs/nostr.ts/relay.interface.ts";
 
 import { DirectMessagePanelUpdate } from "./message-panel.tsx";
 import { ChatMessage } from "./message.ts";
@@ -199,11 +200,16 @@ export async function* UI_Interaction_Update(args: {
         // Editor
         //
         else if (event.type == "SendMessage") {
+            const currentRelay = pool.getRelay(model.currentRelay);
+            if (!currentRelay) {
+                console.error(`currentRelay is not found: ${model.currentRelay}`);
+                continue;
+            }
             handle_SendMessage(
                 event,
                 app.ctx,
                 app.lamport,
-                pool,
+                currentRelay,
                 app.model.dmEditors,
                 app.database,
             ).then((res) => {
@@ -549,7 +555,7 @@ export async function handle_SendMessage(
     event: SendMessage,
     ctx: NostrAccountContext,
     lamport: LamportTime,
-    pool: ConnectionPool,
+    pool: EventSender,
     dmEditors: Map<string, EditorModel>,
     db: Datebase_View,
 ) {

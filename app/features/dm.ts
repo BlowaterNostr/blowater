@@ -5,6 +5,7 @@ import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 import { DirectMessageGetter } from "../UI/app_update.tsx";
 import { ChatMessage, parseContent } from "../UI/message.ts";
 import { compare, getTags, Parsed_Event, prepareNostrImageEvent, Tag, Tags } from "../nostr.ts";
+import { EventSender } from "../../libs/nostr.ts/relay.interface.ts";
 
 import {
     chan,
@@ -19,7 +20,7 @@ export async function sendDMandImages(args: {
     message: string;
     files: Blob[];
     lamport_timestamp: number;
-    pool: ConnectionPool;
+    pool: EventSender;
     tags: Tag[];
 }) {
     const { tags, sender, receiverPublicKey, message, files, lamport_timestamp, pool } = args;
