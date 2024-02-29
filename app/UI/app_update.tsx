@@ -200,7 +200,11 @@ export async function* UI_Interaction_Update(args: {
         // Editor
         //
         else if (event.type == "SendMessage") {
-            const currentRelay = pool.getRelay(model.currentRelay) as EventSender;
+            const currentRelay = pool.getRelay(model.currentRelay);
+            if (!currentRelay) {
+                console.error(`currentRelay is not found: ${model.currentRelay}`);
+                continue;
+            }
             handle_SendMessage(
                 event,
                 app.ctx,
