@@ -13,6 +13,7 @@ import { prepareEncryptedNostrEvent } from "../../libs/nostr.ts/event.ts";
 import { PrivateKey } from "../../libs/nostr.ts/key.ts";
 import { DM_List } from "./conversation-list.ts";
 import { DirectedMessageController } from "../features/dm.ts";
+import { EventSyncer } from "./event_syncer.ts";
 
 const ctx = InMemoryAccountContext.Generate();
 
@@ -45,6 +46,7 @@ const dmControl = new DirectedMessageController(ctx);
 
 render(
     <ChannelContainer
+        ctx={ctx}
         relay={relay}
         bus={testEventBus}
         getters={{
@@ -56,6 +58,8 @@ render(
         }}
         currentChannel={undefined}
         relaySelectedChannel={new Map()}
+        eventSyncer={new EventSyncer(pool, database)}
+        userBlocker={dm_list}
     />,
     document.body,
 );

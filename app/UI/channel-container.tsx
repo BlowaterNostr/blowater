@@ -10,10 +10,15 @@ import { RelayRecordGetter } from "../database.ts";
 import { NewMessageChecker } from "./conversation-list.tsx";
 import { ChatMessagesGetter } from "./app_update.tsx";
 import { ConversationListRetriever } from "./conversation-list.tsx";
+import { NostrKind } from "../../libs/nostr.ts/nostr.ts";
+import { NostrAccountContext } from "../../libs/nostr.ts/nostr.ts";
+import { EventSyncer } from "./event_syncer.ts";
+import { UserBlocker } from "./app_update.tsx";
 
 import { PrimaryTextColor, SecondaryBackgroundColor } from "./style/colors.ts";
 import { IconButtonClass } from "./components/tw.ts";
 import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
+import { MessagePanel } from "./message-panel.tsx";
 
 export type Social_Model = {
     currentChannel: string | undefined;
@@ -24,6 +29,7 @@ type Relay = string;
 type Channel = string;
 
 type ChannelContainerProps = {
+    ctx: NostrAccountContext;
     relay: SingleRelayConnection;
     bus: EventBus<UI_Interaction_Event>;
     getters: {
@@ -33,19 +39,31 @@ type ChannelContainerProps = {
         newMessageChecker: NewMessageChecker;
         relayRecordGetter: RelayRecordGetter;
     };
+    eventSyncer: EventSyncer;
+    userBlocker: UserBlocker;
 } & Social_Model;
 
 type ChannelContainerState = {
     currentSelected: Channel | undefined;
+    currentEditor: EditorModel;
 };
 
 export class ChannelContainer extends Component<ChannelContainerProps, ChannelContainerState> {
     state: ChannelContainerState = {
         currentSelected: this.initialSelected(),
+        currentEditor: this.initialCurrentEditor(),
     };
 
     initialSelected() {
         return this.props.relaySelectedChannel.get(this.props.relay.url);
+    }
+
+    initialCurrentEditor() {
+        return {
+            pubkey: this.props.ctx.publicKey,
+            text: "",
+            files: [],
+        };
     }
 
     async componentDidMount() {
@@ -94,23 +112,27 @@ export class ChannelContainer extends Component<ChannelContainerProps, ChannelCo
                                 profileGetter={props.getters.profileGetter}
                             />
                             <div class={`flex-1 overflow-auto`}>
-                                <ChannelMessagePanel />
+                                {
+                                    <MessagePanel
+                                        myPublicKey={props.ctx.publicKey}
+                                        emit={props.bus.emit}
+                                        eventSub={props.bus}
+                                        focusedContent={undefined}
+                                        eventSyncer={props.eventSyncer}
+                                        profileGetter={props.getters.profileGetter}
+                                        editorModel={state.currentEditor}
+                                        kind={NostrKind.TEXT_NOTE}
+                                        messages={props.getters.messageGetter.getChatMessages(
+                                            props.ctx.publicKey.hex,
+                                        )}
+                                        relayRecordGetter={props.getters.relayRecordGetter}
+                                        userBlocker={props.userBlocker}
+                                    />
+                                }
                             </div>
                         </div>
                     )
                     : undefined}
-            </div>
-        );
-    }
-}
-
-type ChannelMessagePanelProps = {};
-
-class ChannelMessagePanel extends Component<ChannelMessagePanelProps> {
-    render(props: ChannelMessagePanelProps) {
-        return (
-            <div>
-                ChannelMessagePanel
             </div>
         );
     }

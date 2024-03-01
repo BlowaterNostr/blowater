@@ -355,6 +355,7 @@ export class AppComponent extends Component<AppProps> {
         if (model.navigationModel.activeNav == "Social" && model.currentRelay) {
             socialNode = (
                 <ChannelContainer
+                    ctx={myAccountCtx}
                     {...model.social}
                     getters={{
                         convoListRetriever: app.conversationLists,
@@ -365,6 +366,8 @@ export class AppComponent extends Component<AppProps> {
                     }}
                     relay={props.pool.getRelay(model.currentRelay) as SingleRelayConnection}
                     bus={app.eventBus}
+                    eventSyncer={app.eventSyncer}
+                    userBlocker={app.conversationLists}
                 />
             );
         }
