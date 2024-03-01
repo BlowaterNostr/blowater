@@ -275,16 +275,7 @@ export async function* UI_Interaction_Update(args: {
         //
         // DM
         //
-        else if (event.type == "ViewThread") {
-            if (model.navigationModel.activeNav == "DM") {
-                if (model.dm.currentEditor) {
-                    model.dm.focusedContent.set(
-                        model.dm.currentEditor.pubkey.hex,
-                        event.root,
-                    );
-                }
-            }
-        } else if (event.type == "ViewUserDetail") {
+        else if (event.type == "ViewUserDetail") {
             if (model.dm.currentEditor) {
                 const currentFocus = model.dm.focusedContent.get(model.dm.currentEditor.pubkey.hex);
                 if (

@@ -35,7 +35,6 @@ import { BlockUser, UnblockUser, UserDetail } from "./user-detail.tsx";
 
 export type DirectMessagePanelUpdate =
     | ToggleRightPanel
-    | ViewThread
     | ViewUserDetail
     | OpenNote
     | {
@@ -51,11 +50,6 @@ export type ToggleRightPanel = {
 export type OpenNote = {
     type: "OpenNote";
     event: NostrEvent;
-};
-
-export type ViewThread = {
-    type: "ViewThread";
-    root: NostrEvent;
 };
 
 export type ViewUserDetail = {
@@ -375,7 +369,7 @@ function MessageBoxGroup(props: {
 
 function MessageActions(
     message: ChatMessage,
-    emit: emitFunc<ViewThread | DirectMessagePanelUpdate>,
+    emit: emitFunc<DirectMessagePanelUpdate>,
 ) {
     return (
         <div
@@ -445,7 +439,7 @@ export function ParseMessageContent(
     message: ChatMessage,
     authorProfile: ProfileData | undefined,
     eventSyncer: EventSyncer,
-    emit: emitFunc<ViewUserDetail | ViewThread | OpenNote | SelectConversation>,
+    emit: emitFunc<ViewUserDetail | OpenNote | SelectConversation>,
     profileGetter: ProfileGetter,
 ) {
     if (message.type == "image") {
@@ -555,7 +549,7 @@ export function ParseMessageContent(
 function Card(
     event: Parsed_Event,
     authorProfile: ProfileData | undefined,
-    emit: emitFunc<ViewThread | ViewUserDetail | OpenNote>,
+    emit: emitFunc<ViewUserDetail | OpenNote>,
     publicKey: PublicKey,
 ) {
     switch (event.kind) {
