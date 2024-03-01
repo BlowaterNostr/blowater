@@ -365,7 +365,7 @@ export class AppComponent extends Component<AppProps> {
         console.debug("AppComponent:2", Date.now() - t);
 
         const final = (
-            <div class={tw`h-screen w-full flex`}>
+            <div class={`h-screen w-full flex`}>
                 <NavBar
                     publicKey={app.ctx.publicKey}
                     profile={app.database.getProfilesByPublicKey(myAccountCtx.publicKey)}
@@ -377,12 +377,12 @@ export class AppComponent extends Component<AppProps> {
                 />
 
                 <div
-                    class={tw`h-full px-[3rem] sm:px-4 bg-[${SecondaryBackgroundColor}] flex-1 overflow-auto${
+                    class={`h-full px-[3rem] sm:px-4 bg-[${SecondaryBackgroundColor}] flex-1 overflow-auto${
                         model.navigationModel.activeNav == "Profile" ? " block" : " hidden"
                     }`}
                 >
                     <div
-                        class={tw`max-w-[35rem] h-full m-auto`}
+                        class={`max-w-[35rem] h-full m-auto`}
                     >
                         <EditProfile
                             ctx={model.app.ctx}

@@ -1,6 +1,5 @@
 /** @jsx h */
 import { Component, createRef, h } from "https://esm.sh/preact@10.17.1";
-import { tw } from "https://esm.sh/twind@0.16.16";
 import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { NoteID } from "../../libs/nostr.ts/nip19.ts";
@@ -94,9 +93,7 @@ interface DirectMessagePanelProps {
 }
 
 export class MessagePanel extends Component<DirectMessagePanelProps> {
-    render() {
-        const props = this.props;
-
+    render(props: DirectMessagePanelProps) {
         let rightPanelChildren: h.JSX.Element | undefined;
         if (props.focusedContent) {
             if (props.focusedContent.type == "ProfileData") {
@@ -125,9 +122,9 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
         );
 
         let vnode = (
-            <div class={tw`flex h-full w-full relative bg-[#36393F]`}>
-                <div class={tw`flex flex-col h-full flex-1 overflow-hidden`}>
-                    <div class={tw`flex-1`}></div>
+            <div class={`flex h-full w-full relative bg-[#36393F]`}>
+                <div class={`flex flex-col h-full flex-1 overflow-hidden`}>
+                    <div class={`flex-1`}></div>
 
                     <MessageList
                         myPublicKey={props.myPublicKey}
@@ -236,7 +233,7 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
 
         const vNode = (
             <div
-                class={tw`w-full overflow-hidden`}
+                class={`w-full overflow-hidden`}
                 style={{
                     transform: "perspective(none)",
                 }}
@@ -251,17 +248,17 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
                             });
                         }
                     }}
-                    class={tw`${IconButtonClass} mobile:hidden fixed z-10 bottom-8 right-4 h-10 w-10 rotate-[-90deg] bg-[#42464D] hover:bg-[#2F3136]`}
+                    class={`${IconButtonClass} mobile:hidden fixed z-10 bottom-8 right-4 h-10 w-10 rotate-[-90deg] bg-[#42464D] hover:bg-[#2F3136]`}
                 >
                     <LeftArrowIcon
-                        class={tw`w-6 h-6`}
+                        class={`w-6 h-6`}
                         style={{
                             fill: "#F3F4EA",
                         }}
                     />
                 </button>
                 <ul
-                    class={tw`w-full h-full overflow-y-auto overflow-x-hidden py-9 mobile:py-2 px-2 mobile:px-0 flex flex-col-reverse`}
+                    class={`w-full h-full overflow-y-auto overflow-x-hidden py-9 mobile:py-2 px-2 mobile:px-0 flex flex-col-reverse`}
                     ref={this.messagesULElement}
                     onScroll={this.onScroll}
                 >
@@ -291,13 +288,13 @@ function MessageBoxGroup(props: {
     const rows = [];
     rows.push(
         <li
-            class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 mobile:pr-4 group relative ${
+            class={`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 mobile:pr-4 group relative ${
                 isMobile() ? "select-none" : ""
             }`}
         >
             {MessageActions(first_group, props.emit)}
             <Avatar
-                class={tw`h-8 w-8 mt-[0.45rem] mr-2`}
+                class={`h-8 w-8 mt-[0.45rem] mr-2`}
                 picture={props.authorProfile?.picture}
                 onClick={() => {
                     props.emit({
@@ -308,7 +305,7 @@ function MessageBoxGroup(props: {
             />
 
             <div
-                class={tw`flex-1`}
+                class={`flex-1`}
                 style={{
                     maxWidth: "calc(100% - 2.75rem)",
                 }}
@@ -320,7 +317,7 @@ function MessageBoxGroup(props: {
                     first_group.created_at,
                 )}
                 <pre
-                    class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto text-sm`}
+                    class={`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto text-sm`}
                 >
                     {ParseMessageContent(
                         first_group,
@@ -338,20 +335,20 @@ function MessageBoxGroup(props: {
         const msg = messageGroups[i];
         rows.push(
             <li
-                class={tw`px-4 hover:bg-[#32353B] w-full max-w-full flex items-center pr-8 mobile:pr-4 group relative text-sm ${
+                class={`px-4 hover:bg-[#32353B] w-full max-w-full flex items-center pr-8 mobile:pr-4 group relative text-sm ${
                     isMobile() ? "select-none" : ""
                 }`}
             >
                 {MessageActions(msg, props.emit)}
                 {Time(msg.created_at)}
                 <div
-                    class={tw`flex-1`}
+                    class={`flex-1`}
                     style={{
                         maxWidth: "calc(100% - 2.75rem)",
                     }}
                 >
                     <pre
-                        class={tw`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto`}
+                        class={`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto`}
                     >
                     {ParseMessageContent(
                         msg,
@@ -367,7 +364,7 @@ function MessageBoxGroup(props: {
     }
 
     const vnode = (
-        <ul class={tw`py-2`}>
+        <ul class={`py-2`}>
             {rows}
         </ul>
     );
@@ -388,7 +385,7 @@ function MessageActions(
             }}
         >
             <button
-                class={tw`w-6 h-6 flex items-center justify-center`}
+                class={`w-6 h-6 flex items-center justify-center`}
                 onClick={async () => {
                     emit({
                         type: "ViewEventDetail",
@@ -397,7 +394,7 @@ function MessageActions(
                 }}
             >
                 <AboutIcon
-                    class={tw`w-4 h-4 scale-150`}
+                    class={`w-4 h-4 scale-150`}
                     style={{
                         fill: PrimaryTextColor,
                     }}
@@ -409,9 +406,9 @@ function MessageActions(
 
 export function Time(created_at: Date) {
     return (
-        <div class={tw`w-8 mr-2`}>
+        <div class={`w-8 mr-2`}>
             <span
-                class={tw`text-[#A3A6AA] text-xs hidden group-hover:inline-block`}
+                class={`text-[#A3A6AA] text-xs hidden group-hover:inline-block`}
             >
                 {created_at.toTimeString().slice(0, 5)}
             </span>
@@ -433,11 +430,11 @@ export function NameAndTime(
     }
 
     return (
-        <p class={tw`overflow-hidden flex`}>
-            <p class={tw`text-[#FFFFFF] text-[0.9rem] truncate mobile:hidden`}>
+        <p class={`overflow-hidden flex`}>
+            <p class={`text-[#FFFFFF] text-[0.9rem] truncate mobile:hidden`}>
                 {show}
             </p>
-            <p class={tw`text-[#A3A6AA] ml-4 text-[0.8rem] whitespace-nowrap mobile:ml-0 mobile:text-xs`}>
+            <p class={`text-[#A3A6AA] ml-4 text-[0.8rem] whitespace-nowrap mobile:ml-0 mobile:text-xs`}>
                 {created_at.toLocaleString()}
             </p>
         </p>
@@ -454,7 +451,7 @@ export function ParseMessageContent(
     if (message.type == "image") {
         return (
             <img
-                class={tw`w-96 p-1 rounded-lg border-2 border-[${DividerBackgroundColor}]`}
+                class={`w-96 p-1 rounded-lg border-2 border-[${DividerBackgroundColor}]`}
                 src={message.content}
             />
         );
@@ -473,14 +470,14 @@ export function ParseMessageContent(
                     if (urlIsImage(itemStr)) {
                         vnode.push(
                             <img
-                                class={tw`w-96 p-1 rounded-lg border-2 border-[${DividerBackgroundColor}]`}
+                                class={`w-96 p-1 rounded-lg border-2 border-[${DividerBackgroundColor}]`}
                                 src={itemStr}
                             />,
                         );
                     } else if (urlIsVideo(itemStr)) {
                         vnode.push(
                             <video
-                                class={tw`w-96 p-1 rounded-lg border-2 border-[${DividerBackgroundColor}]`}
+                                class={`w-96 p-1 rounded-lg border-2 border-[${DividerBackgroundColor}]`}
                                 controls
                                 src={itemStr}
                             >
@@ -488,7 +485,7 @@ export function ParseMessageContent(
                         );
                     } else {
                         vnode.push(
-                            <a target="_blank" class={tw`hover:underline text-[${LinkColor}]`} href={itemStr}>
+                            <a target="_blank" class={`hover:underline text-[${LinkColor}]`} href={itemStr}>
                                 {itemStr}
                             </a>,
                         );
@@ -572,9 +569,9 @@ function Card(
 
 function ReSent() {
     const styles = {
-        container: tw`flex items-center cursor-pointer`,
-        icon: tw`w-2 h-2 text-[${ErrorColor}] fill-current mr-2`,
-        text: tw`text-xs text-[${ErrorColor}]`,
+        container: `flex items-center cursor-pointer`,
+        icon: `w-2 h-2 text-[${ErrorColor}] fill-current mr-2`,
+        text: `text-xs text-[${ErrorColor}]`,
     };
 
     return (
