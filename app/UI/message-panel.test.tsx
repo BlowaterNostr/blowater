@@ -13,6 +13,7 @@ import { EventSyncer } from "./event_syncer.ts";
 import { MessagePanel } from "./message-panel.tsx";
 import { DirectedMessageController } from "../features/dm.ts";
 import { DM_List } from "./conversation-list.ts";
+import { EditorModel } from "./editor.tsx";
 
 const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
 const database = await test_db_view();
@@ -41,29 +42,35 @@ const pool = new ConnectionPool();
 const model = initialModel();
 pool.addRelayURL(relays[0]);
 
-const editor = model.dmEditors.get(ctx.publicKey.hex);
+const editor: EditorModel = {
+    pubkey: ctx.publicKey,
+    text: "hi",
+    files: [],
+};
 
 const view = () => {
     if (editor == undefined) {
         return undefined;
     }
     return (
-        <MessagePanel
-            profileGetter={database}
-            /**
-             * If we use a map to store all editor models,
-             * need to distinguish editor models for DMs and GMs
-             */
-            editorModel={editor}
-            eventSyncer={new EventSyncer(pool, database)}
-            focusedContent={undefined}
-            myPublicKey={ctx.publicKey}
-            emit={testEventBus.emit}
-            relayRecordGetter={database}
-            eventSub={testEventBus}
-            userBlocker={new DM_List(ctx)}
-            messages={new DirectedMessageController(ctx).getChatMessages(ctx.publicKey.hex)}
-        />
+        <div class="w-screen h-screen">
+            <MessagePanel
+                profileGetter={database}
+                /**
+                 * If we use a map to store all editor models,
+                 * need to distinguish editor models for DMs and GMs
+                 */
+                editorModel={editor}
+                eventSyncer={new EventSyncer(pool, database)}
+                focusedContent={undefined}
+                myPublicKey={ctx.publicKey}
+                emit={testEventBus.emit}
+                relayRecordGetter={database}
+                eventSub={testEventBus}
+                userBlocker={new DM_List(ctx)}
+                messages={new DirectedMessageController(ctx).getChatMessages(ctx.publicKey.hex)}
+            />
+        </div>
     );
 };
 
