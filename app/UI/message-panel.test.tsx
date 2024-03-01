@@ -8,49 +8,47 @@ import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 import { LamportTime } from "../time.ts";
 import { test_db_view, testEventBus } from "./_setup.test.ts";
 import { initialModel } from "./app_model.ts";
-import { handle_SendMessage } from "./app_update.tsx";
 import { EventSyncer } from "./event_syncer.ts";
-import { MessagePanel } from "./message-panel.tsx";
 import { DirectedMessageController } from "../features/dm.ts";
 import { DM_List } from "./conversation-list.ts";
+
+import { handle_SendMessage } from "./app_update.tsx";
+import { MessagePanel } from "./message-panel.tsx";
 import { EditorModel } from "./editor.tsx";
-import { NostrEvent } from "../../libs/nostr.ts/nostr.ts";
 
 const lamport = new LamportTime();
-const model = initialModel();
 const pool = new ConnectionPool();
 pool.addRelayURL(relays[2]);
+const model = initialModel();
 const database = await test_db_view();
-const receiverPublicKey = InMemoryAccountContext.Generate().publicKey;
+const sender = InMemoryAccountContext.Generate();
+const receiver = InMemoryAccountContext.Generate();
 const editor: EditorModel = {
-    pubkey: receiverPublicKey,
+    pubkey: receiver.publicKey,
     text: "hi",
     files: [],
 };
-const sender = InMemoryAccountContext.Generate();
 
-const eventsToSend: NostrEvent[] = [];
+const dmController = new DirectedMessageController(sender);
+const events = [];
 for (let i = 1; i <= 3; i++) {
-    const nostrEvent = await prepareEncryptedNostrEvent(
-        sender,
-        {
-            encryptKey: receiverPublicKey,
-            kind: NostrKind.DIRECT_MESSAGE,
-            tags: [
-                ["p", sender.publicKey.hex],
-                ["lamport", lamport.now().toString()],
-            ],
-            content: `test:${i}`,
-        },
-    );
-    if (nostrEvent instanceof Error) {
-        fail(nostrEvent.message);
-    }
-    eventsToSend.push(nostrEvent);
+    const event = await prepareEncryptedNostrEvent(sender, {
+        content: `test:${i}`,
+        encryptKey: receiver.publicKey,
+        kind: NostrKind.DIRECT_MESSAGE,
+        tags: [
+            ["p", sender.publicKey.hex],
+        ],
+    });
+    if (event instanceof Error) fail(event.message);
+
+    events.push(event);
 }
-database.addEvent(eventsToSend[0]);
-database.addEvent(eventsToSend[1]);
-database.addEvent(eventsToSend[2]);
+await dmController.addEvent(events[0]);
+await dmController.addEvent(events[1]);
+
+const messages = dmController.getChatMessages(receiver.publicKey.hex);
+console.log("messages", messages);
 
 const view = () => {
     if (editor == undefined) {
@@ -69,7 +67,7 @@ const view = () => {
                 relayRecordGetter={database}
                 eventSub={testEventBus}
                 userBlocker={new DM_List(sender)}
-                messages={new DirectedMessageController(sender).getChatMessages(sender.publicKey.hex)}
+                messages={messages}
             />
         </div>
     );
@@ -78,7 +76,6 @@ const view = () => {
 render(view(), document.body);
 
 for await (const event of testEventBus.onChange()) {
-    console.log(event);
     if (event.type == "SendMessage") {
         const currentRelay = pool.getRelay(model.currentRelay);
         if (!currentRelay) {
