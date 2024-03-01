@@ -15,7 +15,7 @@ import { DirectedMessageController } from "../features/dm.ts";
 import { DM_List } from "./conversation-list.ts";
 import { EditorModel } from "./editor.tsx";
 
-const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
+const ctx = InMemoryAccountContext.Generate();
 const database = await test_db_view();
 
 const lamport = new LamportTime();
@@ -42,8 +42,9 @@ const pool = new ConnectionPool();
 const model = initialModel();
 pool.addRelayURL(relays[2]);
 
+const receiverPublicKey = InMemoryAccountContext.Generate().publicKey;
 const editor: EditorModel = {
-    pubkey: ctx.publicKey,
+    pubkey: receiverPublicKey,
     text: "hi",
     files: [],
 };

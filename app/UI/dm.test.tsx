@@ -40,23 +40,23 @@ if (!e || e instanceof Error) {
 }
 
 const dm_list = new DM_List(ctx);
-dm_list.addEvents([e], true);
-dm_list.addEvents(Array.from(database.getAllEvents()), true);
+// dm_list.addEvents([e], true);
+// dm_list.addEvents(Array.from(database.getAllEvents()), true);
 
-for (let i = 0; i < 20; i++) {
-    const event = await prepareEncryptedNostrEvent(ctx, {
-        content: "",
-        encryptKey: ctx.publicKey,
-        kind: NostrKind.DIRECT_MESSAGE,
-        tags: [
-            ["p", PrivateKey.Generate().toPublicKey().hex],
-        ],
-    }) as NostrEvent;
-    const err = dm_list.addEvents([event], true);
-    if (err instanceof Error) {
-        fail(err.message);
-    }
-}
+// for (let i = 0; i < 20; i++) {
+//     const event = await prepareEncryptedNostrEvent(ctx, {
+//         content: "",
+//         encryptKey: ctx.publicKey,
+//         kind: NostrKind.DIRECT_MESSAGE,
+//         tags: [
+//             ["p", PrivateKey.Generate().toPublicKey().hex],
+//         ],
+//     }) as NostrEvent;
+//     const err = dm_list.addEvents([event], true);
+//     if (err instanceof Error) {
+//         fail(err.message);
+//     }
+// }
 
 const pool = new ConnectionPool();
 const model = initialModel();
