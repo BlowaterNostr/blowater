@@ -1,7 +1,7 @@
 /** @jsx h */
+import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { h, render } from "https://esm.sh/preact@10.17.1";
-import { prepareNormalNostrEvent } from "../../libs/nostr.ts/event.ts";
-import { PrivateKey } from "../../libs/nostr.ts/key.ts";
+import { prepareEncryptedNostrEvent } from "../../libs/nostr.ts/event.ts";
 import { InMemoryAccountContext, NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { relays } from "../../libs/nostr.ts/relay-list.test.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
@@ -14,40 +14,43 @@ import { MessagePanel } from "./message-panel.tsx";
 import { DirectedMessageController } from "../features/dm.ts";
 import { DM_List } from "./conversation-list.ts";
 import { EditorModel } from "./editor.tsx";
-
-const ctx = InMemoryAccountContext.Generate();
-const database = await test_db_view();
+import { NostrEvent } from "../../libs/nostr.ts/nostr.ts";
 
 const lamport = new LamportTime();
-
-// await database.addEvent(
-//     await prepareNormalNostrEvent(ctx, {
-//         content: "hi",
-//         kind: NostrKind.TEXT_NOTE,
-//     }),
-// );
-// await database.addEvent(
-//     await prepareNormalNostrEvent(ctx, {
-//         content: "hi 2",
-//         kind: NostrKind.TEXT_NOTE,
-//     }),
-// );
-// await database.addEvent(
-//     await prepareNormalNostrEvent(ctx, {
-//         content: "hi 3",
-//         kind: NostrKind.TEXT_NOTE,
-//     }),
-// );
-const pool = new ConnectionPool();
 const model = initialModel();
+const pool = new ConnectionPool();
 pool.addRelayURL(relays[2]);
-
+const database = await test_db_view();
 const receiverPublicKey = InMemoryAccountContext.Generate().publicKey;
 const editor: EditorModel = {
     pubkey: receiverPublicKey,
     text: "hi",
     files: [],
 };
+const sender = InMemoryAccountContext.Generate();
+
+const eventsToSend: NostrEvent[] = [];
+for (let i = 1; i <= 3; i++) {
+    const nostrEvent = await prepareEncryptedNostrEvent(
+        sender,
+        {
+            encryptKey: receiverPublicKey,
+            kind: NostrKind.DIRECT_MESSAGE,
+            tags: [
+                ["p", sender.publicKey.hex],
+                ["lamport", lamport.now().toString()],
+            ],
+            content: `test:${i}`,
+        },
+    );
+    if (nostrEvent instanceof Error) {
+        fail(nostrEvent.message);
+    }
+    eventsToSend.push(nostrEvent);
+}
+database.addEvent(eventsToSend[0]);
+database.addEvent(eventsToSend[1]);
+database.addEvent(eventsToSend[2]);
 
 const view = () => {
     if (editor == undefined) {
@@ -61,12 +64,12 @@ const view = () => {
                 kind={NostrKind.DIRECT_MESSAGE}
                 eventSyncer={new EventSyncer(pool, database)}
                 focusedContent={undefined}
-                myPublicKey={ctx.publicKey}
+                myPublicKey={sender.publicKey}
                 emit={testEventBus.emit}
                 relayRecordGetter={database}
                 eventSub={testEventBus}
-                userBlocker={new DM_List(ctx)}
-                messages={new DirectedMessageController(ctx).getChatMessages(ctx.publicKey.hex)}
+                userBlocker={new DM_List(sender)}
+                messages={new DirectedMessageController(sender).getChatMessages(sender.publicKey.hex)}
             />
         </div>
     );
@@ -84,7 +87,7 @@ for await (const event of testEventBus.onChange()) {
         }
         handle_SendMessage(
             event,
-            ctx,
+            sender,
             lamport,
             currentRelay,
             model.dmEditors,

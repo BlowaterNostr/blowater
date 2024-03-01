@@ -35,7 +35,6 @@ import { LamportTime } from "../time.ts";
 import { InstallPrompt, NavBar } from "./nav.tsx";
 import { Component } from "https://esm.sh/preact@10.17.1";
 import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
-import { setState } from "./_helper.ts";
 import { ChannelContainer } from "./channel-container.tsx";
 
 export async function Start(database: DexieDatabase) {

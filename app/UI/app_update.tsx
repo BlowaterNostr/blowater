@@ -176,6 +176,7 @@ export async function* UI_Interaction_Update(args: {
         // Contacts
         //
         else if (event.type == "SelectConversation") {
+            console.log("SelectConversation", event.pubkey.hex);
             model.navigationModel.activeNav = "DM";
             updateConversation(app.model, event.pubkey);
 
@@ -411,6 +412,7 @@ export function updateConversation(
 ) {
     const editorMap = model.dmEditors;
     let editor = editorMap.get(targetPublicKey.hex);
+    console.log("updateConversation", editor);
     // If this conversation is new
     if (editor == undefined) {
         editor = {

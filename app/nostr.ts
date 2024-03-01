@@ -51,7 +51,7 @@ export type DirectedMessage_Event = Parsed_Event<NostrKind.DIRECT_MESSAGE> & {
 };
 export type Encrypted_Event = DirectedMessage_Event;
 
-export type TextNote_Event = Parsed_Event<NostrKind.TEXT_NOTE>
+export type TextNote_Event = Parsed_Event<NostrKind.TEXT_NOTE>;
 
 export type CustomAppData = PinConversation | UnpinConversation | UserLogin;
 

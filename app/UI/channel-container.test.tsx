@@ -9,7 +9,7 @@ import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 import { InMemoryAccountContext, NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { NewIndexedDB } from "./dexie-db.ts";
 import { Datebase_View } from "../database.ts";
-import { prepareEncryptedNostrEvent } from "../../libs/nostr.ts/event.ts";
+import { prepareEncryptedNostrEvent, prepareNormalNostrEvent } from "../../libs/nostr.ts/event.ts";
 import { PrivateKey } from "../../libs/nostr.ts/key.ts";
 import { DM_List } from "./conversation-list.ts";
 import { DirectedMessageController } from "../features/dm.ts";
@@ -32,7 +32,7 @@ const e = await database.addEvent(
     await prepareEncryptedNostrEvent(ctx, {
         encryptKey: ctx.publicKey,
         kind: NostrKind.DIRECT_MESSAGE,
-        tags: [["p", ctx.publicKey.hex]],
+        tags: [["p", InMemoryAccountContext.Generate().publicKey.hex]],
         content: "hi",
     }) as NostrEvent,
 );
@@ -41,7 +41,8 @@ if (!e || e instanceof Error) {
 }
 
 const dm_list = new DM_List(ctx);
-
+dm_list.addEvents([e], true);
+dm_list.addEvents(Array.from(database.getAllEvents()), true);
 const dmControl = new DirectedMessageController(ctx);
 
 render(
