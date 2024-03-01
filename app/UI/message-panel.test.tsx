@@ -20,27 +20,27 @@ const database = await test_db_view();
 
 const lamport = new LamportTime();
 
-await database.addEvent(
-    await prepareNormalNostrEvent(ctx, {
-        content: "hi",
-        kind: NostrKind.TEXT_NOTE,
-    }),
-);
-await database.addEvent(
-    await prepareNormalNostrEvent(ctx, {
-        content: "hi 2",
-        kind: NostrKind.TEXT_NOTE,
-    }),
-);
-await database.addEvent(
-    await prepareNormalNostrEvent(ctx, {
-        content: "hi 3",
-        kind: NostrKind.TEXT_NOTE,
-    }),
-);
+// await database.addEvent(
+//     await prepareNormalNostrEvent(ctx, {
+//         content: "hi",
+//         kind: NostrKind.TEXT_NOTE,
+//     }),
+// );
+// await database.addEvent(
+//     await prepareNormalNostrEvent(ctx, {
+//         content: "hi 2",
+//         kind: NostrKind.TEXT_NOTE,
+//     }),
+// );
+// await database.addEvent(
+//     await prepareNormalNostrEvent(ctx, {
+//         content: "hi 3",
+//         kind: NostrKind.TEXT_NOTE,
+//     }),
+// );
 const pool = new ConnectionPool();
 const model = initialModel();
-pool.addRelayURL(relays[0]);
+pool.addRelayURL(relays[2]);
 
 const editor: EditorModel = {
     pubkey: ctx.publicKey,
@@ -56,11 +56,8 @@ const view = () => {
         <div class="w-screen h-screen">
             <MessagePanel
                 profileGetter={database}
-                /**
-                 * If we use a map to store all editor models,
-                 * need to distinguish editor models for DMs and GMs
-                 */
                 editorModel={editor}
+                kind={NostrKind.DIRECT_MESSAGE}
                 eventSyncer={new EventSyncer(pool, database)}
                 focusedContent={undefined}
                 myPublicKey={ctx.publicKey}
@@ -76,22 +73,27 @@ const view = () => {
 
 render(view(), document.body);
 
-for await (const e of testEventBus.onChange()) {
-    console.log(e);
-    if (e.type == "SendMessage") {
-        const err = await handle_SendMessage(
-            e,
+for await (const event of testEventBus.onChange()) {
+    console.log(event);
+    if (event.type == "SendMessage") {
+        const currentRelay = pool.getRelay(model.currentRelay);
+        if (!currentRelay) {
+            console.error(`currentRelay is not found: ${model.currentRelay}`);
+            continue;
+        }
+        handle_SendMessage(
+            event,
             ctx,
             lamport,
-            pool,
+            currentRelay,
             model.dmEditors,
             database,
-        );
-        if (err instanceof Error) {
-            console.error("update:SendMessage", err);
-            continue; // todo: global error toast
-        }
-    } else if (e.type == "UpdateEditorText") {
+        ).then((res) => {
+            if (res instanceof Error) {
+                console.error("update:SendMessage", res);
+            }
+        });
+    } else if (event.type == "UpdateEditorText") {
     }
     render(view(), document.body);
 }

@@ -3,6 +3,7 @@ import { createRef, h } from "https://esm.sh/preact@10.17.1";
 import { CenterClass, LinearGradientsClass, NoOutlineClass } from "./components/tw.ts";
 import { emitFunc } from "../event-bus.ts";
 
+import { NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { ImageIcon } from "./icons/image-icon.tsx";
 import { DividerBackgroundColor, PrimaryBackgroundColor, PrimaryTextColor } from "./style/colors.ts";
@@ -31,6 +32,7 @@ export type EditorEvent = SendMessage | UpdateEditorText | UpdateMessageFiles;
 
 export type SendMessage = {
     readonly type: "SendMessage";
+    readonly kind: NostrKind;
     readonly editorID: PublicKey;
     readonly text: string;
     readonly files: Blob[];
@@ -64,6 +66,7 @@ type EditorProps = {
     // Logic
     readonly targetNpub: PublicKey;
     readonly text: string;
+    readonly kind: NostrKind;
     files: Blob[];
     //
     readonly emit: emitFunc<EditorEvent>;
@@ -99,6 +102,7 @@ export class Editor extends Component<EditorProps, EditorState> {
         const props = this.props;
         props.emit({
             type: "SendMessage",
+            kind: props.kind,
             editorID: props.targetNpub,
             files: props.files,
             text: props.text,

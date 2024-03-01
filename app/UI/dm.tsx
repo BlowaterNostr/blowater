@@ -8,6 +8,7 @@ import { EventBus } from "../event-bus.ts";
 import { getFocusedContent } from "./app.tsx";
 import { ChatMessagesGetter, UI_Interaction_Event, UserBlocker } from "./app_update.tsx";
 import { IconButtonClass } from "./components/tw.ts";
+import { NostrKind } from "../../libs/nostr.ts/nostr.ts";
 
 import { EditorModel } from "./editor.tsx";
 import { EventSyncer } from "./event_syncer.ts";
@@ -117,6 +118,7 @@ export class DirectMessageContainer extends Component<DirectMessageContainerProp
                                     eventSyncer={props.eventSyncer}
                                     profileGetter={props.getters.profileGetter}
                                     editorModel={this.state.currentEditor}
+                                    kind={NostrKind.DIRECT_MESSAGE}
                                     messages={props.getters.messageGetter.getChatMessages(
                                         this.state.currentEditor.pubkey.hex,
                                     )}

@@ -45,7 +45,6 @@ import { TagSelected } from "./contact-tags.tsx";
 import { BlockUser, UnblockUser } from "./user-detail.tsx";
 import { RelayRecommendList } from "./relay-recommend-list.tsx";
 import { HidePopOver } from "./components/popover.tsx";
-import { Social_Model } from "./channel-container.tsx";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -552,6 +551,37 @@ export async function* Database_Update(
 }
 
 export async function handle_SendMessage(
+    event: SendMessage,
+    ctx: NostrAccountContext,
+    lamport: LamportTime,
+    pool: EventSender,
+    dmEditors: Map<string, EditorModel>,
+    db: Datebase_View,
+) {
+    switch (event.kind) {
+        case NostrKind.TEXT_NOTE:
+            return await handleSendTextNote(event, ctx, lamport, pool, dmEditors, db);
+        case NostrKind.DIRECT_MESSAGE:
+        case NostrKind.DIRECT_MESSAGE_V2:
+            return await handleSendDirectMessage(event, ctx, lamport, pool, dmEditors, db);
+        default:
+            return new Error(`unsupported kind: ${event.kind}`);
+    }
+}
+
+async function handleSendTextNote(
+    event: SendMessage,
+    ctx: NostrAccountContext,
+    lamport: LamportTime,
+    pool: EventSender,
+    dmEditors: Map<string, EditorModel>,
+    db: Datebase_View,
+) {
+    // ...
+    console.log("handleSendTextNote");
+}
+
+async function handleSendDirectMessage(
     event: SendMessage,
     ctx: NostrAccountContext,
     lamport: LamportTime,

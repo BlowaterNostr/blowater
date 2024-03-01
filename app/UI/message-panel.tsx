@@ -68,6 +68,7 @@ interface DirectMessagePanelProps {
     myPublicKey: PublicKey;
 
     editorModel: EditorModel;
+    kind: NostrKind;
 
     focusedContent: {
         type: "ProfileData";
@@ -143,6 +144,7 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
                         targetNpub={props.editorModel.pubkey}
                         text={props.editorModel.text}
                         files={props.editorModel.files}
+                        kind={props.kind}
                         placeholder=""
                     />
                 </div>
@@ -166,6 +168,7 @@ interface MessageListState {
 }
 
 const ItemsOfPerPage = 100;
+
 export class MessageList extends Component<MessageListProps, MessageListState> {
     constructor(public props: MessageListProps) {
         super();
