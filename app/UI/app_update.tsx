@@ -52,6 +52,7 @@ export type UI_Interaction_Event =
     | EditorEvent
     | NavigationUpdate
     | DirectMessagePanelUpdate
+    | BackToChannelList
     | BackToContactList
     | SaveProfile
     | PinConversation
@@ -68,6 +69,9 @@ export type UI_Interaction_Event =
     | SelectRelay
     | HidePopOver;
 
+type BackToChannelList = {
+    type: "BackToChannelList";
+};
 type BackToContactList = {
     type: "BackToContactList";
 };
@@ -270,6 +274,10 @@ export async function* UI_Interaction_Update(args: {
             model.navigationModel.activeNav = "Social";
             model.social.currentChannel = event.channel;
             model.social.relaySelectedChannel.set(model.currentRelay, event.channel);
+            app.popOverInputChan.put({ children: undefined });
+        } else if (event.type == "BackToChannelList") {
+            model.social.currentChannel = undefined;
+            model.social.relaySelectedChannel.delete(model.currentRelay);
             app.popOverInputChan.put({ children: undefined });
         } //
         //

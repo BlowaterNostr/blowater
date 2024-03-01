@@ -356,6 +356,13 @@ export class AppComponent extends Component<AppProps> {
             socialNode = (
                 <ChannelContainer
                     {...model.social}
+                    getters={{
+                        convoListRetriever: app.conversationLists,
+                        messageGetter: app.dmController,
+                        newMessageChecker: app.conversationLists,
+                        relayRecordGetter: app.database,
+                        profileGetter: app.database,
+                    }}
                     relay={props.pool.getRelay(model.currentRelay) as SingleRelayConnection}
                     bus={app.eventBus}
                 />
