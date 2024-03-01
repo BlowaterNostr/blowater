@@ -1,5 +1,5 @@
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
-import { DirectedMessage_Event, Parsed_Event } from "../nostr.ts";
+import { DirectedMessage_Event, TextNote_Event } from "../nostr.ts";
 import { Nevent, NostrAddress, NostrProfile, NoteID } from "../../libs/nostr.ts/nip19.ts";
 
 export function* parseContent(content: string) {
@@ -165,7 +165,7 @@ export type ContentItem = {
 // Think of ChatMessage as an materialized view of NostrEvent
 export type ChatMessage = {
     readonly type: "image" | "text";
-    readonly event: DirectedMessage_Event;
+    readonly event: DirectedMessage_Event | TextNote_Event;
     readonly author: PublicKey;
     readonly created_at: Date;
     readonly lamport: number | undefined;
