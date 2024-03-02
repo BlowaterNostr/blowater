@@ -31,6 +31,10 @@ for (let i = 1; i <= 3; i++) {
 
     events.push(event);
 }
+// const event2 = await prepareNormalNostrEvent(ctx, {
+//   content: "test:4",
+//   kind: NostrKind.TEXT_NOTE
+// });
 await dmController.addEvent(events[0]);
 await dmController.addEvent(events[1]);
 await dmController.addEvent(events[2]);
