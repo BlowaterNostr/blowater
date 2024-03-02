@@ -19,25 +19,19 @@ import { EditorModel } from "./editor.tsx";
 const lamport = new LamportTime();
 const pool = new ConnectionPool();
 pool.addRelayURL(relays[2]);
-const model = initialModel();
 const database = await test_db_view();
-const sender = InMemoryAccountContext.Generate();
-const receiver = InMemoryAccountContext.Generate();
-const editor: EditorModel = {
-    pubkey: receiver.publicKey,
-    text: "hi",
-    files: [],
-};
+const eventSyncer = new EventSyncer(pool, database);
 
-const dmController = new DirectedMessageController(sender);
+const ctx = InMemoryAccountContext.Generate();
+const dmController = new DirectedMessageController(ctx);
 const events = [];
 for (let i = 1; i <= 3; i++) {
-    const event = await prepareEncryptedNostrEvent(sender, {
+    const event = await prepareEncryptedNostrEvent(ctx, {
         content: `test:${i}`,
-        encryptKey: receiver.publicKey,
+        encryptKey: ctx.publicKey,
         kind: NostrKind.DIRECT_MESSAGE,
         tags: [
-            ["p", sender.publicKey.hex],
+            ["p", ctx.publicKey.hex],
         ],
     });
     if (event instanceof Error) fail(event.message);
@@ -46,9 +40,14 @@ for (let i = 1; i <= 3; i++) {
 }
 await dmController.addEvent(events[0]);
 await dmController.addEvent(events[1]);
-
-const messages = dmController.getChatMessages(receiver.publicKey.hex);
-console.log("messages", messages);
+await dmController.addEvent(events[2]);
+const editor: EditorModel = {
+    pubkey: ctx.publicKey,
+    text: "hi",
+    files: [],
+};
+const messages = dmController.getChatMessages(ctx.publicKey.hex);
+const model = initialModel();
 
 const view = () => {
     if (editor == undefined) {
@@ -60,13 +59,13 @@ const view = () => {
                 profileGetter={database}
                 editorModel={editor}
                 kind={NostrKind.DIRECT_MESSAGE}
-                eventSyncer={new EventSyncer(pool, database)}
+                eventSyncer={eventSyncer}
                 focusedContent={undefined}
-                myPublicKey={sender.publicKey}
+                myPublicKey={ctx.publicKey}
                 emit={testEventBus.emit}
                 relayRecordGetter={database}
                 eventSub={testEventBus}
-                userBlocker={new DM_List(sender)}
+                userBlocker={new DM_List(ctx)}
                 messages={messages}
             />
         </div>
@@ -84,7 +83,7 @@ for await (const event of testEventBus.onChange()) {
         }
         handle_SendMessage(
             event,
-            sender,
+            ctx,
             lamport,
             currentRelay,
             model.dmEditors,
