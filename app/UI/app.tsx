@@ -229,6 +229,7 @@ export class App {
             forever(sync_client_specific_data(this.pool, this.ctx, this.database));
             forever(sync_dm_events(this.database, this.ctx, this.pool));
             forever(sync_profile_events(this.database, this.pool));
+            forever(sync_kind_1(this.pool, this.database));
         }
 
         /* my profile */
@@ -479,6 +480,25 @@ async function sync_profile_events(
         }
     }
 }
+
+const sync_kind_1 = async (pool: ConnectionPool, database: Datebase_View) => {
+    const stream = await pool.newSub("sync_kind_1", {
+        kinds: [NostrKind.TEXT_NOTE],
+    });
+    if (stream instanceof Error) {
+        return stream;
+    }
+    for await (const msg of stream.chan) {
+        if (msg.res.type == "EOSE") {
+            continue;
+        }
+        const ok = await database.addEvent(msg.res.event, msg.url);
+        if (ok instanceof Error) {
+            console.error(msg);
+            console.error(ok);
+        }
+    }
+};
 
 const sync_client_specific_data = async (
     pool: ConnectionPool,
