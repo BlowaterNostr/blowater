@@ -45,21 +45,13 @@ type ChannelContainerState = {
 
 export class ChannelContainer extends Component<ChannelContainerProps, ChannelContainerState> {
     state: ChannelContainerState = {
-        currentSelectedChannel: this.initialSelected(),
-        currentEditor: this.initialCurrentEditor(),
-    };
-
-    initialSelected() {
-        return this.props.relaySelectedChannel.get(this.props.relay.url);
-    }
-
-    initialCurrentEditor() {
-        return {
+        currentSelectedChannel: this.props.relaySelectedChannel.get(this.props.relay.url),
+        currentEditor: {
             pubkey: this.props.ctx.publicKey,
             text: "",
             files: [],
-        };
-    }
+        },
+    };
 
     async componentDidMount() {
         for await (const e of this.props.bus.onChange()) {
