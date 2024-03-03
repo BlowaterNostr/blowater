@@ -22,11 +22,8 @@ import { MessagePanel } from "./message-panel.tsx";
 
 export type Social_Model = {
     currentChannel: string | undefined;
-    relaySelectedChannel: Map<Relay, Channel>;
+    relaySelectedChannel: Map<string, /* relay url */ string /* channel name */>;
 };
-
-type Relay = string;
-type Channel = string;
 
 type ChannelContainerProps = {
     ctx: NostrAccountContext;
@@ -44,13 +41,13 @@ type ChannelContainerProps = {
 } & Social_Model;
 
 type ChannelContainerState = {
-    currentSelected: Channel | undefined;
+    currentSelectedChannel: string /*channel name*/ | undefined;
     currentEditor: EditorModel;
 };
 
 export class ChannelContainer extends Component<ChannelContainerProps, ChannelContainerState> {
     state: ChannelContainerState = {
-        currentSelected: this.initialSelected(),
+        currentSelectedChannel: this.initialSelected(),
         currentEditor: this.initialCurrentEditor(),
     };
 
@@ -70,15 +67,15 @@ export class ChannelContainer extends Component<ChannelContainerProps, ChannelCo
         for await (const e of this.props.bus.onChange()) {
             if (e.type == "SelectChannel") {
                 await setState(this, {
-                    currentSelected: e.channel,
+                    currentSelectedChannel: e.channel,
                 });
             } else if (e.type == "SelectRelay") {
                 await setState(this, {
-                    currentSelected: this.props.relaySelectedChannel.get(e.relay.url),
+                    currentSelectedChannel: this.props.relaySelectedChannel.get(e.relay.url),
                 });
             } else if (e.type == "BackToChannelList") {
                 await setState(this, {
-                    currentSelected: undefined,
+                    currentSelectedChannel: undefined,
                 });
             }
         }
@@ -98,17 +95,17 @@ export class ChannelContainer extends Component<ChannelContainerProps, ChannelCo
                     </div>
                     <ChannelList
                         relay={props.relay.url}
-                        currentSelected={state.currentSelected}
+                        currentSelected={state.currentSelectedChannel}
                         channels={["general", "games", "work"]}
                         emit={props.bus.emit}
                     />
                 </div>
-                {this.state.currentSelected
+                {this.state.currentSelectedChannel
                     ? (
                         <div class={`flex flex-col flex-1 overflow-hidden`}>
                             <TopBar
                                 bus={props.bus}
-                                currentSelected={state.currentSelected}
+                                currentSelected={state.currentSelectedChannel}
                                 profileGetter={props.getters.profileGetter}
                             />
                             <div class={`flex-1 overflow-auto`}>
