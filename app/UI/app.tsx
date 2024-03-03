@@ -338,6 +338,7 @@ export class AppComponent extends Component<AppProps> {
                             relayRecordGetter: app.database,
                             pinListGetter: app.otherConfig,
                             profileGetter: app.database,
+                            isUserBlocked: app.conversationLists.isUserBlocked,
                         }}
                         eventSyncer={app.eventSyncer}
                         userBlocker={app.conversationLists}
@@ -362,11 +363,11 @@ export class AppComponent extends Component<AppProps> {
                         newMessageChecker: app.conversationLists,
                         relayRecordGetter: app.database,
                         profileGetter: app.database,
+                        isUserBlocked: app.conversationLists.isUserBlocked,
                     }}
                     relay={props.pool.getRelay(model.currentRelay) as SingleRelayConnection}
                     bus={app.eventBus}
                     eventSyncer={app.eventSyncer}
-                    userBlocker={app.conversationLists}
                 />
             );
         }

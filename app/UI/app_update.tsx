@@ -272,12 +272,9 @@ export async function* UI_Interaction_Update(args: {
                 console.error("currentRelay is not set");
                 continue;
             }
-            model.navigationModel.activeNav = "Social";
-            model.social.currentChannel = event.channel;
             model.social.relaySelectedChannel.set(model.currentRelay, event.channel);
             app.popOverInputChan.put({ children: undefined });
         } else if (event.type == "BackToChannelList") {
-            model.social.currentChannel = undefined;
             model.social.relaySelectedChannel.delete(model.currentRelay);
             app.popOverInputChan.put({ children: undefined });
         } //
@@ -552,37 +549,6 @@ export async function* Database_Update(
 }
 
 export async function handle_SendMessage(
-    event: SendMessage,
-    ctx: NostrAccountContext,
-    lamport: LamportTime,
-    pool: EventSender,
-    dmEditors: Map<string, EditorModel>,
-    db: Datebase_View,
-) {
-    switch (event.kind) {
-        case NostrKind.TEXT_NOTE:
-            return await handleSendTextNote(event, ctx, lamport, pool, dmEditors, db);
-        case NostrKind.DIRECT_MESSAGE:
-        case NostrKind.DIRECT_MESSAGE_V2:
-            return await handleSendDirectMessage(event, ctx, lamport, pool, dmEditors, db);
-        default:
-            return new Error(`unsupported kind: ${event.kind}`);
-    }
-}
-
-async function handleSendTextNote(
-    event: SendMessage,
-    ctx: NostrAccountContext,
-    lamport: LamportTime,
-    pool: EventSender,
-    dmEditors: Map<string, EditorModel>,
-    db: Datebase_View,
-) {
-    // ...
-    console.log("handleSendTextNote");
-}
-
-async function handleSendDirectMessage(
     event: SendMessage,
     ctx: NostrAccountContext,
     lamport: LamportTime,

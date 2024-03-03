@@ -39,6 +39,7 @@ type DirectMessageContainerProps = {
         convoListRetriever: ConversationListRetriever;
         newMessageChecker: NewMessageChecker;
         relayRecordGetter: RelayRecordGetter;
+        isUserBlocked: (pubkey: PublicKey) => boolean;
     };
     eventSyncer: EventSyncer;
     userBlocker: UserBlocker;
@@ -116,14 +117,11 @@ export class DirectMessageContainer extends Component<DirectMessageContainerProp
                                         props.getters.profileGetter,
                                     )}
                                     eventSyncer={props.eventSyncer}
-                                    profileGetter={props.getters.profileGetter}
+                                    getters={props.getters}
                                     editorModel={this.state.currentEditor}
-                                    kind={NostrKind.DIRECT_MESSAGE}
                                     messages={props.getters.messageGetter.getChatMessages(
                                         this.state.currentEditor.pubkey.hex,
                                     )}
-                                    relayRecordGetter={props.getters.relayRecordGetter}
-                                    userBlocker={props.userBlocker}
                                 />
                             </div>
                         </div>

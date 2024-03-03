@@ -32,7 +32,6 @@ export type EditorEvent = SendMessage | UpdateEditorText | UpdateMessageFiles;
 
 export type SendMessage = {
     readonly type: "SendMessage";
-    readonly kind: NostrKind;
     readonly editorID: PublicKey;
     readonly text: string;
     readonly files: Blob[];
@@ -66,7 +65,6 @@ type EditorProps = {
     // Logic
     readonly targetNpub: PublicKey;
     readonly text: string;
-    readonly kind: NostrKind;
     files: Blob[];
     //
     readonly emit: emitFunc<EditorEvent>;
@@ -102,7 +100,6 @@ export class Editor extends Component<EditorProps, EditorState> {
         const props = this.props;
         props.emit({
             type: "SendMessage",
-            kind: props.kind,
             editorID: props.targetNpub,
             files: props.files,
             text: props.text,

@@ -19,9 +19,9 @@ import { PrimaryTextColor, SecondaryBackgroundColor } from "./style/colors.ts";
 import { IconButtonClass } from "./components/tw.ts";
 import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
 import { MessagePanel } from "./message-panel.tsx";
+import { PublicKey } from "../../libs/nostr.ts/key.ts";
 
 export type Social_Model = {
-    currentChannel: string | undefined;
     relaySelectedChannel: Map<string, /* relay url */ string /* channel name */>;
 };
 
@@ -35,9 +35,9 @@ type ChannelContainerProps = {
         convoListRetriever: ConversationListRetriever;
         newMessageChecker: NewMessageChecker;
         relayRecordGetter: RelayRecordGetter;
+        isUserBlocked: (pubkey: PublicKey) => boolean;
     };
     eventSyncer: EventSyncer;
-    userBlocker: UserBlocker;
 } & Social_Model;
 
 type ChannelContainerState = {
@@ -116,14 +116,11 @@ export class ChannelContainer extends Component<ChannelContainerProps, ChannelCo
                                         eventSub={props.bus}
                                         focusedContent={undefined}
                                         eventSyncer={props.eventSyncer}
-                                        profileGetter={props.getters.profileGetter}
+                                        getters={props.getters}
                                         editorModel={state.currentEditor}
-                                        kind={NostrKind.TEXT_NOTE}
                                         messages={props.getters.messageGetter.getChatMessages(
                                             props.ctx.publicKey.hex,
                                         )}
-                                        relayRecordGetter={props.getters.relayRecordGetter}
-                                        userBlocker={props.userBlocker}
                                     />
                                 }
                             </div>

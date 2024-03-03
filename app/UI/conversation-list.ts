@@ -101,10 +101,10 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker, Us
         blockedUsers.delete(pubkey.bech32());
         localStorage.setItem("blocked-users", JSON.stringify(Array.from(blockedUsers)));
     }
-    isUserBlocked(pubkey: PublicKey): boolean {
+    isUserBlocked = (pubkey: PublicKey): boolean => {
         const blockedUsers = this.getBlockedUsers();
         return blockedUsers.has(pubkey.bech32());
-    }
+    };
     getBlockedUsers() {
         let blockedUsers: string | null = localStorage.getItem("blocked-users");
         if (blockedUsers == null) {

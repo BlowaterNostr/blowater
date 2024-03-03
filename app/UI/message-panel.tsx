@@ -59,9 +59,7 @@ export type ViewUserDetail = {
 
 interface DirectMessagePanelProps {
     myPublicKey: PublicKey;
-
     editorModel: EditorModel;
-    kind: NostrKind;
 
     focusedContent: {
         type: "ProfileData";
@@ -80,10 +78,12 @@ interface DirectMessagePanelProps {
     >;
     eventSub: EventSubscriber<UI_Interaction_Event>;
     eventSyncer: EventSyncer;
-    profileGetter: ProfileGetter;
     messages: ChatMessage[];
-    relayRecordGetter: RelayRecordGetter;
-    userBlocker: UserBlocker;
+    getters: {
+        profileGetter: ProfileGetter;
+        relayRecordGetter: RelayRecordGetter;
+        isUserBlocked: (pubkey: PublicKey) => boolean;
+    };
 }
 
 export class MessagePanel extends Component<DirectMessagePanelProps> {
@@ -101,7 +101,7 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
                         }}
                         pubkey={props.focusedContent.pubkey}
                         emit={props.emit}
-                        blocked={props.userBlocker.isUserBlocked(props.focusedContent.pubkey)}
+                        blocked={props.getters.isUserBlocked(props.focusedContent.pubkey)}
                     />
                 );
             }
@@ -125,8 +125,7 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
                         messages={props.messages}
                         emit={props.emit}
                         eventSyncer={props.eventSyncer}
-                        profileGetter={props.profileGetter}
-                        relayRecordGetter={props.relayRecordGetter}
+                        getters={props.getters}
                     />
 
                     <Editor
@@ -135,7 +134,6 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
                         targetNpub={props.editorModel.pubkey}
                         text={props.editorModel.text}
                         files={props.editorModel.files}
-                        kind={props.kind}
                         placeholder=""
                     />
                 </div>
@@ -150,8 +148,10 @@ interface MessageListProps {
     messages: ChatMessage[];
     emit: emitFunc<DirectMessagePanelUpdate | SelectConversation>;
     eventSyncer: EventSyncer;
-    profileGetter: ProfileGetter;
-    relayRecordGetter: RelayRecordGetter;
+    getters: {
+        profileGetter: ProfileGetter;
+        relayRecordGetter: RelayRecordGetter;
+    };
 }
 
 interface MessageListState {
@@ -211,7 +211,7 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
         });
         const messageBoxGroups = [];
         for (const messages of groups) {
-            const profileEvent = this.props.profileGetter.getProfilesByPublicKey(messages[0].author);
+            const profileEvent = this.props.getters.profileGetter.getProfilesByPublicKey(messages[0].author);
             messageBoxGroups.push(
                 MessageBoxGroup({
                     messages: messages,
@@ -219,8 +219,7 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
                     emit: this.props.emit,
                     eventSyncer: this.props.eventSyncer,
                     authorProfile: profileEvent ? profileEvent.profile : undefined,
-                    profileGetter: this.props.profileGetter,
-                    relayRecordGetter: this.props.relayRecordGetter,
+                    getters: this.props.getters,
                 }),
             );
         }
@@ -271,8 +270,10 @@ function MessageBoxGroup(props: {
     myPublicKey: PublicKey;
     emit: emitFunc<DirectMessagePanelUpdate | ViewUserDetail | SelectConversation>;
     eventSyncer: EventSyncer;
-    profileGetter: ProfileGetter;
-    relayRecordGetter: RelayRecordGetter;
+    getters: {
+        profileGetter: ProfileGetter;
+        relayRecordGetter: RelayRecordGetter;
+    };
 }) {
     const messageGroups = props.messages.reverse();
     if (messageGroups.length == 0) {
@@ -318,7 +319,7 @@ function MessageBoxGroup(props: {
                         props.authorProfile,
                         props.eventSyncer,
                         props.emit,
-                        props.profileGetter,
+                        props.getters.profileGetter,
                         )}
                 </pre>
             </div>
@@ -349,7 +350,7 @@ function MessageBoxGroup(props: {
                         props.authorProfile,
                         props.eventSyncer,
                         props.emit,
-                        props.profileGetter
+                        props.getters.profileGetter
                         )}
                     </pre>
                 </div>

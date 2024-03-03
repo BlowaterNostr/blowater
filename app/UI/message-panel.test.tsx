@@ -56,16 +56,17 @@ const view = () => {
     return (
         <div class="w-screen h-screen">
             <MessagePanel
-                profileGetter={database}
+                getters={{
+                    profileGetter: database,
+                    relayRecordGetter: database,
+                    isUserBlocked: new DM_List(ctx).isUserBlocked,
+                }}
                 editorModel={editor}
-                kind={NostrKind.DIRECT_MESSAGE}
                 eventSyncer={eventSyncer}
                 focusedContent={undefined}
                 myPublicKey={ctx.publicKey}
                 emit={testEventBus.emit}
-                relayRecordGetter={database}
                 eventSub={testEventBus}
-                userBlocker={new DM_List(ctx)}
                 messages={messages}
             />
         </div>

@@ -3,7 +3,6 @@ import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { h, render } from "https://esm.sh/preact@10.17.1";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { prepareEncryptedNostrEvent } from "../../libs/nostr.ts/event.ts";
-import { PrivateKey } from "../../libs/nostr.ts/key.ts";
 import { InMemoryAccountContext, NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { relays } from "../../libs/nostr.ts/relay-list.test.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
@@ -77,6 +76,7 @@ render(
             pinListGetter: OtherConfig.Empty(new Channel(), ctx, lamport),
             profileGetter: database,
             relayRecordGetter: database,
+            isUserBlocked: dm_list.isUserBlocked,
         }}
         userBlocker={dm_list}
     />,
