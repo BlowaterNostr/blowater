@@ -3,7 +3,6 @@ import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { h, render } from "https://esm.sh/preact@10.17.1";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { prepareEncryptedNostrEvent } from "../../libs/nostr.ts/event.ts";
-import { PrivateKey } from "../../libs/nostr.ts/key.ts";
 import { InMemoryAccountContext, NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { relays } from "../../libs/nostr.ts/relay-list.test.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
@@ -18,7 +17,14 @@ import { NewIndexedDB } from "./dexie-db.ts";
 import { DirectMessageContainer } from "./dm.tsx";
 import { EventSyncer } from "./event_syncer.ts";
 
-const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
+const ctx = InMemoryAccountContext.Generate();
+const pool = new ConnectionPool();
+pool.addRelayURL(relays[0]);
+
+const model = initialModel();
+
+const dmControl = new DirectedMessageController(ctx);
+
 const indexedDB = NewIndexedDB();
 if (indexedDB instanceof Error) {
     fail(indexedDB.message);
@@ -26,6 +32,8 @@ if (indexedDB instanceof Error) {
 const database = await Datebase_View.New(indexedDB, indexedDB, indexedDB);
 
 const lamport = new LamportTime();
+
+const dm_list = new DM_List(ctx);
 
 const e = await database.addEvent(
     await prepareEncryptedNostrEvent(ctx, {
@@ -39,31 +47,20 @@ if (!e || e instanceof Error) {
     fail();
 }
 
-const dm_list = new DM_List(ctx);
-dm_list.addEvents([e], true);
-dm_list.addEvents(Array.from(database.getAllEvents()), true);
-
-for (let i = 0; i < 20; i++) {
-    const event = await prepareEncryptedNostrEvent(ctx, {
-        content: "",
-        encryptKey: ctx.publicKey,
-        kind: NostrKind.DIRECT_MESSAGE,
-        tags: [
-            ["p", PrivateKey.Generate().toPublicKey().hex],
-        ],
-    }) as NostrEvent;
-    const err = dm_list.addEvents([event], true);
-    if (err instanceof Error) {
-        fail(err.message);
-    }
-}
-
-const pool = new ConnectionPool();
-const model = initialModel();
-
-pool.addRelayURL(relays[0]);
-
-const dmControl = new DirectedMessageController(ctx);
+// for (let i = 0; i < 20; i++) {
+//     const event = await prepareEncryptedNostrEvent(ctx, {
+//         content: "",
+//         encryptKey: ctx.publicKey,
+//         kind: NostrKind.DIRECT_MESSAGE,
+//         tags: [
+//             ["p", PrivateKey.Generate().toPublicKey().hex],
+//         ],
+//     }) as NostrEvent;
+//     const err = dm_list.addEvents([event], true);
+//     if (err instanceof Error) {
+//         fail(err.message);
+//     }
+// }
 
 render(
     <DirectMessageContainer
@@ -79,6 +76,7 @@ render(
             pinListGetter: OtherConfig.Empty(new Channel(), ctx, lamport),
             profileGetter: database,
             relayRecordGetter: database,
+            isUserBlocked: dm_list.isUserBlocked,
         }}
         userBlocker={dm_list}
     />,

@@ -1,90 +1,100 @@
 /** @jsx h */
+import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { h, render } from "https://esm.sh/preact@10.17.1";
-import { prepareNormalNostrEvent } from "../../libs/nostr.ts/event.ts";
-import { PrivateKey } from "../../libs/nostr.ts/key.ts";
+import { prepareEncryptedNostrEvent } from "../../libs/nostr.ts/event.ts";
 import { InMemoryAccountContext, NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { relays } from "../../libs/nostr.ts/relay-list.test.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 import { LamportTime } from "../time.ts";
 import { test_db_view, testEventBus } from "./_setup.test.ts";
 import { initialModel } from "./app_model.ts";
-import { handle_SendMessage } from "./app_update.tsx";
 import { EventSyncer } from "./event_syncer.ts";
-import { MessagePanel } from "./message-panel.tsx";
 import { DirectedMessageController } from "../features/dm.ts";
 import { DM_List } from "./conversation-list.ts";
 
-const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
-const database = await test_db_view();
+import { handle_SendMessage } from "./app_update.tsx";
+import { MessagePanel } from "./message-panel.tsx";
+import { EditorModel } from "./editor.tsx";
 
 const lamport = new LamportTime();
-
-await database.addEvent(
-    await prepareNormalNostrEvent(ctx, {
-        content: "hi",
-        kind: NostrKind.TEXT_NOTE,
-    }),
-);
-await database.addEvent(
-    await prepareNormalNostrEvent(ctx, {
-        content: "hi 2",
-        kind: NostrKind.TEXT_NOTE,
-    }),
-);
-await database.addEvent(
-    await prepareNormalNostrEvent(ctx, {
-        content: "hi 3",
-        kind: NostrKind.TEXT_NOTE,
-    }),
-);
 const pool = new ConnectionPool();
-const model = initialModel();
-pool.addRelayURL(relays[0]);
+pool.addRelayURL(relays[2]);
+const database = await test_db_view();
+const eventSyncer = new EventSyncer(pool, database);
 
-const editor = model.dmEditors.get(ctx.publicKey.hex);
+const ctx = InMemoryAccountContext.Generate();
+const dmController = new DirectedMessageController(ctx);
+const events = [];
+for (let i = 1; i <= 3; i++) {
+    const event = await prepareEncryptedNostrEvent(ctx, {
+        content: `test:${i}`,
+        encryptKey: ctx.publicKey,
+        kind: NostrKind.DIRECT_MESSAGE,
+        tags: [
+            ["p", ctx.publicKey.hex],
+        ],
+    });
+    if (event instanceof Error) fail(event.message);
+
+    events.push(event);
+}
+await dmController.addEvent(events[0]);
+await dmController.addEvent(events[1]);
+await dmController.addEvent(events[2]);
+const editor: EditorModel = {
+    pubkey: ctx.publicKey,
+    text: "hi",
+    files: [],
+};
+const messages = dmController.getChatMessages(ctx.publicKey.hex);
+const model = initialModel();
 
 const view = () => {
     if (editor == undefined) {
         return undefined;
     }
     return (
-        <MessagePanel
-            profileGetter={database}
-            /**
-             * If we use a map to store all editor models,
-             * need to distinguish editor models for DMs and GMs
-             */
-            editorModel={editor}
-            eventSyncer={new EventSyncer(pool, database)}
-            focusedContent={undefined}
-            myPublicKey={ctx.publicKey}
-            emit={testEventBus.emit}
-            relayRecordGetter={database}
-            eventSub={testEventBus}
-            userBlocker={new DM_List(ctx)}
-            messages={new DirectedMessageController(ctx).getChatMessages(ctx.publicKey.hex)}
-        />
+        <div class="w-screen h-screen">
+            <MessagePanel
+                getters={{
+                    profileGetter: database,
+                    relayRecordGetter: database,
+                    isUserBlocked: new DM_List(ctx).isUserBlocked,
+                }}
+                editorModel={editor}
+                eventSyncer={eventSyncer}
+                focusedContent={undefined}
+                myPublicKey={ctx.publicKey}
+                emit={testEventBus.emit}
+                eventSub={testEventBus}
+                messages={messages}
+            />
+        </div>
     );
 };
 
 render(view(), document.body);
 
-for await (const e of testEventBus.onChange()) {
-    console.log(e);
-    if (e.type == "SendMessage") {
-        const err = await handle_SendMessage(
-            e,
+for await (const event of testEventBus.onChange()) {
+    if (event.type == "SendMessage") {
+        const currentRelay = pool.getRelay(model.currentRelay);
+        if (!currentRelay) {
+            console.error(`currentRelay is not found: ${model.currentRelay}`);
+            continue;
+        }
+        handle_SendMessage(
+            event,
             ctx,
             lamport,
-            pool,
+            currentRelay,
             model.dmEditors,
             database,
-        );
-        if (err instanceof Error) {
-            console.error("update:SendMessage", err);
-            continue; // todo: global error toast
-        }
-    } else if (e.type == "UpdateEditorText") {
+        ).then((res) => {
+            if (res instanceof Error) {
+                console.error("update:SendMessage", res);
+            }
+        });
+    } else if (event.type == "UpdateEditorText") {
     }
     render(view(), document.body);
 }

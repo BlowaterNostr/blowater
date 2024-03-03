@@ -35,7 +35,6 @@ import { LamportTime } from "../time.ts";
 import { InstallPrompt, NavBar } from "./nav.tsx";
 import { Component } from "https://esm.sh/preact@10.17.1";
 import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
-import { setState } from "./_helper.ts";
 import { ChannelContainer } from "./channel-container.tsx";
 
 export async function Start(database: DexieDatabase) {
@@ -339,6 +338,7 @@ export class AppComponent extends Component<AppProps> {
                             relayRecordGetter: app.database,
                             pinListGetter: app.otherConfig,
                             profileGetter: app.database,
+                            isUserBlocked: app.conversationLists.isUserBlocked,
                         }}
                         eventSyncer={app.eventSyncer}
                         userBlocker={app.conversationLists}
@@ -355,9 +355,19 @@ export class AppComponent extends Component<AppProps> {
         if (model.navigationModel.activeNav == "Social" && model.currentRelay) {
             socialNode = (
                 <ChannelContainer
+                    ctx={myAccountCtx}
                     {...model.social}
+                    getters={{
+                        convoListRetriever: app.conversationLists,
+                        messageGetter: app.dmController,
+                        newMessageChecker: app.conversationLists,
+                        relayRecordGetter: app.database,
+                        profileGetter: app.database,
+                        isUserBlocked: app.conversationLists.isUserBlocked,
+                    }}
                     relay={props.pool.getRelay(model.currentRelay) as SingleRelayConnection}
                     bus={app.eventBus}
+                    eventSyncer={app.eventSyncer}
                 />
             );
         }
@@ -365,7 +375,7 @@ export class AppComponent extends Component<AppProps> {
         console.debug("AppComponent:2", Date.now() - t);
 
         const final = (
-            <div class={tw`h-screen w-full flex`}>
+            <div class={`h-screen w-full flex`}>
                 <NavBar
                     publicKey={app.ctx.publicKey}
                     profile={app.database.getProfilesByPublicKey(myAccountCtx.publicKey)}
@@ -377,12 +387,12 @@ export class AppComponent extends Component<AppProps> {
                 />
 
                 <div
-                    class={tw`h-full px-[3rem] sm:px-4 bg-[${SecondaryBackgroundColor}] flex-1 overflow-auto${
+                    class={`h-full px-[3rem] sm:px-4 bg-[${SecondaryBackgroundColor}] flex-1 overflow-auto${
                         model.navigationModel.activeNav == "Profile" ? " block" : " hidden"
                     }`}
                 >
                     <div
-                        class={tw`max-w-[35rem] h-full m-auto`}
+                        class={`max-w-[35rem] h-full m-auto`}
                     >
                         <EditProfile
                             ctx={model.app.ctx}

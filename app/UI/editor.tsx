@@ -3,6 +3,7 @@ import { createRef, h } from "https://esm.sh/preact@10.17.1";
 import { CenterClass, LinearGradientsClass, NoOutlineClass } from "./components/tw.ts";
 import { emitFunc } from "../event-bus.ts";
 
+import { NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { ImageIcon } from "./icons/image-icon.tsx";
 import { DividerBackgroundColor, PrimaryBackgroundColor, PrimaryTextColor } from "./style/colors.ts";

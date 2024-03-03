@@ -4,52 +4,74 @@ import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 import { EventBus } from "../event-bus.ts";
 import { UI_Interaction_Event } from "./app_update.tsx";
 import { setState } from "./_helper.ts";
+import { ProfileGetter } from "./search.tsx";
+import { EditorModel } from "./editor.tsx";
+import { RelayRecordGetter } from "../database.ts";
+import { NewMessageChecker } from "./conversation-list.tsx";
+import { ChatMessagesGetter } from "./app_update.tsx";
+import { ConversationListRetriever } from "./conversation-list.tsx";
+import { NostrAccountContext } from "../../libs/nostr.ts/nostr.ts";
+import { EventSyncer } from "./event_syncer.ts";
 
 import { PrimaryTextColor, SecondaryBackgroundColor } from "./style/colors.ts";
 import { IconButtonClass } from "./components/tw.ts";
 import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
+import { MessagePanel } from "./message-panel.tsx";
+import { PublicKey } from "../../libs/nostr.ts/key.ts";
 
 export type Social_Model = {
-    currentChannel: string | undefined;
-    relaySelectedChannel: Map<Relay, Channel>;
+    relaySelectedChannel: Map<string, /* relay url */ string /* channel name */>;
 };
 
-type Relay = string;
-type Channel = string;
-
 type ChannelContainerProps = {
+    ctx: NostrAccountContext;
     relay: SingleRelayConnection;
     bus: EventBus<UI_Interaction_Event>;
+    getters: {
+        profileGetter: ProfileGetter;
+        messageGetter: ChatMessagesGetter;
+        convoListRetriever: ConversationListRetriever;
+        newMessageChecker: NewMessageChecker;
+        relayRecordGetter: RelayRecordGetter;
+        isUserBlocked: (pubkey: PublicKey) => boolean;
+    };
+    eventSyncer: EventSyncer;
 } & Social_Model;
 
 type ChannelContainerState = {
-    currentSelected: Channel | undefined;
+    currentSelectedChannel: string /*channel name*/ | undefined;
+    currentEditor: EditorModel;
 };
 
 export class ChannelContainer extends Component<ChannelContainerProps, ChannelContainerState> {
     state: ChannelContainerState = {
-        currentSelected: this.initialSelected(),
+        currentSelectedChannel: this.props.relaySelectedChannel.get(this.props.relay.url),
+        currentEditor: {
+            pubkey: this.props.ctx.publicKey,
+            text: "",
+            files: [],
+        },
     };
-
-    initialSelected() {
-        return this.props.relaySelectedChannel.get(this.props.relay.url);
-    }
 
     async componentDidMount() {
         for await (const e of this.props.bus.onChange()) {
             if (e.type == "SelectChannel") {
                 await setState(this, {
-                    currentSelected: e.channel,
+                    currentSelectedChannel: e.channel,
                 });
             } else if (e.type == "SelectRelay") {
                 await setState(this, {
-                    currentSelected: this.props.relaySelectedChannel.get(e.relay.url),
+                    currentSelectedChannel: this.props.relaySelectedChannel.get(e.relay.url),
+                });
+            } else if (e.type == "BackToChannelList") {
+                await setState(this, {
+                    currentSelectedChannel: undefined,
                 });
             }
         }
     }
 
-    render() {
+    render(props: ChannelContainerProps, state: ChannelContainerState) {
         return (
             <div class="flex flex-row h-full w-full flex bg-[#36393F] overflow-hidden">
                 <div
@@ -59,23 +81,38 @@ export class ChannelContainer extends Component<ChannelContainerProps, ChannelCo
                     <div
                         class={`flex items-center w-full h-20 font-bold text-xl text-[${PrimaryTextColor}] m-1 p-3 border-b border-[#36393F]`}
                     >
-                        {this.props.relay.url}
+                        {props.relay.url}
                     </div>
                     <ChannelList
-                        relay={this.props.relay.url}
-                        currentSelected={this.state.currentSelected}
+                        relay={props.relay.url}
+                        currentSelected={state.currentSelectedChannel}
                         channels={["general", "games", "work"]}
-                        emit={this.props.bus.emit}
+                        emit={props.bus.emit}
                     />
                 </div>
-                {this.state.currentSelected
+                {this.state.currentSelectedChannel
                     ? (
                         <div class={`flex flex-col flex-1 overflow-hidden`}>
                             <TopBar
-                                currentSelected={this.state.currentSelected}
+                                bus={props.bus}
+                                currentSelected={state.currentSelectedChannel}
+                                profileGetter={props.getters.profileGetter}
                             />
                             <div class={`flex-1 overflow-auto`}>
-                                <ChannelMessagePanel />
+                                {
+                                    <MessagePanel
+                                        myPublicKey={props.ctx.publicKey}
+                                        emit={props.bus.emit}
+                                        eventSub={props.bus}
+                                        focusedContent={undefined}
+                                        eventSyncer={props.eventSyncer}
+                                        getters={props.getters}
+                                        editorModel={state.currentEditor}
+                                        messages={props.getters.messageGetter.getChatMessages(
+                                            props.ctx.publicKey.hex,
+                                        )}
+                                    />
+                                }
                             </div>
                         </div>
                     )
@@ -85,20 +122,10 @@ export class ChannelContainer extends Component<ChannelContainerProps, ChannelCo
     }
 }
 
-type ChannelMessagePanelProps = {};
-
-class ChannelMessagePanel extends Component<ChannelMessagePanelProps> {
-    render(props: ChannelMessagePanelProps) {
-        return (
-            <div>
-                ChannelMessagePanel
-            </div>
-        );
-    }
-}
-
 function TopBar(props: {
+    bus: EventBus<UI_Interaction_Event>;
     currentSelected: string | undefined;
+    profileGetter: ProfileGetter;
 }) {
     return (
         <div
@@ -107,6 +134,11 @@ function TopBar(props: {
         >
             <div class={`flex items-center overflow-hidden`}>
                 <button
+                    onClick={() => {
+                        props.bus.emit({
+                            type: "BackToChannelList",
+                        });
+                    }}
                     class={`w-6 h-6 mx-2 ${IconButtonClass}`}
                 >
                     <LeftArrowIcon

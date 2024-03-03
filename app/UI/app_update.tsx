@@ -45,7 +45,6 @@ import { TagSelected } from "./contact-tags.tsx";
 import { BlockUser, UnblockUser } from "./user-detail.tsx";
 import { RelayRecommendList } from "./relay-recommend-list.tsx";
 import { HidePopOver } from "./components/popover.tsx";
-import { Social_Model } from "./channel-container.tsx";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -53,6 +52,7 @@ export type UI_Interaction_Event =
     | EditorEvent
     | NavigationUpdate
     | DirectMessagePanelUpdate
+    | BackToChannelList
     | BackToContactList
     | SaveProfile
     | PinConversation
@@ -69,6 +69,9 @@ export type UI_Interaction_Event =
     | SelectRelay
     | HidePopOver;
 
+type BackToChannelList = {
+    type: "BackToChannelList";
+};
 type BackToContactList = {
     type: "BackToContactList";
 };
@@ -173,6 +176,7 @@ export async function* UI_Interaction_Update(args: {
         // Contacts
         //
         else if (event.type == "SelectConversation") {
+            console.log("SelectConversation", event.pubkey.hex);
             model.navigationModel.activeNav = "DM";
             updateConversation(app.model, event.pubkey);
 
@@ -268,24 +272,16 @@ export async function* UI_Interaction_Update(args: {
                 console.error("currentRelay is not set");
                 continue;
             }
-            model.navigationModel.activeNav = "Social";
-            model.social.currentChannel = event.channel;
             model.social.relaySelectedChannel.set(model.currentRelay, event.channel);
+            app.popOverInputChan.put({ children: undefined });
+        } else if (event.type == "BackToChannelList") {
+            model.social.relaySelectedChannel.delete(model.currentRelay);
             app.popOverInputChan.put({ children: undefined });
         } //
         //
         // DM
         //
-        else if (event.type == "ViewThread") {
-            if (model.navigationModel.activeNav == "DM") {
-                if (model.dm.currentEditor) {
-                    model.dm.focusedContent.set(
-                        model.dm.currentEditor.pubkey.hex,
-                        event.root,
-                    );
-                }
-            }
-        } else if (event.type == "ViewUserDetail") {
+        else if (event.type == "ViewUserDetail") {
             if (model.dm.currentEditor) {
                 const currentFocus = model.dm.focusedContent.get(model.dm.currentEditor.pubkey.hex);
                 if (
@@ -413,6 +409,7 @@ export function updateConversation(
 ) {
     const editorMap = model.dmEditors;
     let editor = editorMap.get(targetPublicKey.hex);
+    console.log("updateConversation", editor);
     // If this conversation is new
     if (editor == undefined) {
         editor = {

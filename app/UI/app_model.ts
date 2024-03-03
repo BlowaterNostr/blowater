@@ -36,7 +36,6 @@ export function initialModel(): Model {
         dmEditors: editors,
         social: {
             relaySelectedChannel: new Map(),
-            currentChannel: undefined,
         },
         newProfileField: {
             key: "",

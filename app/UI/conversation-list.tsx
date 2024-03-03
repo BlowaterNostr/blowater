@@ -131,10 +131,10 @@ export class ConversationList extends Component<Props, State> {
                                     type: "StartSearch",
                                 });
                             }}
-                            class={tw`w-full h-10 ${CenterClass} text-sm text-[${PrimaryTextColor}] !hover:bg-transparent hover:font-bold group`}
+                            class={`w-full h-10 ${CenterClass} text-sm text-[${PrimaryTextColor}] !hover:bg-transparent hover:font-bold group`}
                         >
                             <ChatIcon
-                                class={tw`w-4 h-4 mr-1 text-[${PrimaryTextColor}] stroke-current`}
+                                class={`w-4 h-4 mr-1 text-[${PrimaryTextColor}] stroke-current`}
                                 style={{
                                     fill: "none",
                                 }}
@@ -190,7 +190,7 @@ function ContactGroup(props: ConversationListProps) {
     }
     // console.log("ContactGroup", Date.now() - t);
     return (
-        <ul class={tw`overflow-auto flex-1 p-2 text-[#96989D]`}>
+        <ul class={`overflow-auto flex-1 p-2 text-[#96989D]`}>
             {pinned.map((contact) => {
                 let profile;
                 const profileEvent = props.getters.profileGetter.getProfilesByPublicKey(
@@ -201,7 +201,7 @@ function ContactGroup(props: ConversationListProps) {
                 }
                 return (
                     <li
-                        class={tw`${
+                        class={`${
                             props.currentSelected && contact.conversation.pubkey.hex ===
                                 props.currentSelected.pubkey.hex &&
                             "bg-[#42464D] text-[#96989D]"
@@ -219,7 +219,7 @@ function ContactGroup(props: ConversationListProps) {
                         />
 
                         <button
-                            class={tw`
+                            class={`
                                 w-6 h-6 absolute hidden group-hover:flex top-[-0.75rem] right-[0.75rem]
                                 focus:outline-none focus-visible:outline-none rounded-full hover:bg-[#42464D] ${CenterClass}
                                 bg-[#42464D] hover:bg-[#2F3136]`}
@@ -235,7 +235,7 @@ function ContactGroup(props: ConversationListProps) {
                             }}
                         >
                             <UnpinIcon
-                                class={tw`w-4 h-4`}
+                                class={`w-4 h-4`}
                                 style={{
                                     fill: "#ED4245",
                                 }}
@@ -255,7 +255,7 @@ function ContactGroup(props: ConversationListProps) {
                 }
                 return (
                     <li
-                        class={tw`${
+                        class={`${
                             props.currentSelected && contact.conversation?.pubkey.hex ===
                                 props.currentSelected.pubkey.hex &&
                             "bg-transparent text-[#96989D]"
@@ -273,7 +273,7 @@ function ContactGroup(props: ConversationListProps) {
                         />
 
                         <button
-                            class={tw`
+                            class={`
                             w-6 h-6 absolute hidden group-hover:flex top-[-0.75rem] right-[0.75rem]
                             focus:outline-none focus-visible:outline-none rounded-full hover:bg-[#42464D] ${CenterClass}
                             bg-[#42464D] hover:bg-[#2F3136]`}
@@ -289,7 +289,7 @@ function ContactGroup(props: ConversationListProps) {
                             }}
                         >
                             <PinIcon
-                                class={tw`w-4 h-4`}
+                                class={`w-4 h-4`}
                                 style={{
                                     fill: "rgb(185, 187, 190)",
                                     stroke: "rgb(185, 187, 190)",
@@ -315,19 +315,19 @@ function ConversationListItem(props: ListItemProps) {
     return (
         <Fragment>
             <Avatar
-                class={tw`w-8 h-8 mr-2`}
+                class={`w-8 h-8 mr-2`}
                 picture={props.profile?.picture}
             />
             <div
-                class={tw`flex-1 overflow-hidden relative`}
+                class={`flex-1 overflow-hidden relative`}
             >
-                <p class={tw`truncate w-full`}>
+                <p class={`truncate w-full`}>
                     {props.profile?.name || props.conversation.pubkey.bech32()}
                 </p>
                 {props.conversation.newestEventReceivedByMe !== undefined
                     ? (
                         <p
-                            class={tw`text-[#78828B] text-[0.8rem] truncate`}
+                            class={`text-[#78828B] text-[0.8rem] truncate`}
                         >
                             {new Date(
                                 props.conversation.newestEventReceivedByMe
@@ -340,7 +340,7 @@ function ConversationListItem(props: ListItemProps) {
                 {props.newMessageCount > 0
                     ? (
                         <span
-                            class={tw`absolute bottom-0 right-0 px-1 text-[${PrimaryTextColor}] text-xs rounded-full bg-[${ErrorColor}]`}
+                            class={`absolute bottom-0 right-0 px-1 text-[${PrimaryTextColor}] text-xs rounded-full bg-[${ErrorColor}]`}
                         >
                             {props.newMessageCount}
                         </span>
@@ -349,7 +349,7 @@ function ConversationListItem(props: ListItemProps) {
                 {props.isPinned
                     ? (
                         <PinIcon
-                            class={tw`w-3 h-3 absolute top-0 right-0`}
+                            class={`w-3 h-3 absolute top-0 right-0`}
                             style={{
                                 fill: "rgb(185, 187, 190)",
                                 stroke: "rgb(185, 187, 190)",
