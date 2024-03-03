@@ -1,6 +1,5 @@
 /** @jsx h */
 import { h, render, VNode } from "https://esm.sh/preact@10.17.1";
-import { tw } from "https://esm.sh/twind@0.16.16";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
@@ -36,6 +35,8 @@ import { InstallPrompt, NavBar } from "./nav.tsx";
 import { Component } from "https://esm.sh/preact@10.17.1";
 import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 import { ChannelContainer } from "./channel-container.tsx";
+import { ChatMessage } from "./message.ts";
+import { filter, map } from "./_helper.ts";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
@@ -164,7 +165,8 @@ export class App {
         lamport: LamportTime;
         installPrompt: InstallPrompt;
     }) {
-        args.lamport.fromEvents(args.database.getAllEvents());
+        const all_events = Array.from(args.database.getAllEvents());
+        args.lamport.fromEvents(all_events);
         const eventSyncer = new EventSyncer(args.pool, args.database);
 
         // init relay config
@@ -175,7 +177,6 @@ export class App {
         console.log(relayConfig.getRelayURLs());
 
         // init conversation list
-        const all_events = Array.from(args.database.getAllEvents());
         const conversationLists = new DM_List(args.ctx);
         const err = conversationLists.addEvents(all_events, false);
         if (err instanceof InvalidEvent) {
@@ -365,7 +366,24 @@ export class AppComponent extends Component<AppProps> {
                         profileGetter: app.database,
                         isUserBlocked: app.conversationLists.isUserBlocked,
                     }}
-                    messages={[]}
+                    messages={Array.from(
+                        map(
+                            filter(
+                                app.database.getAllEvents(),
+                                (e) => e.kind == NostrKind.TEXT_NOTE,
+                            ),
+                            (e) => {
+                                return {
+                                    author: e.publicKey,
+                                    content: e.content,
+                                    created_at: new Date(e.created_at * 1000),
+                                    event: e,
+                                    lamport: 0,
+                                    type: "text",
+                                } as ChatMessage;
+                            },
+                        ),
+                    )}
                     relay={props.pool.getRelay(model.currentRelay) as SingleRelayConnection}
                     bus={app.eventBus}
                     eventSyncer={app.eventSyncer}
