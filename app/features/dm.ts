@@ -168,7 +168,6 @@ export class DirectedMessageController implements DirectMessageGetter {
             }
         }
         messages.sort((a, b) => compare(a.event, b.event));
-        console.log("c", messages);
         return messages;
     }
 

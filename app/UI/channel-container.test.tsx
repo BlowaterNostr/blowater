@@ -1,4 +1,3 @@
-/** @jsx h */
 import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { h, render } from "https://esm.sh/preact@10.17.1";
 import { ChannelContainer } from "./channel-container.tsx";
@@ -9,10 +8,8 @@ import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 import { InMemoryAccountContext, NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { NewIndexedDB } from "./dexie-db.ts";
 import { Datebase_View } from "../database.ts";
-import { prepareEncryptedNostrEvent, prepareNormalNostrEvent } from "../../libs/nostr.ts/event.ts";
-import { PrivateKey } from "../../libs/nostr.ts/key.ts";
+import { prepareEncryptedNostrEvent } from "../../libs/nostr.ts/event.ts";
 import { DM_List } from "./conversation-list.ts";
-import { DirectedMessageController } from "../features/dm.ts";
 import { EventSyncer } from "./event_syncer.ts";
 
 const ctx = InMemoryAccountContext.Generate();
@@ -43,7 +40,6 @@ if (!e || e instanceof Error) {
 const dm_list = new DM_List(ctx);
 dm_list.addEvents([e], true);
 dm_list.addEvents(Array.from(database.getAllEvents()), true);
-const dmControl = new DirectedMessageController(ctx);
 
 render(
     <ChannelContainer
@@ -52,15 +48,14 @@ render(
         bus={testEventBus}
         getters={{
             convoListRetriever: dm_list,
-            messageGetter: dmControl,
             newMessageChecker: dm_list,
             profileGetter: database,
             relayRecordGetter: database,
+            isUserBlocked: dm_list.isUserBlocked,
         }}
-        currentChannel={undefined}
+        messages={[]}
         relaySelectedChannel={new Map()}
         eventSyncer={new EventSyncer(pool, database)}
-        userBlocker={dm_list}
     />,
     document.body,
 );

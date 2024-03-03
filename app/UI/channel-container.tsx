@@ -18,6 +18,7 @@ import { IconButtonClass } from "./components/tw.ts";
 import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
 import { MessagePanel } from "./message-panel.tsx";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
+import { ChatMessage } from "./message.ts";
 
 export type Social_Model = {
     relaySelectedChannel: Map<string, /* relay url */ string /* channel name */>;
@@ -27,9 +28,9 @@ type ChannelContainerProps = {
     ctx: NostrAccountContext;
     relay: SingleRelayConnection;
     bus: EventBus<UI_Interaction_Event>;
+    messages: ChatMessage[];
     getters: {
         profileGetter: ProfileGetter;
-        messageGetter: ChatMessagesGetter;
         convoListRetriever: ConversationListRetriever;
         newMessageChecker: NewMessageChecker;
         relayRecordGetter: RelayRecordGetter;
@@ -108,9 +109,7 @@ export class ChannelContainer extends Component<ChannelContainerProps, ChannelCo
                                         eventSyncer={props.eventSyncer}
                                         getters={props.getters}
                                         editorModel={state.currentEditor}
-                                        messages={props.getters.messageGetter.getChatMessages(
-                                            props.ctx.publicKey.hex,
-                                        )}
+                                        messages={props.messages}
                                     />
                                 }
                             </div>

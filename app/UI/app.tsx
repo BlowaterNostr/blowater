@@ -359,12 +359,12 @@ export class AppComponent extends Component<AppProps> {
                     {...model.social}
                     getters={{
                         convoListRetriever: app.conversationLists,
-                        messageGetter: app.dmController,
                         newMessageChecker: app.conversationLists,
                         relayRecordGetter: app.database,
                         profileGetter: app.database,
                         isUserBlocked: app.conversationLists.isUserBlocked,
                     }}
+                    messages={[]}
                     relay={props.pool.getRelay(model.currentRelay) as SingleRelayConnection}
                     bus={app.eventBus}
                     eventSyncer={app.eventSyncer}
