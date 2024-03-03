@@ -10,10 +10,8 @@ import { RelayRecordGetter } from "../database.ts";
 import { NewMessageChecker } from "./conversation-list.tsx";
 import { ChatMessagesGetter } from "./app_update.tsx";
 import { ConversationListRetriever } from "./conversation-list.tsx";
-import { NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { NostrAccountContext } from "../../libs/nostr.ts/nostr.ts";
 import { EventSyncer } from "./event_syncer.ts";
-import { UserBlocker } from "./app_update.tsx";
 
 import { PrimaryTextColor, SecondaryBackgroundColor } from "./style/colors.ts";
 import { IconButtonClass } from "./components/tw.ts";
