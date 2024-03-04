@@ -284,6 +284,7 @@ export async function* UI_Interaction_Update(args: {
         else if (event.type == "ViewUserDetail") {
             if (model.dm.currentEditor) {
                 const currentFocus = model.dm.focusedContent.get(model.dm.currentEditor.pubkey.hex);
+                console.log("currentFocus", currentFocus);
                 if (
                     currentFocus instanceof PublicKey &&
                     currentFocus.hex == event.pubkey.hex &&

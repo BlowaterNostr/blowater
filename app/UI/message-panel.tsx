@@ -27,7 +27,7 @@ import {
 } from "./message.ts";
 import { NoteCard } from "./note-card.tsx";
 import { ProfileCard } from "./profile-card.tsx";
-import { RightPanel } from "./right-panel.tsx";
+import { RightPanel } from "./components/right-panel.tsx";
 import { ProfileGetter } from "./search.tsx";
 import { SelectConversation } from "./search_model.ts";
 import { DividerBackgroundColor, ErrorColor, LinkColor, PrimaryTextColor } from "./style/colors.ts";
@@ -170,7 +170,16 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
     };
     jitter = new JitterPrevention(100);
 
+    componentWillMount(): void {
+        console.log("MessageList:mount");
+    }
+
+    componentDidMount(): void {
+        console.log("MessageList:didMount");
+    }
+
     componentWillReceiveProps() {
+        console.log("MessageList:receiveProps");
         this.setState({
             currentRenderCount: ItemsOfPerPage,
         });

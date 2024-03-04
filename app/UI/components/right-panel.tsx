@@ -1,18 +1,28 @@
 /** @jsx h */
 import { Component, createRef, h } from "https://esm.sh/preact@10.17.1";
-import { emitFunc, EventSubscriber } from "../event-bus.ts";
-import { IconButtonClass } from "./components/tw.ts";
-import { CloseIcon } from "./icons/close-icon.tsx";
-import { DirectMessagePanelUpdate, ToggleRightPanel } from "./message-panel.tsx";
-import { tw } from "https://esm.sh/twind@0.16.16";
-import { UI_Interaction_Event } from "./app_update.tsx";
+import { emitFunc, EventSubscriber } from "../../event-bus.ts";
+import { IconButtonClass } from "./tw.ts";
+import { CloseIcon } from "../icons/close-icon.tsx";
+import { DirectMessagePanelUpdate, ToggleRightPanel } from "../message-panel.tsx";
+import { UI_Interaction_Event } from "../app_update.tsx";
+import { ComponentChildren } from "https://esm.sh/preact@10.17.1";
+import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 
+type RightPanelState = {
+    show: boolean;
+};
 type RightPanelProps = {
     emit: emitFunc<DirectMessagePanelUpdate>;
     eventSub: EventSubscriber<UI_Interaction_Event>;
 };
 
-export class RightPanel extends Component<RightPanelProps, {}> {
+export type RightPanelInputChannel = Channel<ComponentChildren>;
+export class RightPanel extends Component<RightPanelProps, RightPanelState> {
+    state = {
+        show: false,
+    };
+    children: ComponentChildren = undefined;
+
     ref = createRef<HTMLDivElement>();
     events = this.props.eventSub.onChange();
 
