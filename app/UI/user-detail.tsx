@@ -1,5 +1,5 @@
 /** @jsx h */
-import { h } from "https://esm.sh/preact@10.17.1";
+import { Component, h } from "https://esm.sh/preact@10.17.1";
 import { Avatar } from "./components/avatar.tsx";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { ProfileData } from "../features/profile.ts";
@@ -11,6 +11,7 @@ import { UserIcon } from "./icons/user-icon.tsx";
 import { CopyButton } from "./components/copy-button.tsx";
 import { LinkColor } from "./style/colors.ts";
 import { findUrlInString } from "./message.ts";
+import { DM_List } from "./conversation-list.ts";
 
 export type BlockUser = {
     type: "BlockUser";
@@ -25,108 +26,126 @@ export type UnblockUser = {
 type UserDetailProps = {
     targetUserProfile: ProfileData;
     pubkey: PublicKey;
-    blocked: boolean;
+    dmList: DM_List;
     emit: emitFunc<DirectMessagePanelUpdate | BlockUser | UnblockUser>;
 };
 
-export function UserDetail(props: UserDetailProps) {
-    return (
-        <div class={`px-2 py-3 text-[#7A818C]`}>
-            <Avatar
-                class={`w-64 h-64 m-auto`}
-                picture={props.targetUserProfile.picture}
-            />
-            <h1 class={`text-[#F3F4EA] truncate text-[1.4rem] my-4 max-w-full text-center`}>
-                {props.targetUserProfile.name || props.pubkey.bech32()}
-            </h1>
-            <div class={`flex items-start overflow-hidden w-full group`}>
-                <KeyIcon
-                    class={`w-6 h-6 mr-2`}
-                    style={{
-                        fill: "#7A818C",
-                    }}
+type UserDetailState = {
+    blockButtonText: string;
+};
+
+export class UserDetail extends Component<UserDetailProps> {
+    state = {
+        blockButtonText: "Block",
+    };
+
+    toggleBlockUser = () => {
+        if (this.props.dmList.isUserBlocked(this.props.pubkey)) {
+            this.props.emit({
+                type: "UnblockUser",
+                pubkey: this.props.pubkey,
+            });
+            this.setState({
+                blockButtonText: "Block",
+            });
+        } else {
+            this.props.emit({
+                type: "BlockUser",
+                pubkey: this.props.pubkey,
+            });
+            this.setState({
+                blockButtonText: "Unblock",
+            });
+        }
+    };
+
+    render(props: UserDetailProps, state: UserDetailState) {
+        return (
+            <div class={`px-2 py-3 text-[#7A818C]`}>
+                <Avatar
+                    class={`w-64 h-64 m-auto`}
+                    picture={props.targetUserProfile.picture}
                 />
-                <p
-                    class={`flex-1 text-[#7A818C] group-hover:text-[#F3F4EA] break-words overflow-hidden`}
-                >
-                    {props.pubkey.bech32()}
-                </p>
-                <CopyButton text={props.pubkey.bech32()} />
-            </div>
-            <div class={`flex items-start overflow-hidden w-full mt-1 group`}>
-                <KeyIcon
-                    class={`w-6 h-6 mr-2`}
-                    style={{
-                        fill: "#7A818C",
-                    }}
-                />
-                <p
-                    class={`flex-1 text-[#7A818C] group-hover:text-[#F3F4EA] break-words overflow-hidden`}
-                >
-                    {props.pubkey.hex}
-                </p>
-                <CopyButton text={props.pubkey.hex} />
-            </div>
-            {props.targetUserProfile.about
-                ? (
-                    <div class={`flex items-start overflow-hidden w-full mt-4 group`}>
-                        <UserIcon
-                            class={`w-6 h-6 mr-2`}
-                            style={{
-                                stroke: "#7A818C",
-                                strokeWidth: "1.5",
-                                fill: "none",
-                            }}
-                        />
-                        <p
-                            class={`flex-1 break-words overflow-hidden`}
-                        >
-                            {TextWithLinks({ text: props.targetUserProfile.about })}
-                        </p>
-                    </div>
-                )
-                : undefined}
-            {props.targetUserProfile.website
-                ? (
-                    <div class={`flex items-start overflow-hidden w-full mt-4 group`}>
-                        <HomeIcon
-                            class={`w-6 h-6 mr-2`}
-                            style={{
-                                stroke: "#7A818C",
-                                strokeWidth: "1.5",
-                                fill: "none",
-                            }}
-                        />
-                        <p
-                            class={`flex-1 break-words overflow-hidden`}
-                        >
-                            {TextWithLinks({ text: props.targetUserProfile.website })}
-                        </p>
-                    </div>
-                )
-                : undefined}
-            <div class="py-1"></div>
-            <div
-                class="border inline-block select-none px-1 rounded-full
+                <h1 class={`text-[#F3F4EA] truncate text-[1.4rem] my-4 max-w-full text-center`}>
+                    {props.targetUserProfile.name || props.pubkey.bech32()}
+                </h1>
+                <div class={`flex items-start overflow-hidden w-full group`}>
+                    <KeyIcon
+                        class={`w-6 h-6 mr-2`}
+                        style={{
+                            fill: "#7A818C",
+                        }}
+                    />
+                    <p
+                        class={`flex-1 text-[#7A818C] group-hover:text-[#F3F4EA] break-words overflow-hidden`}
+                    >
+                        {props.pubkey.bech32()}
+                    </p>
+                    <CopyButton text={props.pubkey.bech32()} />
+                </div>
+                <div class={`flex items-start overflow-hidden w-full mt-1 group`}>
+                    <KeyIcon
+                        class={`w-6 h-6 mr-2`}
+                        style={{
+                            fill: "#7A818C",
+                        }}
+                    />
+                    <p
+                        class={`flex-1 text-[#7A818C] group-hover:text-[#F3F4EA] break-words overflow-hidden`}
+                    >
+                        {props.pubkey.hex}
+                    </p>
+                    <CopyButton text={props.pubkey.hex} />
+                </div>
+                {props.targetUserProfile.about
+                    ? (
+                        <div class={`flex items-start overflow-hidden w-full mt-4 group`}>
+                            <UserIcon
+                                class={`w-6 h-6 mr-2`}
+                                style={{
+                                    stroke: "#7A818C",
+                                    strokeWidth: "1.5",
+                                    fill: "none",
+                                }}
+                            />
+                            <p
+                                class={`flex-1 break-words overflow-hidden`}
+                            >
+                                {TextWithLinks({ text: props.targetUserProfile.about })}
+                            </p>
+                        </div>
+                    )
+                    : undefined}
+                {props.targetUserProfile.website
+                    ? (
+                        <div class={`flex items-start overflow-hidden w-full mt-4 group`}>
+                            <HomeIcon
+                                class={`w-6 h-6 mr-2`}
+                                style={{
+                                    stroke: "#7A818C",
+                                    strokeWidth: "1.5",
+                                    fill: "none",
+                                }}
+                            />
+                            <p
+                                class={`flex-1 break-words overflow-hidden`}
+                            >
+                                {TextWithLinks({ text: props.targetUserProfile.website })}
+                            </p>
+                        </div>
+                    )
+                    : undefined}
+                <div class="py-1"></div>
+                <div
+                    class="border inline-block select-none px-1 rounded-full
                 hover:text-[#D4D4D4] hover:cursor-pointer"
-                onClick={(e) => {
-                    if (props.blocked) {
-                        props.emit({
-                            type: "UnblockUser",
-                            pubkey: props.pubkey,
-                        });
-                    } else {
-                        props.emit({
-                            type: "BlockUser",
-                            pubkey: props.pubkey,
-                        });
-                    }
-                }}
-            >
-                {props.blocked ? "Unblock" : "Block"}
+                    onClick={this.toggleBlockUser}
+                >
+                    {state.blockButtonText}
+                </div>
             </div>
-        </div>
-    );
+        );
+    }
 }
 
 function TextWithLinks({ text }: { text: string }) {

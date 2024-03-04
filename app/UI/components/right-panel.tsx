@@ -36,13 +36,17 @@ export class RightPanel extends Component<RightPanelProps, RightPanelState> {
         this.setState({ show: true });
         this.children = children;
         const ele = this.ref.current;
-        if (ele) ele.classList.remove("translate-x-full");
+        if (ele) {
+            ele.classList.remove("translate-x-full");
+        }
     };
 
     hide = () => {
         this.setState({ show: false });
         const ele = this.ref.current;
-        if (ele) ele.classList.add("translate-x-full");
+        if (ele) {
+            ele.classList.add("translate-x-full");
+        }
     };
 
     render() {
