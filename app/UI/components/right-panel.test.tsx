@@ -1,33 +1,22 @@
 /** @jsx h */
 import { h, render } from "https://esm.sh/preact@10.17.1";
-import { RightPanel } from "./right-panel.tsx";
-import { testEventBus } from "../_setup.test.ts";
+import { RightPanel, RightPanelInputChannel } from "./right-panel.tsx";
+import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { CenterClass } from "./tw.ts";
 
-render(
-    <div class="border">
-        <RightPanel
-            emit={testEventBus.emit}
-            eventSub={testEventBus}
-        >
-            Test
-        </RightPanel>
-    </div>,
-    document.body,
-);
-
-const rightPanelChan: PopOverInputChannel = new Channel();
-function PopoverTest() {
+const rightPanelChan: RightPanelInputChannel = new Channel();
+function RightPanelTest() {
     return (
         <div class={`${CenterClass} w-screen h-screen text-white`}>
             <button
                 class={`rounded bg-black px-4 py2`}
                 onClick={async () => {
-                    await popoverChan.put({
+                    await rightPanelChan.put({
                         children: (
                             <div
                                 class={`${CenterClass} p-10`}
                             >
-                                Popover Simple
+                                RightPanel Simple
                             </div>
                         ),
                         onClose: () => console.log("close"),
@@ -36,9 +25,9 @@ function PopoverTest() {
             >
                 Show
             </button>
-            <Popover inputChan={popoverChan} />
+            <RightPanel inputChan={rightPanelChan} />
         </div>
     );
 }
 
-render(<PopoverTest />, document.body);
+render(<RightPanelTest />, document.body);
