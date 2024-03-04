@@ -42,9 +42,11 @@ import { SearchUpdate, SelectConversation } from "./search_model.ts";
 import { RelayConfigChange, ViewRecommendedRelaysList, ViewRelayDetail } from "./setting.tsx";
 import { SignInEvent } from "./signIn.tsx";
 import { TagSelected } from "./contact-tags.tsx";
-import { BlockUser, UnblockUser } from "./user-detail.tsx";
+import { BlockUser, UnblockUser, UserDetail } from "./user-detail.tsx";
 import { RelayRecommendList } from "./relay-recommend-list.tsx";
 import { HidePopOver } from "./components/popover.tsx";
+import { RightPanelInputChannel } from "./components/right-panel.tsx";
+import { getFocusedContent } from "./app.tsx";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -93,6 +95,7 @@ export async function* UI_Interaction_Update(args: {
     dbView: Datebase_View;
     pool: ConnectionPool;
     popOver: PopOverInputChannel;
+    rightPanel: RightPanelInputChannel;
     newNostrEventChannel: Channel<NostrEvent>;
     lamport: LamportTime;
     installPrompt: InstallPrompt;
@@ -117,6 +120,7 @@ export async function* UI_Interaction_Update(args: {
                         eventBus,
                         pool,
                         popOverInputChan: args.popOver,
+                        rightPanelInputChan: args.rightPanel,
                         otherConfig,
                         lamport: args.lamport,
                         installPrompt,
@@ -279,6 +283,35 @@ export async function* UI_Interaction_Update(args: {
             app.popOverInputChan.put({ children: undefined });
         } //
         //
+        // Right Panel
+        //
+        else if (event.type == "ToggleRightPanel") {
+            if (event.show) {
+                if (!model.dm.currentEditor) continue;
+                const focusedContent = getFocusedContent(
+                    model.dm.focusedContent.get(model.dm.currentEditor.pubkey.hex),
+                    app.database,
+                );
+                if (!focusedContent?.pubkey) continue;
+                const pubkey = focusedContent.pubkey;
+                const targetUserProfile = {
+                    name: focusedContent?.data?.name,
+                    picture: focusedContent?.data?.picture,
+                    about: focusedContent?.data?.about,
+                    website: focusedContent?.data?.website,
+                };
+                app.rightPanelInputChan.put(
+                    <UserDetail
+                        targetUserProfile={targetUserProfile}
+                        pubkey={pubkey}
+                        emit={eventBus.emit}
+                        blocked={app.conversationLists.isUserBlocked(pubkey)}
+                    />,
+                );
+            } else {
+                app.rightPanelInputChan.put(undefined);
+            }
+        } //
         // DM
         //
         else if (event.type == "ViewUserDetail") {

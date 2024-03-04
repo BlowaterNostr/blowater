@@ -1,19 +1,21 @@
 /** @jsx h */
 import { Component, createRef, h } from "https://esm.sh/preact@10.17.1";
-import { emitFunc, EventSubscriber } from "../../event-bus.ts";
 import { IconButtonClass } from "./tw.ts";
 import { CloseIcon } from "../icons/close-icon.tsx";
-import { DirectMessagePanelUpdate, ToggleRightPanel } from "../message-panel.tsx";
-import { UI_Interaction_Event } from "../app_update.tsx";
 import { ComponentChildren } from "https://esm.sh/preact@10.17.1";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 
-type RightPanelState = {
+export type ToggleRightPanel = {
+    type: "ToggleRightPanel";
     show: boolean;
 };
+
 type RightPanelProps = {
-    emit: emitFunc<DirectMessagePanelUpdate>;
-    eventSub: EventSubscriber<UI_Interaction_Event>;
+    inputChan: RightPanelInputChannel;
+};
+
+type RightPanelState = {
+    show: boolean;
 };
 
 export type RightPanelInputChannel = Channel<ComponentChildren>;
@@ -24,29 +26,31 @@ export class RightPanel extends Component<RightPanelProps, RightPanelState> {
     children: ComponentChildren = undefined;
 
     ref = createRef<HTMLDivElement>();
-    events = this.props.eventSub.onChange();
 
     async componentDidMount() {
-        for await (const event of this.events) {
-            if (event.type == "ToggleRightPanel") {
-                if (event.show) {
-                    const ele = this.ref.current;
-                    if (ele) ele.classList.remove("translate-x-full");
-                } else {
-                    const ele = this.ref.current;
-                    if (ele) ele.classList.add("translate-x-full");
-                }
+        for await (const children of this.props.inputChan) {
+            if (children) {
+                this.show(children);
+            } else {
+                this.hide();
             }
         }
     }
 
-    componentWillUnmount() {
-        this.events.close();
-    }
+    show = (children: ComponentChildren) => {
+        this.setState({ show: true });
+        this.children = children;
+        const ele = this.ref.current;
+        if (ele) ele.classList.remove("translate-x-full");
+    };
+
+    hide = () => {
+        this.setState({ show: false });
+        const ele = this.ref.current;
+        if (ele) ele.classList.add("translate-x-full");
+    };
 
     render() {
-        const { emit, children } = this.props;
-
         return (
             <div
                 ref={this.ref}
@@ -59,10 +63,7 @@ export class RightPanel extends Component<RightPanelProps, RightPanelState> {
                 <button
                     class={`w-6 min-w-[1.5rem] h-6 ml-4 ${IconButtonClass} hover:bg-[#36393F] absolute right-2 top-3 z-10 border-2`}
                     onClick={() => {
-                        emit({
-                            type: "ToggleRightPanel",
-                            show: false,
-                        });
+                        this.hide();
                     }}
                 >
                     <CloseIcon
@@ -72,7 +73,7 @@ export class RightPanel extends Component<RightPanelProps, RightPanelState> {
                         }}
                     />
                 </button>
-                {children}
+                {this.children}
             </div>
         );
     }
