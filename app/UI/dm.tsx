@@ -8,7 +8,6 @@ import { EventBus } from "../event-bus.ts";
 import { getFocusedContent } from "./app.tsx";
 import { ChatMessagesGetter, UI_Interaction_Event, UserBlocker } from "./app_update.tsx";
 import { IconButtonClass } from "./components/tw.ts";
-import { NostrKind } from "../../libs/nostr.ts/nostr.ts";
 
 import { EditorModel } from "./editor.tsx";
 import { EventSyncer } from "./event_syncer.ts";
@@ -22,7 +21,6 @@ import {
     NewMessageChecker,
     PinListGetter,
 } from "./conversation-list.tsx";
-import { ChatMessage } from "./message.ts";
 
 export type DM_Model = {
     currentEditor: EditorModel | undefined;
