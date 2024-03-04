@@ -11,13 +11,14 @@ type RightPanelProps = {
 
 type RightPanelState = {
     show: boolean;
+    children?: ComponentChildren;
 };
 
 export class RightPanel extends Component<RightPanelProps, RightPanelState> {
     state = {
         show: false,
+        children: undefined,
     };
-    children: ComponentChildren = undefined;
 
     ref = createRef<HTMLDivElement>();
 
@@ -32,8 +33,7 @@ export class RightPanel extends Component<RightPanelProps, RightPanelState> {
     }
 
     show = (children: ComponentChildren) => {
-        this.setState({ show: true });
-        this.children = children;
+        this.setState({ show: true, children });
         const ele = this.ref.current;
         if (ele) {
             ele.classList.remove("translate-x-full");
@@ -41,7 +41,7 @@ export class RightPanel extends Component<RightPanelProps, RightPanelState> {
     };
 
     hide = () => {
-        this.setState({ show: false });
+        this.setState({ show: false, children: undefined});
         const ele = this.ref.current;
         if (ele) {
             ele.classList.add("translate-x-full");
