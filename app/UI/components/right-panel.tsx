@@ -5,11 +5,6 @@ import { CloseIcon } from "../icons/close-icon.tsx";
 import { ComponentChildren } from "https://esm.sh/preact@10.17.1";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 
-export type ToggleRightPanel = {
-    type: "ToggleRightPanel";
-    show: boolean;
-};
-
 type RightPanelProps = {
     inputChan: RightPanelInputChannel;
 };

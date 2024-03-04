@@ -32,10 +32,8 @@ import { ProfileGetter } from "./search.tsx";
 import { SelectConversation } from "./search_model.ts";
 import { DividerBackgroundColor, ErrorColor, LinkColor, PrimaryTextColor } from "./style/colors.ts";
 import { BlockUser, UnblockUser, UserDetail } from "./user-detail.tsx";
-import { ToggleRightPanel } from "./components/right-panel.tsx";
 
 export type DirectMessagePanelUpdate =
-    | ToggleRightPanel
     | ViewUserDetail
     | OpenNote
     | {

@@ -192,8 +192,8 @@ function TopBar(props: {
                             right-4 mobile:right-0 top-4 ${IconButtonClass}`}
                     onClick={() => {
                         props.bus.emit({
-                            type: "ToggleRightPanel",
-                            show: true,
+                            type: "ViewUserDetail",
+                            pubkey: props.currentEditor.pubkey,
                         });
                     }}
                 >

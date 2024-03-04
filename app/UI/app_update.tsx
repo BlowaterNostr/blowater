@@ -282,12 +282,22 @@ export async function* UI_Interaction_Update(args: {
             model.social.relaySelectedChannel.delete(model.currentRelay);
             app.popOverInputChan.put({ children: undefined });
         } //
+        // DM
         //
-        // Right Panel
-        //
-        else if (event.type == "ToggleRightPanel") {
-            if (event.show) {
-                if (!model.dm.currentEditor) continue;
+        else if (event.type == "ViewUserDetail") {
+            if (model.dm.currentEditor) {
+                const currentFocus = model.dm.focusedContent.get(model.dm.currentEditor.pubkey.hex);
+                if (
+                    currentFocus instanceof PublicKey &&
+                    currentFocus.hex == event.pubkey.hex &&
+                    currentFocus.hex == model.dm.currentEditor.pubkey.hex
+                ) {
+                } else {
+                    model.dm.focusedContent.set(
+                        model.dm.currentEditor.pubkey.hex,
+                        event.pubkey,
+                    );
+                }
                 const focusedContent = getFocusedContent(
                     model.dm.focusedContent.get(model.dm.currentEditor.pubkey.hex),
                     app.database,
@@ -308,27 +318,6 @@ export async function* UI_Interaction_Update(args: {
                         blocked={app.conversationLists.isUserBlocked(pubkey)}
                     />,
                 );
-            } else {
-                app.rightPanelInputChan.put(undefined);
-            }
-        } //
-        // DM
-        //
-        else if (event.type == "ViewUserDetail") {
-            if (model.dm.currentEditor) {
-                const currentFocus = model.dm.focusedContent.get(model.dm.currentEditor.pubkey.hex);
-                console.log("currentFocus", currentFocus);
-                if (
-                    currentFocus instanceof PublicKey &&
-                    currentFocus.hex == event.pubkey.hex &&
-                    currentFocus.hex == model.dm.currentEditor.pubkey.hex
-                ) {
-                } else {
-                    model.dm.focusedContent.set(
-                        model.dm.currentEditor.pubkey.hex,
-                        event.pubkey,
-                    );
-                }
             }
         } else if (event.type == "OpenNote") {
             open(`https://nostrapp.link/#${NoteID.FromHex(event.event.id).bech32()}?select=true`);
