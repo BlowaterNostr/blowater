@@ -37,8 +37,8 @@ import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 import { ChannelContainer } from "./channel-container.tsx";
 import { ChatMessage } from "./message.ts";
 import { filter, map } from "./_helper.ts";
-import { RightPanelInputChannel } from "./components/right-panel.tsx";
 import { RightPanel } from "./components/right-panel.tsx";
+import { ComponentChildren } from "https://esm.sh/preact@10.17.1";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
@@ -56,7 +56,7 @@ export async function Start(database: DexieDatabase) {
     const eventBus = new EventBus<UI_Interaction_Event>();
     const pool = new ConnectionPool();
     const popOverInputChan: PopOverInputChannel = new Channel();
-    const rightPanelInputChan: RightPanelInputChannel = new Channel();
+    const rightPanelInputChan: Channel<ComponentChildren> = new Channel();
     const dbView = await Datebase_View.New(database, database, database);
     const newNostrEventChannel = new Channel<NostrEvent>();
     (async () => {
@@ -153,7 +153,7 @@ export class App {
         public readonly eventBus: EventBus<UI_Interaction_Event>,
         public readonly pool: ConnectionPool,
         public readonly popOverInputChan: PopOverInputChannel,
-        public readonly rightPanelInputChan: RightPanelInputChannel,
+        public readonly rightPanelInputChan: Channel<ComponentChildren>,
         public readonly otherConfig: OtherConfig,
         public readonly eventSyncer: EventSyncer,
         public readonly conversationLists: DM_List,
@@ -169,7 +169,7 @@ export class App {
         eventBus: EventBus<UI_Interaction_Event>;
         pool: ConnectionPool;
         popOverInputChan: PopOverInputChannel;
-        rightPanelInputChan: RightPanelInputChannel;
+        rightPanelInputChan: Channel<ComponentChildren>;
         otherConfig: OtherConfig;
         lamport: LamportTime;
         installPrompt: InstallPrompt;
@@ -310,7 +310,7 @@ type AppProps = {
     eventBus: AppEventBus;
     pool: ConnectionPool;
     popOverInputChan: PopOverInputChannel;
-    rightPanelInputChan: RightPanelInputChannel;
+    rightPanelInputChan: Channel<ComponentChildren>;
     installPrompt: InstallPrompt;
 };
 

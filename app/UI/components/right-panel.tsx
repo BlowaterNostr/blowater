@@ -6,14 +6,13 @@ import { ComponentChildren } from "https://esm.sh/preact@10.17.1";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 
 type RightPanelProps = {
-    inputChan: RightPanelInputChannel;
+    inputChan: Channel<ComponentChildren>;
 };
 
 type RightPanelState = {
     show: boolean;
 };
 
-export type RightPanelInputChannel = Channel<ComponentChildren>;
 export class RightPanel extends Component<RightPanelProps, RightPanelState> {
     state = {
         show: false,

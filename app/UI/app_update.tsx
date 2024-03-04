@@ -45,8 +45,8 @@ import { TagSelected } from "./contact-tags.tsx";
 import { BlockUser, UnblockUser, UserDetail } from "./user-detail.tsx";
 import { RelayRecommendList } from "./relay-recommend-list.tsx";
 import { HidePopOver } from "./components/popover.tsx";
-import { RightPanelInputChannel } from "./components/right-panel.tsx";
 import { getFocusedContent } from "./app.tsx";
+import { ComponentChildren } from "https://esm.sh/preact@10.17.1";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -95,7 +95,7 @@ export async function* UI_Interaction_Update(args: {
     dbView: Datebase_View;
     pool: ConnectionPool;
     popOver: PopOverInputChannel;
-    rightPanel: RightPanelInputChannel;
+    rightPanel: Channel<ComponentChildren>;
     newNostrEventChannel: Channel<NostrEvent>;
     lamport: LamportTime;
     installPrompt: InstallPrompt;

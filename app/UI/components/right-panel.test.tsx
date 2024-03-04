@@ -1,10 +1,11 @@
 /** @jsx h */
 import { h, render } from "https://esm.sh/preact@10.17.1";
-import { RightPanel, RightPanelInputChannel } from "./right-panel.tsx";
+import { RightPanel } from "./right-panel.tsx";
+import { ComponentChildren } from "https://esm.sh/preact@10.17.1";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { CenterClass } from "./tw.ts";
 
-const rightPanelChan: RightPanelInputChannel = new Channel();
+const rightPanelChan: Channel<ComponentChildren> = new Channel();
 function RightPanelTest() {
     return (
         <div class={`${CenterClass} w-screen h-screen text-white`}>
