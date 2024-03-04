@@ -8,7 +8,7 @@ import { NostrAccountContext, NostrEvent, NostrKind } from "../../libs/nostr.ts/
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 import { Datebase_View } from "../database.ts";
 import { emitFunc, EventBus } from "../event-bus.ts";
-import { DirectedMessageController, sendDMandImages } from "../features/dm.ts";
+import { DirectedMessageController, sendDirectMessages } from "../features/dm.ts";
 import { saveProfile } from "../features/profile.ts";
 import {
     Encrypted_Event,
@@ -34,7 +34,7 @@ import { EventSender } from "../../libs/nostr.ts/relay.interface.ts";
 
 import { DirectMessagePanelUpdate } from "./message-panel.tsx";
 import { ChatMessage } from "./message.ts";
-import { InstallPrompt, NavigationUpdate, SelectRelay } from "./nav.tsx";
+import { InstallPrompt, NavigationModel, NavigationUpdate, SelectRelay } from "./nav.tsx";
 import { notify } from "./notification.ts";
 import { RelayInformationComponent } from "./relay-detail.tsx";
 import { Search } from "./search.tsx";
@@ -220,6 +220,7 @@ export async function* UI_Interaction_Update(args: {
                 currentRelay,
                 app.model.dmEditors,
                 app.database,
+                model,
             ).then((res) => {
                 if (res instanceof Error) {
                     console.error("update:SendMessage", res);
@@ -555,31 +556,50 @@ export async function handle_SendMessage(
     event: SendMessage,
     ctx: NostrAccountContext,
     lamport: LamportTime,
-    pool: EventSender,
+    eventSender: EventSender,
     dmEditors: Map<string, EditorModel>,
     db: Datebase_View,
+    args: {
+        navigationModel: NavigationModel;
+    },
 ) {
-    const events = await sendDMandImages({
-        sender: ctx,
-        receiverPublicKey: event.editorID,
-        message: event.text,
-        files: event.files,
-        lamport_timestamp: lamport.now(),
-        pool,
-        tags: [],
-    });
-    if (events instanceof Error) {
-        return events;
-    }
-    {
-        // clearing the editor before sending the message to relays
-        // so that even if the sending is awaiting, the UI will clear
-        const editor = dmEditors.get(event.editorID.hex);
-        if (editor) {
-            editor.files = [];
-            editor.text = "";
+    let events;
+    if (args.navigationModel.activeNav == "DM") {
+        events = await sendDirectMessages({
+            sender: ctx,
+            receiverPublicKey: event.editorID,
+            message: event.text,
+            files: event.files,
+            lamport_timestamp: lamport.now(),
+            eventSender,
+            tags: [],
+        });
+        if (events instanceof Error) {
+            return events;
         }
+        {
+            // clearing the editor before sending the message to relays
+            // so that even if the sending is awaiting, the UI will clear
+            const editor = dmEditors.get(event.editorID.hex);
+            if (editor) {
+                editor.files = [];
+                editor.text = "";
+            }
+        }
+    } else if (args.navigationModel.activeNav == "Social") {
+        const nostr_event = await prepareNormalNostrEvent(ctx, {
+            content: event.text,
+            kind: NostrKind.TEXT_NOTE,
+        });
+        const err = await eventSender.sendEvent(nostr_event);
+        if (err instanceof Error) {
+            return err;
+        }
+        events = [nostr_event];
+    } else {
+        return new Error(`${args.navigationModel.activeNav} should not send messages`);
     }
+
     for (const eventSent of events) {
         const err = await db.addEvent(eventSent, undefined);
         if (err instanceof Error) {

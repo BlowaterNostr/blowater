@@ -89,6 +89,11 @@ for await (const event of testEventBus.onChange()) {
             currentRelay,
             model.dmEditors,
             database,
+            {
+                navigationModel: {
+                    activeNav: "DM",
+                },
+            },
         ).then((res) => {
             if (res instanceof Error) {
                 console.error("update:SendMessage", res);
