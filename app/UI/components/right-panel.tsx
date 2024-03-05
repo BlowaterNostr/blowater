@@ -6,11 +6,11 @@ import { ComponentChildren } from "https://esm.sh/preact@10.17.1";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 
 type RightPanelProps = {
-    inputChan: Channel<ComponentChildren>;
+    inputChan: Channel<() => ComponentChildren>;
 };
 
 type RightPanelState = {
-    children?: ComponentChildren;
+    children?: () => ComponentChildren;
 };
 
 export class RightPanel extends Component<RightPanelProps, RightPanelState> {
@@ -46,7 +46,7 @@ export class RightPanel extends Component<RightPanelProps, RightPanelState> {
                         }}
                     />
                 </button>
-                {state.children}
+                {state.children ? state.children() : undefined}
             </div>
         );
     }

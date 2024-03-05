@@ -26,6 +26,7 @@ export type UnblockUser = {
 type UserDetailProps = {
     targetUserProfile: ProfileData;
     pubkey: PublicKey;
+    // dmList: DM_List;
     blocked: boolean;
     emit: emitFunc<DirectMessagePanelUpdate | BlockUser | UnblockUser>;
 };

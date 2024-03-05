@@ -95,7 +95,7 @@ export async function* UI_Interaction_Update(args: {
     dbView: Datebase_View;
     pool: ConnectionPool;
     popOver: PopOverInputChannel;
-    rightPanel: Channel<ComponentChildren>;
+    rightPanel: Channel<() => ComponentChildren>;
     newNostrEventChannel: Channel<NostrEvent>;
     lamport: LamportTime;
     installPrompt: InstallPrompt;
@@ -285,40 +285,20 @@ export async function* UI_Interaction_Update(args: {
         // DM
         //
         else if (event.type == "ViewUserDetail") {
-            if (model.dm.currentEditor) {
-                const currentFocus = model.dm.focusedContent.get(model.dm.currentEditor.pubkey.hex);
-                if (
-                    currentFocus instanceof PublicKey &&
-                    currentFocus.hex == event.pubkey.hex &&
-                    currentFocus.hex == model.dm.currentEditor.pubkey.hex
-                ) {
-                } else {
-                    model.dm.focusedContent.set(
-                        model.dm.currentEditor.pubkey.hex,
-                        event.pubkey,
+
+            app.rightPanelInputChan.put(
+                () => {
+                    return (
+                        <UserDetail
+                            targetUserProfile={app.database.getProfilesByPublicKey(event.pubkey)?.profile || {}}
+                            pubkey={event.pubkey}
+                            emit={eventBus.emit}
+                            // dmList={app.conversationLists}
+                            blocked={app.conversationLists.isUserBlocked(event.pubkey)}
+                        />
                     );
                 }
-                const focusedContent = getFocusedContent(
-                    model.dm.focusedContent.get(model.dm.currentEditor.pubkey.hex),
-                    app.database,
-                );
-                if (!focusedContent?.pubkey) continue;
-                const pubkey = focusedContent.pubkey;
-                const targetUserProfile = {
-                    name: focusedContent?.data?.name,
-                    picture: focusedContent?.data?.picture,
-                    about: focusedContent?.data?.about,
-                    website: focusedContent?.data?.website,
-                };
-                app.rightPanelInputChan.put(
-                    <UserDetail
-                        targetUserProfile={targetUserProfile}
-                        pubkey={pubkey}
-                        emit={eventBus.emit}
-                        blocked={app.conversationLists.isUserBlocked(pubkey)}
-                    />,
-                );
-            }
+            );
         } else if (event.type == "OpenNote") {
             open(`https://nostrapp.link/#${NoteID.FromHex(event.event.id).bech32()}?select=true`);
         } else if (event.type == "StartEditGroupChatProfile") {
