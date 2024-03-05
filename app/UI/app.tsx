@@ -16,7 +16,6 @@ import { DM_List } from "./conversation-list.ts";
 import { DexieDatabase } from "./dexie-db.ts";
 import { DirectMessageContainer } from "./dm.tsx";
 import { EditProfile } from "./edit-profile.tsx";
-import { new_DM_EditorModel } from "./editor.tsx";
 import { EventSyncer } from "./event_syncer.ts";
 import { RelayConfig } from "./relay-config.ts";
 import { ProfileGetter } from "./search.tsx";
@@ -249,22 +248,6 @@ export class App {
             this.model.myProfile = myProfileEvent.profile;
         }
 
-        /* contacts */
-        for (const contact of this.conversationLists.convoSummaries.values()) {
-            const editor = this.model.dmEditors.get(contact.pubkey.hex);
-            if (editor == null) {
-                const pubkey = PublicKey.FromHex(contact.pubkey.hex);
-                if (pubkey instanceof Error) {
-                    throw pubkey; // impossible
-                }
-                this.model.dmEditors.set(
-                    contact.pubkey.hex,
-                    new_DM_EditorModel(
-                        pubkey,
-                    ),
-                );
-            }
-        }
         // Database
         (async () => {
             let i = 0;

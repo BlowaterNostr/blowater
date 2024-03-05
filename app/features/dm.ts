@@ -14,16 +14,16 @@ import {
     PutToClosedChannelError,
 } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 
-export async function sendDMandImages(args: {
+export async function sendDirectMessages(args: {
     sender: NostrAccountContext;
     receiverPublicKey: PublicKey;
     message: string;
     files: Blob[];
     lamport_timestamp: number;
-    pool: EventSender;
+    eventSender: EventSender;
     tags: Tag[];
 }) {
-    const { tags, sender, receiverPublicKey, message, files, lamport_timestamp, pool } = args;
+    const { tags, sender, receiverPublicKey, message, files, lamport_timestamp, eventSender } = args;
     console.log("sendDMandImages", message, files);
     const eventsToSend: NostrEvent[] = [];
     if (message.trim().length !== 0) {
@@ -60,7 +60,7 @@ export async function sendDMandImages(args: {
     }
     // send the event
     for (const event of eventsToSend) {
-        const err = await pool.sendEvent(event);
+        const err = await eventSender.sendEvent(event);
         if (err instanceof Error) {
             return err;
         }
