@@ -12,16 +12,13 @@ function RightPanelTest() {
             <button
                 class={`rounded bg-black px-4 py2`}
                 onClick={async () => {
-                    await rightPanelChan.put({
-                        children: (
-                            <div
-                                class={`${CenterClass} p-10`}
-                            >
-                                RightPanel Simple
-                            </div>
-                        ),
-                        onClose: () => console.log("close"),
-                    });
+                    await rightPanelChan.put(
+                        <div
+                            class={`${CenterClass} p-10`}
+                        >
+                            RightPanel Simple
+                        </div>,
+                    );
                 }}
             >
                 Show
