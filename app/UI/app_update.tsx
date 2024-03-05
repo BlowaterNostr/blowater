@@ -1,5 +1,5 @@
 /** @jsx h */
-import { h } from "https://esm.sh/preact@10.17.1";
+import { ComponentChildren, h } from "https://esm.sh/preact@10.17.1";
 import { Channel, closed, sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { prepareEncryptedNostrEvent, prepareNormalNostrEvent } from "../../libs/nostr.ts/event.ts";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
@@ -45,8 +45,7 @@ import { TagSelected } from "./contact-tags.tsx";
 import { BlockUser, UnblockUser, UserDetail } from "./user-detail.tsx";
 import { RelayRecommendList } from "./relay-recommend-list.tsx";
 import { HidePopOver } from "./components/popover.tsx";
-import { getFocusedContent } from "./app.tsx";
-import { ComponentChildren } from "https://esm.sh/preact@10.17.1";
+import { Social_Model } from "./channel-container.tsx";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -218,7 +217,6 @@ export async function* UI_Interaction_Update(args: {
                 app.ctx,
                 app.lamport,
                 currentRelay,
-                app.model.dmEditors,
                 app.database,
                 model,
             ).then((res) => {
@@ -557,10 +555,11 @@ export async function handle_SendMessage(
     ctx: NostrAccountContext,
     lamport: LamportTime,
     eventSender: EventSender,
-    dmEditors: Map<string, EditorModel>,
     db: Datebase_View,
     args: {
         navigationModel: NavigationModel;
+        social: Social_Model
+        dmEditors: Map<string, EditorModel>,
     },
 ) {
     let events;
@@ -580,7 +579,7 @@ export async function handle_SendMessage(
         {
             // clearing the editor before sending the message to relays
             // so that even if the sending is awaiting, the UI will clear
-            const editor = dmEditors.get(event.editorID.hex);
+            const editor = args.dmEditors.get(event.editorID.hex);
             if (editor) {
                 editor.files = [];
                 editor.text = "";

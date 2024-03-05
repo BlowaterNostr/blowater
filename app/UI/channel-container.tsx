@@ -22,6 +22,9 @@ import { ChatMessage } from "./message.ts";
 
 export type Social_Model = {
     relaySelectedChannel: Map<string, /* relay url */ string /* channel name */>;
+    editors: Map<string, {
+        text: string
+    }>
 };
 
 type ChannelContainerProps = {
@@ -41,16 +44,16 @@ type ChannelContainerProps = {
 
 type ChannelContainerState = {
     currentSelectedChannel: string /*channel name*/ | undefined;
-    currentEditor: EditorModel;
+    currentEditor: {
+        text: string
+    };
 };
 
 export class ChannelContainer extends Component<ChannelContainerProps, ChannelContainerState> {
     state: ChannelContainerState = {
         currentSelectedChannel: this.props.relaySelectedChannel.get(this.props.relay.url),
         currentEditor: {
-            pubkey: this.props.ctx.publicKey,
             text: "",
-            files: [],
         },
     };
 
