@@ -33,8 +33,8 @@ install:
 	deno install --allow-net --allow-read https://deno.land/std@0.178.0/http/file_server.ts
 
 cache:
-	rm -f deno.lock UI/deno.lock
-	cd UI && deno cache -r _main.tsx
+	rm -f deno.lock
+	deno cache -r app/UI/_main.tsx
 	deno cache -r *.ts
 
 clear-coverage:
