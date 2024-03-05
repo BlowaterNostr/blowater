@@ -285,19 +285,19 @@ export async function* UI_Interaction_Update(args: {
         // DM
         //
         else if (event.type == "ViewUserDetail") {
-
             app.rightPanelInputChan.put(
                 () => {
                     return (
                         <UserDetail
-                            targetUserProfile={app.database.getProfilesByPublicKey(event.pubkey)?.profile || {}}
+                            targetUserProfile={app.database.getProfilesByPublicKey(event.pubkey)?.profile ||
+                                {}}
                             pubkey={event.pubkey}
                             emit={eventBus.emit}
                             // dmList={app.conversationLists}
                             blocked={app.conversationLists.isUserBlocked(event.pubkey)}
                         />
                     );
-                }
+                },
             );
         } else if (event.type == "OpenNote") {
             open(`https://nostrapp.link/#${NoteID.FromHex(event.event.id).bech32()}?select=true`);
