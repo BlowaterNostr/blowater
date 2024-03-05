@@ -26,7 +26,7 @@ export type UnblockUser = {
 type UserDetailProps = {
     targetUserProfile: ProfileData;
     pubkey: PublicKey;
-    dmList: DM_List;
+    blocked: boolean;
     emit: emitFunc<DirectMessagePanelUpdate | BlockUser | UnblockUser>;
 };
 
@@ -40,7 +40,7 @@ export class UserDetail extends Component<UserDetailProps> {
     };
 
     toggleBlockUser = () => {
-        if (this.props.dmList.isUserBlocked(this.props.pubkey)) {
+        if (this.props.blocked) {
             this.props.emit({
                 type: "UnblockUser",
                 pubkey: this.props.pubkey,

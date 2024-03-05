@@ -315,8 +315,7 @@ export async function* UI_Interaction_Update(args: {
                         targetUserProfile={targetUserProfile}
                         pubkey={pubkey}
                         emit={eventBus.emit}
-                        dmList={app.conversationLists}
-                        // blocked={app.conversationLists.isUserBlocked(pubkey)}
+                        blocked={app.conversationLists.isUserBlocked(pubkey)}
                     />,
                 );
             }
