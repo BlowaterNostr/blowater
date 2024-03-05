@@ -27,25 +27,19 @@ import {
 } from "./message.ts";
 import { NoteCard } from "./note-card.tsx";
 import { ProfileCard } from "./profile-card.tsx";
-import { RightPanel } from "./right-panel.tsx";
+import { RightPanel } from "./components/right-panel.tsx";
 import { ProfileGetter } from "./search.tsx";
 import { SelectConversation } from "./search_model.ts";
 import { DividerBackgroundColor, ErrorColor, LinkColor, PrimaryTextColor } from "./style/colors.ts";
 import { BlockUser, UnblockUser, UserDetail } from "./user-detail.tsx";
 
 export type DirectMessagePanelUpdate =
-    | ToggleRightPanel
     | ViewUserDetail
     | OpenNote
     | {
         type: "ViewEventDetail";
         message: ChatMessage;
     };
-
-export type ToggleRightPanel = {
-    type: "ToggleRightPanel";
-    show: boolean;
-};
 
 export type OpenNote = {
     type: "OpenNote";
@@ -88,33 +82,6 @@ interface DirectMessagePanelProps {
 
 export class MessagePanel extends Component<DirectMessagePanelProps> {
     render(props: DirectMessagePanelProps) {
-        let rightPanelChildren: h.JSX.Element | undefined;
-        if (props.focusedContent) {
-            if (props.focusedContent.type == "ProfileData") {
-                rightPanelChildren = (
-                    <UserDetail
-                        targetUserProfile={{
-                            name: props.focusedContent?.data?.name,
-                            picture: props.focusedContent?.data?.picture,
-                            about: props.focusedContent?.data?.about,
-                            website: props.focusedContent?.data?.website,
-                        }}
-                        pubkey={props.focusedContent.pubkey}
-                        emit={props.emit}
-                        blocked={props.getters.isUserBlocked(props.focusedContent.pubkey)}
-                    />
-                );
-            }
-        }
-        let rightPanel = (
-            <RightPanel
-                emit={props.emit}
-                eventSub={props.eventSub}
-            >
-                {rightPanelChildren}
-            </RightPanel>
-        );
-
         let vnode = (
             <div class={`flex h-full w-full relative bg-[#36393F]`}>
                 <div class={`flex flex-col h-full flex-1 overflow-hidden`}>
@@ -137,7 +104,6 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
                         placeholder=""
                     />
                 </div>
-                {rightPanel}
             </div>
         );
         return vnode;

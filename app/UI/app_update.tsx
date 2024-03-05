@@ -42,9 +42,11 @@ import { SearchUpdate, SelectConversation } from "./search_model.ts";
 import { RelayConfigChange, ViewRecommendedRelaysList, ViewRelayDetail } from "./setting.tsx";
 import { SignInEvent } from "./signIn.tsx";
 import { TagSelected } from "./contact-tags.tsx";
-import { BlockUser, UnblockUser } from "./user-detail.tsx";
+import { BlockUser, UnblockUser, UserDetail } from "./user-detail.tsx";
 import { RelayRecommendList } from "./relay-recommend-list.tsx";
 import { HidePopOver } from "./components/popover.tsx";
+import { getFocusedContent } from "./app.tsx";
+import { ComponentChildren } from "https://esm.sh/preact@10.17.1";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -93,6 +95,7 @@ export async function* UI_Interaction_Update(args: {
     dbView: Datebase_View;
     pool: ConnectionPool;
     popOver: PopOverInputChannel;
+    rightPanel: Channel<() => ComponentChildren>;
     newNostrEventChannel: Channel<NostrEvent>;
     lamport: LamportTime;
     installPrompt: InstallPrompt;
@@ -117,6 +120,7 @@ export async function* UI_Interaction_Update(args: {
                         eventBus,
                         pool,
                         popOverInputChan: args.popOver,
+                        rightPanelInputChan: args.rightPanel,
                         otherConfig,
                         lamport: args.lamport,
                         installPrompt,
@@ -278,24 +282,23 @@ export async function* UI_Interaction_Update(args: {
             model.social.relaySelectedChannel.delete(model.currentRelay);
             app.popOverInputChan.put({ children: undefined });
         } //
-        //
         // DM
         //
         else if (event.type == "ViewUserDetail") {
-            if (model.dm.currentEditor) {
-                const currentFocus = model.dm.focusedContent.get(model.dm.currentEditor.pubkey.hex);
-                if (
-                    currentFocus instanceof PublicKey &&
-                    currentFocus.hex == event.pubkey.hex &&
-                    currentFocus.hex == model.dm.currentEditor.pubkey.hex
-                ) {
-                } else {
-                    model.dm.focusedContent.set(
-                        model.dm.currentEditor.pubkey.hex,
-                        event.pubkey,
+            app.rightPanelInputChan.put(
+                () => {
+                    return (
+                        <UserDetail
+                            targetUserProfile={app.database.getProfilesByPublicKey(event.pubkey)?.profile ||
+                                {}}
+                            pubkey={event.pubkey}
+                            emit={eventBus.emit}
+                            // dmList={app.conversationLists}
+                            blocked={app.conversationLists.isUserBlocked(event.pubkey)}
+                        />
                     );
-                }
-            }
+                },
+            );
         } else if (event.type == "OpenNote") {
             open(`https://nostrapp.link/#${NoteID.FromHex(event.event.id).bech32()}?select=true`);
         } else if (event.type == "StartEditGroupChatProfile") {

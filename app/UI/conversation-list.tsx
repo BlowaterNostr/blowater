@@ -18,6 +18,7 @@ import { ProfileGetter } from "./search.tsx";
 import { SearchUpdate, SelectConversation } from "./search_model.ts";
 import { ErrorColor, PrimaryTextColor, SecondaryBackgroundColor } from "./style/colors.ts";
 import { ContactTag, ContactTags, TagSelected } from "./contact-tags.tsx";
+import { ViewUserDetail } from "./message-panel.tsx";
 
 export interface ConversationListRetriever {
     getContacts: () => Iterable<ConversationSummary>;
@@ -43,7 +44,7 @@ export interface NewMessageChecker {
 }
 
 type Props = {
-    emit: emitFunc<ContactUpdate | SearchUpdate | TagSelected>;
+    emit: emitFunc<ContactUpdate | SearchUpdate | TagSelected | ViewUserDetail>;
     eventSub: EventSubscriber<UI_Interaction_Event>;
     getters: {
         convoListRetriever: ConversationListRetriever;
@@ -167,7 +168,7 @@ export interface PinListGetter {
 type ConversationListProps = {
     contacts: { conversation: ConversationSummary; newMessageCount: number }[];
     currentSelected: SelectConversation | undefined;
-    emit: emitFunc<ContactUpdate>;
+    emit: emitFunc<ContactUpdate | ViewUserDetail>;
     getters: {
         pinListGetter: PinListGetter;
         profileGetter: ProfileGetter;
@@ -363,9 +364,14 @@ function ConversationListItem(props: ListItemProps) {
     );
 }
 
-const selectConversation = (emit: emitFunc<SelectConversation>, pubkey: PublicKey) => () => {
-    return emit({
+const selectConversation = (emit: emitFunc<SelectConversation | ViewUserDetail>, pubkey: PublicKey) => () => {
+    emit({
         type: "SelectConversation",
+        pubkey,
+    });
+
+    emit({
+        type: "ViewUserDetail",
         pubkey,
     });
 };
