@@ -9,7 +9,6 @@ import { getFocusedContent } from "./app.tsx";
 import { ChatMessagesGetter, UI_Interaction_Event, UserBlocker } from "./app_update.tsx";
 import { IconButtonClass } from "./components/tw.ts";
 
-import { EditorModel } from "./editor.tsx";
 import { EventSyncer } from "./event_syncer.ts";
 import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
 import { MessagePanel } from "./message-panel.tsx";
@@ -23,8 +22,7 @@ import {
 } from "./conversation-list.tsx";
 
 export type DM_Model = {
-    currentEditor: EditorModel | undefined;
-    focusedContent: Map<string, NostrEvent | PublicKey>;
+    currentConversation: PublicKey | undefined;
 };
 
 type DirectMessageContainerProps = {
@@ -48,35 +46,7 @@ export type StartInvite = {
     publicKey: PublicKey;
 };
 
-type State = {
-    currentEditor: EditorModel | undefined;
-};
-
-export class DirectMessageContainer extends Component<DirectMessageContainerProps, State> {
-    changes?: PopChannel<UI_Interaction_Event>;
-
-    state: State = {
-        currentEditor: undefined,
-    };
-
-    componentWillUpdate(nextProps: Readonly<DirectMessageContainerProps>): void {
-        this.setState({
-            currentEditor: nextProps.currentEditor,
-        });
-    }
-
-    async componentDidMount() {
-        this.setState({
-            currentEditor: this.props.currentEditor,
-        });
-    }
-
-    componentWillUnmount(): void {
-        if (this.changes) {
-            this.changes.close();
-        }
-    }
-
+export class DirectMessageContainer extends Component<DirectMessageContainerProps> {
     render(props: DirectMessageContainerProps) {
         const t = Date.now();
         console.log(DirectMessageContainer.name, "?");
@@ -86,7 +56,7 @@ export class DirectMessageContainer extends Component<DirectMessageContainerProp
             >
                 <div
                     class={`w-fit max-sm:w-full
-                    ${props.currentEditor ? "max-sm:hidden" : ""}`}
+                    ${props.currentConversation ? "max-sm:hidden" : ""}`}
                 >
                     <ConversationList
                         eventSub={props.bus}
@@ -96,13 +66,13 @@ export class DirectMessageContainer extends Component<DirectMessageContainerProp
                     />
                 </div>
 
-                {this.state.currentEditor
+                {this.props.currentConversation
                     ? (
                         <div class={`flex flex-col flex-1 overflow-hidden`}>
                             <TopBar
                                 bus={this.props.bus}
                                 buttons={[]}
-                                currentEditor={this.state.currentEditor}
+                                currentConversation={this.props.currentConversation}
                                 profileGetter={this.props.getters.profileGetter}
                             />
                             <div class={`flex-1 overflow-auto`}>
@@ -110,15 +80,10 @@ export class DirectMessageContainer extends Component<DirectMessageContainerProp
                                     myPublicKey={props.ctx.publicKey}
                                     emit={props.bus.emit}
                                     eventSub={props.bus}
-                                    focusedContent={getFocusedContent(
-                                        props.focusedContent.get(this.state.currentEditor.pubkey.hex),
-                                        props.getters.profileGetter,
-                                    )}
                                     eventSyncer={props.eventSyncer}
                                     getters={props.getters}
-                                    editorModel={this.state.currentEditor}
                                     messages={props.getters.messageGetter.getChatMessages(
-                                        this.state.currentEditor.pubkey.hex,
+                                        this.props.currentConversation.hex,
                                     )}
                                 />
                             </div>
@@ -134,7 +99,7 @@ export class DirectMessageContainer extends Component<DirectMessageContainerProp
 
 function TopBar(props: {
     bus: EventBus<UI_Interaction_Event>;
-    currentEditor: EditorModel;
+    currentConversation: PublicKey;
     profileGetter: ProfileGetter;
     buttons: VNode[];
 }) {
@@ -166,20 +131,20 @@ function TopBar(props: {
                             hover:text-[#60a5fa] hover:cursor-pointer
                             whitespace-nowrap truncate`}
                     onClick={() => {
-                        if (!props.currentEditor) {
+                        if (!props.currentConversation) {
                             return;
                         }
                         props.bus.emit({
                             type: "ViewUserDetail",
-                            pubkey: props.currentEditor.pubkey,
+                            pubkey: props.currentConversation,
                         });
                     }}
                 >
                     {props.profileGetter.getProfilesByPublicKey(
-                        props.currentEditor.pubkey,
+                        props.currentConversation,
                     )
                         ?.profile.name ||
-                        props.currentEditor.pubkey.bech32()}
+                        props.currentConversation.bech32()}
                 </span>
             </div>
             <div>
@@ -191,7 +156,7 @@ function TopBar(props: {
                     onClick={() => {
                         props.bus.emit({
                             type: "ViewUserDetail",
-                            pubkey: props.currentEditor.pubkey,
+                            pubkey: props.currentConversation,
                         });
                     }}
                 >

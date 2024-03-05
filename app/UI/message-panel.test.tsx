@@ -14,7 +14,6 @@ import { DM_List } from "./conversation-list.ts";
 
 import { handle_SendMessage } from "./app_update.tsx";
 import { MessagePanel } from "./message-panel.tsx";
-import { EditorModel } from "./editor.tsx";
 
 const lamport = new LamportTime();
 const pool = new ConnectionPool();
@@ -41,18 +40,11 @@ for (let i = 1; i <= 3; i++) {
 await dmController.addEvent(events[0]);
 await dmController.addEvent(events[1]);
 await dmController.addEvent(events[2]);
-const editor: EditorModel = {
-    pubkey: ctx.publicKey,
-    text: "hi",
-    files: [],
-};
+
 const messages = dmController.getChatMessages(ctx.publicKey.hex);
 const model = initialModel();
 
 const view = () => {
-    if (editor == undefined) {
-        return undefined;
-    }
     return (
         <div class="w-screen h-screen">
             <MessagePanel
@@ -61,9 +53,7 @@ const view = () => {
                     relayRecordGetter: database,
                     isUserBlocked: new DM_List(ctx).isUserBlocked,
                 }}
-                editorModel={editor}
                 eventSyncer={eventSyncer}
-                focusedContent={undefined}
                 myPublicKey={ctx.publicKey}
                 emit={testEventBus.emit}
                 eventSub={testEventBus}
@@ -87,11 +77,16 @@ for await (const event of testEventBus.onChange()) {
             ctx,
             lamport,
             currentRelay,
-            model.dmEditors,
             database,
             {
                 navigationModel: {
                     activeNav: "DM",
+                },
+                dm: {
+                    currentConversation: ctx.publicKey,
+                },
+                social: {
+                    relaySelectedChannel: new Map(),
                 },
             },
         ).then((res) => {

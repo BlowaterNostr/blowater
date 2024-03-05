@@ -104,7 +104,6 @@ export class ConversationList extends Component<Props, State> {
                 listToRender = Array.from(props.getters.convoListRetriever.getConversations(blocked));
         }
         const convoListToRender = [];
-        console.log(contacts, strangers, blocked);
         for (const conversationSummary of listToRender) {
             convoListToRender.push({
                 conversation: conversationSummary,

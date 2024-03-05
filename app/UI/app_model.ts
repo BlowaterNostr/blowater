@@ -1,15 +1,15 @@
 import { NavigationModel } from "./nav.tsx";
 import { ProfileData } from "../features/profile.ts";
-import { EditorModel } from "./editor.tsx";
+
 import { DM_Model } from "./dm.tsx";
 import { Social_Model } from "./channel-container.tsx";
 import { App } from "./app.tsx";
+import { PublicKey } from "../../libs/nostr.ts/key.ts";
 
 export type Model = {
     app?: App; // app is only available after sign-in
     currentRelay: string;
     dm: DM_Model;
-    dmEditors: Map<string, EditorModel>;
 
     social: Social_Model;
 
@@ -25,18 +25,14 @@ export type Model = {
 };
 
 export function initialModel(): Model {
-    const editors: Map<string, EditorModel> = new Map();
     return {
         app: undefined,
         currentRelay: "wss://relay.blowater.app",
         dm: {
-            focusedContent: new Map(),
-            currentEditor: undefined,
+            currentConversation: undefined,
         },
-        dmEditors: editors,
         social: {
             relaySelectedChannel: new Map(),
-            editors: new Map()
         },
         newProfileField: {
             key: "",

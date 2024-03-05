@@ -5,10 +5,9 @@ import { EventBus } from "../event-bus.ts";
 import { UI_Interaction_Event } from "./app_update.tsx";
 import { setState } from "./_helper.ts";
 import { ProfileGetter } from "./search.tsx";
-import { EditorModel } from "./editor.tsx";
+
 import { RelayRecordGetter } from "../database.ts";
 import { NewMessageChecker } from "./conversation-list.tsx";
-import { ChatMessagesGetter } from "./app_update.tsx";
 import { ConversationListRetriever } from "./conversation-list.tsx";
 import { NostrAccountContext } from "../../libs/nostr.ts/nostr.ts";
 import { EventSyncer } from "./event_syncer.ts";
@@ -22,9 +21,6 @@ import { ChatMessage } from "./message.ts";
 
 export type Social_Model = {
     relaySelectedChannel: Map<string, /* relay url */ string /* channel name */>;
-    editors: Map<string, {
-        text: string
-    }>
 };
 
 type ChannelContainerProps = {
@@ -45,7 +41,7 @@ type ChannelContainerProps = {
 type ChannelContainerState = {
     currentSelectedChannel: string /*channel name*/ | undefined;
     currentEditor: {
-        text: string
+        text: string;
     };
 };
 
@@ -108,10 +104,8 @@ export class ChannelContainer extends Component<ChannelContainerProps, ChannelCo
                                         myPublicKey={props.ctx.publicKey}
                                         emit={props.bus.emit}
                                         eventSub={props.bus}
-                                        focusedContent={undefined}
                                         eventSyncer={props.eventSyncer}
                                         getters={props.getters}
-                                        editorModel={state.currentEditor}
                                         messages={props.messages}
                                     />
                                 }

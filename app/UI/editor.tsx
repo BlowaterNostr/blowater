@@ -12,27 +12,10 @@ import { Component } from "https://esm.sh/preact@10.17.1";
 import { RemoveIcon } from "./icons/remove-icon.tsx";
 import { isMobile, setState } from "./_helper.ts";
 
-export type EditorModel = {
-    readonly pubkey: PublicKey;
-    text: string;
-    files: Blob[];
-};
-
-export function new_DM_EditorModel(
-    pubkey: PublicKey,
-): EditorModel {
-    return {
-        pubkey: pubkey,
-        text: "",
-        files: [],
-    };
-}
-
 export type EditorEvent = SendMessage | UpdateEditorText | UpdateMessageFiles;
 
 export type SendMessage = {
     readonly type: "SendMessage";
-    readonly editorID: PublicKey;
     readonly text: string;
     readonly files: Blob[];
 };
@@ -62,10 +45,6 @@ type EditorProps = {
     // UI
     readonly placeholder: string;
     readonly maxHeight: string;
-    // Logic
-    readonly targetNpub: PublicKey;
-    readonly text: string;
-    files: Blob[];
     //
     readonly emit: emitFunc<EditorEvent>;
 };
@@ -81,13 +60,6 @@ export class Editor extends Component<EditorProps, EditorState> {
         files: [],
     };
 
-    componentDidMount(): void {
-        this.setState({
-            text: this.props.text,
-            files: this.props.files,
-        });
-    }
-
     componentWillReceiveProps(nextProps: Readonly<EditorProps>) {
         if (!isMobile()) {
             this.textareaElement.current.focus();
@@ -100,9 +72,8 @@ export class Editor extends Component<EditorProps, EditorState> {
         const props = this.props;
         props.emit({
             type: "SendMessage",
-            editorID: props.targetNpub,
-            files: props.files,
-            text: props.text,
+            files: this.state.files,
+            text: this.state.text,
         });
         this.textareaElement.current.setAttribute(
             "rows",
@@ -114,12 +85,6 @@ export class Editor extends Component<EditorProps, EditorState> {
     removeFile = (index: number) => {
         const files = this.state.files;
         const newFiles = files.slice(0, index).concat(files.slice(index + 1));
-        this.props.emit({
-            type: "UpdateMessageFiles",
-            files: newFiles,
-            pubkey: this.props.targetNpub,
-            isGroupChat: false,
-        });
         this.setState({
             files: newFiles,
         });
@@ -163,12 +128,6 @@ export class Editor extends Component<EditorProps, EditorState> {
                             }
                             propsfiles = propsfiles.concat([file]);
                         }
-                        this.props.emit({
-                            type: "UpdateMessageFiles",
-                            files: propsfiles,
-                            pubkey: this.props.targetNpub,
-                            isGroupChat: false,
-                        });
                         await setState(this, {
                             files: propsfiles,
                         });
@@ -224,12 +183,6 @@ export class Editor extends Component<EditorProps, EditorState> {
                         class={`flex-1 bg-transparent focus-visible:outline-none placeholder-[${PrimaryTextColor}4D] text-[0.8rem] text-[#D2D3D5] whitespace-nowrap resize-none overflow-x-hidden overflow-y-auto`}
                         placeholder={this.props.placeholder}
                         onInput={(e) => {
-                            this.props.emit({
-                                type: "UpdateEditorText",
-                                pubkey: this.props.targetNpub,
-                                text: e.currentTarget.value,
-                                isGroupChat: false,
-                            });
                             const lines = e.currentTarget.value.split("\n");
                             e.currentTarget.setAttribute(
                                 "rows",
@@ -256,11 +209,8 @@ export class Editor extends Component<EditorProps, EditorState> {
                                     const image = await item.getType(
                                         "image/png",
                                     );
-                                    this.props.emit({
-                                        type: "UpdateMessageFiles",
-                                        isGroupChat: false,
-                                        pubkey: this.props.targetNpub,
-                                        files: this.props.files.concat([image]),
+                                    await setState(this, {
+                                        files: this.state.files.concat([image]),
                                     });
                                 } catch (e) {
                                     console.error(e);

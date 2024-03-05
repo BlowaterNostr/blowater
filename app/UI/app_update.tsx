@@ -28,7 +28,7 @@ import { ContactUpdate } from "./conversation-list.tsx";
 import { StartInvite } from "./dm.tsx";
 import { EditGroup, StartEditGroupChatProfile } from "./edit-group.tsx";
 import { SaveProfile } from "./edit-profile.tsx";
-import { EditorEvent, EditorModel, new_DM_EditorModel, SendMessage } from "./editor.tsx";
+import { EditorEvent, SendMessage } from "./editor.tsx";
 import { EventDetail, EventDetailItem } from "./event-detail.tsx";
 import { EventSender } from "../../libs/nostr.ts/relay.interface.ts";
 
@@ -46,6 +46,7 @@ import { BlockUser, UnblockUser, UserDetail } from "./user-detail.tsx";
 import { RelayRecommendList } from "./relay-recommend-list.tsx";
 import { HidePopOver } from "./components/popover.tsx";
 import { Social_Model } from "./channel-container.tsx";
+import { DM_Model } from "./dm.tsx";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -181,15 +182,11 @@ export async function* UI_Interaction_Update(args: {
         else if (event.type == "SelectConversation") {
             console.log("SelectConversation", event.pubkey.hex);
             model.navigationModel.activeNav = "DM";
-            updateConversation(app.model, event.pubkey);
-
-            if (!model.dm.focusedContent.get(event.pubkey.hex)) {
-                model.dm.focusedContent.set(event.pubkey.hex, event.pubkey);
-            }
+            model.dm.currentConversation = event.pubkey;
             app.popOverInputChan.put({ children: undefined });
             app.conversationLists.markRead(event.pubkey);
         } else if (event.type == "BackToContactList") {
-            model.dm.currentEditor = undefined;
+            model.dm.currentConversation = undefined;
         } else if (event.type == "PinConversation") {
             const err1 = await app.otherConfig.addPin(event.pubkey);
             if (err1 instanceof Error) {
@@ -225,30 +222,9 @@ export async function* UI_Interaction_Update(args: {
                 }
             });
         } else if (event.type == "UpdateMessageFiles") {
-            const editors = model.dmEditors;
-            const editor = editors.get(event.pubkey.hex);
-            if (editor) {
-                editor.files = event.files;
-            } else {
-                editors.set(event.pubkey.hex, {
-                    files: event.files,
-                    pubkey: event.pubkey,
-                    text: "",
-                });
-            }
+            console.log("to be implemented");
         } else if (event.type == "UpdateEditorText") {
-            const editorMap = model.dmEditors;
-            const editor = editorMap.get(event.pubkey.hex);
-            if (editor) {
-                editor.text = event.text;
-            } else {
-                editorMap.set(event.pubkey.hex, {
-                    files: [],
-                    text: event.text,
-                    pubkey: event.pubkey,
-                });
-            }
-            console.log(editor);
+            console.log("to be implemented");
         } //
         //
         // Profile
@@ -405,25 +381,6 @@ export type ChatMessagesGetter = {
     getChatMessages(publicKey: string): ChatMessage[];
 };
 
-export function updateConversation(
-    model: Model,
-    targetPublicKey: PublicKey,
-) {
-    const editorMap = model.dmEditors;
-    let editor = editorMap.get(targetPublicKey.hex);
-    console.log("updateConversation", editor);
-    // If this conversation is new
-    if (editor == undefined) {
-        editor = {
-            pubkey: targetPublicKey,
-            files: [],
-            text: "",
-        };
-        editorMap.set(targetPublicKey.hex, editor);
-    }
-    model.dm.currentEditor = editor;
-}
-
 //////////////
 // Database //
 //////////////
@@ -463,29 +420,6 @@ export async function* Database_Update(
                 lamport.set(t);
             }
             if (e.kind == NostrKind.META_DATA || e.kind == NostrKind.DIRECT_MESSAGE) {
-                for (const contact of convoLists.convoSummaries.values()) {
-                    const editor = model.dmEditors.get(contact.pubkey.hex);
-                    if (editor == null) { // a stranger sends a message
-                        const pubkey = PublicKey.FromHex(contact.pubkey.hex);
-                        if (pubkey instanceof Error) {
-                            throw pubkey; // impossible
-                        }
-                        model.dmEditors.set(
-                            contact.pubkey.hex,
-                            new_DM_EditorModel(
-                                pubkey,
-                            ),
-                        );
-                    }
-                }
-
-                if (model.dm.currentEditor) {
-                    updateConversation(
-                        model,
-                        model.dm.currentEditor.pubkey,
-                    );
-                }
-
                 if (e.kind == NostrKind.META_DATA) {
                     // my profile update
                     if (ctx && e.pubkey == ctx.publicKey.hex) {
@@ -558,15 +492,17 @@ export async function handle_SendMessage(
     db: Datebase_View,
     args: {
         navigationModel: NavigationModel;
-        social: Social_Model
-        dmEditors: Map<string, EditorModel>,
+        social: Social_Model;
+        dm: {
+            currentConversation: PublicKey | undefined;
+        };
     },
 ) {
     let events;
     if (args.navigationModel.activeNav == "DM") {
         events = await sendDirectMessages({
             sender: ctx,
-            receiverPublicKey: event.editorID,
+            receiverPublicKey: args.dm.currentConversation as PublicKey,
             message: event.text,
             files: event.files,
             lamport_timestamp: lamport.now(),
@@ -575,15 +511,6 @@ export async function handle_SendMessage(
         });
         if (events instanceof Error) {
             return events;
-        }
-        {
-            // clearing the editor before sending the message to relays
-            // so that even if the sending is awaiting, the UI will clear
-            const editor = args.dmEditors.get(event.editorID.hex);
-            if (editor) {
-                editor.files = [];
-                editor.text = "";
-            }
         }
     } else if (args.navigationModel.activeNav == "Social") {
         const nostr_event = await prepareNormalNostrEvent(ctx, {

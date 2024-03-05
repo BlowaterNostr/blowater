@@ -12,7 +12,7 @@ import { isMobile } from "./_helper.ts";
 import { UI_Interaction_Event, UserBlocker } from "./app_update.tsx";
 import { Avatar } from "./components/avatar.tsx";
 import { IconButtonClass } from "./components/tw.ts";
-import { Editor, EditorEvent, EditorModel } from "./editor.tsx";
+import { Editor, EditorEvent } from "./editor.tsx";
 import { EventSyncer } from "./event_syncer.ts";
 import { AboutIcon } from "./icons/about-icon.tsx";
 import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
@@ -27,7 +27,6 @@ import {
 } from "./message.ts";
 import { NoteCard } from "./note-card.tsx";
 import { ProfileCard } from "./profile-card.tsx";
-import { RightPanel } from "./components/right-panel.tsx";
 import { ProfileGetter } from "./search.tsx";
 import { SelectConversation } from "./search_model.ts";
 import { DividerBackgroundColor, ErrorColor, LinkColor, PrimaryTextColor } from "./style/colors.ts";
@@ -53,13 +52,6 @@ export type ViewUserDetail = {
 
 interface DirectMessagePanelProps {
     myPublicKey: PublicKey;
-    editorModel: EditorModel;
-
-    focusedContent: {
-        type: "ProfileData";
-        data?: ProfileData;
-        pubkey: PublicKey;
-    } | undefined;
 
     emit: emitFunc<
         | EditorEvent
@@ -98,9 +90,6 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
                     <Editor
                         maxHeight="30vh"
                         emit={props.emit}
-                        targetNpub={props.editorModel.pubkey}
-                        text={props.editorModel.text}
-                        files={props.editorModel.files}
                         placeholder=""
                     />
                 </div>
