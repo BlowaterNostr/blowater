@@ -136,16 +136,7 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
     };
     jitter = new JitterPrevention(100);
 
-    componentWillMount(): void {
-        console.log("MessageList:mount");
-    }
-
-    componentDidMount(): void {
-        console.log("MessageList:didMount");
-    }
-
     componentWillReceiveProps() {
-        console.log("MessageList:receiveProps");
         this.setState({
             currentRenderCount: ItemsOfPerPage,
         });
