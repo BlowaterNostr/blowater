@@ -41,7 +41,6 @@ for (let i = 1; i <= 50; i++) {
     }
 }
 
-// 再添加一个事件
 for (let i = 1; i <= 200; i++) {
     setTimeout(async () => {
         const event = await prepareEncryptedNostrEvent(ctx, {

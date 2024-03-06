@@ -108,21 +108,53 @@ interface MessageListProps {
 }
 
 interface MessageListState {
+    middleIndex: number;
+    middleIndexScrollTop: number;
 }
 
 export class MessageList extends Component<MessageListProps, MessageListState> {
-    constructor(public props: MessageListProps) {
-        super();
-    }
-    messagesULElement = createRef<HTMLUListElement>();
-    state = {};
+    listContainerRef = createRef<HTMLUListElement>();
+    state = {
+        middleIndex: 0,
+        middleIndexScrollTop: 0,
+    };
     jitter = new JitterPrevention(100);
 
+    shouldComponentUpdate(
+        nextProps: Readonly<MessageListProps>,
+        nextState: Readonly<MessageListState>,
+        nextContext: any,
+    ): boolean {
+        const { scrollTop, scrollHeight, offsetHeight } = this.listContainerRef.current!;
+        const overHalfPage = (-scrollTop) > offsetHeight / 2;
+        if (overHalfPage) return false;
+        return true;
+    }
+
     onScroll = async (e: h.JSX.TargetedUIEvent<HTMLUListElement>) => {
-        const { scrollTop, scrollHeight, clientHeight, offsetHeight } = e.currentTarget;
-        console.log("onScroll", scrollTop, scrollHeight, clientHeight);
-        const foo = (-scrollTop) > offsetHeight / 2;
-        console.log("foo", foo);
+        const { scrollTop, scrollHeight, offsetHeight } = this.listContainerRef.current!;
+
+        const overHalfPage = (-scrollTop) > offsetHeight / 2;
+        if (!overHalfPage) return;
+
+        if (!this.listContainerRef.current) {
+            return;
+        }
+        const children = this.listContainerRef.current.children;
+        let cumulativeHeight = 0;
+        for (let i = 0; i < children.length; i++) {
+            cumulativeHeight += children[i].clientHeight;
+            if (cumulativeHeight > (-this.listContainerRef.current.scrollTop)) {
+                console.log("height", cumulativeHeight);
+                console.log("scrollTop", this.listContainerRef.current.scrollTop);
+                console.log("i", i);
+                this.setState({
+                    middleIndex: i,
+                    middleIndexScrollTop: cumulativeHeight,
+                });
+                break;
+            }
+        }
     };
 
     sortAndSliceMessage = () => {
@@ -165,13 +197,13 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
             >
                 <button
                     onClick={() => {
-                        if (this.messagesULElement.current) {
+                        if (this.listContainerRef.current) {
                             console.log(
                                 "componentWillReceiveProps##scrolling to ",
-                                this.messagesULElement.current.scrollHeight,
+                                this.listContainerRef.current.scrollHeight,
                             );
-                            this.messagesULElement.current.scrollTo({
-                                top: this.messagesULElement.current.scrollHeight,
+                            this.listContainerRef.current.scrollTo({
+                                top: this.listContainerRef.current.scrollHeight,
                                 left: 0,
                                 behavior: "smooth",
                             });
@@ -188,7 +220,7 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
                 </button>
                 <ul
                     class={`w-full h-full overflow-y-auto overflow-x-hidden py-9 mobile:py-2 px-2 mobile:px-0 flex flex-col-reverse`}
-                    ref={this.messagesULElement}
+                    ref={this.listContainerRef}
                     onScroll={this.onScroll}
                 >
                     {messageBoxGroups}
