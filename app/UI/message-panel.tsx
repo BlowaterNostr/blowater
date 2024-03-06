@@ -119,8 +119,10 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
     jitter = new JitterPrevention(100);
 
     onScroll = async (e: h.JSX.TargetedUIEvent<HTMLUListElement>) => {
-        const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+        const { scrollTop, scrollHeight, clientHeight, offsetHeight } = e.currentTarget;
         console.log("onScroll", scrollTop, scrollHeight, clientHeight);
+        const foo = (-scrollTop) > offsetHeight / 2;
+        console.log("foo", foo);
     };
 
     sortAndSliceMessage = () => {
