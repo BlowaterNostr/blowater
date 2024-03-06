@@ -365,7 +365,13 @@ export class AppComponent extends Component<AppProps> {
                         map(
                             filter(
                                 app.database.getAllEvents(),
-                                (e) => e.kind == NostrKind.TEXT_NOTE,
+                                (e) => {
+                                    if (e.kind != NostrKind.TEXT_NOTE) {
+                                        return false;
+                                    }
+                                    const relays = app.database.getRelayRecord(e.id);
+                                    return relays.has(model.currentRelay);
+                                },
                             ),
                             (e) => {
                                 return {
