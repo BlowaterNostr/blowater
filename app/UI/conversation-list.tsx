@@ -363,14 +363,9 @@ function ConversationListItem(props: ListItemProps) {
     );
 }
 
-const selectConversation = (emit: emitFunc<SelectConversation | ViewUserDetail>, pubkey: PublicKey) => () => {
+const selectConversation = (emit: emitFunc<SelectConversation>, pubkey: PublicKey) => () => {
     emit({
         type: "SelectConversation",
-        pubkey,
-    });
-
-    emit({
-        type: "ViewUserDetail",
         pubkey,
     });
 };
