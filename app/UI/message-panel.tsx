@@ -77,8 +77,6 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
         let vnode = (
             <div class={`flex h-full w-full relative bg-[#36393F]`}>
                 <div class={`flex flex-col h-full flex-1 overflow-hidden`}>
-                    <div class={`flex-1`}></div>
-
                     <MessageList
                         myPublicKey={props.myPublicKey}
                         messages={props.messages}
@@ -110,55 +108,32 @@ interface MessageListProps {
 }
 
 interface MessageListState {
-    currentRenderCount: number;
 }
-
-const ItemsOfPerPage = 100;
 
 export class MessageList extends Component<MessageListProps, MessageListState> {
     constructor(public props: MessageListProps) {
         super();
     }
     messagesULElement = createRef<HTMLUListElement>();
-    state = {
-        currentRenderCount: ItemsOfPerPage,
-    };
+    state = {};
     jitter = new JitterPrevention(100);
 
-    componentWillReceiveProps() {
-        this.setState({
-            currentRenderCount: ItemsOfPerPage,
-        });
-    }
-
     onScroll = async (e: h.JSX.TargetedUIEvent<HTMLUListElement>) => {
-        if (
-            e.currentTarget.scrollHeight - e.currentTarget.offsetHeight +
-                    e.currentTarget.scrollTop < 1000
-        ) {
-            const ok = await this.jitter.shouldExecute();
-            if (!ok || this.state.currentRenderCount >= this.props.messages.length) {
-                return;
-            }
-            this.setState({
-                currentRenderCount: Math.min(
-                    this.state.currentRenderCount + ItemsOfPerPage,
-                    this.props.messages.length,
-                ),
-            });
-        }
+        const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+        console.log("onScroll", scrollTop, scrollHeight, clientHeight);
     };
 
     sortAndSliceMessage = () => {
         return sortMessage(this.props.messages)
             .slice(
                 0,
-                this.state.currentRenderCount,
+                61,
             );
     };
 
     render() {
         const t = Date.now();
+
         const groups = groupContinuousMessages(this.sortAndSliceMessage(), (pre, cur) => {
             const sameAuthor = pre.event.pubkey == cur.event.pubkey;
             const _66sec = Math.abs(cur.created_at.getTime() - pre.created_at.getTime()) < 1000 * 60;
@@ -181,7 +156,7 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
 
         const vNode = (
             <div
-                class={`w-full overflow-hidden`}
+                class={`w-full overflow-hidden flex-1`}
                 style={{
                     transform: "perspective(none)",
                 }}
@@ -189,6 +164,10 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
                 <button
                     onClick={() => {
                         if (this.messagesULElement.current) {
+                            console.log(
+                                "componentWillReceiveProps##scrolling to ",
+                                this.messagesULElement.current.scrollHeight,
+                            );
                             this.messagesULElement.current.scrollTo({
                                 top: this.messagesULElement.current.scrollHeight,
                                 left: 0,
