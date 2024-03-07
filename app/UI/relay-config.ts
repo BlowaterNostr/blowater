@@ -12,6 +12,7 @@ export const defaultRelays = [
 ];
 
 export const recommendedRelays = [
+    "wss://blowater.nostr1.com",
     "wss://nos.lol",
     "wss://relay.damus.io",
     "wss://relay.nostr.wirednet.jp",
