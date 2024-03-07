@@ -125,8 +125,12 @@ export class SignUp extends Component<SignUpProps, SignUpState> {
                                 have complete control over your account
                             </div>
                         </div>
-                        <div>Secret Key</div>
-                        <TextField text={ctx.privateKey.bech32} />
+                        <div>
+                            <div class={`text-lg font-semibold`}>Secret Key</div>
+                            <TextField text={ctx.privateKey.bech32} />
+                            <div>This is the key to access your account, keep it secret.</div>
+                        </div>
+
                         <button
                             onClick={this.handleNext}
                             class={`w-full p-3 rounded-lg focus:outline-none focus-visible:outline-none flex items-center justify-center bg-gradient-to-r from-[#FF762C] via-[#FF3A5E] to-[#FF01A9]  hover:bg-gradient-to-l`}
@@ -141,18 +145,20 @@ export class SignUp extends Component<SignUpProps, SignUpState> {
                     <Fragment>
                         <div class={`text-3xl w-full text-center font-bold py-5`}>Confirm secret key</div>
                         <div>
-                            Last four letters of secret key
-                        </div>
-                        <input
-                            class={`w-full px-4 py-3 rounded-lg resize-y bg-transparent focus:outline-none focus-visible:outline-none border-[2px] border-[${DividerBackgroundColor}] placeholder-[${PlaceholderColor}]`}
-                            placeholder="xxxx"
-                            type="text"
-                            value={this.state.confirmSecretKey}
-                            onInput={(e) =>
-                                this.setState({ confirmSecretKey: (e.target as HTMLInputElement).value })}
-                        />
-                        <div>
-                            This is the key to access your account, keep it secret.
+                            <div class={`text-lg font-semibold`}>
+                                Last four letters of secret key
+                            </div>
+                            <input
+                                class={`w-full px-4 py-3 rounded-lg resize-y bg-transparent focus:outline-none focus-visible:outline-none border-[2px] border-[${DividerBackgroundColor}] placeholder-[${PlaceholderColor}]`}
+                                placeholder="xxxx"
+                                type="text"
+                                value={this.state.confirmSecretKey}
+                                onInput={(e) =>
+                                    this.setState({ confirmSecretKey: (e.target as HTMLInputElement).value })}
+                            />
+                            <div>
+                                This is the key to access your account, keep it secret.
+                            </div>
                         </div>
                         <div class={`text-red-500`}>{this.state.errorPrompt}</div>
                         <button
@@ -163,6 +169,12 @@ export class SignUp extends Component<SignUpProps, SignUpState> {
                         >
                             Confirm
                         </button>
+                        <button
+                            onClick={() => this.setState({ step: "backup" })}
+                            class={`border-none bg-transparent text-[#FF3A5E] mt-2 focus:outline-none focus-visible:outline-none`}
+                        >
+                            Go back...I didn't save it
+                        </button>
                     </Fragment>
                 );
             default:
@@ -170,12 +182,12 @@ export class SignUp extends Component<SignUpProps, SignUpState> {
         }
     }
 
-    render(state: SignUpState) {
+    render() {
         return (
             <div
                 class={`flex flex-col justify-start items-center w-full h-screen bg-[${SecondaryBackgroundColor}] text-[${PrimaryTextColor}]`}
             >
-                <div class={`flex flex-col gap-1 w-[30rem] p-5`}>
+                <div class={`flex flex-col gap-2 w-[30rem] p-5`}>
                     <div class={`flex justify-center items-center w-full`}>
                         <img src="logo.webp" alt="Blowater Logo" class={`w-20 h-20`} />
                     </div>
@@ -190,14 +202,19 @@ function TextField(props: {
     text: string;
 }) {
     const styles = {
-        container: `relative ${InputClass} resize-none flex p-0 mt-4`,
+        container: `relative ${InputClass} flex p-0`,
         pre: `whitespace-pre flex-1 overflow-x-auto px-4 py-3`,
         copyButton: `w-14 ${CenterClass}`,
     };
 
+    const asterisksText = (text: string) => {
+        // replate end of string with asterisks
+        return text.slice(0, -50) + "*".repeat(50);
+    };
+
     return (
         <div class={styles.container}>
-            <pre class={styles.pre}>{props.text}</pre>
+            <pre class={styles.pre}>{asterisksText(props.text)}</pre>
             <div class={styles.copyButton}>
                 <CopyButton text={props.text} />
             </div>
