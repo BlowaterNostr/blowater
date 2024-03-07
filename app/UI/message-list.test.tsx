@@ -30,8 +30,15 @@ const event = await prepareEncryptedNostrEvent(ctx, {
 if (event instanceof Error) fail(event.message);
 await dmController.addEvent(event);
 let messages = dmController.getChatMessages(ctx.publicKey.hex);
-for (;;) {
-    messages.push(messages[0]);
+for (let i = 1;; i++) {
+    messages.push({
+        author: ctx.publicKey,
+        content: `${i}`,
+        created_at: new Date(),
+        event: messages[0].event,
+        lamport: i,
+        type: "text",
+    });
     console.log("messages", messages);
     render(
         <MessageList
@@ -46,5 +53,5 @@ for (;;) {
         />,
         document.body,
     );
-    await sleep(1000);
+    await sleep(100);
 }
