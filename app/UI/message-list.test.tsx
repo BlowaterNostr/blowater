@@ -8,7 +8,7 @@ import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 import { test_db_view, testEventBus } from "./_setup.test.ts";
 import { EventSyncer } from "./event_syncer.ts";
 import { DirectedMessageController } from "../features/dm.ts";
-import { MessageList } from "./message-panel.tsx";
+import { MessageList } from "./message-list.tsx";
 
 const pool = new ConnectionPool();
 pool.addRelayURL(relays[2]);
@@ -31,10 +31,7 @@ for (let i = 1; i <= 3; i++) {
 
     events.push(event);
 }
-// const event2 = await prepareNormalNostrEvent(ctx, {
-//   content: "test:4",
-//   kind: NostrKind.TEXT_NOTE
-// });
+
 await dmController.addEvent(events[0]);
 await dmController.addEvent(events[1]);
 await dmController.addEvent(events[2]);
@@ -42,17 +39,16 @@ await dmController.addEvent(events[2]);
 const messages = dmController.getChatMessages(ctx.publicKey.hex);
 console.log("messages", messages);
 
-const view = () => {
-    return (
-        <MessageList
-            myPublicKey={ctx.publicKey}
-            messages={messages}
-            emit={testEventBus.emit}
-            eventSyncer={eventSyncer}
-            profileGetter={database}
-            relayRecordGetter={database}
-        />
-    );
-};
-
-render(view(), document.body);
+render(
+    <MessageList
+        myPublicKey={ctx.publicKey}
+        messages={messages}
+        emit={testEventBus.emit}
+        eventSyncer={eventSyncer}
+        getters={{
+            profileGetter: database,
+            relayRecordGetter: database,
+        }}
+    />,
+    document.body,
+);
