@@ -7,6 +7,7 @@ import { RelayAvatar } from "./components/avatar.tsx";
 import { SelectRelay } from "./nav.tsx";
 import { RelayInformation } from "./relay-detail.tsx";
 import { setState } from "./_helper.ts";
+import { join } from "https://deno.land/std@0.202.0/path/mod.ts";
 
 type RelaySwitchListProps = {
     currentRelay?: string;
@@ -158,7 +159,7 @@ export async function getRelayInformation(url: string) {
 
         const detail: RelayInformation = await res.json();
         if (!detail.icon) {
-            detail.icon = httpURL + "favicon.ico";
+            detail.icon = join(httpURL.toString(), "favicon.ico");
         }
         return detail;
     } catch (e) {

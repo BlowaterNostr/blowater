@@ -1,4 +1,4 @@
-import { assertEquals, fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
+import { assertEquals, fail } from "https://deno.land/std@0.202.0/testing/asserts.ts";
 import { blobToBase64, InMemoryAccountContext, NostrEvent, NostrKind } from "../libs/nostr.ts/nostr.ts";
 import { prepareNostrImageEvent, prepareReplyEvent } from "./nostr.ts";
 import { PrivateKey } from "../libs/nostr.ts/key.ts";

@@ -13,11 +13,13 @@ function RightPanelTest() {
                 class={`rounded bg-black px-4 py2`}
                 onClick={async () => {
                     await rightPanelChan.put(
-                        <div
-                            class={`${CenterClass} p-10`}
-                        >
-                            RightPanel Simple
-                        </div>,
+                        () => (
+                            <div
+                                class={`${CenterClass} p-10`}
+                            >
+                                RightPanel Simple
+                            </div>
+                        ),
                     );
                 }}
             >

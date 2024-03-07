@@ -2,7 +2,7 @@ import { not_cancelled, sleep } from "https://raw.githubusercontent.com/Blowater
 import { prepareNormalNostrEvent } from "../libs/nostr.ts/event.ts";
 import { PrivateKey } from "../libs/nostr.ts/key.ts";
 import { InMemoryAccountContext, NostrEvent, NostrKind } from "../libs/nostr.ts/nostr.ts";
-import { assertEquals, fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
+import { assertEquals, fail } from "https://deno.land/std@0.202.0/testing/asserts.ts";
 import { test_db_view } from "./UI/_setup.test.ts";
 
 Deno.test("Database", async () => {

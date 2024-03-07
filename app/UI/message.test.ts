@@ -1,4 +1,4 @@
-import { assertEquals } from "https://deno.land/std@0.176.0/testing/asserts.ts";
+import { assertEquals } from "https://deno.land/std@0.202.0/testing/asserts.ts";
 import { ChatMessage, findUrlInString, groupContinuousMessages, parseContent } from "./message.ts";
 import { PrivateKey, PublicKey } from "../../libs/nostr.ts/key.ts";
 
