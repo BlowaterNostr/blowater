@@ -6,7 +6,7 @@ import { CenterClass, NoOutlineClass } from "./components/tw.ts";
 import {
     DividerBackgroundColor,
     ErrorColor,
-    HoverButtonBackgroudColor,
+    HoverButtonBackgroundColor,
     PrimaryTextColor,
 } from "./style/colors.ts";
 import { emitFunc } from "../event-bus.ts";
@@ -55,7 +55,7 @@ export class RelayRecommendList extends Component<RelayRecommendListProps> {
                     {this.computeRecommendedRelays().map((r) => {
                         return (
                             <li
-                                class={`w-[80%] px-[1rem] py-[0.75rem] rounded-lg bg-[${DividerBackgroundColor}80] mb-[0.5rem]  flex items-center justify-between cursor-pointer hover:bg-[${HoverButtonBackgroudColor}]`}
+                                class={`w-[80%] px-[1rem] py-[0.75rem] rounded-lg bg-[${DividerBackgroundColor}80] mb-[0.5rem]  flex items-center justify-between cursor-pointer hover:bg-[${HoverButtonBackgroundColor}]`}
                             >
                                 <div class={`flex items-center flex-1 overflow-hidden`}>
                                     <span class={`truncate`}>{r}</span>

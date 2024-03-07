@@ -14,7 +14,7 @@ import {
     ErrorColor,
     HintLinkColor,
     HintTextColor,
-    HoverButtonBackgroudColor,
+    HoverButtonBackgroundColor,
     PrimaryTextColor,
     SecondaryBackgroundColor,
 } from "./style/colors.ts";
@@ -61,7 +61,7 @@ export class EditProfile extends Component<Props, State> {
             },
         },
         addButton:
-            `w-full mt-6 p-3 rounded-lg ${NoOutlineClass} text-[${PrimaryTextColor}] bg-[${DividerBackgroundColor}] hover:bg-[${HoverButtonBackgroudColor}] ${CenterClass}`,
+            `w-full mt-6 p-3 rounded-lg ${NoOutlineClass} text-[${PrimaryTextColor}] bg-[${DividerBackgroundColor}] hover:bg-[${HoverButtonBackgroundColor}] ${CenterClass}`,
         submitButton:
             `w-full p-3 rounded-lg ${NoOutlineClass} text-[${PrimaryTextColor}] ${CenterClass} ${LinearGradientsClass}  hover:bg-gradient-to-l`,
         divider: `${DividerClass}`,
