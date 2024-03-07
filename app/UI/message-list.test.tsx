@@ -9,6 +9,7 @@ import { test_db_view, testEventBus } from "./_setup.test.ts";
 import { EventSyncer } from "./event_syncer.ts";
 import { DirectedMessageController } from "../features/dm.ts";
 import { MessageList } from "./message-list.tsx";
+import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 
 const pool = new ConnectionPool();
 pool.addRelayURL(relays[2]);
@@ -17,38 +18,33 @@ const eventSyncer = new EventSyncer(pool, database);
 
 const ctx = InMemoryAccountContext.Generate();
 const dmController = new DirectedMessageController(ctx);
-const events = [];
-for (let i = 1; i <= 3; i++) {
-    const event = await prepareEncryptedNostrEvent(ctx, {
-        content: `test:${i}`,
-        encryptKey: ctx.publicKey,
-        kind: NostrKind.DIRECT_MESSAGE,
-        tags: [
-            ["p", ctx.publicKey.hex],
-        ],
-    });
-    if (event instanceof Error) fail(event.message);
 
-    events.push(event);
+const event = await prepareEncryptedNostrEvent(ctx, {
+    content: `test\ntest`,
+    encryptKey: ctx.publicKey,
+    kind: NostrKind.DIRECT_MESSAGE,
+    tags: [
+        ["p", ctx.publicKey.hex],
+    ],
+});
+if (event instanceof Error) fail(event.message);
+await dmController.addEvent(event);
+let messages = dmController.getChatMessages(ctx.publicKey.hex);
+for (;;) {
+    messages.push(messages[0]);
+    console.log("messages", messages);
+    render(
+        <MessageList
+            myPublicKey={ctx.publicKey}
+            messages={messages}
+            emit={testEventBus.emit}
+            eventSyncer={eventSyncer}
+            getters={{
+                profileGetter: database,
+                relayRecordGetter: database,
+            }}
+        />,
+        document.body,
+    );
+    await sleep(1000);
 }
-
-await dmController.addEvent(events[0]);
-await dmController.addEvent(events[1]);
-await dmController.addEvent(events[2]);
-
-const messages = dmController.getChatMessages(ctx.publicKey.hex);
-console.log("messages", messages);
-
-render(
-    <MessageList
-        myPublicKey={ctx.publicKey}
-        messages={messages}
-        emit={testEventBus.emit}
-        eventSyncer={eventSyncer}
-        getters={{
-            profileGetter: database,
-            relayRecordGetter: database,
-        }}
-    />,
-    document.body,
-);

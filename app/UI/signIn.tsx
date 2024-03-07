@@ -17,7 +17,7 @@ import {
     ErrorColor,
     HintLinkColor,
     HintTextColor,
-    HoverButtonBackgroudColor,
+    HoverButtonBackgroundColor,
     PrimaryBackgroundColor,
     PrimaryTextColor,
     SecondaryBackgroundColor,
@@ -100,7 +100,7 @@ export class SignIn extends Component<Props, State> {
         signInButton:
             `w-full mt-4 ${ButtonClass} ${LinearGradientsClass} hover:bg-gradient-to-l mobile:rounded-full font-bold`,
         cancelButton:
-            `${ButtonClass} ${CenterClass} mt-4 bg-[${SecondaryBackgroundColor}] text-[${PrimaryTextColor}] hover:bg-[${HoverButtonBackgroudColor}] mobile:rounded-full`,
+            `${ButtonClass} ${CenterClass} mt-4 bg-[${SecondaryBackgroundColor}] text-[${PrimaryTextColor}] hover:bg-[${HoverButtonBackgroundColor}] mobile:rounded-full`,
         newButton:
             `text-[${HintLinkColor}] hover:underline mobile:text-[${PrimaryTextColor}] mobile:bg-[${HintLinkColor}] mobile:rounded mobile:px-2 mobile:py-1 ${NoOutlineClass}`,
         ablyIcon: `h-10`,

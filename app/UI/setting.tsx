@@ -13,7 +13,7 @@ import KeyView from "./key-view.tsx";
 import {
     DividerBackgroundColor,
     ErrorColor,
-    HoverButtonBackgroudColor,
+    HoverButtonBackgroundColor,
     PrimaryTextColor,
     SecondaryBackgroundColor,
     SuccessColor,
@@ -222,7 +222,7 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
                         class={`${InputClass}`}
                     />
                     <button
-                        class={`ml-[0.75rem] w-[5.9375rem] h-[3rem] p-[0.75rem] rounded-lg ${NoOutlineClass} bg-[${DividerBackgroundColor}] hover:bg-[${HoverButtonBackgroudColor}] ${CenterClass} text-[${PrimaryTextColor}]`}
+                        class={`ml-[0.75rem] w-[5.9375rem] h-[3rem] p-[0.75rem] rounded-lg ${NoOutlineClass} bg-[${DividerBackgroundColor}] hover:bg-[${HoverButtonBackgroundColor}] ${CenterClass} text-[${PrimaryTextColor}]`}
                         onClick={addRelay}
                     >
                         Add
@@ -237,7 +237,7 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
                         return (
                             <li
                                 onClick={() => this.showRelayDetail(r.url)}
-                                class={`w-full px-[1rem] py-[0.75rem] rounded-lg bg-[${DividerBackgroundColor}80] mb-[0.5rem]  flex items-center justify-between cursor-pointer hover:bg-[${HoverButtonBackgroudColor}]`}
+                                class={`w-full px-[1rem] py-[0.75rem] rounded-lg bg-[${DividerBackgroundColor}80] mb-[0.5rem]  flex items-center justify-between cursor-pointer hover:bg-[${HoverButtonBackgroundColor}]`}
                             >
                                 <div class={`flex items-center flex-1 overflow-hidden`}>
                                     <span

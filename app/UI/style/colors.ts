@@ -1,15 +1,19 @@
 export const PrimaryBackgroundColor = "#18181B";
 export const SecondaryBackgroundColor = "#27272A";
+export const DividerBackgroundColor = "#3F3F46";
+export const cardBackgroundColor = "#202225";
+export const HoverButtonBackgroundColor = "#52525B";
+export const BackgroundColor_Primary = "bg-[#18181B]";
+export const BackgroundColor_Secondary = "bg-[#27272A]";
+export const BackgroundColor_MessagePanel = "bg-[#36393F]";
+
 export const PrimaryTextColor = "#FFFFFF";
 export const SecondaryTextColor = "#8B8B8D";
 export const HintTextColor = "#A9A9AA";
-export const DividerBackgroundColor = "#3F3F46";
 export const PlaceholderColor = "#7D7D7F";
 export const HintLinkColor = "#C039E0";
-export const HoverButtonBackgroudColor = "#52525B";
 export const SuccessColor = "#22C55E";
 export const WarnColor = "#EAB308";
 export const ErrorColor = "#EF4444";
 export const TitleIconColor = "#FF772B";
 export const LinkColor = "#24ADEB";
-export const cardBackgroundColor = "#202225";

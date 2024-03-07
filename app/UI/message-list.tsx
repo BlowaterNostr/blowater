@@ -20,7 +20,7 @@ import { ProfileData } from "../features/profile.ts";
 import { isMobile } from "./_helper.ts";
 import { Avatar } from "./components/avatar.tsx";
 import { AboutIcon } from "./icons/about-icon.tsx";
-import { PrimaryTextColor } from "./style/colors.ts";
+import { BackgroundColor_MessagePanel, PrimaryTextColor } from "./style/colors.ts";
 
 interface MessageListProps {
     myPublicKey: PublicKey;
@@ -105,7 +105,7 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
 
         const vNode = (
             <div
-                class={`w-full overflow-hidden`}
+                class={`w-full overflow-hidden ${BackgroundColor_MessagePanel}`}
                 style={{
                     transform: "perspective(none)",
                 }}

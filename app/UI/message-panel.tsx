@@ -16,7 +16,12 @@ import { NoteCard } from "./note-card.tsx";
 import { ProfileCard } from "./profile-card.tsx";
 import { ProfileGetter } from "./search.tsx";
 import { SelectConversation } from "./search_model.ts";
-import { DividerBackgroundColor, ErrorColor, LinkColor } from "./style/colors.ts";
+import {
+    BackgroundColor_MessagePanel,
+    DividerBackgroundColor,
+    ErrorColor,
+    LinkColor,
+} from "./style/colors.ts";
 import { BlockUser, UnblockUser } from "./user-detail.tsx";
 import { MessageList } from "./message-list.tsx";
 
@@ -63,7 +68,7 @@ interface DirectMessagePanelProps {
 export class MessagePanel extends Component<DirectMessagePanelProps> {
     render(props: DirectMessagePanelProps) {
         let vnode = (
-            <div class={`flex h-full w-full relative bg-[#36393F]`}>
+            <div class={`flex h-full w-full relative ${BackgroundColor_MessagePanel}`}>
                 <div class={`flex flex-col h-full flex-1 overflow-hidden`}>
                     <div class={`flex-1`}></div>
 
