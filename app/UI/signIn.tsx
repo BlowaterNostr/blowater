@@ -1,14 +1,4 @@
-/** @jsx h */
-import {
-    Attributes,
-    Component,
-    ComponentChild,
-    ComponentChildren,
-    createRef,
-    h,
-    Ref,
-    render,
-} from "https://esm.sh/preact@10.17.1";
+import { Component, h } from "https://esm.sh/preact@10.17.1";
 import { GetLocalStorageAccountContext, Nip7ExtensionContext } from "./account-context.ts";
 import { ButtonClass, CenterClass, LinearGradientsClass, NoOutlineClass } from "./components/tw.ts";
 import KeyView from "./key-view.tsx";
@@ -30,8 +20,6 @@ export type SignInEvent = {
     ctx: NostrAccountContext;
 };
 
-const AlbyURL = "https://getalby.com/";
-
 type SignInState = "none" | "nip07" | "local";
 
 export function getSignInState(): SignInState {
@@ -49,7 +37,7 @@ export function setSignInState(state: SignInState) {
 ////////////////////////
 // Check Login Status //
 ////////////////////////
-export async function getCurrentSignInCtx(pin: string) {
+export async function getCurrentSignInCtx() {
     if (getSignInState() === "nip07") {
         const nip07Ctx = await Nip7ExtensionContext.New();
         if (nip07Ctx instanceof Error) {
@@ -61,7 +49,7 @@ export async function getCurrentSignInCtx(pin: string) {
         return nip07Ctx;
     }
     if (getSignInState() === "local") {
-        const ctx = await GetLocalStorageAccountContext(pin);
+        const ctx = await GetLocalStorageAccountContext();
         if (ctx instanceof Error) {
             return ctx;
         }
@@ -79,15 +67,12 @@ type Props = {
 };
 
 type State = {
-    step: "newAccount" | "enterPrivateKey" | "enter local pin" | "confirm local pin";
-    localPin: string;
+    step: "newAccount" | "enterPrivateKey";
     privateKey: PrivateKey;
     privateKeyError: string;
     nip07Error: string;
 };
 export class SignIn extends Component<Props, State> {
-    localPinInput = createRef<HTMLInputElement>();
-
     styles = {
         container: `h-screen w-screen bg-[${PrimaryBackgroundColor}] ` +
             `flex flex-col items-center justify-center p-4 overflow-y-auto`,
@@ -107,39 +92,19 @@ export class SignIn extends Component<Props, State> {
         isError: (error: string) => error ? `text-[${ErrorColor}]` : "",
     };
 
-    signInWithPrivateKey = () => {
+    signInWithPrivateKey = async () => {
         if (!this.state.privateKey) {
             this.setState({
                 privateKeyError: "Invilid Private Key",
             });
             return;
         }
-
-        this.setState({
-            step: "enter local pin",
+        this.props.emit({
+            type: "SignInEvent",
+            ctx: InMemoryAccountContext.New(this.state.privateKey),
         });
-    };
-
-    signInWithExtension = async () => {
-        const nip07Ctx = await Nip7ExtensionContext.New();
-        if (nip07Ctx === undefined) {
-            open(AlbyURL);
-            return;
-        }
-        if (typeof nip07Ctx == "string") {
-            this.setState({
-                nip07Error: nip07Ctx,
-            });
-        } else if (nip07Ctx instanceof Error) {
-            this.setState({
-                nip07Error: nip07Ctx.message,
-            });
-        } else {
-            this.props.emit({
-                type: "SignInEvent",
-                ctx: nip07Ctx,
-            });
-        }
+        setSignInState("local");
+        await LocalPrivateKeyController.setKey("blowater", this.state.privateKey);
     };
 
     newAccount = () => {
@@ -202,66 +167,6 @@ export class SignIn extends Component<Props, State> {
                     </div>
                 </div>
             );
-        } else if (this.state.step == "enter local pin") {
-            return (
-                <div class={this.styles.container}>
-                    <div class="block text-white">
-                        Please enter a pin that is used to encrypt your private key on-device
-                    </div>
-                    <input ref={this.localPinInput} type="password"></input>
-                    <button
-                        class="text-white border mt-1 px-2 hover:bg-zinc-200"
-                        onClick={() => {
-                            const input = this.localPinInput.current;
-                            if (input) {
-                                const pin = input.value;
-                                this.setState({
-                                    localPin: pin,
-                                    step: "confirm local pin",
-                                });
-                            }
-                        }}
-                    >
-                        confirm
-                    </button>
-                </div>
-            );
-        } else if (this.state.step == "confirm local pin") {
-            const input = this.localPinInput.current;
-            if (input) {
-                input.value = "";
-            }
-            return (
-                <div class={this.styles.container}>
-                    <div class="block text-white">Please enter the pin you just typed</div>
-                    <input ref={this.localPinInput} type="password"></input>
-                    <button
-                        class="text-white border mt-1 px-2 hover:bg-zinc-200"
-                        onClick={() => {
-                            const input = this.localPinInput.current;
-                            if (input) {
-                                const pin = input.value;
-                                console.log(this.state.localPin, pin, this.state.localPin == pin);
-                                if (this.state.localPin == pin) {
-                                    const ctx = InMemoryAccountContext.New(this.state.privateKey);
-
-                                    LocalPrivateKeyController.setKey(pin, this.state.privateKey);
-
-                                    setSignInState("local");
-
-                                    this.props.emit({
-                                        type: "SignInEvent",
-                                        ctx: ctx,
-                                    });
-                                } else {
-                                }
-                            }
-                        }}
-                    >
-                        confirm
-                    </button>
-                </div>
-            );
         } else {
             return (
                 <div class={this.styles.container}>
@@ -293,12 +198,6 @@ export class SignIn extends Component<Props, State> {
                         >
                             Sign In
                         </button>
-                        <button
-                            onClick={async () => await this.signInWithExtension()}
-                            class={this.styles.signInButton}
-                        >
-                            Sign in with Nostr Extension
-                        </button>
                         <p class={this.styles.hint}>
                             <span class={this.styles.isError(this.state.nip07Error)}>
                                 {this.state.nip07Error}
@@ -309,66 +208,6 @@ export class SignIn extends Component<Props, State> {
             );
         }
     }
-}
-
-export const forgot_pin = Symbol("forgot_pin");
-class AskForLocalPin extends Component<{
-    resolve: (pin: string | typeof forgot_pin) => void;
-    err: Error | undefined;
-}, {}> {
-    input = createRef<HTMLInputElement>();
-
-    render() {
-        return (
-            <div
-                class={`h-screen w-screen bg-[${PrimaryBackgroundColor}] ` +
-                    `flex flex-col items-center justify-center p-4 overflow-y-auto`}
-            >
-                <div class="block text-white">Please enter your local pin</div>
-                <input
-                    ref={this.input}
-                    type="password"
-                    onKeyDown={(e) => {
-                        const input = this.input.current;
-                        if (e.key == "Enter" && input) {
-                            this.props.resolve(input.value);
-                        }
-                    }}
-                >
-                </input>
-                <button
-                    class="text-white border mt-1 px-2 hover:bg-zinc-200"
-                    onClick={() => {
-                        const input = this.input.current;
-                        if (input) {
-                            this.props.resolve(input.value);
-                        }
-                    }}
-                >
-                    confirm
-                </button>
-                <button
-                    class="text-white border mt-1 px-2 hover:bg-zinc-200"
-                    onClick={() => {
-                        const input = this.input.current;
-                        if (input) {
-                            this.props.resolve(forgot_pin);
-                        }
-                    }}
-                >
-                    Forgot the pin
-                </button>
-                {this.props.err ? <div class="block text-white">{this.props.err.message}</div> : undefined}
-            </div>
-        );
-    }
-}
-
-export async function getPinFromUser(err: Error | undefined) {
-    return new Promise<string | typeof forgot_pin>((resolve) => {
-        console.log(err);
-        render(<AskForLocalPin resolve={resolve} err={err}></AskForLocalPin>, document.body);
-    });
 }
 
 export class LocalPrivateKeyController {

@@ -16,7 +16,7 @@ export class EventBus<T> implements EventEmitter<T>, EventSubscriber<T> {
 export type EventEmitter<T> = {
     emit: (event: T) => void;
 };
-export type emitFunc<T extends { type: string }> = (event: T) => void;
+export type emitFunc<T extends { type: string }> = (event: T) => Promise<void>;
 
 export type EventSubscriber<T> = {
     onChange(): Channel<T>;
