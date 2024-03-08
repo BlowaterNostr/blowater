@@ -72,35 +72,10 @@ export class SignIn extends Component<OnboardingProps, OnboardingState> {
         await LocalPrivateKeyController.setKey("blowater", pri);
     };
 
-    checkNameComplete = (name: string) => {
-        return name.length > 0;
-    };
-
     checkSecretKeyComplete = (confirmSecretKey: string, prikey: PrivateKey) => {
         // Check if the last 4 characters of the secret key match the input
         if (confirmSecretKey.length !== 4) return false;
         return prikey.bech32.endsWith(confirmSecretKey);
-    };
-
-    handleNameChange = (event: h.JSX.TargetedEvent<HTMLInputElement, Event>) => {
-        if (this.checkNameComplete(event.currentTarget.value)) {
-            this.setState({
-                step: {
-                    type: "name",
-                    name: event.currentTarget.value,
-                },
-            });
-        }
-    };
-
-    handleSignInSecretKeyInput = (privateKeyStr: string) => {
-        this.setState({
-            errorPrompt: "",
-            step: {
-                type: "signin",
-                private_key: privateKeyStr,
-            },
-        });
     };
 
     renderStep() {
@@ -158,7 +133,15 @@ export class SignIn extends Component<OnboardingProps, OnboardingState> {
                     placeholder="nsec1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
                     type="password"
                     autofocus
-                    onInput={(e) => this.handleSignInSecretKeyInput(e.currentTarget.value)}
+                    onInput={(e) => {
+                        this.setState({
+                            errorPrompt: "",
+                            step: {
+                                type: "signin",
+                                private_key: e.currentTarget.value,
+                            },
+                        });
+                    }}
                 />
                 <div class={`text-red-500`}>{this.state.errorPrompt}</div>
                 <button
@@ -194,14 +177,19 @@ export class SignIn extends Component<OnboardingProps, OnboardingState> {
                     placeholder="e.g. Bob"
                     type="text"
                     value={name}
-                    onInput={(e) => {
-                        this.handleNameChange(e);
+                    onInput={(event: h.JSX.TargetedEvent<HTMLInputElement, Event>) => {
+                        this.setState({
+                            step: {
+                                type: "name",
+                                name: event.currentTarget.value,
+                            },
+                        });
                     }}
                 />
                 <div class={`text-red-500`}>{this.state.errorPrompt}</div>
                 <button
                     onClick={() => {
-                        if (this.checkNameComplete(name)) {
+                        if (name.length > 0) {
                             this.setState({
                                 step: {
                                     type: "backup",
@@ -214,7 +202,7 @@ export class SignIn extends Component<OnboardingProps, OnboardingState> {
                         }
                     }}
                     class={`w-full p-3 rounded-lg focus:outline-none focus-visible:outline-none flex items-center justify-center bg-gradient-to-r from-[#FF762C] via-[#FF3A5E] to-[#FF01A9]  hover:bg-gradient-to-l ${
-                        this.checkNameComplete(name) ? "" : "opacity-50 cursor-not-allowed"
+                        name.length > 0 ? "" : "opacity-50 cursor-not-allowed"
                     }`}
                 >
                     Next
