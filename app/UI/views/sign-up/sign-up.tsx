@@ -80,103 +80,110 @@ export class SignUp extends Component<SignUpProps, SignUpState> {
     };
 
     renderStep() {
-        const { step, name } = this.state;
-        switch (step) {
-            case "name":
-                return (
-                    <Fragment>
-                        <div class={`text-3xl w-full text-center font-bold py-5`}>Sign Up</div>
-                        <div class={`text-md w-full text-center`}>What should we call you?</div>
+        const { step, name, confirmSecretKey, errorPrompt } = this.state;
+        const stepName = () => {
+            return (
+                <Fragment>
+                    <div class={`text-3xl w-full text-center font-bold py-5`}>Sign Up</div>
+                    <div class={`text-md w-full text-center`}>What should we call you?</div>
+                    <input
+                        class={`w-full px-4 py-3 rounded-lg resize-y bg-transparent focus:outline-none focus-visible:outline-none border-[2px] border-[${DividerBackgroundColor}] placeholder-[${PlaceholderColor}]`}
+                        placeholder="e.g. Bob"
+                        type="text"
+                        value={name}
+                        onInput={this.handleNameChange}
+                    />
+                    <div class={`text-red-500`}>{errorPrompt}</div>
+                    <button
+                        onClick={this.handleNext}
+                        class={`w-full p-3 rounded-lg focus:outline-none focus-visible:outline-none flex items-center justify-center bg-gradient-to-r from-[#FF762C] via-[#FF3A5E] to-[#FF01A9]  hover:bg-gradient-to-l ${
+                            this.checkNameComplete() ? "" : "opacity-50 cursor-not-allowed"
+                        }`}
+                    >
+                        Next
+                    </button>
+                </Fragment>
+            );
+        };
+        const stepBackup = () => {
+            return (
+                <Fragment>
+                    <div class={`text-3xl w-full text-center font-bold py-5`}>Backup your keys</div>
+                    <div
+                        class={`bg-red-500  flex flex-row p-2  gap-2 items-center`}
+                    >
+                        <svg viewBox="0 0 24 24" focusable="false" class="w-10 h-10">
+                            <path
+                                fill="currentColor"
+                                d="M12,0A12,12,0,1,0,24,12,12.013,12.013,0,0,0,12,0Zm.25,5a1.5,1.5,0,1,1-1.5,1.5A1.5,1.5,0,0,1,12.25,5ZM14.5,18.5h-4a1,1,0,0,1,0-2h.75a.25.25,0,0,0,.25-.25v-4.5a.25.25,0,0,0-.25-.25H10.5a1,1,0,0,1,0-2h1a2,2,0,0,1,2,2v4.75a.25.25,0,0,0,.25.25h.75a1,1,0,1,1,0,2Z"
+                            >
+                            </path>
+                        </svg>
+                        <div>
+                            Your secret key is like your password, if anyone gets a hold of it they will have
+                            complete control over your account
+                        </div>
+                    </div>
+                    <div>
+                        <div class={`text-lg font-semibold`}>Secret Key</div>
+                        <TextField text={ctx.privateKey.bech32} />
+                        <div>This is the key to access your account, keep it secret.</div>
+                    </div>
+
+                    <button
+                        onClick={this.handleNext}
+                        class={`w-full p-3 rounded-lg focus:outline-none focus-visible:outline-none flex items-center justify-center bg-gradient-to-r from-[#FF762C] via-[#FF3A5E] to-[#FF01A9]  hover:bg-gradient-to-l`}
+                    >
+                        I have saved my secret key
+                    </button>
+                </Fragment>
+            );
+        };
+        const stepVerify = () => {
+            return (
+                <Fragment>
+                    <div class={`text-3xl w-full text-center font-bold py-5`}>Confirm secret key</div>
+                    <div>
+                        <div class={`text-lg font-semibold`}>
+                            Last four letters of secret key
+                        </div>
                         <input
                             class={`w-full px-4 py-3 rounded-lg resize-y bg-transparent focus:outline-none focus-visible:outline-none border-[2px] border-[${DividerBackgroundColor}] placeholder-[${PlaceholderColor}]`}
-                            placeholder="e.g. Bob"
+                            placeholder="xxxx"
                             type="text"
-                            value={name}
-                            onInput={this.handleNameChange}
+                            value={confirmSecretKey}
+                            onInput={(e) =>
+                                this.setState({ confirmSecretKey: (e.target as HTMLInputElement).value })}
                         />
-                        <div class={`text-red-500`}>{this.state.errorPrompt}</div>
-                        <button
-                            onClick={this.handleNext}
-                            class={`w-full p-3 rounded-lg focus:outline-none focus-visible:outline-none flex items-center justify-center bg-gradient-to-r from-[#FF762C] via-[#FF3A5E] to-[#FF01A9]  hover:bg-gradient-to-l ${
-                                this.checkNameComplete() ? "" : "opacity-50 cursor-not-allowed"
-                            }`}
-                        >
-                            Next
-                        </button>
-                    </Fragment>
-                );
+                        <div>
+                            This is the key to access your account, keep it secret.
+                        </div>
+                    </div>
+                    <div class={`text-red-500`}>{errorPrompt}</div>
+                    <button
+                        onClick={this.handleNext}
+                        class={`w-full p-3 rounded-lg focus:outline-none focus-visible:outline-none flex items-center justify-center bg-gradient-to-r from-[#FF762C] via-[#FF3A5E] to-[#FF01A9]  hover:bg-gradient-to-l ${
+                            this.checkSecretKeyComplete() ? "" : "opacity-50 cursor-not-allowed"
+                        }`}
+                    >
+                        Confirm
+                    </button>
+                    <button
+                        onClick={() => this.setState({ step: "backup" })}
+                        class={`border-none bg-transparent text-[#FF3A5E] mt-2 focus:outline-none focus-visible:outline-none`}
+                    >
+                        Go back...I didn't save it
+                    </button>
+                </Fragment>
+            );
+        };
+        switch (step) {
+            case "name":
+                return stepName();
             case "backup":
-                // Backup step elements
-                return (
-                    <Fragment>
-                        <div class={`text-3xl w-full text-center font-bold py-5`}>Backup your keys</div>
-                        <div
-                            class={`bg-red-500  flex flex-row p-2  gap-2 items-center`}
-                        >
-                            <svg viewBox="0 0 24 24" focusable="false" class="w-10 h-10">
-                                <path
-                                    fill="currentColor"
-                                    d="M12,0A12,12,0,1,0,24,12,12.013,12.013,0,0,0,12,0Zm.25,5a1.5,1.5,0,1,1-1.5,1.5A1.5,1.5,0,0,1,12.25,5ZM14.5,18.5h-4a1,1,0,0,1,0-2h.75a.25.25,0,0,0,.25-.25v-4.5a.25.25,0,0,0-.25-.25H10.5a1,1,0,0,1,0-2h1a2,2,0,0,1,2,2v4.75a.25.25,0,0,0,.25.25h.75a1,1,0,1,1,0,2Z"
-                                >
-                                </path>
-                            </svg>
-                            <div>
-                                Your secret key is like your password, if anyone gets a hold of it they will
-                                have complete control over your account
-                            </div>
-                        </div>
-                        <div>
-                            <div class={`text-lg font-semibold`}>Secret Key</div>
-                            <TextField text={ctx.privateKey.bech32} />
-                            <div>This is the key to access your account, keep it secret.</div>
-                        </div>
-
-                        <button
-                            onClick={this.handleNext}
-                            class={`w-full p-3 rounded-lg focus:outline-none focus-visible:outline-none flex items-center justify-center bg-gradient-to-r from-[#FF762C] via-[#FF3A5E] to-[#FF01A9]  hover:bg-gradient-to-l`}
-                        >
-                            I have saved my secret key
-                        </button>
-                    </Fragment>
-                );
+                return stepBackup();
             case "verify":
-                // Verify step elements
-                return (
-                    <Fragment>
-                        <div class={`text-3xl w-full text-center font-bold py-5`}>Confirm secret key</div>
-                        <div>
-                            <div class={`text-lg font-semibold`}>
-                                Last four letters of secret key
-                            </div>
-                            <input
-                                class={`w-full px-4 py-3 rounded-lg resize-y bg-transparent focus:outline-none focus-visible:outline-none border-[2px] border-[${DividerBackgroundColor}] placeholder-[${PlaceholderColor}]`}
-                                placeholder="xxxx"
-                                type="text"
-                                value={this.state.confirmSecretKey}
-                                onInput={(e) =>
-                                    this.setState({ confirmSecretKey: (e.target as HTMLInputElement).value })}
-                            />
-                            <div>
-                                This is the key to access your account, keep it secret.
-                            </div>
-                        </div>
-                        <div class={`text-red-500`}>{this.state.errorPrompt}</div>
-                        <button
-                            onClick={this.handleNext}
-                            class={`w-full p-3 rounded-lg focus:outline-none focus-visible:outline-none flex items-center justify-center bg-gradient-to-r from-[#FF762C] via-[#FF3A5E] to-[#FF01A9]  hover:bg-gradient-to-l ${
-                                this.checkSecretKeyComplete() ? "" : "opacity-50 cursor-not-allowed"
-                            }`}
-                        >
-                            Confirm
-                        </button>
-                        <button
-                            onClick={() => this.setState({ step: "backup" })}
-                            class={`border-none bg-transparent text-[#FF3A5E] mt-2 focus:outline-none focus-visible:outline-none`}
-                        >
-                            Go back...I didn't save it
-                        </button>
-                    </Fragment>
-                );
+                return stepVerify();
             default:
                 return null;
         }
@@ -201,21 +208,15 @@ export class SignUp extends Component<SignUpProps, SignUpState> {
 function TextField(props: {
     text: string;
 }) {
-    const styles = {
-        container: `relative ${InputClass} flex p-0`,
-        pre: `whitespace-pre flex-1 overflow-x-auto px-4 py-3`,
-        copyButton: `w-14 ${CenterClass}`,
-    };
-
     const asterisksText = (text: string) => {
         // replate end of string with asterisks
         return text.slice(0, -50) + "*".repeat(50);
     };
 
     return (
-        <div class={styles.container}>
-            <pre class={styles.pre}>{asterisksText(props.text)}</pre>
-            <div class={styles.copyButton}>
+        <div class={`relative ${InputClass} flex p-0`}>
+            <pre class={`whitespace-pre flex-1 overflow-x-auto px-4 py-3`}>{asterisksText(props.text)}</pre>
+            <div class={`w-14 ${CenterClass}`}>
                 <CopyButton text={props.text} />
             </div>
         </div>
