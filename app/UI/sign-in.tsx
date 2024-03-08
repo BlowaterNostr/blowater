@@ -8,7 +8,6 @@ import { DividerBackgroundColor, PrimaryTextColor, SecondaryTextColor } from "./
 import { SecondaryBackgroundColor } from "./style/colors.ts";
 import { LocalPrivateKeyController } from "./sign-in.ts";
 import { PlaceholderColor } from "./style/colors.ts";
-import { UI_Interaction_Event } from "./app_update.tsx";
 import { PrivateKey } from "../../libs/nostr.ts/key.ts";
 import { setSignInState } from "./sign-in.ts";
 import { SignInEvent } from "./sign-in.ts";
