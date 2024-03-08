@@ -22,12 +22,10 @@ import {
 } from "./style/colors.ts";
 import { RelayIcon } from "./icons/relay-icon.tsx";
 import { DeleteIcon } from "./icons/delete-icon.tsx";
-import { AddIcon } from "./icons/add-icon.tsx";
-import { recommendedRelays, RelayConfig, RemoveBlowaterRelay } from "./relay-config.ts";
+import { default_blowater_relay, RelayConfig, RemoveBlowaterRelay } from "./relay-config.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 import { emitFunc } from "../event-bus.ts";
 import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { blowater } from "../../libs/nostr.ts/relay-list.test.ts";
 import { InMemoryAccountContext, NostrAccountContext } from "../../libs/nostr.ts/nostr.ts";
 import { PrivateKey } from "../../libs/nostr.ts/key.ts";
 
@@ -249,7 +247,7 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
                                     </span>
                                     <span class={`truncate`}>{r.url}</span>
                                 </div>
-                                {r.url != blowater
+                                {r.url != default_blowater_relay
                                     ? (
                                         <button
                                             class={`w-[2rem] h-[2rem] rounded-lg bg-transparent hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}

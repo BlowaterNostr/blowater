@@ -5,6 +5,7 @@ import { DM_Model } from "./dm.tsx";
 import { Social_Model } from "./channel-container.tsx";
 import { App } from "./app.tsx";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
+import { default_blowater_relay } from "./relay-config.ts";
 
 export type Model = {
     app?: App; // app is only available after sign-in
@@ -27,7 +28,7 @@ export type Model = {
 export function initialModel(): Model {
     return {
         app: undefined,
-        currentRelay: "wss://relay.blowater.app",
+        currentRelay: default_blowater_relay,
         dm: {
             currentConversation: undefined,
         },

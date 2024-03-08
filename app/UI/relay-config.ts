@@ -2,17 +2,19 @@ import { NostrAccountContext } from "../../libs/nostr.ts/nostr.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 import { parseJSON } from "../features/profile.ts";
 import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
-import { blowater, damus } from "../../libs/nostr.ts/relay-list.test.ts";
+import { damus } from "../../libs/nostr.ts/relay-list.test.ts";
+
+export const default_blowater_relay = "wss://blowater.nostr1.com";
 
 export const defaultRelays = [
-    "wss://relay.blowater.app",
+    default_blowater_relay,
     "wss://nos.lol",
     "wss://relay.damus.io",
     "wss://relay.nostr.wirednet.jp",
 ];
 
 export const recommendedRelays = [
-    "wss://blowater.nostr1.com",
+    default_blowater_relay,
     "wss://nos.lol",
     "wss://relay.damus.io",
     "wss://relay.nostr.wirednet.jp",
@@ -52,7 +54,7 @@ export class RelayConfig {
 
     static Default(args: { ctx: NostrAccountContext; relayPool: ConnectionPool }) {
         const config = new RelayConfig(args);
-        config.add(blowater).then((res) => {
+        config.add(default_blowater_relay).then((res) => {
             if (res instanceof Error) {
                 console.error(res);
             }
@@ -115,7 +117,7 @@ export class RelayConfig {
     }
 
     async remove(url: string) {
-        if (url == blowater) {
+        if (url == default_blowater_relay) {
             return new RemoveBlowaterRelay();
         }
         await this.relayPool.removeRelay(url);
