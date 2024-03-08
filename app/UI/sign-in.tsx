@@ -32,12 +32,12 @@ interface OnboardingState {
     } | {
         type: "backup";
         name: string;
-        signUpSecretKey: PrivateKey;
+        new_private_key: PrivateKey;
     } | {
         type: "verify";
         name: string;
-        signUpSecretKey: PrivateKey;
-        confirmSecretKey: string;
+        new_private_key: PrivateKey;
+        last_4_digits_of_private_key: string;
     };
     errorPrompt: string;
 }
@@ -75,9 +75,9 @@ export class SignIn extends Component<OnboardingProps, OnboardingState> {
             case "name":
                 return this.stepName(step.name);
             case "backup":
-                return this.stepBackup(step.signUpSecretKey, step.name);
+                return this.stepBackup(step.new_private_key, step.name);
             case "verify":
-                return this.stepVerify(step.signUpSecretKey, step.confirmSecretKey, step.name);
+                return this.stepVerify(step.new_private_key, step.last_4_digits_of_private_key, step.name);
         }
     }
 
@@ -110,7 +110,7 @@ export class SignIn extends Component<OnboardingProps, OnboardingState> {
         );
     };
 
-    stepSignIn = (signInSecretKey: string) => {
+    stepSignIn = (private_key: string) => {
         return (
             <Fragment>
                 <div class={`text-3xl w-full text-center font-bold`}>Sign In</div>
@@ -132,7 +132,7 @@ export class SignIn extends Component<OnboardingProps, OnboardingState> {
                 />
                 <div class={`text-red-500`}>{this.state.errorPrompt}</div>
                 <button
-                    onClick={() => this.signInWithPrivateKey(signInSecretKey)}
+                    onClick={() => this.signInWithPrivateKey(private_key)}
                     class={`w-full p-3 rounded-lg focus:outline-none focus-visible:outline-none flex items-center justify-center bg-gradient-to-r from-[#FF762C] via-[#FF3A5E] to-[#FF01A9]  hover:bg-gradient-to-l`}
                 >
                     Sign In
@@ -179,7 +179,7 @@ export class SignIn extends Component<OnboardingProps, OnboardingState> {
                                 step: {
                                     type: "backup",
                                     name: name,
-                                    signUpSecretKey: PrivateKey.Generate(),
+                                    new_private_key: PrivateKey.Generate(),
                                 },
                             });
                         } else {
@@ -196,7 +196,7 @@ export class SignIn extends Component<OnboardingProps, OnboardingState> {
         );
     };
 
-    stepBackup = (signUpSecretKey: PrivateKey, name: string) => {
+    stepBackup = (new_private_key: PrivateKey, name: string) => {
         return (
             <Fragment>
                 <div class={`text-3xl w-full text-center font-bold`}>Backup your keys</div>
@@ -218,7 +218,7 @@ export class SignIn extends Component<OnboardingProps, OnboardingState> {
                 <div>
                     <div class={`text-lg font-semibold`}>Secret Key</div>
                     <TextField
-                        text={signUpSecretKey.bech32}
+                        text={new_private_key.bech32}
                     />
                     <div>This is the key to access your account, keep it secret.</div>
                 </div>
@@ -229,8 +229,8 @@ export class SignIn extends Component<OnboardingProps, OnboardingState> {
                             step: {
                                 type: "verify",
                                 name: name,
-                                signUpSecretKey: signUpSecretKey,
-                                confirmSecretKey: "",
+                                new_private_key,
+                                last_4_digits_of_private_key: "",
                             },
                         });
                     }}
@@ -242,7 +242,7 @@ export class SignIn extends Component<OnboardingProps, OnboardingState> {
         );
     };
 
-    stepVerify = (signUpSecretKey: PrivateKey, confirmSecretKey: string, name: string) => {
+    stepVerify = (new_private_key: PrivateKey, last_4_digits_of_private_key: string, name: string) => {
         return (
             <Fragment>
                 <div class={`text-3xl w-full text-center font-bold`}>Confirm secret key</div>
@@ -254,14 +254,14 @@ export class SignIn extends Component<OnboardingProps, OnboardingState> {
                         class={`w-full px-4 py-3 rounded-lg resize-y bg-transparent focus:outline-none focus-visible:outline-none border-[2px] border-[${DividerBackgroundColor}] placeholder-[${PlaceholderColor}]`}
                         placeholder="xxxx"
                         type="text"
-                        value={confirmSecretKey}
+                        value={last_4_digits_of_private_key}
                         onInput={(e) => {
                             this.setState({
                                 step: {
                                     type: "verify",
-                                    confirmSecretKey: e.currentTarget.value,
+                                    last_4_digits_of_private_key: e.currentTarget.value,
                                     name,
-                                    signUpSecretKey: signUpSecretKey,
+                                    new_private_key: new_private_key,
                                 },
                             });
                         }}
@@ -272,9 +272,9 @@ export class SignIn extends Component<OnboardingProps, OnboardingState> {
                 </div>
                 <div class={`text-red-500`}>{this.state.errorPrompt}</div>
                 <button
-                    onClick={() => signUpWithPrivateKey(name, signUpSecretKey, this.props.emit)}
+                    onClick={() => signInWithNewPrivateKey(name, new_private_key, this.props.emit)}
                     class={`w-full p-3 rounded-lg focus:outline-none focus-visible:outline-none flex items-center justify-center bg-gradient-to-r from-[#FF762C] via-[#FF3A5E] to-[#FF01A9]  hover:bg-gradient-to-l ${
-                        this.checkSecretKeyComplete(confirmSecretKey, signUpSecretKey)
+                        this.checkSecretKeyComplete(last_4_digits_of_private_key, new_private_key)
                             ? ""
                             : "opacity-50 cursor-not-allowed"
                     }`}
@@ -287,7 +287,7 @@ export class SignIn extends Component<OnboardingProps, OnboardingState> {
                             step: {
                                 type: "backup",
                                 name,
-                                signUpSecretKey: signUpSecretKey,
+                                new_private_key: new_private_key,
                             },
                         })}
                     class={`border-none bg-transparent text-[#FF3A5E] mt-2 focus:outline-none focus-visible:outline-none`}
@@ -320,10 +320,9 @@ export class SignIn extends Component<OnboardingProps, OnboardingState> {
         await LocalPrivateKeyController.setKey("blowater", pri);
     };
 
-    checkSecretKeyComplete = (confirmSecretKey: string, prikey: PrivateKey) => {
-        // Check if the last 4 characters of the secret key match the input
-        if (confirmSecretKey.length !== 4) return false;
-        return prikey.bech32.endsWith(confirmSecretKey);
+    checkSecretKeyComplete = (last_4_digits_of_private_key: string, prikey: PrivateKey) => {
+        if (last_4_digits_of_private_key.length !== 4) return false;
+        return prikey.bech32.endsWith(last_4_digits_of_private_key);
     };
 }
 
@@ -345,7 +344,7 @@ function TextField(props: {
     );
 }
 
-async function signUpWithPrivateKey(
+async function signInWithNewPrivateKey(
     name: string,
     signUpSecretKey: PrivateKey,
     emit: emitFunc<SignInEvent | SaveProfile>,
