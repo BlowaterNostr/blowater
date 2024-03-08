@@ -7,7 +7,7 @@ import {
     NostrKind,
     UnsignedNostrEvent,
 } from "../../libs/nostr.ts/nostr.ts";
-import { LocalPrivateKeyController } from "./signIn.tsx";
+import { LocalPrivateKeyController } from "./sign-in.ts";
 
 type NIP07 = {
     getPublicKey(): Promise<string>;

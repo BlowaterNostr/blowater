@@ -40,7 +40,7 @@ import { RelayInformationComponent } from "./relay-detail.tsx";
 import { Search } from "./search.tsx";
 import { SearchUpdate, SelectConversation } from "./search_model.ts";
 import { RelayConfigChange, ViewRecommendedRelaysList, ViewRelayDetail } from "./setting.tsx";
-import { SignInEvent } from "./signIn.tsx";
+import { SignInEvent } from "./sign-in.ts";
 import { TagSelected } from "./contact-tags.tsx";
 import { BlockUser, UnblockUser, UserDetail } from "./user-detail.tsx";
 import { RelayRecommendList } from "./relay-recommend-list.tsx";
