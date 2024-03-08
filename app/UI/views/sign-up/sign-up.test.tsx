@@ -5,7 +5,7 @@ import { SignUp } from "./sign-up.tsx";
 
 render(
     <SignUp
-        // emit={testEventBus.emit}
+        emit={testEventBus.emit}
     />,
     document.body,
 );

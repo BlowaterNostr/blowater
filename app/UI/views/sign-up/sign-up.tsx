@@ -13,36 +13,43 @@ import { PrivateKey } from "../../../../libs/nostr.ts/key.ts";
 
 interface SignUpProps {
     // Define your component props here
-    // emit: emitFunc<UI_Interaction_Event>
+    emit: emitFunc<UI_Interaction_Event>;
 }
 
 interface SignUpState {
     name: string;
     step: "onboarding" | "signin" | "name" | "backup" | "verify";
     signInSecretKey?: PrivateKey;
+    signUpSecretKey: PrivateKey;
     errorPrompt: string;
     confirmSecretKey: string;
 }
-
-const ctx = InMemoryAccountContext.Generate();
 
 export class SignUp extends Component<SignUpProps, SignUpState> {
     state: SignUpState = {
         name: "",
         step: "onboarding",
         signInSecretKey: undefined,
+        signUpSecretKey: InMemoryAccountContext.Generate().privateKey,
         errorPrompt: "",
         confirmSecretKey: "",
     };
 
-    // signInWithPrivateKey = async () => {
-    //     this.props.emit({
-    //         type: "SignInEvent",
-    //         ctx,
-    //     });
-    //     localStorage.setItem("SignInState", "local");
-    //     await LocalPrivateKeyController.setKey("blowater", ctx.privateKey);
-    // };
+    signInWithPrivateKey = async () => {
+        const { signInSecretKey } = this.state;
+        if (signInSecretKey === undefined) {
+            this.setState({
+                errorPrompt: "Secret key is incorrect",
+            });
+            return;
+        }
+        this.props.emit({
+            type: "SignInEvent",
+            ctx: InMemoryAccountContext.New(signInSecretKey),
+        });
+        localStorage.setItem("SignInState", "local");
+        await LocalPrivateKeyController.setKey("blowater", signInSecretKey);
+    };
 
     handleNext = () => {
         const { step } = this.state;
@@ -77,10 +84,10 @@ export class SignUp extends Component<SignUpProps, SignUpState> {
     };
 
     checkSecretKeyComplete = () => {
-        const { confirmSecretKey } = this.state;
+        const { confirmSecretKey, signUpSecretKey } = this.state;
         // Check if the last 4 characters of the secret key match the input
         if (confirmSecretKey.length !== 4) return false;
-        const { bech32 } = ctx.privateKey;
+        const { bech32 } = signUpSecretKey;
         return bech32.endsWith(confirmSecretKey);
     };
 
@@ -108,7 +115,7 @@ export class SignUp extends Component<SignUpProps, SignUpState> {
     };
 
     renderStep() {
-        const { step, name, confirmSecretKey, errorPrompt } = this.state;
+        const { step, name, signUpSecretKey, confirmSecretKey, errorPrompt } = this.state;
         const setpOnboarding = () => {
             return (
                 <Fragment>
@@ -206,7 +213,7 @@ export class SignUp extends Component<SignUpProps, SignUpState> {
                     </div>
                     <div>
                         <div class={`text-lg font-semibold`}>Secret Key</div>
-                        <TextField text={ctx.privateKey.bech32} />
+                        <TextField text={signUpSecretKey.bech32} />
                         <div>This is the key to access your account, keep it secret.</div>
                     </div>
 
