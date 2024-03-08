@@ -11,6 +11,9 @@ import { PlaceholderColor } from "./style/colors.ts";
 import { UI_Interaction_Event } from "./app_update.tsx";
 import { PrivateKey } from "../../libs/nostr.ts/key.ts";
 import { setSignInState } from "./sign-in.ts";
+import { SignInEvent } from "./sign-in.ts";
+import { SaveProfile } from "./edit-profile.tsx";
+import { setState } from "./_helper.ts";
 
 interface OnboardingProps {
     // Define your component props here
@@ -18,144 +21,101 @@ interface OnboardingProps {
 }
 
 interface OnboardingState {
-    name: string;
-    step: "onboarding" | "signin" | "name" | "backup" | "verify";
-    signInSecretKey?: PrivateKey;
-    signUpSecretKey?: PrivateKey;
+    step: {
+        type: "onboarding";
+    } | {
+        type: "signin";
+        private_key: string;
+    } | {
+        type: "name";
+        name: string;
+    } | {
+        type: "backup";
+        name: string;
+        signUpSecretKey: PrivateKey;
+    } | {
+        type: "verify";
+        name: string;
+        signUpSecretKey: PrivateKey;
+        confirmSecretKey: string;
+    };
     errorPrompt: string;
-    confirmSecretKey: string;
 }
 
 export class SignIn extends Component<OnboardingProps, OnboardingState> {
     state: OnboardingState = {
-        name: "",
-        step: "onboarding",
-        signInSecretKey: undefined,
-        signUpSecretKey: undefined,
+        step: {
+            type: "onboarding",
+        },
         errorPrompt: "",
-        confirmSecretKey: "",
     };
 
-    signInWithPrivateKey = async () => {
-        const { signInSecretKey } = this.state;
-        if (signInSecretKey === undefined) {
-            this.setState({
-                errorPrompt: "Secret key is incorrect",
-            });
-            return;
-        }
-        this.props.emit({
-            type: "SignInEvent",
-            ctx: InMemoryAccountContext.New(signInSecretKey),
-        });
-        setSignInState("local");
-        await LocalPrivateKeyController.setKey("blowater", signInSecretKey);
-    };
-
-    signUpWithPrivateKey = async () => {
-        const { name, signUpSecretKey } = this.state;
-        if (signUpSecretKey === undefined) {
-            this.setState({
-                errorPrompt: "Secret key is incorrect",
-            });
-            return;
-        }
-        this.props.emit({
-            type: "SignInEvent",
-            ctx: InMemoryAccountContext.New(signUpSecretKey),
-        });
-        this.props.emit({
-            type: "SaveProfile",
-            ctx: InMemoryAccountContext.New(signUpSecretKey),
-            profile: {
-                name,
-                picture: `https://robohash.org/${name}.png`,
-            },
-        });
-        setSignInState("local");
-        await LocalPrivateKeyController.setKey("blowater", signUpSecretKey);
-    };
-
-    handleNext = () => {
-        const { step } = this.state;
-        if (step === "name") {
-            if (this.checkNameComplete()) {
-                this.setState({ step: "backup", signUpSecretKey: PrivateKey.Generate() });
-            } else {
-                this.setState({ errorPrompt: "Name is required" });
-            }
-        } else if (step === "backup") {
-            this.setState({ step: "verify" });
-        } else if (step === "verify") {
-            if (this.checkSecretKeyComplete()) {
-                this.signUpWithPrivateKey();
-            } else {
-                this.setState({ errorPrompt: "Secret key is incorrect" });
-            }
-        } else if (step === "signin") {
-            if (this.state.signInSecretKey instanceof PrivateKey) {
-                this.signInWithPrivateKey();
-            } else {
-                this.setState({ errorPrompt: "Secret key is incorrect" });
-            }
-        }
-    };
-
-    checkNameComplete = () => {
-        const { name } = this.state;
-        return name.length > 0;
-    };
-
-    checkSecretKeyComplete = () => {
-        const { confirmSecretKey, signUpSecretKey } = this.state;
-        // Check if the last 4 characters of the secret key match the input
-        if (confirmSecretKey.length !== 4) return false;
-        if (signUpSecretKey === undefined) return false;
-        const { bech32 } = signUpSecretKey;
-        return bech32.endsWith(confirmSecretKey);
-    };
-
-    handleNameChange = (event: Event) => {
-        if (this.checkNameComplete()) this.setState({ errorPrompt: "" });
-        this.setState({ name: (event.target as HTMLInputElement).value });
-    };
-
-    handleSignInSecretKeyInput = (privateKeyStr: string) => {
-        let privateKey = PrivateKey.FromHex(privateKeyStr);
-        if (privateKey instanceof Error) {
-            privateKey = PrivateKey.FromBech32(privateKeyStr);
-
-            if (privateKey instanceof Error) {
-                this.setState({
-                    errorPrompt: "Invilid Private Key",
+    signInWithPrivateKey = async (private_key: string | PrivateKey) => {
+        let pri;
+        if (private_key instanceof PrivateKey) {
+            pri = private_key;
+        } else {
+            pri = PrivateKey.FromString(private_key);
+            if (pri instanceof Error) {
+                await setState(this, {
+                    errorPrompt: pri.message,
                 });
                 return;
             }
         }
+        const ctx = InMemoryAccountContext.New(pri);
+        await this.props.emit({
+            type: "SignInEvent",
+            ctx,
+        });
+        setSignInState("local");
+        await LocalPrivateKeyController.setKey("blowater", pri);
+    };
+
+    checkNameComplete = (name: string) => {
+        return name.length > 0;
+    };
+
+    checkSecretKeyComplete = (confirmSecretKey: string, prikey: PrivateKey) => {
+        // Check if the last 4 characters of the secret key match the input
+        if (confirmSecretKey.length !== 4) return false;
+        return prikey.bech32.endsWith(confirmSecretKey);
+    };
+
+    handleNameChange = (event: h.JSX.TargetedEvent<HTMLInputElement, Event>) => {
+        if (this.checkNameComplete(event.currentTarget.value)) {
+            this.setState({
+                step: {
+                    type: "name",
+                    name: event.currentTarget.value,
+                },
+            });
+        }
+    };
+
+    handleSignInSecretKeyInput = (privateKeyStr: string) => {
         this.setState({
             errorPrompt: "",
-            signInSecretKey: privateKey,
+            step: {
+                type: "signin",
+                private_key: privateKeyStr,
+            },
         });
     };
 
     renderStep() {
         const { step } = this.state;
-        switch (step) {
+        switch (step.type) {
             case "onboarding":
                 return this.setpOnboarding();
             case "signin":
-                return this.stepSignIn();
+                return this.stepSignIn(step.private_key);
             case "name":
-                return this.stepName();
+                return this.stepName(step.name);
             case "backup":
-                const signUpSecretKey = this.state.signUpSecretKey;
-                if (!signUpSecretKey) {
-                    // todo
-                    return;
-                }
-                return this.stepBackup(signUpSecretKey);
+                return this.stepBackup(step.signUpSecretKey, step.name);
             case "verify":
-                return this.stepVerify();
+                return this.stepVerify(step.signUpSecretKey, step.confirmSecretKey, step.name);
         }
     }
 
@@ -167,13 +127,19 @@ export class SignIn extends Component<OnboardingProps, OnboardingState> {
                     A delightful Nostr client that focuses on DM
                 </div>
                 <button
-                    onClick={() => this.setState({ step: "signin" })}
+                    onClick={() => this.setState({ step: { type: "signin", private_key: "" } })}
                     class={`w-full p-3 rounded-lg focus:outline-none focus-visible:outline-none flex items-center justify-center bg-gradient-to-r from-[#FF762C] via-[#FF3A5E] to-[#FF01A9]  hover:bg-gradient-to-l`}
                 >
                     Alreay have an account
                 </button>
                 <button
-                    onClick={() => this.setState({ step: "name" })}
+                    onClick={() =>
+                        this.setState({
+                            step: {
+                                type: "name",
+                                name: "",
+                            },
+                        })}
                     class={`w-full p-3 rounded-lg focus:outline-none focus-visible:outline-none flex items-center justify-center bg-gradient-to-r from-[#FF762C] via-[#FF3A5E] to-[#FF01A9]  hover:bg-gradient-to-l`}
                 >
                     Sign Up
@@ -182,11 +148,11 @@ export class SignIn extends Component<OnboardingProps, OnboardingState> {
         );
     };
 
-    stepSignIn = () => {
+    stepSignIn = (signInSecretKey: string) => {
         return (
             <Fragment>
                 <div class={`text-3xl w-full text-center font-bold`}>Sign In</div>
-                <div class={`text-md w-full text-center`}>What should we call you?</div>
+                <div class={`text-md w-full text-center`}>Please enter your private key</div>
                 <input
                     class={`w-full px-4 py-3 rounded-lg resize-y bg-transparent focus:outline-none focus-visible:outline-none border-[2px] border-[${DividerBackgroundColor}] placeholder-[${PlaceholderColor}]`}
                     placeholder="nsec1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
@@ -196,24 +162,29 @@ export class SignIn extends Component<OnboardingProps, OnboardingState> {
                 />
                 <div class={`text-red-500`}>{this.state.errorPrompt}</div>
                 <button
-                    onClick={this.handleNext}
-                    class={`w-full p-3 rounded-lg focus:outline-none focus-visible:outline-none flex items-center justify-center bg-gradient-to-r from-[#FF762C] via-[#FF3A5E] to-[#FF01A9]  hover:bg-gradient-to-l ${
-                        this.checkNameComplete() ? "" : "opacity-50 cursor-not-allowed"
-                    }`}
+                    onClick={() => {
+                        this.signInWithPrivateKey(signInSecretKey);
+                    }}
+                    class={`w-full p-3 rounded-lg focus:outline-none focus-visible:outline-none flex items-center justify-center bg-gradient-to-r from-[#FF762C] via-[#FF3A5E] to-[#FF01A9]  hover:bg-gradient-to-l`}
                 >
                     Sign In
                 </button>
                 <button
-                    onClick={() => this.setState({ step: "name" })}
+                    onClick={() =>
+                        this.setState({
+                            step: {
+                                type: "onboarding",
+                            },
+                        })}
                     class={`border-none bg-transparent text-[#FF3A5E] mt-2 focus:outline-none focus-visible:outline-none`}
                 >
-                    Go back...I want to sign up
+                    Go back
                 </button>
             </Fragment>
         );
     };
 
-    stepName = () => {
+    stepName = (name: string) => {
         return (
             <Fragment>
                 <div class={`text-3xl w-full text-center font-bold`}>Sign Up</div>
@@ -222,14 +193,28 @@ export class SignIn extends Component<OnboardingProps, OnboardingState> {
                     class={`w-full px-4 py-3 rounded-lg resize-y bg-transparent focus:outline-none focus-visible:outline-none border-[2px] border-[${DividerBackgroundColor}] placeholder-[${PlaceholderColor}]`}
                     placeholder="e.g. Bob"
                     type="text"
-                    value={this.state.name}
-                    onInput={this.handleNameChange}
+                    value={name}
+                    onInput={(e) => {
+                        this.handleNameChange(e);
+                    }}
                 />
                 <div class={`text-red-500`}>{this.state.errorPrompt}</div>
                 <button
-                    onClick={this.handleNext}
+                    onClick={() => {
+                        if (this.checkNameComplete(name)) {
+                            this.setState({
+                                step: {
+                                    type: "backup",
+                                    name: name,
+                                    signUpSecretKey: PrivateKey.Generate(),
+                                },
+                            });
+                        } else {
+                            this.setState({ errorPrompt: "Name is required" });
+                        }
+                    }}
                     class={`w-full p-3 rounded-lg focus:outline-none focus-visible:outline-none flex items-center justify-center bg-gradient-to-r from-[#FF762C] via-[#FF3A5E] to-[#FF01A9]  hover:bg-gradient-to-l ${
-                        this.checkNameComplete() ? "" : "opacity-50 cursor-not-allowed"
+                        this.checkNameComplete(name) ? "" : "opacity-50 cursor-not-allowed"
                     }`}
                 >
                     Next
@@ -238,7 +223,7 @@ export class SignIn extends Component<OnboardingProps, OnboardingState> {
         );
     };
 
-    stepBackup = (signUpSecretKey: PrivateKey) => {
+    stepBackup = (signUpSecretKey: PrivateKey, name: string) => {
         return (
             <Fragment>
                 <div class={`text-3xl w-full text-center font-bold`}>Backup your keys</div>
@@ -266,7 +251,16 @@ export class SignIn extends Component<OnboardingProps, OnboardingState> {
                 </div>
 
                 <button
-                    onClick={this.handleNext}
+                    onClick={() => {
+                        this.setState({
+                            step: {
+                                type: "verify",
+                                name: name,
+                                signUpSecretKey: signUpSecretKey,
+                                confirmSecretKey: "",
+                            },
+                        });
+                    }}
                     class={`w-full p-3 rounded-lg focus:outline-none focus-visible:outline-none flex items-center justify-center bg-gradient-to-r from-[#FF762C] via-[#FF3A5E] to-[#FF01A9]  hover:bg-gradient-to-l`}
                 >
                     I have saved my secret key
@@ -275,7 +269,7 @@ export class SignIn extends Component<OnboardingProps, OnboardingState> {
         );
     };
 
-    stepVerify = () => {
+    stepVerify = (signUpSecretKey: PrivateKey, confirmSecretKey: string, name: string) => {
         return (
             <Fragment>
                 <div class={`text-3xl w-full text-center font-bold`}>Confirm secret key</div>
@@ -287,9 +281,17 @@ export class SignIn extends Component<OnboardingProps, OnboardingState> {
                         class={`w-full px-4 py-3 rounded-lg resize-y bg-transparent focus:outline-none focus-visible:outline-none border-[2px] border-[${DividerBackgroundColor}] placeholder-[${PlaceholderColor}]`}
                         placeholder="xxxx"
                         type="text"
-                        value={this.state.confirmSecretKey}
-                        onInput={(e) =>
-                            this.setState({ confirmSecretKey: (e.target as HTMLInputElement).value })}
+                        value={confirmSecretKey}
+                        onInput={(e) => {
+                            this.setState({
+                                step: {
+                                    type: "verify",
+                                    confirmSecretKey: e.currentTarget.value,
+                                    name,
+                                    signUpSecretKey: signUpSecretKey,
+                                },
+                            });
+                        }}
                     />
                     <div>
                         This is the key to access your account, keep it secret.
@@ -297,15 +299,26 @@ export class SignIn extends Component<OnboardingProps, OnboardingState> {
                 </div>
                 <div class={`text-red-500`}>{this.state.errorPrompt}</div>
                 <button
-                    onClick={this.handleNext}
+                    onClick={() => {
+                        this.signInWithPrivateKey(signUpSecretKey);
+                    }}
                     class={`w-full p-3 rounded-lg focus:outline-none focus-visible:outline-none flex items-center justify-center bg-gradient-to-r from-[#FF762C] via-[#FF3A5E] to-[#FF01A9]  hover:bg-gradient-to-l ${
-                        this.checkSecretKeyComplete() ? "" : "opacity-50 cursor-not-allowed"
+                        this.checkSecretKeyComplete(confirmSecretKey, signUpSecretKey)
+                            ? ""
+                            : "opacity-50 cursor-not-allowed"
                     }`}
                 >
                     Confirm
                 </button>
                 <button
-                    onClick={() => this.setState({ step: "backup" })}
+                    onClick={() =>
+                        this.setState({
+                            step: {
+                                type: "backup",
+                                name,
+                                signUpSecretKey: signUpSecretKey,
+                            },
+                        })}
                     class={`border-none bg-transparent text-[#FF3A5E] mt-2 focus:outline-none focus-visible:outline-none`}
                 >
                     Go back...I didn't save it
@@ -346,4 +359,25 @@ function TextField(props: {
             </div>
         </div>
     );
+}
+
+async function signUpWithPrivateKey(
+    name: string,
+    signUpSecretKey: PrivateKey,
+    emit: emitFunc<SignInEvent | SaveProfile>,
+) {
+    await emit({
+        type: "SignInEvent",
+        ctx: InMemoryAccountContext.New(signUpSecretKey),
+    });
+    await emit({
+        type: "SaveProfile",
+        ctx: InMemoryAccountContext.New(signUpSecretKey),
+        profile: {
+            name,
+            picture: `https://robohash.org/${name}.png`,
+        },
+    });
+    setSignInState("local");
+    await LocalPrivateKeyController.setKey("blowater", signUpSecretKey);
 }
