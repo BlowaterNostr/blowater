@@ -20,7 +20,7 @@ import { EventSyncer } from "./event_syncer.ts";
 import { RelayConfig } from "./relay-config.ts";
 import { ProfileGetter } from "./search.tsx";
 import { Setting } from "./setting.tsx";
-import { getCurrentSignInCtx, getSignInState, setSignInState, SignIn } from "./signIn.tsx";
+import { getCurrentSignInCtx, getSignInState, setSignInState, SignInOld } from "./signIn.tsx";
 import { SecondaryBackgroundColor } from "./style/colors.ts";
 import { LamportTime } from "../time.ts";
 import { InstallPrompt, NavBar } from "./nav.tsx";
@@ -31,7 +31,7 @@ import { ChatMessage } from "./message.ts";
 import { filter, map } from "./_helper.ts";
 import { RightPanel } from "./components/right-panel.tsx";
 import { ComponentChildren } from "https://esm.sh/preact@10.17.1";
-import { Onboarding } from "./views/onboarding/onboarding.tsx";
+import { SignIn } from "./views/onboarding/onboarding.tsx";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
@@ -299,7 +299,7 @@ export class AppComponent extends Component<AppProps> {
 
         if (model.app == undefined) {
             console.log("render sign in page");
-            return <Onboarding emit={props.eventBus.emit} />;
+            return <SignIn emit={props.eventBus.emit} />;
         }
 
         const app = model.app;

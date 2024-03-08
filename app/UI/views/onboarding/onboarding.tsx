@@ -10,6 +10,7 @@ import { LocalPrivateKeyController } from "../../signIn.tsx";
 import { PlaceholderColor } from "../../style/colors.ts";
 import { UI_Interaction_Event } from "../../app_update.tsx";
 import { PrivateKey } from "../../../../libs/nostr.ts/key.ts";
+import { setSignInState } from "../../signIn.tsx";
 
 interface OnboardingProps {
     // Define your component props here
@@ -20,17 +21,17 @@ interface OnboardingState {
     name: string;
     step: "onboarding" | "signin" | "name" | "backup" | "verify";
     signInSecretKey?: PrivateKey;
-    signUpSecretKey: PrivateKey;
+    signUpSecretKey?: PrivateKey;
     errorPrompt: string;
     confirmSecretKey: string;
 }
 
-export class Onboarding extends Component<OnboardingProps, OnboardingState> {
+export class SignIn extends Component<OnboardingProps, OnboardingState> {
     state: OnboardingState = {
         name: "",
         step: "onboarding",
         signInSecretKey: undefined,
-        signUpSecretKey: InMemoryAccountContext.Generate().privateKey,
+        signUpSecretKey: undefined,
         errorPrompt: "",
         confirmSecretKey: "",
     };
@@ -47,26 +48,39 @@ export class Onboarding extends Component<OnboardingProps, OnboardingState> {
             type: "SignInEvent",
             ctx: InMemoryAccountContext.New(signInSecretKey),
         });
-        localStorage.setItem("SignInState", "local");
+        setSignInState("local");
         await LocalPrivateKeyController.setKey("blowater", signInSecretKey);
     };
 
-    // signUpWithPrivateKey = async () => {
-    //     const { name, signUpSecretKey } = this.state;
-    //     this.props.emit({
-    //         type: "SignUpEvent",
-    //         ctx: InMemoryAccountContext.New(signUpSecretKey),
-    //         name
-    //     });
-    //     localStorage.setItem("SignInState", "local");
-    //     await LocalPrivateKeyController.setKey("blowater", signUpSecretKey);
-    // }
+    signUpWithPrivateKey = async () => {
+        const { name, signUpSecretKey } = this.state;
+        if (signUpSecretKey === undefined) {
+            this.setState({
+                errorPrompt: "Secret key is incorrect",
+            });
+            return;
+        }
+        this.props.emit({
+            type: "SignInEvent",
+            ctx: InMemoryAccountContext.New(signUpSecretKey),
+        });
+        this.props.emit({
+            type: "SaveProfile",
+            ctx: InMemoryAccountContext.New(signUpSecretKey),
+            profile: {
+                name,
+                picture: `https://robohash.org/${name}.png`,
+            },
+        });
+        setSignInState("local");
+        await LocalPrivateKeyController.setKey("blowater", signUpSecretKey);
+    };
 
     handleNext = () => {
         const { step } = this.state;
         if (step === "name") {
             if (this.checkNameComplete()) {
-                this.setState({ step: "backup" });
+                this.setState({ step: "backup", signUpSecretKey: PrivateKey.Generate() });
             } else {
                 this.setState({ errorPrompt: "Name is required" });
             }
@@ -74,8 +88,7 @@ export class Onboarding extends Component<OnboardingProps, OnboardingState> {
             this.setState({ step: "verify" });
         } else if (step === "verify") {
             if (this.checkSecretKeyComplete()) {
-                alert("Secret key confirmed");
-                // this.signUpWithPrivateKey();
+                this.signUpWithPrivateKey();
             } else {
                 this.setState({ errorPrompt: "Secret key is incorrect" });
             }
@@ -97,6 +110,7 @@ export class Onboarding extends Component<OnboardingProps, OnboardingState> {
         const { confirmSecretKey, signUpSecretKey } = this.state;
         // Check if the last 4 characters of the secret key match the input
         if (confirmSecretKey.length !== 4) return false;
+        if (signUpSecretKey === undefined) return false;
         const { bech32 } = signUpSecretKey;
         return bech32.endsWith(confirmSecretKey);
     };
@@ -223,7 +237,12 @@ export class Onboarding extends Component<OnboardingProps, OnboardingState> {
                     </div>
                     <div>
                         <div class={`text-lg font-semibold`}>Secret Key</div>
-                        <TextField text={signUpSecretKey.bech32} />
+                        <TextField
+                            text={
+                                // @ts-ignore
+                                signUpSecretKey.bech32
+                            }
+                        />
                         <div>This is the key to access your account, keep it secret.</div>
                     </div>
 

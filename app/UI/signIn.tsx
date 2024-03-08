@@ -72,7 +72,7 @@ type State = {
     privateKeyError: string;
     nip07Error: string;
 };
-export class SignIn extends Component<Props, State> {
+export class SignInOld extends Component<Props, State> {
     styles = {
         container: `h-screen w-screen bg-[${PrimaryBackgroundColor}] ` +
             `flex flex-col items-center justify-center p-4 overflow-y-auto`,

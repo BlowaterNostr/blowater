@@ -2,10 +2,10 @@
 import { h } from "https://esm.sh/preact@10.17.1";
 import { render } from "https://esm.sh/preact@10.17.1";
 import { testEventBus } from "./_setup.test.ts";
-import { SignIn } from "./signIn.tsx";
+import { SignInOld } from "./signIn.tsx";
 
 render(
-    <SignIn
+    <SignInOld
         emit={testEventBus.emit}
     />,
     document.body,
