@@ -11,12 +11,12 @@ import { PlaceholderColor } from "../../style/colors.ts";
 import { UI_Interaction_Event } from "../../app_update.tsx";
 import { PrivateKey } from "../../../../libs/nostr.ts/key.ts";
 
-interface SignUpProps {
+interface OnboardingProps {
     // Define your component props here
     emit: emitFunc<UI_Interaction_Event>;
 }
 
-interface SignUpState {
+interface OnboardingState {
     name: string;
     step: "onboarding" | "signin" | "name" | "backup" | "verify";
     signInSecretKey?: PrivateKey;
@@ -25,8 +25,8 @@ interface SignUpState {
     confirmSecretKey: string;
 }
 
-export class SignUp extends Component<SignUpProps, SignUpState> {
-    state: SignUpState = {
+export class Onboarding extends Component<OnboardingProps, OnboardingState> {
+    state: OnboardingState = {
         name: "",
         step: "onboarding",
         signInSecretKey: undefined,
