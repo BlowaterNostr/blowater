@@ -1,16 +1,16 @@
 import { Component, Fragment, h } from "https://esm.sh/preact@10.17.1";
-import { InMemoryAccountContext } from "../../../../libs/nostr.ts/nostr.ts";
+import { InMemoryAccountContext } from "../../libs/nostr.ts/nostr.ts";
 
-import { emitFunc } from "../../../event-bus.ts";
-import { CopyButton } from "../../components/copy-button.tsx";
-import { CenterClass, InputClass } from "../../components/tw.ts";
-import { DividerBackgroundColor, PrimaryTextColor, SecondaryTextColor } from "../../style/colors.ts";
-import { SecondaryBackgroundColor } from "../../style/colors.ts";
-import { LocalPrivateKeyController } from "../../signIn.tsx";
-import { PlaceholderColor } from "../../style/colors.ts";
-import { UI_Interaction_Event } from "../../app_update.tsx";
-import { PrivateKey } from "../../../../libs/nostr.ts/key.ts";
-import { setSignInState } from "../../signIn.tsx";
+import { emitFunc } from "../event-bus.ts";
+import { CopyButton } from "./components/copy-button.tsx";
+import { CenterClass, InputClass } from "./components/tw.ts";
+import { DividerBackgroundColor, PrimaryTextColor, SecondaryTextColor } from "./style/colors.ts";
+import { SecondaryBackgroundColor } from "./style/colors.ts";
+import { LocalPrivateKeyController } from "./sign-in.ts";
+import { PlaceholderColor } from "./style/colors.ts";
+import { UI_Interaction_Event } from "./app_update.tsx";
+import { PrivateKey } from "../../libs/nostr.ts/key.ts";
+import { setSignInState } from "./sign-in.ts";
 
 interface OnboardingProps {
     // Define your component props here
