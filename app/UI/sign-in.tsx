@@ -15,12 +15,11 @@ import { SignInEvent } from "./sign-in.ts";
 import { SaveProfile } from "./edit-profile.tsx";
 import { setState } from "./_helper.ts";
 
-interface OnboardingProps {
-    // Define your component props here
-    emit: emitFunc<UI_Interaction_Event>;
+interface Props {
+    emit: emitFunc<SaveProfile | SignInEvent>;
 }
 
-interface OnboardingState {
+interface State {
     step: {
         type: "onboarding";
     } | {
@@ -42,8 +41,8 @@ interface OnboardingState {
     errorPrompt: string;
 }
 
-export class SignIn extends Component<OnboardingProps, OnboardingState> {
-    state: OnboardingState = {
+export class SignIn extends Component<Props, State> {
+    state: State = {
         step: {
             type: "onboarding",
         },
