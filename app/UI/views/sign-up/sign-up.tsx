@@ -4,11 +4,12 @@ import { InMemoryAccountContext } from "../../../../libs/nostr.ts/nostr.ts";
 import { emitFunc } from "../../../event-bus.ts";
 import { CopyButton } from "../../components/copy-button.tsx";
 import { CenterClass, InputClass } from "../../components/tw.ts";
-import { DividerBackgroundColor, PrimaryTextColor } from "../../style/colors.ts";
+import { DividerBackgroundColor, PrimaryTextColor, SecondaryTextColor } from "../../style/colors.ts";
 import { SecondaryBackgroundColor } from "../../style/colors.ts";
 import { LocalPrivateKeyController } from "../../signIn.tsx";
 import { PlaceholderColor } from "../../style/colors.ts";
 import { UI_Interaction_Event } from "../../app_update.tsx";
+import { PrivateKey } from "../../../../libs/nostr.ts/key.ts";
 
 interface SignUpProps {
     // Define your component props here
@@ -17,7 +18,8 @@ interface SignUpProps {
 
 interface SignUpState {
     name: string;
-    step: "name" | "backup" | "verify";
+    step: "onboarding" | "signin" | "name" | "backup" | "verify";
+    signInSecretKey?: PrivateKey;
     errorPrompt: string;
     confirmSecretKey: string;
 }
@@ -27,7 +29,8 @@ const ctx = InMemoryAccountContext.Generate();
 export class SignUp extends Component<SignUpProps, SignUpState> {
     state: SignUpState = {
         name: "",
-        step: "name",
+        step: "onboarding",
+        signInSecretKey: undefined,
         errorPrompt: "",
         confirmSecretKey: "",
     };
@@ -58,6 +61,13 @@ export class SignUp extends Component<SignUpProps, SignUpState> {
             } else {
                 this.setState({ errorPrompt: "Secret key is incorrect" });
             }
+        } else if (step === "signin") {
+            if (this.state.signInSecretKey instanceof PrivateKey) {
+                // this.signInWithPrivateKey();
+                alert("Form submitted");
+            } else {
+                this.setState({ errorPrompt: "Secret key is incorrect" });
+            }
         }
     };
 
@@ -79,12 +89,82 @@ export class SignUp extends Component<SignUpProps, SignUpState> {
         this.setState({ name: (event.target as HTMLInputElement).value });
     };
 
+    handleSignInSecretKeyInput = (privateKeyStr: string) => {
+        let privateKey = PrivateKey.FromHex(privateKeyStr);
+        if (privateKey instanceof Error) {
+            privateKey = PrivateKey.FromBech32(privateKeyStr);
+
+            if (privateKey instanceof Error) {
+                this.setState({
+                    errorPrompt: "Invilid Private Key",
+                });
+                return;
+            }
+        }
+        this.setState({
+            errorPrompt: "",
+            signInSecretKey: privateKey,
+        });
+    };
+
     renderStep() {
         const { step, name, confirmSecretKey, errorPrompt } = this.state;
+        const setpOnboarding = () => {
+            return (
+                <Fragment>
+                    <div class={`text-4xl w-full text-center font-bold`}>Blowater</div>
+                    <div class={`text-md w-full text-center ${SecondaryTextColor}`}>
+                        A delightful Nostr client that focuses on DM
+                    </div>
+                    <button
+                        onClick={() => this.setState({ step: "signin" })}
+                        class={`w-full p-3 rounded-lg focus:outline-none focus-visible:outline-none flex items-center justify-center bg-gradient-to-r from-[#FF762C] via-[#FF3A5E] to-[#FF01A9]  hover:bg-gradient-to-l`}
+                    >
+                        Alreay have an account
+                    </button>
+                    <button
+                        onClick={() => this.setState({ step: "name" })}
+                        class={`w-full p-3 rounded-lg focus:outline-none focus-visible:outline-none flex items-center justify-center bg-gradient-to-r from-[#FF762C] via-[#FF3A5E] to-[#FF01A9]  hover:bg-gradient-to-l`}
+                    >
+                        Sign Up
+                    </button>
+                </Fragment>
+            );
+        };
+        const stepSignIn = () => {
+            return (
+                <Fragment>
+                    <div class={`text-3xl w-full text-center font-bold`}>Sign In</div>
+                    <div class={`text-md w-full text-center`}>What should we call you?</div>
+                    <input
+                        class={`w-full px-4 py-3 rounded-lg resize-y bg-transparent focus:outline-none focus-visible:outline-none border-[2px] border-[${DividerBackgroundColor}] placeholder-[${PlaceholderColor}]`}
+                        placeholder="nsec1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                        type="password"
+                        autofocus
+                        onInput={(e) => this.handleSignInSecretKeyInput(e.currentTarget.value)}
+                    />
+                    <div class={`text-red-500`}>{errorPrompt}</div>
+                    <button
+                        onClick={this.handleNext}
+                        class={`w-full p-3 rounded-lg focus:outline-none focus-visible:outline-none flex items-center justify-center bg-gradient-to-r from-[#FF762C] via-[#FF3A5E] to-[#FF01A9]  hover:bg-gradient-to-l ${
+                            this.checkNameComplete() ? "" : "opacity-50 cursor-not-allowed"
+                        }`}
+                    >
+                        Sign In
+                    </button>
+                    <button
+                        onClick={() => this.setState({ step: "name" })}
+                        class={`border-none bg-transparent text-[#FF3A5E] mt-2 focus:outline-none focus-visible:outline-none`}
+                    >
+                        Go back...I want to sign up
+                    </button>
+                </Fragment>
+            );
+        };
         const stepName = () => {
             return (
                 <Fragment>
-                    <div class={`text-3xl w-full text-center font-bold py-5`}>Sign Up</div>
+                    <div class={`text-3xl w-full text-center font-bold`}>Sign Up</div>
                     <div class={`text-md w-full text-center`}>What should we call you?</div>
                     <input
                         class={`w-full px-4 py-3 rounded-lg resize-y bg-transparent focus:outline-none focus-visible:outline-none border-[2px] border-[${DividerBackgroundColor}] placeholder-[${PlaceholderColor}]`}
@@ -108,7 +188,7 @@ export class SignUp extends Component<SignUpProps, SignUpState> {
         const stepBackup = () => {
             return (
                 <Fragment>
-                    <div class={`text-3xl w-full text-center font-bold py-5`}>Backup your keys</div>
+                    <div class={`text-3xl w-full text-center font-bold`}>Backup your keys</div>
                     <div
                         class={`bg-red-500  flex flex-row p-2  gap-2 items-center`}
                     >
@@ -142,7 +222,7 @@ export class SignUp extends Component<SignUpProps, SignUpState> {
         const stepVerify = () => {
             return (
                 <Fragment>
-                    <div class={`text-3xl w-full text-center font-bold py-5`}>Confirm secret key</div>
+                    <div class={`text-3xl w-full text-center font-bold`}>Confirm secret key</div>
                     <div>
                         <div class={`text-lg font-semibold`}>
                             Last four letters of secret key
@@ -178,6 +258,10 @@ export class SignUp extends Component<SignUpProps, SignUpState> {
             );
         };
         switch (step) {
+            case "onboarding":
+                return setpOnboarding();
+            case "signin":
+                return stepSignIn();
             case "name":
                 return stepName();
             case "backup":
@@ -194,9 +278,9 @@ export class SignUp extends Component<SignUpProps, SignUpState> {
             <div
                 class={`flex flex-col justify-start items-center w-full h-screen bg-[${SecondaryBackgroundColor}] text-[${PrimaryTextColor}]`}
             >
-                <div class={`flex flex-col gap-2 w-[30rem] p-5`}>
+                <div class={`flex flex-col  w-[30rem] py-8 px-5`}>
                     <div class={`flex justify-center items-center w-full`}>
-                        <img src="logo.webp" alt="Blowater Logo" class={`w-20 h-20`} />
+                        <img src="logo.webp" alt="Blowater Logo" class={`w-32 h-32`} />
                     </div>
                     {this.renderStep()}
                 </div>
