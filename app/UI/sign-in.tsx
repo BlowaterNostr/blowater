@@ -50,33 +50,20 @@ export class SignIn extends Component<OnboardingProps, OnboardingState> {
         errorPrompt: "",
     };
 
-    signInWithPrivateKey = async (private_key: string | PrivateKey) => {
-        let pri;
-        if (private_key instanceof PrivateKey) {
-            pri = private_key;
-        } else {
-            pri = PrivateKey.FromString(private_key);
-            if (pri instanceof Error) {
-                await setState(this, {
-                    errorPrompt: pri.message,
-                });
-                return;
-            }
-        }
-        const ctx = InMemoryAccountContext.New(pri);
-        await this.props.emit({
-            type: "SignInEvent",
-            ctx,
-        });
-        setSignInState("local");
-        await LocalPrivateKeyController.setKey("blowater", pri);
-    };
-
-    checkSecretKeyComplete = (confirmSecretKey: string, prikey: PrivateKey) => {
-        // Check if the last 4 characters of the secret key match the input
-        if (confirmSecretKey.length !== 4) return false;
-        return prikey.bech32.endsWith(confirmSecretKey);
-    };
+    render() {
+        return (
+            <div
+                class={`flex flex-col justify-start items-center w-full h-screen bg-[${SecondaryBackgroundColor}] text-[${PrimaryTextColor}]`}
+            >
+                <div class={`flex flex-col  w-[30rem] py-8 px-5`}>
+                    <div class={`flex justify-center items-center w-full`}>
+                        <img src="logo.webp" alt="Blowater Logo" class={`w-32 h-32`} />
+                    </div>
+                    {this.renderStep()}
+                </div>
+            </div>
+        );
+    }
 
     renderStep() {
         const { step } = this.state;
@@ -145,9 +132,7 @@ export class SignIn extends Component<OnboardingProps, OnboardingState> {
                 />
                 <div class={`text-red-500`}>{this.state.errorPrompt}</div>
                 <button
-                    onClick={() => {
-                        this.signInWithPrivateKey(signInSecretKey);
-                    }}
+                    onClick={() => this.signInWithPrivateKey(signInSecretKey)}
                     class={`w-full p-3 rounded-lg focus:outline-none focus-visible:outline-none flex items-center justify-center bg-gradient-to-r from-[#FF762C] via-[#FF3A5E] to-[#FF01A9]  hover:bg-gradient-to-l`}
                 >
                     Sign In
@@ -287,9 +272,7 @@ export class SignIn extends Component<OnboardingProps, OnboardingState> {
                 </div>
                 <div class={`text-red-500`}>{this.state.errorPrompt}</div>
                 <button
-                    onClick={() => {
-                        this.signInWithPrivateKey(signUpSecretKey);
-                    }}
+                    onClick={() => signUpWithPrivateKey(name, signUpSecretKey, this.props.emit)}
                     class={`w-full p-3 rounded-lg focus:outline-none focus-visible:outline-none flex items-center justify-center bg-gradient-to-r from-[#FF762C] via-[#FF3A5E] to-[#FF01A9]  hover:bg-gradient-to-l ${
                         this.checkSecretKeyComplete(confirmSecretKey, signUpSecretKey)
                             ? ""
@@ -315,20 +298,33 @@ export class SignIn extends Component<OnboardingProps, OnboardingState> {
         );
     };
 
-    render() {
-        return (
-            <div
-                class={`flex flex-col justify-start items-center w-full h-screen bg-[${SecondaryBackgroundColor}] text-[${PrimaryTextColor}]`}
-            >
-                <div class={`flex flex-col  w-[30rem] py-8 px-5`}>
-                    <div class={`flex justify-center items-center w-full`}>
-                        <img src="logo.webp" alt="Blowater Logo" class={`w-32 h-32`} />
-                    </div>
-                    {this.renderStep()}
-                </div>
-            </div>
-        );
-    }
+    signInWithPrivateKey = async (private_key: string | PrivateKey) => {
+        let pri;
+        if (private_key instanceof PrivateKey) {
+            pri = private_key;
+        } else {
+            pri = PrivateKey.FromString(private_key);
+            if (pri instanceof Error) {
+                await setState(this, {
+                    errorPrompt: pri.message,
+                });
+                return;
+            }
+        }
+        const ctx = InMemoryAccountContext.New(pri);
+        await this.props.emit({
+            type: "SignInEvent",
+            ctx,
+        });
+        setSignInState("local");
+        await LocalPrivateKeyController.setKey("blowater", pri);
+    };
+
+    checkSecretKeyComplete = (confirmSecretKey: string, prikey: PrivateKey) => {
+        // Check if the last 4 characters of the secret key match the input
+        if (confirmSecretKey.length !== 4) return false;
+        return prikey.bech32.endsWith(confirmSecretKey);
+    };
 }
 
 function TextField(props: {
