@@ -31,6 +31,7 @@ import { ChatMessage } from "./message.ts";
 import { filter, map } from "./_helper.ts";
 import { RightPanel } from "./components/right-panel.tsx";
 import { ComponentChildren } from "https://esm.sh/preact@10.17.1";
+import { SignUp } from "./views/sign-up/sign-up.tsx";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
@@ -298,7 +299,7 @@ export class AppComponent extends Component<AppProps> {
 
         if (model.app == undefined) {
             console.log("render sign in page");
-            return <SignIn emit={props.eventBus.emit} />;
+            return <SignUp emit={props.eventBus.emit} />;
         }
 
         const app = model.app;

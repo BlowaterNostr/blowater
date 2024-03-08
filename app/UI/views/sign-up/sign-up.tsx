@@ -51,6 +51,17 @@ export class SignUp extends Component<SignUpProps, SignUpState> {
         await LocalPrivateKeyController.setKey("blowater", signInSecretKey);
     };
 
+    // signUpWithPrivateKey = async () => {
+    //     const { name, signUpSecretKey } = this.state;
+    //     this.props.emit({
+    //         type: "SignUpEvent",
+    //         ctx: InMemoryAccountContext.New(signUpSecretKey),
+    //         name
+    //     });
+    //     localStorage.setItem("SignInState", "local");
+    //     await LocalPrivateKeyController.setKey("blowater", signUpSecretKey);
+    // }
+
     handleNext = () => {
         const { step } = this.state;
         if (step === "name") {
@@ -62,16 +73,15 @@ export class SignUp extends Component<SignUpProps, SignUpState> {
         } else if (step === "backup") {
             this.setState({ step: "verify" });
         } else if (step === "verify") {
-            // Replace this alert with actual form submission logic
             if (this.checkSecretKeyComplete()) {
-                alert("Form submitted");
+                alert("Secret key confirmed");
+                // this.signUpWithPrivateKey();
             } else {
                 this.setState({ errorPrompt: "Secret key is incorrect" });
             }
         } else if (step === "signin") {
             if (this.state.signInSecretKey instanceof PrivateKey) {
-                // this.signInWithPrivateKey();
-                alert("Form submitted");
+                this.signInWithPrivateKey();
             } else {
                 this.setState({ errorPrompt: "Secret key is incorrect" });
             }
