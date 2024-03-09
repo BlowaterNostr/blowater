@@ -61,12 +61,14 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
         console.log(messages_to_render);
         const groups = groupContinuousMessages(messages_to_render, (pre, cur) => {
             const sameAuthor = pre.event.pubkey == cur.event.pubkey;
-            const _66sec = Math.abs(cur.created_at.getTime() - pre.created_at.getTime()) < 1000 * 60;
+            const _66sec = Math.abs(cur.created_at.getTime() - pre.created_at.getTime()) <
+                1000 * 60;
             return sameAuthor && _66sec;
         });
         const messageBoxGroups = [];
         for (const messages of groups) {
-            const profileEvent = this.props.getters.profileGetter.getProfilesByPublicKey(messages[0].author);
+            const profileEvent = this.props.getters.profileGetter
+                .getProfilesByPublicKey(messages[0].author);
             messageBoxGroups.push(
                 MessageBoxGroup({
                     messages: messages,
@@ -100,9 +102,13 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
                     class={`w-full h-full overflow-y-auto overflow-x-hidden py-9 mobile:py-2 px-2 mobile:px-0 flex flex-col`}
                     ref={this.messagesULElement}
                 >
-                    <button class={`${IconButtonClass}`} onClick={this.prePage}>load earlier messages</button>
+                    <button class={`${IconButtonClass}`} onClick={this.prePage}>
+                        load earlier messages
+                    </button>
                     {messageBoxGroups}
-                    <button class={`${IconButtonClass}`} onClick={this.nextPage}>load more messages</button>
+                    <button class={`${IconButtonClass}`} onClick={this.nextPage}>
+                        load more messages
+                    </button>
                 </ul>
             </div>
         );
@@ -158,13 +164,17 @@ class JitterPrevention {
     }
 }
 
-export type func_GetEventByID = (id: string | NoteID) => Parsed_Event | undefined;
+export type func_GetEventByID = (
+    id: string | NoteID,
+) => Parsed_Event | undefined;
 
 function MessageBoxGroup(props: {
     authorProfile: ProfileData | undefined;
     messages: ChatMessage[];
     myPublicKey: PublicKey;
-    emit: emitFunc<DirectMessagePanelUpdate | ViewUserDetail | SelectConversation | SyncEvent>;
+    emit: emitFunc<
+        DirectMessagePanelUpdate | ViewUserDetail | SelectConversation | SyncEvent
+    >;
     getters: {
         profileGetter: ProfileGetter;
         relayRecordGetter: RelayRecordGetter;
@@ -182,7 +192,8 @@ function MessageBoxGroup(props: {
             {MessageActions(first_message, props.emit)}
             <Avatar
                 class={`h-8 w-8 mt-[0.45rem] mr-2`}
-                picture={props.authorProfile?.picture || robohash(first_message.author.hex)}
+                picture={props.authorProfile?.picture ||
+                    robohash(first_message.author.hex)}
                 onClick={() => {
                     props.emit({
                         type: "ViewUserDetail",
@@ -208,7 +219,6 @@ function MessageBoxGroup(props: {
                 >
                     {ParseMessageContent(
                         first_message,
-                        props.authorProfile,
                         props.emit,
                         props.getters,
                         )}
@@ -236,12 +246,7 @@ function MessageBoxGroup(props: {
                     <pre
                         class={`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto`}
                     >
-                    {ParseMessageContent(
-                        msg,
-                        props.authorProfile,
-                        props.emit,
-                        props.getters
-                        )}
+                    {ParseMessageContent(msg, props.emit, props.getters)}
                     </pre>
                 </div>
             </li>,

@@ -19,6 +19,8 @@
         }
     },
     "fmt": {
-        "exclude": ["UI/vendor/", "vendor", "cov_profile", "*tauri-app"]
+        "exclude": ["UI/vendor/", "vendor", "cov_profile", "*tauri-app"],
+        "indentWidth": 4,
+        "lineWidth": 110
     }
 }

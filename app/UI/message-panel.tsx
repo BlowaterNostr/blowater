@@ -136,7 +136,6 @@ export type SyncEvent = {
 
 export function ParseMessageContent(
     message: ChatMessage,
-    authorProfile: ProfileData | undefined,
     emit: emitFunc<ViewUserDetail | OpenNote | SelectConversation | SyncEvent>,
     getters: {
         profileGetter: ProfileGetter;
@@ -184,25 +183,20 @@ export function ParseMessageContent(
                 );
             }
         } else if (item.type == "npub") {
-            if (authorProfile) {
-                const profile = getters.profileGetter.getProfilesByPublicKey(item.pubkey);
+            const profile = getters.profileGetter.getProfilesByPublicKey(item.pubkey);
+            if (profile) {
                 vnode.push(
                     <ProfileCard
-                        profileData={profile ? profile.profile : undefined}
+                        profileData={profile.profile}
                         publicKey={item.pubkey}
                         emit={emit}
                     />,
                 );
             } else {
-                // profilesSyncer.add(item.pubkey.hex);
-                // todo: what to do?
-                // maybe signal an event to the bus
-                // or maybe it's not necessary because now we
-                // are syncing all kind 0s
+                vnode.push(
+                    <ProfileCard publicKey={item.pubkey} emit={emit} />,
+                );
             }
-            vnode.push(
-                <ProfileCard publicKey={item.pubkey} emit={emit} />,
-            );
         } else if (item.type == "note") {
             const event = getters.getEventByID(item.noteID);
             if (event == undefined || event.kind == NostrKind.DIRECT_MESSAGE) {
