@@ -103,7 +103,7 @@ export async function Start(database: DexieDatabase) {
     );
 
     for await (
-        let _ of UI_Interaction_Update({
+        let ok of UI_Interaction_Update({
             model,
             eventBus,
             dbView: dbView,
@@ -115,6 +115,9 @@ export async function Start(database: DexieDatabase) {
             installPrompt,
         })
     ) {
+        if (ok == false) {
+            continue;
+        }
         const t = Date.now();
         {
             render(
@@ -325,8 +328,8 @@ export class AppComponent extends Component<AppProps> {
                             pinListGetter: app.otherConfig,
                             profileGetter: app.database,
                             isUserBlocked: app.conversationLists.isUserBlocked,
+                            getEventByID: app.database.getEventByID,
                         }}
-                        eventSyncer={app.eventSyncer}
                         userBlocker={app.conversationLists}
                     />
                 );
@@ -349,6 +352,7 @@ export class AppComponent extends Component<AppProps> {
                         relayRecordGetter: app.database,
                         profileGetter: app.database,
                         isUserBlocked: app.conversationLists.isUserBlocked,
+                        getEventByID: app.database.getEventByID,
                     }}
                     messages={Array.from(
                         map(
@@ -376,7 +380,6 @@ export class AppComponent extends Component<AppProps> {
                     )}
                     relay={props.pool.getRelay(model.currentRelay) as SingleRelayConnection}
                     bus={app.eventBus}
-                    eventSyncer={app.eventSyncer}
                 />
             );
         }

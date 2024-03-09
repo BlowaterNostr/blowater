@@ -210,12 +210,12 @@ export function sortMessage(messages: ChatMessage[]) {
         .sort((m1, m2) => {
             if (m1.lamport && m2.lamport) {
                 if (m1.lamport == m2.lamport) {
-                    return m2.created_at.getTime() - m1.created_at.getTime();
+                    return m1.created_at.getTime() - m2.created_at.getTime();
                 } else {
-                    return m2.lamport - m1.lamport;
+                    return m1.lamport - m2.lamport;
                 }
             }
-            return m2.created_at.getTime() - m1.created_at.getTime();
+            return m1.created_at.getTime() - m2.created_at.getTime();
         });
 }
 

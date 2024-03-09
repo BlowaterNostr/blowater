@@ -4,6 +4,7 @@ import { parseJSON, ProfileData } from "./features/profile.ts";
 import { NostrEvent, NostrKind, Tag, verifyEvent } from "../libs/nostr.ts/nostr.ts";
 import { PublicKey } from "../libs/nostr.ts/key.ts";
 import { ProfileGetter, ProfileSetter } from "./UI/search.tsx";
+import { NoteID } from "../libs/nostr.ts/nip19.ts";
 
 const buffer_size = 2000;
 export interface Indices {
@@ -136,6 +137,16 @@ export class Datebase_View
         }
         return this.events.get(keys.id);
     }
+
+    getEventByID = (id: string | NoteID) => {
+        if (id instanceof NoteID) {
+            id = id.hex;
+        }
+        if (this.removedEvents.has(id)) {
+            return;
+        }
+        return this.events.get(id);
+    };
 
     *getAllEvents() {
         for (const event of this.events.values()) {

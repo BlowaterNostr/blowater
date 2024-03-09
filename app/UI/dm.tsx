@@ -20,6 +20,7 @@ import {
     NewMessageChecker,
     PinListGetter,
 } from "./conversation-list.tsx";
+import { func_GetEventByID } from "./message-list.tsx";
 
 export type DM_Model = {
     currentConversation: PublicKey | undefined;
@@ -36,8 +37,8 @@ type DirectMessageContainerProps = {
         newMessageChecker: NewMessageChecker;
         relayRecordGetter: RelayRecordGetter;
         isUserBlocked: (pubkey: PublicKey) => boolean;
+        getEventByID: func_GetEventByID;
     };
-    eventSyncer: EventSyncer;
     userBlocker: UserBlocker;
 } & DM_Model;
 
@@ -77,10 +78,10 @@ export class DirectMessageContainer extends Component<DirectMessageContainerProp
                             />
                             <div class={`flex-1 overflow-auto`}>
                                 <MessagePanel
+                                    key={this.props.currentConversation}
                                     myPublicKey={props.ctx.publicKey}
                                     emit={props.bus.emit}
                                     eventSub={props.bus}
-                                    eventSyncer={props.eventSyncer}
                                     getters={props.getters}
                                     messages={props.getters.messageGetter.getChatMessages(
                                         this.props.currentConversation.hex,
