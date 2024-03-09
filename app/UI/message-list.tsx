@@ -42,30 +42,11 @@ interface MessageListState {
 const ItemsOfPerPage = 10;
 
 export class MessageList extends Component<MessageListProps, MessageListState> {
-    messagesULElement = createRef<HTMLUListElement>();
+    readonly messagesULElement = createRef<HTMLUListElement>();
     state = {
         offset: 0,
     };
     jitter = new JitterPrevention(100);
-
-    onScroll = async (e: h.JSX.TargetedUIEvent<HTMLUListElement>) => {
-        console.log("scroll");
-        // if (
-        //     e.currentTarget.scrollHeight - e.currentTarget.offsetHeight +
-        //             e.currentTarget.scrollTop < 1000
-        // ) {
-        //     const ok = await this.jitter.shouldExecute();
-        //     if (!ok || this.state.currentRenderCount >= this.props.messages.length) {
-        //         return;
-        //     }
-        //     this.setState({
-        //         currentRenderCount: Math.min(
-        //             this.state.currentRenderCount + ItemsOfPerPage,
-        //             this.props.messages.length,
-        //         ),
-        //     });
-        // }
-    };
 
     sortAndSliceMessage = () => {
         return sortMessage(this.props.messages)
@@ -76,8 +57,9 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
     };
 
     render() {
-        const t = Date.now();
-        const groups = groupContinuousMessages(this.sortAndSliceMessage(), (pre, cur) => {
+        const messages_to_render = this.sortAndSliceMessage();
+        console.log(messages_to_render);
+        const groups = groupContinuousMessages(messages_to_render, (pre, cur) => {
             const sameAuthor = pre.event.pubkey == cur.event.pubkey;
             const _66sec = Math.abs(cur.created_at.getTime() - pre.created_at.getTime()) < 1000 * 60;
             return sameAuthor && _66sec;
@@ -104,15 +86,7 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
                 }}
             >
                 <button
-                    onClick={() => {
-                        if (this.messagesULElement.current) {
-                            this.messagesULElement.current.scrollTo({
-                                top: this.messagesULElement.current.scrollHeight,
-                                left: 0,
-                                behavior: "smooth",
-                            });
-                        }
-                    }}
+                    onClick={this.goToButtom}
                     class={`${IconButtonClass} mobile:hidden fixed z-10 bottom-8 right-4 h-10 w-10 rotate-[-90deg] bg-[#42464D] hover:bg-[#2F3136]`}
                 >
                     <LeftArrowIcon
@@ -123,17 +97,25 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
                     />
                 </button>
                 <ul
-                    class={`w-full h-full overflow-y-auto overflow-x-hidden py-9 mobile:py-2 px-2 mobile:px-0 flex flex-col-reverse`}
+                    class={`w-full h-full overflow-y-auto overflow-x-hidden py-9 mobile:py-2 px-2 mobile:px-0 flex flex-col`}
                     ref={this.messagesULElement}
-                    onScroll={this.onScroll}
                 >
                     {messageBoxGroups}
                 </ul>
             </div>
         );
-        console.log("MessageList:end", Date.now() - t);
         return vNode;
     }
+
+    goToButtom = () => {
+        if (this.messagesULElement.current) {
+            this.messagesULElement.current.scrollTo({
+                top: this.messagesULElement.current.scrollHeight,
+                left: 0,
+                behavior: "smooth",
+            });
+        }
+    };
 }
 
 class JitterPrevention {
