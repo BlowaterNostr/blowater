@@ -23,6 +23,7 @@ import { AboutIcon } from "./icons/about-icon.tsx";
 import { BackgroundColor_MessagePanel, PrimaryTextColor } from "./style/colors.ts";
 import { Parsed_Event } from "../nostr.ts";
 import { NoteID } from "../../libs/nostr.ts/nip19.ts";
+import { robohash } from "./relay-detail.tsx";
 
 interface MessageListProps {
     myPublicKey: PublicKey;
@@ -170,7 +171,7 @@ function MessageBoxGroup(props: {
         getEventByID: func_GetEventByID;
     };
 }) {
-    const first_group = props.messages[0];
+    const first_message = props.messages[0];
     const rows = [];
     rows.push(
         <li
@@ -178,14 +179,14 @@ function MessageBoxGroup(props: {
                 isMobile() ? "select-none" : ""
             }`}
         >
-            {MessageActions(first_group, props.emit)}
+            {MessageActions(first_message, props.emit)}
             <Avatar
                 class={`h-8 w-8 mt-[0.45rem] mr-2`}
-                picture={props.authorProfile?.picture}
+                picture={props.authorProfile?.picture || robohash(first_message.author.hex)}
                 onClick={() => {
                     props.emit({
                         type: "ViewUserDetail",
-                        pubkey: first_group.author,
+                        pubkey: first_message.author,
                     });
                 }}
             />
@@ -197,16 +198,16 @@ function MessageBoxGroup(props: {
                 }}
             >
                 {NameAndTime(
-                    first_group.author,
+                    first_message.author,
                     props.authorProfile,
                     props.myPublicKey,
-                    first_group.created_at,
+                    first_message.created_at,
                 )}
                 <pre
                     class={`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto text-sm`}
                 >
                     {ParseMessageContent(
-                        first_group,
+                        first_message,
                         props.authorProfile,
                         props.emit,
                         props.getters,

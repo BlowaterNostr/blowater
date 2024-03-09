@@ -22,6 +22,7 @@ import { Component, ComponentChildren } from "https://esm.sh/preact@10.11.3";
 import { ProfileGetter } from "./search.tsx";
 import { emitFunc } from "../event-bus.ts";
 import { NostrAccountContext } from "../../libs/nostr.ts/nostr.ts";
+import { robohash } from "./relay-detail.tsx";
 
 export type SaveProfile = {
     type: "SaveProfile";
@@ -195,14 +196,14 @@ export class EditProfile extends Component<Props, State> {
                     }}
                 >
                     <Avatar
-                        picture={this.state.profile?.picture}
+                        picture={this.state.profile?.picture || robohash(this.props.ctx.publicKey.hex)}
                         class={`w-24 h-24 m-auto absolute top-60 left-1/2 rounded-full box-border border-2 border-[${PrimaryTextColor}] -translate-x-2/4`}
                     />
                 </div>
             )
             : (
                 <Avatar
-                    picture={this.state.profile?.picture}
+                    picture={this.state.profile?.picture || robohash(this.props.ctx.publicKey.hex)}
                     class={`w-24 h-24 m-auto box-border border-2 border-[${PrimaryTextColor}]`}
                 />
             );

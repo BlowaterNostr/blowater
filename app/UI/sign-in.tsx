@@ -13,6 +13,7 @@ import { setSignInState } from "./sign-in.ts";
 import { SignInEvent } from "./sign-in.ts";
 import { SaveProfile } from "./edit-profile.tsx";
 import { setState } from "./_helper.ts";
+import { robohash } from "./relay-detail.tsx";
 
 interface Props {
     emit: emitFunc<SaveProfile | SignInEvent>;
@@ -356,7 +357,7 @@ async function signInWithNewPrivateKey(
         ctx: InMemoryAccountContext.New(signUpSecretKey),
         profile: {
             name,
-            picture: `https://robohash.org/${name}`,
+            picture: robohash(name),
         },
     });
     setSignInState("local");

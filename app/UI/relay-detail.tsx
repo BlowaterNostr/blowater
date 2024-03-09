@@ -173,7 +173,10 @@ function AuthorField(props: {
     return (
         <Fragment>
             <div class={styles.container}>
-                <Avatar picture={profileData?.profile.picture} class={styles.avatar} />
+                <Avatar
+                    picture={profileData?.profile.picture || robohash(props.publicKey)}
+                    class={styles.avatar}
+                />
                 <p class={styles.name}>{profileData?.profile.name || pubkey.bech32()}</p>
             </div>
 
@@ -218,10 +221,14 @@ export async function getRelayInformation(url: string) {
         const detail = await res.text();
         const info = JSON.parse(detail) as RelayInformation;
         if (!info.icon) {
-            info.icon = `https://robohash.org/${url}`;
+            info.icon = robohash(url);
         }
         return info;
     } catch (e) {
         return e as Error;
     }
+}
+
+export function robohash(url: string | URL) {
+    return `https://robohash.org/${url}`;
 }

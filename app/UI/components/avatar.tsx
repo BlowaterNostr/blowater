@@ -2,7 +2,7 @@
 import { h } from "https://esm.sh/preact@10.17.1";
 
 export function Avatar(props: {
-    picture: string | undefined;
+    picture: string;
     style?:
         | string
         | h.JSX.CSSProperties
@@ -21,7 +21,7 @@ export function Avatar(props: {
             <img
                 onClick={props.onClick}
                 class={`w-full h-full rounded-full ${props.onClick ? "cursor-pointer" : ""}`}
-                src={props.picture ? props.picture : "logo.webp"}
+                src={props.picture}
                 alt="avatar"
                 onError={(e) => {
                     e.currentTarget.src = "logo.webp";
@@ -77,36 +77,25 @@ function SantaHat(props: { class?: string }) {
 }
 
 export function RelayAvatar(props: {
-    name: string;
-    icon?: string;
-    onClick?: h.JSX.MouseEventHandler<HTMLImageElement>;
+    icon: string;
 }) {
-    if (props.icon) {
-        return (
-            <img
-                onClick={props.onClick}
-                class={`w-full h-full rounded-full ${props.onClick ? "cursor-pointer" : ""}`}
-                src={props.icon}
-                alt="avatar"
-                onError={(e) => {
-                    e.currentTarget.src = "logo.webp";
+    return (
+        <img
+            class={`w-full h-full rounded-full`}
+            src={props.icon}
+            alt="avatar"
+            onError={(e) => {
+                e.currentTarget.src = "logo.webp";
+                e.currentTarget.style.objectFit = "contain";
+            }}
+            onLoad={(e) => {
+                if (e.currentTarget.src.endsWith("logo.webp")) {
                     e.currentTarget.style.objectFit = "contain";
-                }}
-                onLoad={(e) => {
-                    if (e.currentTarget.src.endsWith("logo.webp")) {
-                        e.currentTarget.style.objectFit = "contain";
-                    } else {
-                        e.currentTarget.style.objectFit = "cover";
-                    }
-                }}
-            >
-            </img>
-        );
-    } else {
-        return (
-            <div class="break-all">
-                {props.name}
-            </div>
-        );
-    }
+                } else {
+                    e.currentTarget.style.objectFit = "cover";
+                }
+            }}
+        >
+        </img>
+    );
 }

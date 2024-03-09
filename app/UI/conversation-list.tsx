@@ -19,6 +19,7 @@ import { SearchUpdate, SelectConversation } from "./search_model.ts";
 import { ErrorColor, PrimaryTextColor, SecondaryBackgroundColor } from "./style/colors.ts";
 import { ContactTag, ContactTags, TagSelected } from "./contact-tags.tsx";
 import { ViewUserDetail } from "./message-panel.tsx";
+import { robohash } from "./relay-detail.tsx";
 
 export interface ConversationListRetriever {
     getContacts: () => Iterable<ConversationSummary>;
@@ -316,7 +317,7 @@ function ConversationListItem(props: ListItemProps) {
         <Fragment>
             <Avatar
                 class={`w-8 h-8 mr-2`}
-                picture={props.profile?.picture}
+                picture={props.profile?.picture || robohash(props.conversation.pubkey.hex)}
             />
             <div
                 class={`flex-1 overflow-hidden relative`}

@@ -5,7 +5,7 @@ import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 import { emitFunc } from "../event-bus.ts";
 import { RelayAvatar } from "./components/avatar.tsx";
 import { SelectRelay } from "./nav.tsx";
-import { getRelayInformation, RelayInformation } from "./relay-detail.tsx";
+import { getRelayInformation, RelayInformation, robohash } from "./relay-detail.tsx";
 import { setState } from "./_helper.ts";
 
 type RelaySwitchListProps = {
@@ -54,7 +54,7 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
                 continue;
             }
             relayList.push(
-                this.RelayListItem(relay, this.props.currentRelay),
+                this.RelayListItem(relay, this.props.currentRelay == relay.url),
             );
         }
         return (
@@ -66,11 +66,11 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
                     {this.props.currentRelay
                         ? (
                             <RelayAvatar
-                                icon={this.state.relayInformation.get(this.props.currentRelay)?.icon}
-                                name={getSecondaryDomainName(this.props.currentRelay)}
+                                icon={this.state.relayInformation.get(this.props.currentRelay)?.icon ||
+                                    robohash(this.props.currentRelay)}
                             />
                         )
-                        : <RelayAvatar icon="logo.webp" name="" />}
+                        : <RelayAvatar icon="logo.webp" />}
                 </div>
                 {this.state.showRelayList
                     ? (
@@ -97,8 +97,8 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
         );
     }
 
-    RelayListItem(relay: SingleRelayConnection, currentRelay?: string) {
-        const selected = relay.url === currentRelay ? " border-[#000] border-2" : "";
+    RelayListItem(relay: SingleRelayConnection, isCurrentRelay: boolean) {
+        const selected = isCurrentRelay ? " border-[#000] border-2" : "";
         return (
             <div
                 class={`flex flex-row mx-1 my-1 hover:bg-[rgb(244,244,244)] hover:cursor-pointer items-center rounded`}
@@ -107,8 +107,8 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
                 <div class={`flex justify-center items-center w-12 h-12 rounded-md ${selected}`}>
                     <div class={`w-10 h-10 border rounded-md `}>
                         <RelayAvatar
-                            icon={this.state.relayInformation.get(relay.url)?.icon}
-                            name={getSecondaryDomainName(relay.url)}
+                            icon={this.state.relayInformation.get(relay.url)?.icon ||
+                                robohash(relay.url)}
                         />
                     </div>
                 </div>

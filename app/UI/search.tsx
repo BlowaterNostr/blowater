@@ -13,6 +13,7 @@ import { emitFunc } from "../event-bus.ts";
 import { SearchUpdate } from "./search_model.ts";
 import { Profile_Nostr_Event } from "../nostr.ts";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
+import { robohash } from "./relay-detail.tsx";
 
 export type SearchResultChannel = Channel<SearchResult[]>;
 
@@ -109,7 +110,7 @@ export class Search extends Component<Props, State> {
                         >
                             <Avatar
                                 class={this.styles.result.item.avatar}
-                                picture={undefined}
+                                picture={robohash(this.state.searchResults.hex)}
                             />
                             <p class={this.styles.result.item.text}>
                                 {this.state.searchResults.bech32()}
@@ -127,7 +128,7 @@ export class Search extends Component<Props, State> {
                                     >
                                         <Avatar
                                             class={this.styles.result.item.avatar}
-                                            picture={result.profile.picture}
+                                            picture={result.profile.picture || robohash(result.pubkey)}
                                         />
                                         <p class={this.styles.result.item.text}>
                                             {result.profile.name}

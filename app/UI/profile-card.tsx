@@ -7,6 +7,7 @@ import { Avatar } from "./components/avatar.tsx";
 import { DividerClass } from "./components/tw.ts";
 import { ViewUserDetail } from "./message-panel.tsx";
 import { cardBackgroundColor, HintLinkColor, HintTextColor, LinkColor } from "./style/colors.ts";
+import { robohash } from "./relay-detail.tsx";
 
 export function ProfileCard(props: {
     profileData?: ProfileData;
@@ -35,7 +36,11 @@ export function ProfileCard(props: {
     return (
         <div class={styles.container} onClick={onClick}>
             <div class={styles.profile.container}>
-                <Avatar class={styles.profile.avatar} picture={profileData?.picture}></Avatar>
+                <Avatar
+                    class={styles.profile.avatar}
+                    picture={profileData?.picture || robohash(props.publicKey.hex)}
+                >
+                </Avatar>
                 <p class={styles.profile.name}>
                     {profileData?.name || publicKey.bech32()}
                 </p>
