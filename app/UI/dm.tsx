@@ -20,6 +20,7 @@ import {
     NewMessageChecker,
     PinListGetter,
 } from "./conversation-list.tsx";
+import { func_GetEventByID } from "./message-list.tsx";
 
 export type DM_Model = {
     currentConversation: PublicKey | undefined;
@@ -36,6 +37,7 @@ type DirectMessageContainerProps = {
         newMessageChecker: NewMessageChecker;
         relayRecordGetter: RelayRecordGetter;
         isUserBlocked: (pubkey: PublicKey) => boolean;
+        getEventByID: func_GetEventByID;
     };
     eventSyncer: EventSyncer;
     userBlocker: UserBlocker;

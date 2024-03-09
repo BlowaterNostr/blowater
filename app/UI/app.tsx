@@ -325,6 +325,7 @@ export class AppComponent extends Component<AppProps> {
                             pinListGetter: app.otherConfig,
                             profileGetter: app.database,
                             isUserBlocked: app.conversationLists.isUserBlocked,
+                            getEventByID: app.database.getEventByID,
                         }}
                         eventSyncer={app.eventSyncer}
                         userBlocker={app.conversationLists}
@@ -349,6 +350,7 @@ export class AppComponent extends Component<AppProps> {
                         relayRecordGetter: app.database,
                         profileGetter: app.database,
                         isUserBlocked: app.conversationLists.isUserBlocked,
+                        getEventByID: app.database.getEventByID,
                     }}
                     messages={Array.from(
                         map(

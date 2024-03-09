@@ -47,6 +47,7 @@ import { RelayRecommendList } from "./relay-recommend-list.tsx";
 import { HidePopOver } from "./components/popover.tsx";
 import { Social_Model } from "./channel-container.tsx";
 import { DM_Model } from "./dm.tsx";
+import { SyncEvent } from "./message-panel.tsx";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -69,7 +70,8 @@ export type UI_Interaction_Event =
     | BlockUser
     | UnblockUser
     | SelectRelay
-    | HidePopOver;
+    | HidePopOver
+    | SyncEvent;
 
 type BackToChannelList = {
     type: "BackToChannelList";

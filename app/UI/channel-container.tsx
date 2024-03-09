@@ -18,10 +18,13 @@ import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
 import { MessagePanel } from "./message-panel.tsx";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { ChatMessage } from "./message.ts";
+import { func_GetEventByID } from "./message-list.tsx";
 
 export type Social_Model = {
     relaySelectedChannel: Map<string, /* relay url */ string /* channel name */>;
 };
+
+export type func_IsUserBlocked = (pubkey: PublicKey) => boolean;
 
 type ChannelContainerProps = {
     ctx: NostrAccountContext;
@@ -33,7 +36,8 @@ type ChannelContainerProps = {
         convoListRetriever: ConversationListRetriever;
         newMessageChecker: NewMessageChecker;
         relayRecordGetter: RelayRecordGetter;
-        isUserBlocked: (pubkey: PublicKey) => boolean;
+        isUserBlocked: func_IsUserBlocked;
+        getEventByID: func_GetEventByID;
     };
     eventSyncer: EventSyncer;
 } & Social_Model;

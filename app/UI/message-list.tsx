@@ -3,12 +3,12 @@ import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { RelayRecordGetter } from "../database.ts";
 import { emitFunc } from "../event-bus.ts";
 import { IconButtonClass } from "./components/tw.ts";
-import { EventSyncer } from "./event_syncer.ts";
 import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
 import {
     DirectMessagePanelUpdate,
     NameAndTime,
     ParseMessageContent,
+    SyncEvent,
     Time,
     ViewUserDetail,
 } from "./message-panel.tsx";
@@ -21,63 +21,57 @@ import { isMobile } from "./_helper.ts";
 import { Avatar } from "./components/avatar.tsx";
 import { AboutIcon } from "./icons/about-icon.tsx";
 import { BackgroundColor_MessagePanel, PrimaryTextColor } from "./style/colors.ts";
+import { Parsed_Event } from "../nostr.ts";
+import { NoteID } from "../../libs/nostr.ts/nip19.ts";
 
 interface MessageListProps {
     myPublicKey: PublicKey;
     messages: ChatMessage[];
-    emit: emitFunc<DirectMessagePanelUpdate | SelectConversation>;
-    eventSyncer: EventSyncer;
+    emit: emitFunc<DirectMessagePanelUpdate | SelectConversation | SyncEvent>;
     getters: {
         profileGetter: ProfileGetter;
         relayRecordGetter: RelayRecordGetter;
+        getEventByID: func_GetEventByID;
     };
 }
 
 interface MessageListState {
-    currentRenderCount: number;
+    offset: number;
 }
 
-const ItemsOfPerPage = 100;
+const ItemsOfPerPage = 10;
 
 export class MessageList extends Component<MessageListProps, MessageListState> {
-    constructor(public props: MessageListProps) {
-        super();
-    }
     messagesULElement = createRef<HTMLUListElement>();
     state = {
-        currentRenderCount: ItemsOfPerPage,
+        offset: 0,
     };
     jitter = new JitterPrevention(100);
 
-    componentWillReceiveProps() {
-        this.setState({
-            currentRenderCount: ItemsOfPerPage,
-        });
-    }
-
     onScroll = async (e: h.JSX.TargetedUIEvent<HTMLUListElement>) => {
-        if (
-            e.currentTarget.scrollHeight - e.currentTarget.offsetHeight +
-                    e.currentTarget.scrollTop < 1000
-        ) {
-            const ok = await this.jitter.shouldExecute();
-            if (!ok || this.state.currentRenderCount >= this.props.messages.length) {
-                return;
-            }
-            this.setState({
-                currentRenderCount: Math.min(
-                    this.state.currentRenderCount + ItemsOfPerPage,
-                    this.props.messages.length,
-                ),
-            });
-        }
+        console.log("scroll");
+        // if (
+        //     e.currentTarget.scrollHeight - e.currentTarget.offsetHeight +
+        //             e.currentTarget.scrollTop < 1000
+        // ) {
+        //     const ok = await this.jitter.shouldExecute();
+        //     if (!ok || this.state.currentRenderCount >= this.props.messages.length) {
+        //         return;
+        //     }
+        //     this.setState({
+        //         currentRenderCount: Math.min(
+        //             this.state.currentRenderCount + ItemsOfPerPage,
+        //             this.props.messages.length,
+        //         ),
+        //     });
+        // }
     };
 
     sortAndSliceMessage = () => {
         return sortMessage(this.props.messages)
             .slice(
-                0,
-                this.state.currentRenderCount,
+                this.state.offset,
+                ItemsOfPerPage,
             );
     };
 
@@ -96,7 +90,6 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
                     messages: messages,
                     myPublicKey: this.props.myPublicKey,
                     emit: this.props.emit,
-                    eventSyncer: this.props.eventSyncer,
                     authorProfile: profileEvent ? profileEvent.profile : undefined,
                     getters: this.props.getters,
                 }),
@@ -160,15 +153,17 @@ class JitterPrevention {
     }
 }
 
+export type func_GetEventByID = (id: string | NoteID) => Parsed_Event | undefined;
+
 function MessageBoxGroup(props: {
     authorProfile: ProfileData | undefined;
     messages: ChatMessage[];
     myPublicKey: PublicKey;
-    emit: emitFunc<DirectMessagePanelUpdate | ViewUserDetail | SelectConversation>;
-    eventSyncer: EventSyncer;
+    emit: emitFunc<DirectMessagePanelUpdate | ViewUserDetail | SelectConversation | SyncEvent>;
     getters: {
         profileGetter: ProfileGetter;
         relayRecordGetter: RelayRecordGetter;
+        getEventByID: func_GetEventByID;
     };
 }) {
     const messageGroups = props.messages.reverse();
@@ -213,9 +208,8 @@ function MessageBoxGroup(props: {
                     {ParseMessageContent(
                         first_group,
                         props.authorProfile,
-                        props.eventSyncer,
                         props.emit,
-                        props.getters.profileGetter,
+                        props.getters,
                         )}
                 </pre>
             </div>
@@ -244,9 +238,8 @@ function MessageBoxGroup(props: {
                     {ParseMessageContent(
                         msg,
                         props.authorProfile,
-                        props.eventSyncer,
                         props.emit,
-                        props.getters.profileGetter
+                        props.getters
                         )}
                     </pre>
                 </div>

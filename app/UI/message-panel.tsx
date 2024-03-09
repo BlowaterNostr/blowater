@@ -23,7 +23,7 @@ import {
     LinkColor,
 } from "./style/colors.ts";
 import { BlockUser, UnblockUser } from "./user-detail.tsx";
-import { MessageList } from "./message-list.tsx";
+import { func_GetEventByID, MessageList } from "./message-list.tsx";
 
 export type DirectMessagePanelUpdate =
     | ViewUserDetail
@@ -54,6 +54,7 @@ interface DirectMessagePanelProps {
         | SelectConversation
         | BlockUser
         | UnblockUser
+        | SyncEvent
     >;
     eventSub: EventSubscriber<UI_Interaction_Event>;
     eventSyncer: EventSyncer;
@@ -62,6 +63,7 @@ interface DirectMessagePanelProps {
         profileGetter: ProfileGetter;
         relayRecordGetter: RelayRecordGetter;
         isUserBlocked: (pubkey: PublicKey) => boolean;
+        getEventByID: func_GetEventByID;
     };
 }
 
@@ -76,7 +78,6 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
                         myPublicKey={props.myPublicKey}
                         messages={props.messages}
                         emit={props.emit}
-                        eventSyncer={props.eventSyncer}
                         getters={props.getters}
                     />
 
@@ -129,12 +130,19 @@ export function NameAndTime(
     );
 }
 
+export type SyncEvent = {
+    type: "SyncEvent";
+    eventID: string;
+};
+
 export function ParseMessageContent(
     message: ChatMessage,
     authorProfile: ProfileData | undefined,
-    eventSyncer: EventSyncer,
-    emit: emitFunc<ViewUserDetail | OpenNote | SelectConversation>,
-    profileGetter: ProfileGetter,
+    emit: emitFunc<ViewUserDetail | OpenNote | SelectConversation | SyncEvent>,
+    getters: {
+        profileGetter: ProfileGetter;
+        getEventByID: func_GetEventByID;
+    },
 ) {
     if (message.type == "image") {
         return (
@@ -152,85 +160,76 @@ export function ParseMessageContent(
     for (const item of parsedContentItems) {
         vnode.push(message.content.slice(start, item.start));
         const itemStr = message.content.slice(item.start, item.end + 1);
-        switch (item.type) {
-            case "url":
-                {
-                    if (urlIsImage(itemStr)) {
-                        vnode.push(
-                            <img
-                                class={`w-96 p-1 rounded-lg border-2 border-[${DividerBackgroundColor}]`}
-                                src={itemStr}
-                            />,
-                        );
-                    } else if (urlIsVideo(itemStr)) {
-                        vnode.push(
-                            <video
-                                class={`w-96 p-1 rounded-lg border-2 border-[${DividerBackgroundColor}]`}
-                                controls
-                                src={itemStr}
-                            >
-                            </video>,
-                        );
-                    } else {
-                        vnode.push(
-                            <a target="_blank" class={`hover:underline text-[${LinkColor}]`} href={itemStr}>
-                                {itemStr}
-                            </a>,
-                        );
-                    }
-                }
-                break;
-            case "npub":
-                {
-                    if (authorProfile) {
-                        const profile = profileGetter.getProfilesByPublicKey(item.pubkey);
-                        vnode.push(
-                            <ProfileCard
-                                profileData={profile ? profile.profile : undefined}
-                                publicKey={item.pubkey}
-                                emit={emit}
-                            />,
-                        );
-                        break;
-                    } else {
-                        // profilesSyncer.add(item.pubkey.hex);
-                        // todo: what to do?
-                        // maybe signal an event to the bus
-                        // or maybe it's not necessary because now we
-                        // are syncing all kind 0s
-                    }
-                    vnode.push(
-                        <ProfileCard publicKey={item.pubkey} emit={emit} />,
-                    );
-                }
-                break;
-            case "note":
-                {
-                    const event = eventSyncer.syncEvent(item.noteID);
-                    if (
-                        event instanceof Promise || event.kind == NostrKind.DIRECT_MESSAGE
-                    ) {
-                        vnode.push(itemStr);
-                        break;
-                    }
-                    const profile = profileGetter.getProfilesByPublicKey(event.publicKey);
-                    vnode.push(Card(event, profile?.profile, emit, event.publicKey));
-                }
-                break;
-            case "nevent": {
-                const event = eventSyncer.syncEvent(NoteID.FromString(item.event.pointer.id));
-                if (
-                    event instanceof Promise || event.kind == NostrKind.DIRECT_MESSAGE
-                ) {
-                    vnode.push(itemStr);
-                    break;
-                }
-                const profile = profileGetter.getProfilesByPublicKey(event.publicKey);
+        if (item.type == "url") {
+            if (urlIsImage(itemStr)) {
+                vnode.push(
+                    <img
+                        class={`w-96 p-1 rounded-lg border-2 border-[${DividerBackgroundColor}]`}
+                        src={itemStr}
+                    />,
+                );
+            } else if (urlIsVideo(itemStr)) {
+                vnode.push(
+                    <video
+                        class={`w-96 p-1 rounded-lg border-2 border-[${DividerBackgroundColor}]`}
+                        controls
+                        src={itemStr}
+                    >
+                    </video>,
+                );
+            } else {
+                vnode.push(
+                    <a target="_blank" class={`hover:underline text-[${LinkColor}]`} href={itemStr}>
+                        {itemStr}
+                    </a>,
+                );
+            }
+        } else if (item.type == "npub") {
+            if (authorProfile) {
+                const profile = getters.profileGetter.getProfilesByPublicKey(item.pubkey);
+                vnode.push(
+                    <ProfileCard
+                        profileData={profile ? profile.profile : undefined}
+                        publicKey={item.pubkey}
+                        emit={emit}
+                    />,
+                );
+            } else {
+                // profilesSyncer.add(item.pubkey.hex);
+                // todo: what to do?
+                // maybe signal an event to the bus
+                // or maybe it's not necessary because now we
+                // are syncing all kind 0s
+            }
+            vnode.push(
+                <ProfileCard publicKey={item.pubkey} emit={emit} />,
+            );
+        } else if (item.type == "note") {
+            const event = getters.getEventByID(item.noteID);
+            if (event == undefined || event.kind == NostrKind.DIRECT_MESSAGE) {
+                vnode.push(itemStr);
+                emit({
+                    type: "SyncEvent",
+                    eventID: item.noteID.hex,
+                });
+            } else {
+                const profile = getters.profileGetter.getProfilesByPublicKey(event.publicKey);
+                vnode.push(Card(event, profile?.profile, emit, event.publicKey));
+            }
+        } else if (item.type == "nevent") {
+            const event = getters.getEventByID(NoteID.FromString(item.event.pointer.id));
+            if (
+                event == undefined || event.kind == NostrKind.DIRECT_MESSAGE
+            ) {
+                vnode.push(itemStr);
+                emit({
+                    type: "SyncEvent",
+                    eventID: item.event.pointer.id,
+                });
+            } else {
+                const profile = getters.profileGetter.getProfilesByPublicKey(event.publicKey);
                 vnode.push(Card(event, profile ? profile.profile : undefined, emit, event.publicKey));
             }
-            case "tag":
-                // todo
-                break;
         }
 
         start = item.end + 1;
