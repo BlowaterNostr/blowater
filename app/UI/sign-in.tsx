@@ -356,7 +356,7 @@ async function signInWithNewPrivateKey(
         ctx: InMemoryAccountContext.New(signUpSecretKey),
         profile: {
             name,
-            picture: `https://robohash.org/${name}.png`,
+            picture: `https://robohash.org/${name}`,
         },
     });
     setSignInState("local");

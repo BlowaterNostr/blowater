@@ -216,7 +216,11 @@ export async function getRelayInformation(url: string) {
         }
 
         const detail = await res.text();
-        return JSON.parse(detail) as RelayInformation;
+        const info = JSON.parse(detail) as RelayInformation;
+        if (!info.icon) {
+            info.icon = `https://robohash.org/${url}`;
+        }
+        return info;
     } catch (e) {
         return e as Error;
     }

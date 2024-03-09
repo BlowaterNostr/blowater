@@ -81,7 +81,7 @@ export class ChannelContainer extends Component<ChannelContainerProps, ChannelCo
                     <div
                         class={`flex items-center w-full h-20 font-bold text-xl text-[${PrimaryTextColor}] m-1 p-3 border-b border-[#36393F]`}
                     >
-                        {props.relay.url}
+                        {new URL(props.relay.url).host}
                     </div>
                     <ChannelList
                         relay={props.relay.url}

@@ -5,9 +5,8 @@ import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 import { emitFunc } from "../event-bus.ts";
 import { RelayAvatar } from "./components/avatar.tsx";
 import { SelectRelay } from "./nav.tsx";
-import { RelayInformation } from "./relay-detail.tsx";
+import { getRelayInformation, RelayInformation } from "./relay-detail.tsx";
 import { setState } from "./_helper.ts";
-import { join } from "https://deno.land/std@0.202.0/path/mod.ts";
 
 type RelaySwitchListProps = {
     currentRelay?: string;
@@ -141,28 +140,4 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
 function getSecondaryDomainName(url: string) {
     const domain = new URL(url).hostname.split(".");
     return domain[domain.length - 2];
-}
-
-export async function getRelayInformation(url: string) {
-    try {
-        const httpURL = new URL(url);
-        httpURL.protocol = "https";
-        const res = await fetch(httpURL, {
-            headers: {
-                "Accept": "application/nostr+json",
-            },
-        });
-
-        if (!res.ok) {
-            return new Error(`Faild to get detail, ${res.status}: ${await res.text()}`);
-        }
-
-        const detail: RelayInformation = await res.json();
-        if (!detail.icon) {
-            detail.icon = join(httpURL.toString(), "favicon.ico");
-        }
-        return detail;
-    } catch (e) {
-        return e as Error;
-    }
 }
