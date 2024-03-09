@@ -29,6 +29,7 @@ export interface ProfileSetter {
 export interface ProfileGetter {
     getProfilesByText(input: string): Profile_Nostr_Event[];
     getProfilesByPublicKey(pubkey: PublicKey): Profile_Nostr_Event | undefined;
+    getUniqueProfileCount(): number;
 }
 
 type Props = {

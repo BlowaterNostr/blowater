@@ -150,9 +150,10 @@ export async function* UI_Interaction_Update(args: {
                 children: undefined,
             });
         } else if (event.type == "StartSearch") {
+            app.database.getProfilesByText;
             const search = (
                 <Search
-                    placeholder={"Search a user's public key or name"}
+                    placeholder={`Search a user's public key or name (${app.database.getUniqueProfileCount()} profiles)`}
                     db={app.database}
                     emit={eventBus.emit}
                 />

@@ -176,6 +176,10 @@ export class Datebase_View
         return this.profiles.get(pubkey.hex);
     }
 
+    getUniqueProfileCount(): number {
+        return this.profiles.size;
+    }
+
     setProfile(profileEvent: Profile_Nostr_Event): void {
         console.log("setProfile", profileEvent);
         const profile = this.profiles.get(profileEvent.pubkey);
