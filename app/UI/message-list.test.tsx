@@ -28,7 +28,7 @@ for (let i = 1;; i++) {
     messages.push({
         author: ctx.publicKey,
         content: `${i}`,
-        created_at: new Date(i * 1000 * 60),
+        created_at: new Date(i * 1000 * (i % 3 == 0 ? 61 : 29)),
         // @ts-ignore
         event: event,
         lamport: i,

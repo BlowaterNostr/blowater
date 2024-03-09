@@ -170,11 +170,7 @@ function MessageBoxGroup(props: {
         getEventByID: func_GetEventByID;
     };
 }) {
-    const messageGroups = props.messages.reverse();
-    if (messageGroups.length == 0) {
-        return;
-    }
-    const first_group = messageGroups[0];
+    const first_group = props.messages[0];
     const rows = [];
     rows.push(
         <li
@@ -220,8 +216,8 @@ function MessageBoxGroup(props: {
         </li>,
     );
 
-    for (let i = 1; i < messageGroups.length; i++) {
-        const msg = messageGroups[i];
+    for (let i = 1; i < props.messages.length; i++) {
+        const msg = props.messages[i];
         rows.push(
             <li
                 class={`px-4 hover:bg-[#32353B] w-full max-w-full flex items-center pr-8 mobile:pr-4 group relative text-sm ${
