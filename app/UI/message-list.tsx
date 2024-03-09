@@ -17,7 +17,7 @@ import { ProfileGetter } from "./search.tsx";
 import { SelectConversation } from "./search_model.ts";
 import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { ProfileData } from "../features/profile.ts";
-import { isMobile } from "./_helper.ts";
+import { isMobile, setState } from "./_helper.ts";
 import { Avatar } from "./components/avatar.tsx";
 import { AboutIcon } from "./icons/about-icon.tsx";
 import { BackgroundColor_MessagePanel, PrimaryTextColor } from "./style/colors.ts";
@@ -52,7 +52,7 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
         return sortMessage(this.props.messages)
             .slice(
                 this.state.offset,
-                ItemsOfPerPage,
+                this.state.offset + ItemsOfPerPage,
             );
     };
 
@@ -78,7 +78,7 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
             );
         }
 
-        const vNode = (
+        return (
             <div
                 class={`w-full overflow-hidden ${BackgroundColor_MessagePanel}`}
                 style={{
@@ -87,7 +87,7 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
             >
                 <button
                     onClick={this.goToButtom}
-                    class={`${IconButtonClass} mobile:hidden fixed z-10 bottom-8 right-4 h-10 w-10 rotate-[-90deg] bg-[#42464D] hover:bg-[#2F3136]`}
+                    class={`${IconButtonClass} fixed z-10 bottom-8 right-4 h-10 w-10 rotate-[-90deg] bg-[#42464D] hover:bg-[#2F3136]`}
                 >
                     <LeftArrowIcon
                         class={`w-6 h-6`}
@@ -100,12 +100,27 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
                     class={`w-full h-full overflow-y-auto overflow-x-hidden py-9 mobile:py-2 px-2 mobile:px-0 flex flex-col`}
                     ref={this.messagesULElement}
                 >
+                    <button class={`${IconButtonClass}`} onClick={this.prePage}>load earlier messages</button>
                     {messageBoxGroups}
+                    <button class={`${IconButtonClass}`} onClick={this.nextPage}>load more messages</button>
                 </ul>
             </div>
         );
-        return vNode;
     }
+
+    prePage = async () => {
+        const offset = this.state.offset - ItemsOfPerPage;
+        await setState(this, {
+            offset: offset > 0 ? offset : 0,
+        });
+    };
+
+    nextPage = async () => {
+        const offset = this.state.offset + ItemsOfPerPage;
+        await setState(this, {
+            offset: offset < this.props.messages.length ? offset : this.props.messages.length - 1,
+        });
+    };
 
     goToButtom = () => {
         if (this.messagesULElement.current) {
