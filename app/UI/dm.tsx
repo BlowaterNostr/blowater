@@ -78,6 +78,7 @@ export class DirectMessageContainer extends Component<DirectMessageContainerProp
                             />
                             <div class={`flex-1 overflow-auto`}>
                                 <MessagePanel
+                                    key={this.props.currentConversation}
                                     myPublicKey={props.ctx.publicKey}
                                     emit={props.bus.emit}
                                     eventSub={props.bus}
