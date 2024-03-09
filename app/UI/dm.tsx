@@ -39,7 +39,6 @@ type DirectMessageContainerProps = {
         isUserBlocked: (pubkey: PublicKey) => boolean;
         getEventByID: func_GetEventByID;
     };
-    eventSyncer: EventSyncer;
     userBlocker: UserBlocker;
 } & DM_Model;
 
@@ -82,7 +81,6 @@ export class DirectMessageContainer extends Component<DirectMessageContainerProp
                                     myPublicKey={props.ctx.publicKey}
                                     emit={props.bus.emit}
                                     eventSub={props.bus}
-                                    eventSyncer={props.eventSyncer}
                                     getters={props.getters}
                                     messages={props.getters.messageGetter.getChatMessages(
                                         this.props.currentConversation.hex,

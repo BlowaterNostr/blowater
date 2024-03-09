@@ -371,6 +371,10 @@ export async function* UI_Interaction_Update(args: {
             app.conversationLists.blockUser(event.pubkey);
         } else if (event.type == "UnblockUser") {
             app.conversationLists.unblockUser(event.pubkey);
+        } else if (event.type == "SyncEvent") {
+            app.eventSyncer.syncEvent(event.eventID);
+            yield false; // do not update UI
+            continue;
         } else {
             console.log(event, "is not handled");
             yield false;

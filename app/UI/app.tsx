@@ -330,7 +330,6 @@ export class AppComponent extends Component<AppProps> {
                             isUserBlocked: app.conversationLists.isUserBlocked,
                             getEventByID: app.database.getEventByID,
                         }}
-                        eventSyncer={app.eventSyncer}
                         userBlocker={app.conversationLists}
                     />
                 );
@@ -381,7 +380,6 @@ export class AppComponent extends Component<AppProps> {
                     )}
                     relay={props.pool.getRelay(model.currentRelay) as SingleRelayConnection}
                     bus={app.eventBus}
-                    eventSyncer={app.eventSyncer}
                 />
             );
         }

@@ -39,7 +39,6 @@ type ChannelContainerProps = {
         isUserBlocked: func_IsUserBlocked;
         getEventByID: func_GetEventByID;
     };
-    eventSyncer: EventSyncer;
 } & Social_Model;
 
 type ChannelContainerState = {
@@ -108,7 +107,6 @@ export class ChannelContainer extends Component<ChannelContainerProps, ChannelCo
                                         myPublicKey={props.ctx.publicKey}
                                         emit={props.bus.emit}
                                         eventSub={props.bus}
-                                        eventSyncer={props.eventSyncer}
                                         getters={props.getters}
                                         messages={props.messages}
                                     />

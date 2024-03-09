@@ -50,8 +50,8 @@ for (let i = 10;; i++) {
                     profileGetter: database,
                     relayRecordGetter: database,
                     isUserBlocked: new DM_List(ctx).isUserBlocked,
+                    getEventByID: database.getEventByID,
                 }}
-                eventSyncer={eventSyncer}
                 myPublicKey={ctx.publicKey}
                 emit={testEventBus.emit}
                 eventSub={testEventBus}

@@ -57,7 +57,6 @@ interface DirectMessagePanelProps {
         | SyncEvent
     >;
     eventSub: EventSubscriber<UI_Interaction_Event>;
-    eventSyncer: EventSyncer;
     messages: ChatMessage[];
     getters: {
         profileGetter: ProfileGetter;
