@@ -39,22 +39,21 @@ interface MessageListState {
     offset: number;
 }
 
-const ItemsOfPerPage = 10;
+const ItemsOfPerPage = 20;
 
 export class MessageList extends Component<MessageListProps, MessageListState> {
     readonly messagesULElement = createRef<HTMLUListElement>();
+
     state = {
         offset: 0,
     };
+
     jitter = new JitterPrevention(100);
 
-    sortAndSliceMessage = () => {
-        return sortMessage(this.props.messages)
-            .slice(
-                this.state.offset,
-                this.state.offset + ItemsOfPerPage,
-            );
-    };
+    async componentDidMount() {
+        const offset = this.props.messages.length - ItemsOfPerPage;
+        await setState(this, { offset: offset <= 0 ? 0 : offset });
+    }
 
     render() {
         const messages_to_render = this.sortAndSliceMessage();
@@ -108,18 +107,26 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
         );
     }
 
+    sortAndSliceMessage = () => {
+        return sortMessage(this.props.messages)
+            .slice(
+                this.state.offset,
+                this.state.offset + ItemsOfPerPage,
+            );
+    };
+
     prePage = async () => {
-        const offset = this.state.offset - ItemsOfPerPage;
-        await setState(this, {
-            offset: offset > 0 ? offset : 0,
-        });
+        const offset = this.state.offset - ItemsOfPerPage / 2;
+        if (offset > 0) {
+            await setState(this, { offset });
+        }
     };
 
     nextPage = async () => {
-        const offset = this.state.offset + ItemsOfPerPage;
-        await setState(this, {
-            offset: offset < this.props.messages.length ? offset : this.props.messages.length - 1,
-        });
+        const offset = this.state.offset + ItemsOfPerPage / 2;
+        if (offset < this.props.messages.length) {
+            await setState(this, { offset });
+        }
     };
 
     goToButtom = () => {

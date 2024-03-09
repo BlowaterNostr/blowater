@@ -103,7 +103,7 @@ export async function Start(database: DexieDatabase) {
     );
 
     for await (
-        let _ of UI_Interaction_Update({
+        let ok of UI_Interaction_Update({
             model,
             eventBus,
             dbView: dbView,
@@ -115,6 +115,9 @@ export async function Start(database: DexieDatabase) {
             installPrompt,
         })
     ) {
+        if (ok == false) {
+            continue;
+        }
         const t = Date.now();
         {
             render(
