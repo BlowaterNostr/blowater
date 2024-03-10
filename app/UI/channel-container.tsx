@@ -50,7 +50,7 @@ type ChannelContainerState = {
 
 export class ChannelContainer extends Component<ChannelContainerProps, ChannelContainerState> {
     state: ChannelContainerState = {
-        currentSelectedChannel: this.props.relaySelectedChannel.get(this.props.relay.url),
+        currentSelectedChannel: "general",
         currentEditor: {
             text: "",
         },
@@ -64,12 +64,12 @@ export class ChannelContainer extends Component<ChannelContainerProps, ChannelCo
                 });
             } else if (e.type == "SelectRelay") {
                 await setState(this, {
-                    currentSelectedChannel: this.props.relaySelectedChannel.get(e.relay.url),
+                    currentSelectedChannel: "general", // this.props.relaySelectedChannel.get(e.relay.url),
                 });
             } else if (e.type == "BackToChannelList") {
-                await setState(this, {
-                    currentSelectedChannel: undefined,
-                });
+                // await setState(this, {
+                //     currentSelectedChannel: undefined,
+                // });
             }
         }
     }
@@ -134,11 +134,6 @@ function TopBar(props: {
         >
             <div class={`flex items-center overflow-hidden`}>
                 <button
-                    onClick={() => {
-                        props.bus.emit({
-                            type: "BackToChannelList",
-                        });
-                    }}
                     class={`w-6 h-6 mx-2 ${IconButtonClass}`}
                 >
                     <LeftArrowIcon
