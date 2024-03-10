@@ -77,7 +77,8 @@ export class ChannelContainer extends Component<ChannelContainerProps, ChannelCo
     render(props: ChannelContainerProps, state: ChannelContainerState) {
         return (
             <div class="flex flex-row h-full w-full flex bg-[#36393F] overflow-hidden">
-                <div
+                {
+                    /* <div
                     class={`h-screen w-60 max-sm:w-full
                         flex flex-col bg-[${SecondaryBackgroundColor}]  `}
                 >
@@ -92,7 +93,8 @@ export class ChannelContainer extends Component<ChannelContainerProps, ChannelCo
                         channels={["general", "games", "work"]}
                         emit={props.bus.emit}
                     />
-                </div>
+                </div> */
+                }
                 {this.state.currentSelectedChannel
                     ? (
                         <div class={`flex flex-col flex-1 overflow-hidden`}>
