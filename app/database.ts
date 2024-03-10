@@ -192,7 +192,6 @@ export class Datebase_View
     }
 
     setProfile(profileEvent: Profile_Nostr_Event): void {
-        console.log("setProfile", profileEvent);
         const profile = this.profiles.get(profileEvent.pubkey);
         if (profile) {
             if (profileEvent.created_at > profile.created_at) {
