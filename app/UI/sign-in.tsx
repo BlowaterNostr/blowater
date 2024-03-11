@@ -155,7 +155,7 @@ export class SignIn extends Component<Props, State> {
                                 type: "onboarding",
                             },
                         })}
-                    class={`border-none bg-transparent text-[#5764f2] mt-2 focus:outline-none focus-visible:outline-none`}
+                    class={`border-none bg-transparent text-[#5764f2] mt-2 focus:outline-none focus-visible:outline-none hover:underline hover:text-[#F8F5F1]`}
                 >
                     Go back
                 </button>
@@ -213,7 +213,7 @@ export class SignIn extends Component<Props, State> {
                                 type: "onboarding",
                             },
                         })}
-                    class={`border-none bg-transparent text-[#5764f2] mt-2 focus:outline-none focus-visible:outline-none`}
+                    class={`border-none bg-transparent text-[#5764f2] mt-2 focus:outline-none focus-visible:outline-none hover:underline hover:text-[#F8F5F1]`}
                 >
                     Go back
                 </button>
@@ -271,7 +271,7 @@ export class SignIn extends Component<Props, State> {
                                 name,
                             },
                         })}
-                    class={`border-none bg-transparent text-[#5764f2] mt-2 focus:outline-none focus-visible:outline-none`}
+                    class={`border-none bg-transparent text-[#5764f2] mt-2 focus:outline-none focus-visible:outline-none  hover:underline hover:text-[#F8F5F1]`}
                 >
                     Go back
                 </button>
@@ -331,7 +331,7 @@ export class SignIn extends Component<Props, State> {
                             },
                             errorPrompt: "",
                         })}
-                    class={`border-none bg-transparent text-[#5764f2] mt-2 focus:outline-none focus-visible:outline-none`}
+                    class={`border-none bg-transparent text-[#5764f2] mt-2 focus:outline-none focus-visible:outline-none  hover:underline hover:text-[#F8F5F1]`}
                 >
                     Go back...I didn't save it
                 </button>
