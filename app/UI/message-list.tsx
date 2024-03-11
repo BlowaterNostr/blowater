@@ -25,7 +25,7 @@ import { Parsed_Event } from "../nostr.ts";
 import { NoteID } from "../../libs/nostr.ts/nip19.ts";
 import { robohash } from "./relay-detail.tsx";
 
-interface MessageListProps {
+interface Props {
     myPublicKey: PublicKey;
     messages: ChatMessage[];
     emit: emitFunc<DirectMessagePanelUpdate | SelectConversation | SyncEvent>;
@@ -36,24 +36,33 @@ interface MessageListProps {
     };
 }
 
-interface MessageListState {
-    offset: number;
+interface State {
+    status: {
+        type: "Latest"; // Automatically load the latest message when there is a new message.
+    } | {
+        type: "Browse"; // Manually load the message.
+        offset: number;
+    };
 }
 
 const ItemsOfPerPage = 20;
 
-export class MessageList extends Component<MessageListProps, MessageListState> {
+export class MessageList extends Component<Props, State> {
     readonly messagesULElement = createRef<HTMLUListElement>();
 
-    state = {
-        offset: 0,
+    state: State = {
+        status: {
+            type: "Latest",
+        },
     };
 
     jitter = new JitterPrevention(100);
 
     async componentDidMount() {
-        const offset = this.props.messages.length - ItemsOfPerPage;
-        await setState(this, { offset: offset <= 0 ? 0 : offset });
+        if (this.state.status.type == "Latest") {
+        } else if (this.state.status.type == "Browse") {
+            const offset = this.props.messages.length - ItemsOfPerPage;
+        }
     }
 
     render() {
@@ -115,35 +124,60 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
     }
 
     sortAndSliceMessage = () => {
-        return sortMessage(this.props.messages)
-            .slice(
-                this.state.offset,
-                this.state.offset + ItemsOfPerPage,
+        const messages_len = this.props.messages.length;
+        if (this.state.status.type == "Latest") {
+            return sortMessage(this.props.messages).slice(
+                messages_len > ItemsOfPerPage ? messages_len - ItemsOfPerPage : 0,
+                messages_len,
             );
+        } else if (this.state.status.type == "Browse") {
+            return sortMessage(this.props.messages)
+                .slice(
+                    this.state.status.offset,
+                    this.state.status.offset + ItemsOfPerPage,
+                );
+        } else {
+            return [];
+        }
     };
 
     prePage = async () => {
-        const offset = this.state.offset - ItemsOfPerPage / 2;
-        if (offset > 0) {
-            await setState(this, { offset });
+        if (this.state.status.type == "Latest") {
+            await setState(this, {
+                status: { type: "Browse", offset: this.props.messages.length - ItemsOfPerPage },
+            });
+        } else if (this.state.status.type == "Browse") {
+            const offset = this.state.status.offset - ItemsOfPerPage / 2;
+            await setState(this, { status: { type: "Browse", offset: offset > 0 ? offset : 0 } });
         }
     };
 
     nextPage = async () => {
-        const offset = this.state.offset + ItemsOfPerPage / 2;
-        if (offset < this.props.messages.length) {
-            await setState(this, { offset });
+        if (this.state.status.type == "Latest") {
+            // nothing to do
+        } else if (this.state.status.type == "Browse") {
+            const offset = this.state.status.offset + ItemsOfPerPage / 2;
+            if (offset < this.props.messages.length) {
+                await setState(this, { status: { type: "Browse", offset } });
+            } else {
+                await setState(this, { status: { type: "Latest" } });
+            }
         }
     };
 
-    goToButtom = () => {
-        if (this.messagesULElement.current) {
-            this.messagesULElement.current.scrollTo({
-                top: this.messagesULElement.current.scrollHeight,
-                left: 0,
-                behavior: "smooth",
-            });
+    goToButtom = async () => {
+        if (this.state.status.type == "Latest") {
+            // nothing to do
+        } else if (this.state.status.type == "Browse") {
+            await setState(this, { status: { type: "Latest" } });
         }
+        // if (this.messagesULElement.current) {
+        //     this.messagesULElement.current.scrollTo({
+        //         top: this.messagesULElement.current.scrollHeight,
+        //         left: 0,
+        //         behavior: "smooth",
+        //     });
+        // }
     };
 }
 
