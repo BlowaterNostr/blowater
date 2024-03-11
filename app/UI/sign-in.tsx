@@ -304,7 +304,10 @@ export class SignIn extends Component<Props, State> {
                 </div>
                 <div class={`text-red-500  h-5 my-1`}>{this.state.errorPrompt}</div>
                 <button
-                    onClick={() => signInWithNewPrivateKey(name, new_private_key, this.props.emit)}
+                    onClick={() =>
+                        this.checkSecretKeyComplete(last_4_digits_of_private_key, new_private_key)
+                            ? signInWithNewPrivateKey(name, new_private_key, this.props.emit)
+                            : this.setState({ errorPrompt: "Last 4 digits of secret key is incorrect" })}
                     class={`w-full p-3 rounded-lg  flex items-center justify-center bg-[#5764f2] hover:bg-[#4751c4] ${
                         this.checkSecretKeyComplete(last_4_digits_of_private_key, new_private_key)
                             ? ""
@@ -321,6 +324,7 @@ export class SignIn extends Component<Props, State> {
                                 name,
                                 new_private_key: new_private_key,
                             },
+                            errorPrompt: "",
                         })}
                     class={`border-none bg-transparent text-[#5764f2] mt-2 focus:outline-none focus-visible:outline-none`}
                 >
