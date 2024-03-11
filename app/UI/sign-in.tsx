@@ -54,11 +54,12 @@ export class SignIn extends Component<Props, State> {
             <div
                 class={`flex flex-col justify-start items-center w-full h-screen bg-[${SecondaryBackgroundColor}] text-[${PrimaryTextColor}]`}
             >
-                <div class={`flex flex-col  w-[30rem] py-8 px-5`}>
-                    <div class={`flex justify-center items-center w-full`}>
-                        <img src="logo.webp" alt="Blowater Logo" class={`w-32 h-32`} />
+                <div class="flex flex-col w-full max-w-md py-8 px-5 m-auto">
+                    <div class="flex justify-center items-center w-full">
+                        <img src="logo.webp" alt="Blowater Logo" class="w-32 h-32" />
                     </div>
                     {this.renderStep()}
+                    <div class="h-16" />
                 </div>
             </div>
         );
