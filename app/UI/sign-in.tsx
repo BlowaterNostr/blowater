@@ -140,7 +140,11 @@ export class SignIn extends Component<Props, State> {
                 <button
                     onClick={() => this.signInWithPrivateKey(private_key)}
                     class={`w-full p-3 rounded-lg  flex items-center justify-center bg-[#5764f2] hover:bg-[#4751c4]
-                    ${PrivateKey.FromString(private_key) ? "" : "opacity-50 cursor-not-allowed"}`}
+                    ${
+                        PrivateKey.FromString(private_key) instanceof Error
+                            ? "opacity-50 cursor-not-allowed"
+                            : ""
+                    }`}
                 >
                     Sign In
                 </button>
