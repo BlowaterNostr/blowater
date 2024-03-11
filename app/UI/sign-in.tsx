@@ -84,15 +84,9 @@ export class SignIn extends Component<Props, State> {
         return (
             <Fragment>
                 <div class={`text-4xl w-full text-center font-bold`}>Blowater</div>
-                <div class={`text-md w-full text-center ${SecondaryTextColor}`}>
+                <div class={`text-md w-full text-center ${SecondaryTextColor} mb-5`}>
                     A delightful Nostr client that focuses on DM
                 </div>
-                <button
-                    onClick={() => this.setState({ step: { type: "signin", private_key: "" } })}
-                    class={`w-full p-3 rounded-lg focus:outline-none focus-visible:outline-none flex items-center justify-center bg-gradient-to-r from-[#FF762C] via-[#FF3A5E] to-[#FF01A9]  hover:bg-gradient-to-l`}
-                >
-                    Alreay have an account
-                </button>
                 <button
                     onClick={() =>
                         this.setState({
@@ -101,9 +95,20 @@ export class SignIn extends Component<Props, State> {
                                 name: "",
                             },
                         })}
-                    class={`w-full p-3 rounded-lg focus:outline-none focus-visible:outline-none flex items-center justify-center bg-gradient-to-r from-[#FF762C] via-[#FF3A5E] to-[#FF01A9]  hover:bg-gradient-to-l`}
+                    class={`w-full p-3 rounded-lg  flex items-center justify-center bg-[#5764f2] hover:bg-[#4751c4]`}
                 >
-                    Sign Up
+                    Create account
+                </button>
+                <div class="w-full flex flex-row gap-4 justify-center items-center py-2">
+                    <div class={`h-[2px] w-[45%] bg-white`} />
+                    <p class={`text-white`}>OR</p>
+                    <div class={`h-[2px] w-[45%] bg-white`} />
+                </div>
+                <button
+                    onClick={() => this.setState({ step: { type: "signin", private_key: "" } })}
+                    class={`w-full p-3 rounded-lg  flex items-center justify-center bg-[#4d4f57] hover:bg-[#6c6f77]`}
+                >
+                    Login
                 </button>
             </Fragment>
         );
@@ -112,10 +117,12 @@ export class SignIn extends Component<Props, State> {
     stepSignIn = (private_key: string) => {
         return (
             <Fragment>
-                <div class={`text-3xl w-full text-center font-bold`}>Sign In</div>
-                <div class={`text-md w-full text-center`}>Please enter your private key</div>
+                <div class={`text-4xl w-full text-center font-bold`}>Sign In</div>
+                <div class={`text-md w-full text-center ${SecondaryTextColor} mb-5`}>
+                    Please enter your private key
+                </div>
                 <input
-                    class={`w-full px-4 py-3 rounded-lg resize-y bg-transparent focus:outline-none focus-visible:outline-none border-[2px] border-[${DividerBackgroundColor}] placeholder-[${PlaceholderColor}]`}
+                    class={`w-full px-4 py-3 mb-5 rounded-lg resize-y bg-transparent focus:outline-none focus-visible:outline-none border-[2px] border-[${DividerBackgroundColor}] placeholder-[${PlaceholderColor}]`}
                     placeholder="nsec1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
                     type="password"
                     autofocus
@@ -129,10 +136,10 @@ export class SignIn extends Component<Props, State> {
                         });
                     }}
                 />
-                <div class={`text-red-500`}>{this.state.errorPrompt}</div>
                 <button
                     onClick={() => this.signInWithPrivateKey(private_key)}
-                    class={`w-full p-3 rounded-lg focus:outline-none focus-visible:outline-none flex items-center justify-center bg-gradient-to-r from-[#FF762C] via-[#FF3A5E] to-[#FF01A9]  hover:bg-gradient-to-l`}
+                    class={`w-full p-3 rounded-lg  flex items-center justify-center bg-[#5764f2] hover:bg-[#4751c4]
+                    ${this.checkSignInSercetKey(private_key) ? "" : "opacity-50 cursor-not-allowed"}`}
                 >
                     Sign In
                 </button>
@@ -143,7 +150,7 @@ export class SignIn extends Component<Props, State> {
                                 type: "onboarding",
                             },
                         })}
-                    class={`border-none bg-transparent text-[#FF3A5E] mt-2 focus:outline-none focus-visible:outline-none`}
+                    class={`border-none bg-transparent text-[#5764f2] mt-2 focus:outline-none focus-visible:outline-none`}
                 >
                     Go back
                 </button>
@@ -154,11 +161,13 @@ export class SignIn extends Component<Props, State> {
     stepName = (name: string) => {
         return (
             <Fragment>
-                <div class={`text-3xl w-full text-center font-bold`}>Sign Up</div>
-                <div class={`text-md w-full text-center`}>What should we call you?</div>
+                <div class={`text-4xl w-full text-center font-bold`}>Create account</div>
+                <div class={`text-md w-full text-center ${SecondaryTextColor} mb-5`}>
+                    What should we call you?
+                </div>
                 <input
                     class={`w-full px-4 py-3 rounded-lg resize-y bg-transparent focus:outline-none focus-visible:outline-none border-[2px] border-[${DividerBackgroundColor}] placeholder-[${PlaceholderColor}]`}
-                    placeholder="e.g. Bob"
+                    placeholder="name"
                     type="text"
                     value={name}
                     onInput={(event: h.JSX.TargetedEvent<HTMLInputElement, Event>) => {
@@ -170,7 +179,7 @@ export class SignIn extends Component<Props, State> {
                         });
                     }}
                 />
-                <div class={`text-red-500`}>{this.state.errorPrompt}</div>
+                <div class={`text-red-500 h-5 my-1`}>{this.state.errorPrompt}</div>
                 <button
                     onClick={() => {
                         if (name.length > 0) {
@@ -180,16 +189,28 @@ export class SignIn extends Component<Props, State> {
                                     name: name,
                                     new_private_key: PrivateKey.Generate(),
                                 },
+                                errorPrompt: "",
                             });
                         } else {
                             this.setState({ errorPrompt: "Name is required" });
                         }
                     }}
-                    class={`w-full p-3 rounded-lg focus:outline-none focus-visible:outline-none flex items-center justify-center bg-gradient-to-r from-[#FF762C] via-[#FF3A5E] to-[#FF01A9]  hover:bg-gradient-to-l ${
+                    class={`w-full p-3 rounded-lg  flex items-center justify-center bg-[#5764f2] hover:bg-[#4751c4] ${
                         name.length > 0 ? "" : "opacity-50 cursor-not-allowed"
                     }`}
                 >
                     Next
+                </button>
+                <button
+                    onClick={() =>
+                        this.setState({
+                            step: {
+                                type: "onboarding",
+                            },
+                        })}
+                    class={`border-none bg-transparent text-[#5764f2] mt-2 focus:outline-none focus-visible:outline-none`}
+                >
+                    Go back
                 </button>
             </Fragment>
         );
@@ -198,9 +219,9 @@ export class SignIn extends Component<Props, State> {
     stepBackup = (new_private_key: PrivateKey, name: string) => {
         return (
             <Fragment>
-                <div class={`text-3xl w-full text-center font-bold`}>Backup your keys</div>
+                <div class={`text-4xl w-full text-center font-bold`}>Backup your keys</div>
                 <div
-                    class={`bg-red-500  flex flex-row p-2  gap-2 items-center`}
+                    class={`bg-red-500  flex flex-row p-2  gap-2 items-center my-5`}
                 >
                     <svg viewBox="0 0 24 24" focusable="false" class="w-10 h-10">
                         <path
@@ -214,7 +235,7 @@ export class SignIn extends Component<Props, State> {
                         complete control over your account
                     </div>
                 </div>
-                <div>
+                <div class={`mb-5`}>
                     <div class={`text-lg font-semibold`}>Secret Key</div>
                     <TextField
                         text={new_private_key.bech32}
@@ -233,9 +254,21 @@ export class SignIn extends Component<Props, State> {
                             },
                         });
                     }}
-                    class={`w-full p-3 rounded-lg focus:outline-none focus-visible:outline-none flex items-center justify-center bg-gradient-to-r from-[#FF762C] via-[#FF3A5E] to-[#FF01A9]  hover:bg-gradient-to-l`}
+                    class={`w-full p-3 rounded-lg  flex items-center justify-center bg-[#5764f2] hover:bg-[#4751c4]`}
                 >
                     I have saved my secret key
+                </button>
+                <button
+                    onClick={() =>
+                        this.setState({
+                            step: {
+                                type: "name",
+                                name,
+                            },
+                        })}
+                    class={`border-none bg-transparent text-[#5764f2] mt-2 focus:outline-none focus-visible:outline-none`}
+                >
+                    Go back
                 </button>
             </Fragment>
         );
@@ -244,7 +277,7 @@ export class SignIn extends Component<Props, State> {
     stepVerify = (new_private_key: PrivateKey, last_4_digits_of_private_key: string, name: string) => {
         return (
             <Fragment>
-                <div class={`text-3xl w-full text-center font-bold`}>Confirm secret key</div>
+                <div class={`text-4xl w-full text-center font-bold mb-5`}>Confirm secret key</div>
                 <div>
                     <div class={`text-lg font-semibold`}>
                         Last four letters of secret key
@@ -269,10 +302,10 @@ export class SignIn extends Component<Props, State> {
                         This is the key to access your account, keep it secret.
                     </div>
                 </div>
-                <div class={`text-red-500`}>{this.state.errorPrompt}</div>
+                <div class={`text-red-500  h-5 my-1`}>{this.state.errorPrompt}</div>
                 <button
                     onClick={() => signInWithNewPrivateKey(name, new_private_key, this.props.emit)}
-                    class={`w-full p-3 rounded-lg focus:outline-none focus-visible:outline-none flex items-center justify-center bg-gradient-to-r from-[#FF762C] via-[#FF3A5E] to-[#FF01A9]  hover:bg-gradient-to-l ${
+                    class={`w-full p-3 rounded-lg  flex items-center justify-center bg-[#5764f2] hover:bg-[#4751c4] ${
                         this.checkSecretKeyComplete(last_4_digits_of_private_key, new_private_key)
                             ? ""
                             : "opacity-50 cursor-not-allowed"
@@ -289,7 +322,7 @@ export class SignIn extends Component<Props, State> {
                                 new_private_key: new_private_key,
                             },
                         })}
-                    class={`border-none bg-transparent text-[#FF3A5E] mt-2 focus:outline-none focus-visible:outline-none`}
+                    class={`border-none bg-transparent text-[#5764f2] mt-2 focus:outline-none focus-visible:outline-none`}
                 >
                     Go back...I didn't save it
                 </button>
@@ -319,8 +352,19 @@ export class SignIn extends Component<Props, State> {
         await LocalPrivateKeyController.setKey("blowater", pri);
     };
 
+    checkSignInSercetKey = (private_key: string) => {
+        // Private Key has to be 64 letters hex-decimal or 63 letters nsec string.
+        if (private_key.length !== 64 && private_key.length !== 63) return false;
+        if (private_key.length === 63) {
+            if (!private_key.startsWith("nsec1")) return false;
+        }
+        return true;
+    };
+
     checkSecretKeyComplete = (last_4_digits_of_private_key: string, prikey: PrivateKey) => {
-        if (last_4_digits_of_private_key.length !== 4) return false;
+        if (last_4_digits_of_private_key.length !== 4) {
+            return false;
+        }
         return prikey.bech32.endsWith(last_4_digits_of_private_key);
     };
 }
