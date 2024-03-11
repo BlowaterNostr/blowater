@@ -140,7 +140,7 @@ export class SignIn extends Component<Props, State> {
                 <button
                     onClick={() => this.signInWithPrivateKey(private_key)}
                     class={`w-full p-3 rounded-lg  flex items-center justify-center bg-[#5764f2] hover:bg-[#4751c4]
-                    ${this.checkSignInSercetKey(private_key) ? "" : "opacity-50 cursor-not-allowed"}`}
+                    ${PrivateKey.FromString(private_key) ? "" : "opacity-50 cursor-not-allowed"}`}
                 >
                     Sign In
                 </button>
@@ -355,15 +355,6 @@ export class SignIn extends Component<Props, State> {
         });
         setSignInState("local");
         await LocalPrivateKeyController.setKey("blowater", pri);
-    };
-
-    checkSignInSercetKey = (private_key: string) => {
-        // Private Key has to be 64 letters hex-decimal or 63 letters nsec string.
-        if (private_key.length !== 64 && private_key.length !== 63) return false;
-        if (private_key.length === 63) {
-            if (!private_key.startsWith("nsec1")) return false;
-        }
-        return true;
     };
 
     checkSecretKeyComplete = (last_4_digits_of_private_key: string, prikey: PrivateKey) => {
