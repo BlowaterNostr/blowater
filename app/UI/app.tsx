@@ -32,6 +32,7 @@ import { filter, map } from "./_helper.ts";
 import { RightPanel } from "./components/right-panel.tsx";
 import { ComponentChildren } from "https://esm.sh/preact@10.17.1";
 import { SignIn } from "./sign-in.tsx";
+import { getTags, Parsed_Event } from "../nostr.ts";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
@@ -367,14 +368,15 @@ export class AppComponent extends Component<AppProps> {
                                 },
                             ),
                             (e) => {
-                                return {
+                                const msg: ChatMessage = {
                                     author: e.publicKey,
                                     content: e.content,
                                     created_at: new Date(e.created_at * 1000),
-                                    event: e,
-                                    lamport: 0,
+                                    event: e as Parsed_Event<NostrKind.TEXT_NOTE>,
+                                    lamport: getTags(e).lamport_timestamp,
                                     type: "text",
-                                } as ChatMessage;
+                                };
+                                return msg;
                             },
                         ),
                     )}

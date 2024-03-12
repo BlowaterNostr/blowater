@@ -509,6 +509,9 @@ export async function handle_SendMessage(
         };
     },
 ) {
+    if (event.text.length == 0) {
+        return new Error("can't send empty message");
+    }
     let events;
     if (args.navigationModel.activeNav == "DM") {
         events = await sendDirectMessages({
