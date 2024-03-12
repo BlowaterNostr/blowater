@@ -10,9 +10,7 @@ import { RelayRecordGetter } from "../database.ts";
 import { NewMessageChecker } from "./conversation-list.tsx";
 import { ConversationListRetriever } from "./conversation-list.tsx";
 import { NostrAccountContext } from "../../libs/nostr.ts/nostr.ts";
-import { EventSyncer } from "./event_syncer.ts";
 
-import { PrimaryTextColor, SecondaryBackgroundColor } from "./style/colors.ts";
 import { IconButtonClass } from "./components/tw.ts";
 import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
 import { MessagePanel } from "./message-panel.tsx";
