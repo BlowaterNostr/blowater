@@ -1,4 +1,4 @@
-import { Component, createRef, h } from "https://esm.sh/preact@10.17.1";
+import { Component, createRef, Fragment, h } from "https://esm.sh/preact@10.17.1";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { RelayRecordGetter } from "../database.ts";
 import { emitFunc } from "../event-bus.ts";
@@ -48,7 +48,7 @@ interface State {
 const ItemsOfPerPage = 20;
 
 export class MessageList extends Component<Props, State> {
-    readonly messagesULElement = createRef<HTMLUListElement>();
+    readonly messagesULElement = createRef<HTMLOListElement>();
 
     state: State = {
         status: {
@@ -107,7 +107,7 @@ export class MessageList extends Component<Props, State> {
                         }}
                     />
                 </button>
-                <ul
+                <ol
                     class={`w-full h-full overflow-y-auto overflow-x-hidden py-9 mobile:py-2 px-2 mobile:px-0 flex flex-col`}
                     ref={this.messagesULElement}
                 >
@@ -118,7 +118,7 @@ export class MessageList extends Component<Props, State> {
                     <button class={`${IconButtonClass}`} onClick={this.nextPage}>
                         load more messages
                     </button>
-                </ul>
+                </ol>
             </div>
         );
     }
@@ -219,7 +219,7 @@ function MessageBoxGroup(props: {
     const rows = [];
     rows.push(
         <li
-            class={`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 mobile:pr-4 group relative ${
+            class={`px-4 mt-2 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 mobile:pr-4 group relative ${
                 isMobile() ? "select-none" : ""
             }`}
         >
@@ -288,9 +288,9 @@ function MessageBoxGroup(props: {
     }
 
     const vnode = (
-        <ul class={`py-2`}>
+        <Fragment>
             {rows}
-        </ul>
+        </Fragment>
     );
 
     // console.log("MessageBoxGroup", Date.now() - t);
