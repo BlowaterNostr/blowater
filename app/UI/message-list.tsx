@@ -24,6 +24,7 @@ import { BackgroundColor_MessagePanel, PrimaryTextColor } from "./style/colors.t
 import { Parsed_Event } from "../nostr.ts";
 import { NoteID } from "../../libs/nostr.ts/nip19.ts";
 import { robohash } from "./relay-detail.tsx";
+import { EventID } from "../../libs/nostr.ts/nostr.ts";
 
 interface Props {
     myPublicKey: PublicKey;
@@ -48,7 +49,7 @@ interface State {
 const ItemsOfPerPage = 20;
 
 export class MessageList extends Component<Props, State> {
-    readonly messagesULElement = createRef<HTMLOListElement>();
+    readonly messagesOLElement = createRef<HTMLOListElement>();
 
     state: State = {
         status: {
@@ -109,7 +110,7 @@ export class MessageList extends Component<Props, State> {
                 </button>
                 <ol
                     class={`w-full h-full overflow-y-auto overflow-x-hidden py-9 mobile:py-2 px-2 mobile:px-0 flex flex-col`}
-                    ref={this.messagesULElement}
+                    ref={this.messagesOLElement}
                 >
                     <button class={`${IconButtonClass}`} onClick={this.prePage}>
                         load earlier messages
@@ -166,18 +167,16 @@ export class MessageList extends Component<Props, State> {
     };
 
     goToButtom = async () => {
-        if (this.state.status.type == "Latest") {
-            // nothing to do
-        } else if (this.state.status.type == "Browse") {
-            await setState(this, { status: { type: "Latest" } });
-        }
-        // if (this.messagesULElement.current) {
-        //     this.messagesULElement.current.scrollTo({
-        //         top: this.messagesULElement.current.scrollHeight,
-        //         left: 0,
-        //         behavior: "smooth",
-        //     });
-        // }
+        const latestEventId = this.props.messages[this.props.messages.length - 1].event.id;
+        this.srcollToMessageBy(latestEventId);
+    };
+
+    srcollToMessageBy = (eventId: EventID) => {
+        const ol = this.messagesOLElement.current;
+        if (!ol) return;
+        const li = ol.children.namedItem(`event_${eventId}`);
+        if (!li) return;
+        li.scrollIntoView();
     };
 }
 
@@ -222,6 +221,7 @@ function MessageBoxGroup(props: {
             class={`px-4 mt-2 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 mobile:pr-4 group relative ${
                 isMobile() ? "select-none" : ""
             }`}
+            id={`event_${first_message.event.id}`}
         >
             {MessageActions(first_message, props.emit)}
             <Avatar
@@ -268,6 +268,7 @@ function MessageBoxGroup(props: {
                 class={`px-4 hover:bg-[#32353B] w-full max-w-full flex items-center pr-8 mobile:pr-4 group relative text-sm ${
                     isMobile() ? "select-none" : ""
                 }`}
+                id={`event_${msg.event.id}`}
             >
                 {MessageActions(msg, props.emit)}
                 {Time(msg.created_at)}
