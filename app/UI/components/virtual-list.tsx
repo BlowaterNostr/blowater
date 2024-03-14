@@ -1,6 +1,6 @@
 /** @jsx h */
 // Fork from https://gitee.com/zhutouqietuzai/virtual-list
-import { FunctionComponent, h } from "https://esm.sh/preact@10.17.1";
+import { Component, createRef, FunctionComponent, h, JSX } from "https://esm.sh/preact@10.17.1";
 import { useState } from "https://esm.sh/preact@10.17.1/hooks";
 
 import { PublicKey } from "../../../libs/nostr.ts/key.ts";
@@ -15,48 +15,48 @@ import { func_GetEventByID, RowProps } from "../message-list.tsx";
 
 interface MeasuredData {
     measuredDataMap: Record<number, { size: number; offset: number }>;
-    LastMeasuredItemIndex: number;
+    lastMeasuredItemIndex: number;
 }
 
 const measuredData: MeasuredData = {
     measuredDataMap: {},
-    LastMeasuredItemIndex: -1,
+    lastMeasuredItemIndex: -1,
 };
 
 const estimatedHeight = (defaultEstimatedItemSize = 50, itemCount: number) => {
     let measuredHeight = 0;
-    const { measuredDataMap, LastMeasuredItemIndex } = measuredData;
+    const { measuredDataMap, lastMeasuredItemIndex } = measuredData;
     // Calculate the sum of heights for items that have already obtained their real height.
-    if (LastMeasuredItemIndex >= 0) {
-        const lastMeasuredItem = measuredDataMap[LastMeasuredItemIndex];
+    if (lastMeasuredItemIndex >= 0) {
+        const lastMeasuredItem = measuredDataMap[lastMeasuredItemIndex];
         measuredHeight = lastMeasuredItem.offset + lastMeasuredItem.size;
     }
     // The number of items that have not been calculated for the actual height.
-    const unMeasuredItemsCount = itemCount - measuredData.LastMeasuredItemIndex - 1;
+    const unMeasuredItemsCount = itemCount - measuredData.lastMeasuredItemIndex - 1;
     // Predicted total height.
     const totalEstimatedHeight = measuredHeight + unMeasuredItemsCount * defaultEstimatedItemSize;
     return totalEstimatedHeight;
 };
 
 const getItemMetaData = (props: VirtualListProps, index: number) => {
-    const { itemSize } = props;
-    const { measuredDataMap, LastMeasuredItemIndex } = measuredData;
+    const { itemEstimatedSize = 50 } = props;
+    const { measuredDataMap, lastMeasuredItemIndex } = measuredData;
     // If the current index is larger than the recorded index, it means that the size and offset of the item at the current index need to be calculated
-    if (index > LastMeasuredItemIndex) {
+    if (index > lastMeasuredItemIndex) {
         let offset = 0;
         // Calculate the maximum offset value that can be calculated currently
-        if (LastMeasuredItemIndex >= 0) {
-            const lastMeasuredItem = measuredDataMap[LastMeasuredItemIndex];
+        if (lastMeasuredItemIndex >= 0) {
+            const lastMeasuredItem = measuredDataMap[lastMeasuredItemIndex];
             offset += lastMeasuredItem.offset + lastMeasuredItem.size;
         }
         // Calculate all uncalculated items until the index
-        for (let i = LastMeasuredItemIndex + 1; i <= index; i++) {
-            const currentItemSize = itemSize(i);
+        for (let i = lastMeasuredItemIndex + 1; i <= index; i++) {
+            const currentItemSize = itemEstimatedSize;
             measuredDataMap[i] = { size: currentItemSize, offset };
             offset += currentItemSize;
         }
         // Update the index value of the calculated item
-        measuredData.LastMeasuredItemIndex = index;
+        measuredData.lastMeasuredItemIndex = index;
     }
     return measuredDataMap[index];
 };
@@ -102,27 +102,65 @@ const getRangeToRender = (props: VirtualListProps, scrollOffset: number) => {
     ];
 };
 
+interface ListItemProps {
+    index: number;
+    style: Record<string, string | number>;
+    ComponentType: FunctionComponent<any>;
+    onSizeChange: (index: number, domNode: HTMLElement) => void;
+}
+
+class ListItem extends Component<ListItemProps> {
+    domRef = createRef<HTMLDivElement>();
+    resizeObserver: ResizeObserver | null = null;
+    componentDidMount() {
+        if (this.domRef.current && this.domRef.current.firstChild instanceof HTMLElement) {
+            const domNode = this.domRef.current.firstChild;
+            const { index, onSizeChange } = this.props;
+            this.resizeObserver = new ResizeObserver(() => {
+                onSizeChange(index, domNode);
+            });
+            this.resizeObserver.observe(domNode);
+        }
+    }
+    componentWillUnmount() {
+        if (
+            this.resizeObserver && this.domRef.current &&
+            this.domRef.current.firstChild instanceof HTMLElement
+        ) {
+            this.resizeObserver.unobserve(this.domRef.current.firstChild);
+        }
+    }
+    render() {
+        const { index, style, ComponentType } = this.props;
+        return (
+            <div style={style} ref={this.domRef}>
+                <ComponentType index={index} />
+            </div>
+        );
+    }
+}
+
 interface VirtualListProps {
     height: number;
-    itemSize: (index: number) => number;
     itemCount: number;
     itemEstimatedSize?: number;
     children: FunctionComponent<RowProps>;
     // copy from message-list.tsx Props
-    myPublicKey: PublicKey;
-    messages: ChatMessage[];
-    emit: emitFunc<DirectMessagePanelUpdate | SelectConversation | SyncEvent>;
-    getters: {
-        profileGetter: ProfileGetter;
-        relayRecordGetter: RelayRecordGetter;
-        getEventByID: func_GetEventByID;
-    };
+    // myPublicKey: PublicKey;
+    // messages: ChatMessage[];
+    // emit: emitFunc<DirectMessagePanelUpdate | SelectConversation | SyncEvent>;
+    // getters: {
+    //     profileGetter: ProfileGetter;
+    //     relayRecordGetter: RelayRecordGetter;
+    //     getEventByID: func_GetEventByID;
+    // };
     // copy end
 }
 
 export const VirtualList = (props: VirtualListProps) => {
-    const { height, itemCount, itemEstimatedSize, children: Child } = props;
+    const { height, itemCount, itemEstimatedSize = 50, children: Child } = props;
     const [scrollOffset, setScrollOffset] = useState(0);
+    const [, forceUpdate] = useState(0);
 
     const containerStyle = {
         position: "relative",
@@ -135,6 +173,21 @@ export const VirtualList = (props: VirtualListProps) => {
     const contentStyle = {
         height: estimatedHeight(itemEstimatedSize, itemCount),
         width: "100%",
+    };
+
+    const sizeChangeHandle = (index: number, domNode: HTMLElement) => {
+        const height = domNode.offsetHeight;
+        const { measuredDataMap, lastMeasuredItemIndex } = measuredData;
+        const itemMetaData = measuredDataMap[index];
+        itemMetaData.size = height;
+        let offset = 0;
+        for (let i = 0; i <= lastMeasuredItemIndex; i++) {
+            const itemMetaData = measuredDataMap[i];
+            itemMetaData.offset = offset;
+            offset += itemMetaData.size;
+        }
+        // Ii is necessary to update the state to trigger the re-rendering of the component
+        forceUpdate((prevflag) => (prevflag + 1));
     };
 
     const getCurrentChildren = () => {
@@ -152,14 +205,12 @@ export const VirtualList = (props: VirtualListProps) => {
                 top: item.offset,
             };
             items.push(
-                <Child
+                <ListItem
                     key={i}
                     index={i}
                     style={itemStyle}
-                    messages={props.messages}
-                    myPublicKey={props.myPublicKey}
-                    emit={props.emit}
-                    getters={props.getters}
+                    ComponentType={Child}
+                    onSizeChange={sizeChangeHandle}
                 />,
             );
         }

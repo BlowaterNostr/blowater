@@ -2,29 +2,27 @@
 import { h, render } from "https://esm.sh/preact@10.17.1";
 import { VirtualList } from "./virtual-list.tsx";
 
-const rowSizes = new Array(100).fill(true).map(() => 25 + Math.round(Math.random() * 55));
-const getItemSize = (index: number) => rowSizes[index];
-
-interface RowProps {
-    index: number;
-    style: Record<string, string | number>;
+const items: h.JSX.Element[] = [];
+const itemCount = 1000;
+for (let i = 0; i < itemCount; i++) {
+    const height = 30 + Math.floor(Math.random() * 30);
+    const style = {
+        height,
+        width: "100%",
+    };
+    items.push(
+        <div className={i % 2 ? "bg-blue-200" : "bg-green-200"} style={style}>Row {i}</div>,
+    );
 }
 
-const Row = ({ index, style }: RowProps) => {
-    return (
-        <li class={index % 2 ? "bg-green-200" : "bg-blue-200"} style={style}>
-            Row {index}
-        </li>
-    );
-};
+const Row = ({ index }: { index: number }) => items[index];
 
 const App = () => {
     return (
         <div class={`flex w-screen h-screen justify-center items-center`}>
             <VirtualList
                 height={300}
-                itemSize={getItemSize}
-                itemCount={rowSizes.length}
+                itemCount={itemCount}
             >
                 {Row}
             </VirtualList>
