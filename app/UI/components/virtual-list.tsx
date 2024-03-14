@@ -3,6 +3,16 @@
 import { FunctionComponent, h } from "https://esm.sh/preact@10.17.1";
 import { useState } from "https://esm.sh/preact@10.17.1/hooks";
 
+import { PublicKey } from "../../../libs/nostr.ts/key.ts";
+import { ChatMessage } from "../message.ts";
+import { emitFunc } from "../../event-bus.ts";
+import { DirectMessagePanelUpdate, SyncEvent } from "../message-panel.tsx";
+import { SelectConversation } from "../search_model.ts";
+import { ProfileGetter } from "../search.tsx";
+import { RelayRecordGetter } from "../../database.ts";
+import { ProfileData } from "../../features/profile.ts";
+import { func_GetEventByID, RowProps } from "../message-list.tsx";
+
 interface MeasuredData {
     measuredDataMap: Record<number, { size: number; offset: number }>;
     LastMeasuredItemIndex: number;
@@ -94,20 +104,29 @@ const getRangeToRender = (props: VirtualListProps, scrollOffset: number) => {
 
 interface VirtualListProps {
     height: number;
-    width: number;
     itemSize: (index: number) => number;
     itemCount: number;
-    children: FunctionComponent<{ index: number; style: any }>;
     itemEstimatedSize?: number;
+    children: FunctionComponent<RowProps>;
+    // copy from message-list.tsx Props
+    myPublicKey: PublicKey;
+    messages: ChatMessage[];
+    emit: emitFunc<DirectMessagePanelUpdate | SelectConversation | SyncEvent>;
+    getters: {
+        profileGetter: ProfileGetter;
+        relayRecordGetter: RelayRecordGetter;
+        getEventByID: func_GetEventByID;
+    };
+    // copy end
 }
 
 export const VirtualList = (props: VirtualListProps) => {
-    const { height, width, itemCount, itemEstimatedSize, children: Child } = props;
+    const { height, itemCount, itemEstimatedSize, children: Child } = props;
     const [scrollOffset, setScrollOffset] = useState(0);
 
     const containerStyle = {
         position: "relative",
-        width,
+        width: "100%",
         height,
         overflow: "auto",
         willChange: "transform",
@@ -133,7 +152,15 @@ export const VirtualList = (props: VirtualListProps) => {
                 top: item.offset,
             };
             items.push(
-                <Child key={i} index={i} style={itemStyle} />,
+                <Child
+                    key={i}
+                    index={i}
+                    style={itemStyle}
+                    messages={props.messages}
+                    myPublicKey={props.myPublicKey}
+                    emit={props.emit}
+                    getters={props.getters}
+                />,
             );
         }
         return items;
