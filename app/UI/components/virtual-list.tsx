@@ -3,15 +3,6 @@
 import { Component, createRef, FunctionComponent, h, JSX } from "https://esm.sh/preact@10.17.1";
 import { useState } from "https://esm.sh/preact@10.17.1/hooks";
 
-import { PublicKey } from "../../../libs/nostr.ts/key.ts";
-import { ChatMessage } from "../message.ts";
-import { emitFunc } from "../../event-bus.ts";
-import { DirectMessagePanelUpdate, SyncEvent } from "../message-panel.tsx";
-import { SelectConversation } from "../search_model.ts";
-import { ProfileGetter } from "../search.tsx";
-import { RelayRecordGetter } from "../../database.ts";
-import { ProfileData } from "../../features/profile.ts";
-
 interface MeasuredData {
     measuredDataMap: Record<number, { size: number; offset: number }>;
     lastMeasuredItemIndex: number;
@@ -38,7 +29,7 @@ const estimatedHeight = (defaultEstimatedItemSize = 50, itemCount: number) => {
 };
 
 const getItemMetaData = (props: VirtualListProps, index: number) => {
-    const { itemEstimatedSize = 50 } = props;
+    const { itemSize, itemEstimatedSize = 50 } = props;
     const { measuredDataMap, lastMeasuredItemIndex } = measuredData;
     // If the current index is larger than the recorded index, it means that the size and offset of the item at the current index need to be calculated
     if (index > lastMeasuredItemIndex) {
@@ -50,7 +41,7 @@ const getItemMetaData = (props: VirtualListProps, index: number) => {
         }
         // Calculate all uncalculated items until the index
         for (let i = lastMeasuredItemIndex + 1; i <= index; i++) {
-            const currentItemSize = itemEstimatedSize;
+            const currentItemSize = itemSize ? itemSize(i) : itemEstimatedSize;
             measuredDataMap[i] = { size: currentItemSize, offset };
             offset += currentItemSize;
         }
@@ -91,8 +82,8 @@ const getEndIndex = (props: VirtualListProps, startIndex: number) => {
 
 const getRangeToRender = (props: VirtualListProps, scrollOffset: number) => {
     const { itemCount } = props;
-    const preBuffer = 10;
-    const postBuffer = 10;
+    const preBuffer = 2;
+    const postBuffer = 2;
     const startIndex = getStartIndex(props, scrollOffset);
     const endIndex = getEndIndex(props, startIndex);
     return [
@@ -142,18 +133,9 @@ class ListItem extends Component<ListItemProps> {
 interface VirtualListProps {
     height: number;
     itemCount: number;
+    itemSize?: (index: number) => number;
     itemEstimatedSize?: number;
     children: FunctionComponent<any>;
-    // copy from message-list.tsx Props
-    // myPublicKey: PublicKey;
-    // messages: ChatMessage[];
-    // emit: emitFunc<DirectMessagePanelUpdate | SelectConversation | SyncEvent>;
-    // getters: {
-    //     profileGetter: ProfileGetter;
-    //     relayRecordGetter: RelayRecordGetter;
-    //     getEventByID: func_GetEventByID;
-    // };
-    // copy end
 }
 
 export const VirtualList = (props: VirtualListProps) => {
@@ -186,7 +168,7 @@ export const VirtualList = (props: VirtualListProps) => {
             offset += itemMetaData.size;
         }
         // Ii is necessary to update the state to trigger the re-rendering of the component
-        forceUpdate((prevflag) => (prevflag + 1));
+        // forceUpdate((prevflag) => (prevflag + 1));
     };
 
     const getCurrentChildren = () => {

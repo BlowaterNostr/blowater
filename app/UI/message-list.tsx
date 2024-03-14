@@ -51,6 +51,7 @@ export class MessageList extends Component<Props, State> {
 
     // update rootHeight
     async componentDidMount() {
+        await sleep(100);
         if (!this.rootRef.current) return;
         if (this.state.rootHeight === this.rootRef.current.clientHeight) return;
         const rootHeight = this.rootRef.current.clientHeight || 1000;
