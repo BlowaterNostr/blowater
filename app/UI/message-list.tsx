@@ -25,6 +25,7 @@ import { Parsed_Event } from "../nostr.ts";
 import { NoteID } from "../../libs/nostr.ts/nip19.ts";
 import { robohash } from "./relay-detail.tsx";
 import { EventID } from "../../libs/nostr.ts/nostr.ts";
+import { VirtualList } from "./components/virtual-list.tsx";
 
 interface Props {
     myPublicKey: PublicKey;
@@ -38,44 +39,33 @@ interface Props {
 }
 
 interface State {
-    status: {
-        type: "Latest"; // Automatically load the latest message when there is a new message.
-    } | {
-        type: "Browse"; // Manually load the message.
-        offset: number;
-    };
+    rootHeight: number;
 }
 
-const ItemsOfPerPage = 20;
-
 export class MessageList extends Component<Props, State> {
-    readonly messagesOLElement = createRef<HTMLOListElement>();
+    readonly rootRef = createRef<HTMLDivElement>();
 
     state: State = {
-        status: {
-            type: "Latest",
-        },
+        rootHeight: 1000,
     };
 
-    jitter = new JitterPrevention(100);
-
+    // update rootHeight
     async componentDidMount() {
-        if (this.state.status.type == "Latest") {
-        } else if (this.state.status.type == "Browse") {
-            const offset = this.props.messages.length - ItemsOfPerPage;
-        }
+        if (!this.rootRef.current) return;
+        if (this.state.rootHeight === this.rootRef.current.clientHeight) return;
+        const rootHeight = this.rootRef.current.clientHeight || 1000;
+        await setState(this, { rootHeight });
     }
 
     render() {
-        const messages_to_render = this.sortAndSliceMessage();
-        console.log(messages_to_render);
+        const messages_to_render = sortMessage(this.props.messages);
         const groups = groupContinuousMessages(messages_to_render, (pre, cur) => {
             const sameAuthor = pre.event.pubkey == cur.event.pubkey;
             const _66sec = Math.abs(cur.created_at.getTime() - pre.created_at.getTime()) <
                 1000 * 60;
             return sameAuthor && _66sec;
         });
-        const messageBoxGroups = [];
+        const messageBoxGroups: h.JSX.Element[] = [];
         for (const messages of groups) {
             const profileEvent = this.props.getters.profileGetter
                 .getProfilesByPublicKey(messages[0].author);
@@ -89,6 +79,20 @@ export class MessageList extends Component<Props, State> {
                 }),
             );
         }
+
+        // split MessageBoxGroup by every Fragment
+        const rows: h.JSX.Element[] = [];
+        messageBoxGroups.forEach((group, index) => {
+            if (group.type === Fragment) {
+                group.props.children.forEach((child: h.JSX.Element) => {
+                    rows.push(child);
+                });
+            }
+        });
+        const Row = ({ index }: { index: number }) => rows[index];
+        console.log("BoxGroups_length", messageBoxGroups.length);
+        console.log("rows_length", rows.length);
+        console.log("messages_length", this.props.messages.length);
 
         return (
             <div
@@ -108,93 +112,26 @@ export class MessageList extends Component<Props, State> {
                         }}
                     />
                 </button>
-                <ol
+                <div
                     class={`w-full h-full overflow-y-auto overflow-x-hidden py-9 mobile:py-2 px-2 mobile:px-0 flex flex-col`}
-                    ref={this.messagesOLElement}
+                    ref={this.rootRef}
                 >
-                    <button class={`${IconButtonClass}`} onClick={this.prePage}>
-                        load earlier messages
-                    </button>
-                    {messageBoxGroups}
-                    <button class={`${IconButtonClass}`} onClick={this.nextPage}>
-                        load more messages
-                    </button>
-                </ol>
+                    <VirtualList
+                        height={this.state.rootHeight}
+                        itemCount={this.props.messages.length}
+                    >
+                        {Row}
+                    </VirtualList>
+                </div>
             </div>
         );
     }
 
-    sortAndSliceMessage = () => {
-        const messages_len = this.props.messages.length;
-        if (this.state.status.type == "Latest") {
-            return sortMessage(this.props.messages).slice(
-                messages_len > ItemsOfPerPage ? messages_len - ItemsOfPerPage : 0,
-                messages_len,
-            );
-        } else if (this.state.status.type == "Browse") {
-            return sortMessage(this.props.messages)
-                .slice(
-                    this.state.status.offset,
-                    this.state.status.offset + ItemsOfPerPage,
-                );
-        } else {
-            return [];
+    goToButtom = () => {
+        if (this.rootRef.current) {
+            this.rootRef.current.scrollTop = this.rootRef.current.scrollHeight;
         }
     };
-
-    prePage = async () => {
-        if (this.state.status.type == "Latest") {
-            await setState(this, {
-                status: { type: "Browse", offset: this.props.messages.length - ItemsOfPerPage },
-            });
-        } else if (this.state.status.type == "Browse") {
-            const offset = this.state.status.offset - ItemsOfPerPage / 2;
-            await setState(this, { status: { type: "Browse", offset: offset > 0 ? offset : 0 } });
-        }
-    };
-
-    nextPage = async () => {
-        if (this.state.status.type == "Latest") {
-            // nothing to do
-        } else if (this.state.status.type == "Browse") {
-            const offset = this.state.status.offset + ItemsOfPerPage / 2;
-            if (offset < this.props.messages.length) {
-                await setState(this, { status: { type: "Browse", offset } });
-            } else {
-                await setState(this, { status: { type: "Latest" } });
-            }
-        }
-    };
-
-    goToButtom = async () => {
-        const latestEventId = this.props.messages[this.props.messages.length - 1].event.id;
-        this.srcollToMessageBy(latestEventId);
-    };
-
-    srcollToMessageBy = (eventId: EventID) => {
-        const ol = this.messagesOLElement.current;
-        if (!ol) return;
-        const li = ol.children.namedItem(`event_${eventId}`);
-        if (!li) return;
-        li.scrollIntoView();
-    };
-}
-
-class JitterPrevention {
-    constructor(private duration: number) {}
-    cancel: ((value: void) => void) | undefined;
-    async shouldExecute(): Promise<boolean> {
-        if (this.cancel) {
-            this.cancel();
-            this.cancel = undefined;
-            return this.shouldExecute();
-        }
-        const p = new Promise<void>((resolve) => {
-            this.cancel = resolve;
-        });
-        const cancelled = await sleep(this.duration, p);
-        return !cancelled;
-    }
 }
 
 export type func_GetEventByID = (

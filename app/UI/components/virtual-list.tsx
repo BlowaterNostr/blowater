@@ -11,7 +11,6 @@ import { SelectConversation } from "../search_model.ts";
 import { ProfileGetter } from "../search.tsx";
 import { RelayRecordGetter } from "../../database.ts";
 import { ProfileData } from "../../features/profile.ts";
-import { func_GetEventByID, RowProps } from "../message-list.tsx";
 
 interface MeasuredData {
     measuredDataMap: Record<number, { size: number; offset: number }>;
@@ -144,7 +143,7 @@ interface VirtualListProps {
     height: number;
     itemCount: number;
     itemEstimatedSize?: number;
-    children: FunctionComponent<RowProps>;
+    children: FunctionComponent<any>;
     // copy from message-list.tsx Props
     // myPublicKey: PublicKey;
     // messages: ChatMessage[];
