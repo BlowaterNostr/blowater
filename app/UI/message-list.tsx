@@ -1,4 +1,4 @@
-import { Component, createRef, Fragment, FunctionComponent, h } from "https://esm.sh/preact@10.17.1";
+import { Component, createRef, Fragment, h } from "https://esm.sh/preact@10.17.1";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { RelayRecordGetter } from "../database.ts";
 import { emitFunc } from "../event-bus.ts";
@@ -25,7 +25,6 @@ import { Parsed_Event } from "../nostr.ts";
 import { NoteID } from "../../libs/nostr.ts/nip19.ts";
 import { robohash } from "./relay-detail.tsx";
 import { EventID } from "../../libs/nostr.ts/nostr.ts";
-import { VirtualList } from "./components/virtual-list.tsx";
 
 interface Props {
     myPublicKey: PublicKey;
@@ -39,26 +38,38 @@ interface Props {
 }
 
 interface State {
-    rootHeight: number;
+    status: {
+        type: "Latest"; // Automatically load the latest message when there is a new message.
+    } | {
+        type: "Browse"; // Manually load the message.
+        offset: number;
+    };
 }
 
+const ItemsOfPerPage = 20;
+
 export class MessageList extends Component<Props, State> {
+    readonly messagesOLElement = createRef<HTMLOListElement>();
+
     state: State = {
-        rootHeight: 600,
+        status: {
+            type: "Latest",
+        },
     };
 
-    rootRef = createRef<HTMLDivElement>();
+    jitter = new JitterPrevention(100);
 
-    // update rootHeight
     async componentDidMount() {
-        await sleep(100);
-        const rootHeight = this.rootRef.current?.clientHeight || 600;
-        setState(this, { rootHeight });
+        if (this.state.status.type == "Latest") {
+        } else if (this.state.status.type == "Browse") {
+            const offset = this.props.messages.length - ItemsOfPerPage;
+        }
     }
 
     render() {
-        const messages_to_container = sortMessage(this.props.messages);
-        const groups = groupContinuousMessages(messages_to_container, (pre, cur) => {
+        const messages_to_render = this.sortAndSliceMessage();
+        console.log(messages_to_render);
+        const groups = groupContinuousMessages(messages_to_render, (pre, cur) => {
             const sameAuthor = pre.event.pubkey == cur.event.pubkey;
             const _66sec = Math.abs(cur.created_at.getTime() - pre.created_at.getTime()) <
                 1000 * 60;
@@ -80,73 +91,117 @@ export class MessageList extends Component<Props, State> {
         }
 
         return (
-            <div ref={this.rootRef} class={`w-full h-full`}>
-                <VirtualList
-                    height={this.state.rootHeight}
-                    itemSize={getItemSize}
-                    itemCount={this.props.messages.length}
-                    myPublicKey={this.props.myPublicKey}
-                    messages={this.props.messages}
-                    emit={this.props.emit}
-                    getters={this.props.getters}
+            <div
+                class={`w-full overflow-hidden ${BackgroundColor_MessagePanel}`}
+                style={{
+                    transform: "perspective(none)",
+                }}
+            >
+                <button
+                    onClick={this.goToButtom}
+                    class={`${IconButtonClass} fixed z-10 bottom-8 right-4 h-10 w-10 rotate-[-90deg] bg-[#42464D] hover:bg-[#2F3136]`}
                 >
-                    {Row}
-                </VirtualList>
+                    <LeftArrowIcon
+                        class={`w-6 h-6`}
+                        style={{
+                            fill: "#F3F4EA",
+                        }}
+                    />
+                </button>
+                <ol
+                    class={`w-full h-full overflow-y-auto overflow-x-hidden py-9 mobile:py-2 px-2 mobile:px-0 flex flex-col`}
+                    ref={this.messagesOLElement}
+                >
+                    <button class={`${IconButtonClass}`} onClick={this.prePage}>
+                        load earlier messages
+                    </button>
+                    {messageBoxGroups}
+                    <button class={`${IconButtonClass}`} onClick={this.nextPage}>
+                        load more messages
+                    </button>
+                </ol>
             </div>
         );
     }
-}
 
-function getItemSize(index: number) {
-    return 100;
-}
+    sortAndSliceMessage = () => {
+        const messages_len = this.props.messages.length;
+        if (this.state.status.type == "Latest") {
+            return sortMessage(this.props.messages).slice(
+                messages_len > ItemsOfPerPage ? messages_len - ItemsOfPerPage : 0,
+                messages_len,
+            );
+        } else if (this.state.status.type == "Browse") {
+            return sortMessage(this.props.messages)
+                .slice(
+                    this.state.status.offset,
+                    this.state.status.offset + ItemsOfPerPage,
+                );
+        } else {
+            return [];
+        }
+    };
 
-export interface RowProps {
-    key: number;
-    index: number;
-    style: Record<string, string | number>;
-    messages: ChatMessage[];
-    emit: emitFunc<DirectMessagePanelUpdate | ViewUserDetail | SelectConversation | SyncEvent>;
-    myPublicKey: PublicKey;
-    getters: {
-        profileGetter: ProfileGetter;
-        relayRecordGetter: RelayRecordGetter;
-        getEventByID: func_GetEventByID;
+    prePage = async () => {
+        if (this.state.status.type == "Latest") {
+            await setState(this, {
+                status: { type: "Browse", offset: this.props.messages.length - ItemsOfPerPage },
+            });
+        } else if (this.state.status.type == "Browse") {
+            const offset = this.state.status.offset - ItemsOfPerPage / 2;
+            await setState(this, { status: { type: "Browse", offset: offset > 0 ? offset : 0 } });
+        }
+    };
+
+    nextPage = async () => {
+        if (this.state.status.type == "Latest") {
+            // nothing to do
+        } else if (this.state.status.type == "Browse") {
+            const offset = this.state.status.offset + ItemsOfPerPage / 2;
+            if (offset < this.props.messages.length) {
+                await setState(this, { status: { type: "Browse", offset } });
+            } else {
+                await setState(this, { status: { type: "Latest" } });
+            }
+        }
+    };
+
+    goToButtom = async () => {
+        const latestEventId = this.props.messages[this.props.messages.length - 1].event.id;
+        this.srcollToMessageBy(latestEventId);
+    };
+
+    srcollToMessageBy = (eventId: EventID) => {
+        const ol = this.messagesOLElement.current;
+        if (!ol) return;
+        const li = ol.children.namedItem(`event_${eventId}`);
+        if (!li) return;
+        li.scrollIntoView();
     };
 }
 
-const Row: FunctionComponent<RowProps> = (
-    { index, style, messages, emit, myPublicKey, getters },
-) => {
-    const message = messages[index];
-    return (
-        <li
-            style={style}
-            id={`event_${message.event.id}`}
-        >
-            {MessageActions(message, emit)}
-            {Time(message.created_at)}
-            <div
-                class={`flex-1`}
-                style={{
-                    maxWidth: "calc(100% - 2.75rem)",
-                }}
-            >
-                <pre
-                    class={`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto`}
-                >
-                    {ParseMessageContent(message, emit, getters)}
-                </pre>
-            </div>
-        </li>
-    );
-};
+class JitterPrevention {
+    constructor(private duration: number) {}
+    cancel: ((value: void) => void) | undefined;
+    async shouldExecute(): Promise<boolean> {
+        if (this.cancel) {
+            this.cancel();
+            this.cancel = undefined;
+            return this.shouldExecute();
+        }
+        const p = new Promise<void>((resolve) => {
+            this.cancel = resolve;
+        });
+        const cancelled = await sleep(this.duration, p);
+        return !cancelled;
+    }
+}
 
 export type func_GetEventByID = (
     id: string | NoteID,
 ) => Parsed_Event | undefined;
 
-export interface MessageGroupProps {
+function MessageBoxGroup(props: {
     authorProfile: ProfileData | undefined;
     messages: ChatMessage[];
     myPublicKey: PublicKey;
@@ -158,9 +213,7 @@ export interface MessageGroupProps {
         relayRecordGetter: RelayRecordGetter;
         getEventByID: func_GetEventByID;
     };
-}
-
-function MessageBoxGroup(props: MessageGroupProps) {
+}) {
     const first_message = props.messages[0];
     const rows = [];
     rows.push(
