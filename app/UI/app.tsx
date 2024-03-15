@@ -501,7 +501,7 @@ const sync_kind_1 = async (pool: ConnectionPool, database: Database_View) => {
         return stream;
     }
     for await (const msg of stream.chan) {
-        if (msg.res.type == "EOSE") {
+        if (msg.res.type == "EOSE" || msg.res.type == "NOTICE") {
             continue;
         }
         const ok = await database.addEvent(msg.res.event, msg.url);
@@ -525,7 +525,7 @@ const sync_client_specific_data = async (
         throw stream; // crash the app
     }
     for await (const msg of stream.chan) {
-        if (msg.res.type == "EOSE") {
+        if (msg.res.type == "EOSE" || msg.res.type == "NOTICE") {
             continue;
         }
         const ok = await database.addEvent(msg.res.event, msg.url);
