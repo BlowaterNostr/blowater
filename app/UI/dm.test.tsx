@@ -14,7 +14,6 @@ import { OtherConfig } from "./config-other.ts";
 import { DM_List } from "./conversation-list.ts";
 import { NewIndexedDB } from "./dexie-db.ts";
 import { DirectMessageContainer } from "./dm.tsx";
-import { EventSyncer } from "./event_syncer.ts";
 
 const ctx = InMemoryAccountContext.Generate();
 const pool = new ConnectionPool();
@@ -46,7 +45,6 @@ if (!e || e instanceof Error) {
 
 render(
     <DirectMessageContainer
-        eventSyncer={new EventSyncer(pool, database)}
         bus={testEventBus}
         ctx={ctx}
         getters={{
@@ -57,6 +55,7 @@ render(
             profileGetter: database,
             relayRecordGetter: database,
             isUserBlocked: dm_list.isUserBlocked,
+            getEventByID: database.getEventByID
         }}
         userBlocker={dm_list}
         currentConversation={ctx.publicKey}
