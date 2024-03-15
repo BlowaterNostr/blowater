@@ -21,6 +21,8 @@ import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 import { RelaySwitchList } from "./relay-switch-list.tsx";
 import { SocialIcon } from "./icons/social-icon.tsx";
+import { SearchIcon } from "./icons/search-icon.tsx";
+import { StartSearch } from "./search_model.ts";
 import { setState } from "./_helper.ts";
 
 export type InstallPrompt = {
@@ -44,7 +46,7 @@ export type NavigationModel = {
 type Props = {
     publicKey: PublicKey;
     profile: Profile_Nostr_Event | undefined;
-    emit: emitFunc<NavigationUpdate | SelectRelay>;
+    emit: emitFunc<NavigationUpdate | SelectRelay | StartSearch>;
     installPrompt: InstallPrompt;
     pool: ConnectionPool;
     currentRelay?: string;
@@ -55,7 +57,7 @@ type State = {
     installPrompt: InstallPrompt;
 };
 
-type NavTabID = "Social" | "DM" | "Profile" | "About" | "Setting";
+type NavTabID = "Social" | "DM" | "Search" | "Profile" | "About" | "Setting";
 type NavTab = {
     icon: (active: boolean) => ComponentChild;
     id: NavTabID;
@@ -92,6 +94,10 @@ export class NavBar extends Component<Props, State> {
         {
             icon: (active: boolean) => <ChatIcon class={this.styles.icons(active)} />,
             id: "DM",
+        },
+        {
+            icon: (active: boolean) => <SearchIcon class={this.styles.icons(active)} />,
+            id: "Search",
         },
         {
             icon: (active: boolean) => <UserIcon class={this.styles.icons(active)} />,
@@ -149,7 +155,15 @@ export class NavBar extends Component<Props, State> {
                             : undefined}
 
                         <button
-                            onClick={() => this.changeTab(id)}
+                            onClick={() => {
+                                if (id === "Search") {
+                                    props.emit({
+                                        type: "StartSearch",
+                                    });
+                                } else {
+                                    this.changeTab(id);
+                                }
+                            }}
                             class={this.styles.tabs(this.props.activeNav === id)}
                         >
                             {icon(this.props.activeNav === id)}
