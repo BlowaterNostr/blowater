@@ -1,7 +1,7 @@
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 
-export type SearchUpdate = SelectChannel | SelectConversation | Start;
-export type Start = {
+export type SearchUpdate = SelectChannel | SelectConversation | StartSearch;
+export type StartSearch = {
     type: "StartSearch";
 };
 export type SelectConversation = {
