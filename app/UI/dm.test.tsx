@@ -55,7 +55,7 @@ render(
             profileGetter: database,
             relayRecordGetter: database,
             isUserBlocked: dm_list.isUserBlocked,
-            getEventByID: database.getEventByID
+            getEventByID: database.getEventByID,
         }}
         userBlocker={dm_list}
         currentConversation={ctx.publicKey}
