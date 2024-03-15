@@ -3,17 +3,18 @@ import { prepareNormalNostrEvent } from "../../libs/nostr.ts/event.ts";
 
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 import { NostrAccountContext, NostrKind } from "../../libs/nostr.ts/nostr.ts";
+import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 
 export async function saveProfile(
     profile: ProfileData,
     sender: NostrAccountContext,
-    pool: ConnectionPool,
+    relay: SingleRelayConnection,
 ) {
     const event = await prepareNormalNostrEvent(
         sender,
         { kind: NostrKind.META_DATA, content: JSON.stringify(profile) },
     );
-    pool.sendEvent(event);
+    return relay.sendEvent(event);
 }
 
 // aka user profile
