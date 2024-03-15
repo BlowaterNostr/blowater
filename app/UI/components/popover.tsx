@@ -3,6 +3,10 @@ import { Component, ComponentChildren, h } from "https://esm.sh/preact@10.17.1";
 import { SecondaryBackgroundColor } from "../style/colors.ts";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 
+export type HidePopOver = {
+    type: "HidePopOver";
+};
+
 type State = {
     show: boolean;
 };
@@ -15,7 +19,7 @@ export class Popover extends Component<{
         container: `fixed inset-0 z-20`,
         backdrop: `fixed inset-0 z-[-1] backdrop-filter backdrop-blur cursor-pointer`,
         childrenContainer:
-            `h-[80%] absolute top-[20%] overflow-auto bg-[${SecondaryBackgroundColor}] w-full shadow-inner`,
+            `h-[80%] absolute top-[20%] overflow-auto bg-[${SecondaryBackgroundColor}] w-full shadow-inner border-t`,
     };
     children: ComponentChildren = undefined;
 

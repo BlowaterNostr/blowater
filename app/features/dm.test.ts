@@ -1,8 +1,9 @@
-import { assertEquals, fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
+import { assertEquals, fail } from "https://deno.land/std@0.202.0/testing/asserts.ts";
 import { InMemoryAccountContext, NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { DirectedMessageController } from "./dm.ts";
-import { prepareEncryptedNostrEvent } from "../../lib/nostr-ts/event.ts";
+
 import { ChatMessage } from "../UI/message.ts";
+import { prepareEncryptedNostrEvent } from "../../libs/nostr.ts/event.ts";
 
 Deno.test("DirectedMessageController", async () => {
     const ctx = InMemoryAccountContext.Generate();

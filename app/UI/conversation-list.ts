@@ -9,6 +9,7 @@ export interface ConversationSummary {
     pubkey: PublicKey;
     newestEventSendByMe?: NostrEvent;
     newestEventReceivedByMe?: NostrEvent;
+    relays?: string[];
 }
 
 export class DM_List implements ConversationListRetriever, NewMessageChecker, UserBlocker {
@@ -19,11 +20,11 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker, Us
         public readonly ctx: NostrAccountContext,
     ) {}
 
-    newNessageCount(pubkey: PublicKey, isGourpChat: boolean): number {
+    newNessageCount(pubkey: PublicKey): number {
         return this.newMessages.get(pubkey.bech32()) || 0;
     }
 
-    markRead(pubkey: PublicKey, isGourpChat: boolean): void {
+    markRead(pubkey: PublicKey): void {
         this.newMessages.set(pubkey.bech32(), 0);
     }
 
@@ -61,10 +62,7 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker, Us
         }
     }
 
-    getConversationType(pubkey: PublicKey, isGroupChat: boolean): ConversationType {
-        if (isGroupChat) {
-            return "Group";
-        }
+    getConversationType(pubkey: PublicKey): ConversationType {
         const contact = this.convoSummaries.get(pubkey.bech32());
         if (contact == undefined) {
             return "strangers";
@@ -103,10 +101,10 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker, Us
         blockedUsers.delete(pubkey.bech32());
         localStorage.setItem("blocked-users", JSON.stringify(Array.from(blockedUsers)));
     }
-    isUserBlocked(pubkey: PublicKey): boolean {
+    isUserBlocked = (pubkey: PublicKey): boolean => {
         const blockedUsers = this.getBlockedUsers();
         return blockedUsers.has(pubkey.bech32());
-    }
+    };
     getBlockedUsers() {
         let blockedUsers: string | null = localStorage.getItem("blocked-users");
         if (blockedUsers == null) {
@@ -161,7 +159,7 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker, Us
         if (newEvent && this.ctx.publicKey.hex != event.pubkey) {
             this.newMessages.set(
                 pubkey_I_TalkingTo.bech32(),
-                this.newNessageCount(pubkey_I_TalkingTo, false) + 1,
+                this.newNessageCount(pubkey_I_TalkingTo) + 1,
             );
         }
 

@@ -2,7 +2,6 @@ import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { DirectedMessage_Event, Parsed_Event } from "../nostr.ts";
 import { Nevent, NostrAddress, NostrProfile, NoteID } from "../../libs/nostr.ts/nip19.ts";
 import { NostrKind } from "../../libs/nostr.ts/nostr.ts";
-import { gm_Invitation } from "../features/gm.ts";
 
 export function* parseContent(content: string) {
     // URLs
@@ -167,15 +166,7 @@ export type ContentItem = {
 // Think of ChatMessage as an materialized view of NostrEvent
 export type ChatMessage = {
     readonly type: "image" | "text";
-    readonly event: DirectedMessage_Event | Parsed_Event<NostrKind.Group_Message>;
-    readonly author: PublicKey;
-    readonly created_at: Date;
-    readonly lamport: number | undefined;
-    readonly content: string;
-} | {
-    readonly type: "gm_invitation";
-    readonly event: Parsed_Event<NostrKind.Group_Message>;
-    readonly invitation: gm_Invitation;
+    readonly event: DirectedMessage_Event | Parsed_Event<NostrKind.TEXT_NOTE>;
     readonly author: PublicKey;
     readonly created_at: Date;
     readonly lamport: number | undefined;
@@ -219,12 +210,12 @@ export function sortMessage(messages: ChatMessage[]) {
         .sort((m1, m2) => {
             if (m1.lamport && m2.lamport) {
                 if (m1.lamport == m2.lamport) {
-                    return m2.created_at.getTime() - m1.created_at.getTime();
+                    return m1.created_at.getTime() - m2.created_at.getTime();
                 } else {
-                    return m2.lamport - m1.lamport;
+                    return m1.lamport - m2.lamport;
                 }
             }
-            return m2.created_at.getTime() - m1.created_at.getTime();
+            return m1.created_at.getTime() - m2.created_at.getTime();
         });
 }
 

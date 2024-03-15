@@ -13,7 +13,7 @@ import KeyView from "./key-view.tsx";
 import {
     DividerBackgroundColor,
     ErrorColor,
-    HoverButtonBackgroudColor,
+    HoverButtonBackgroundColor,
     PrimaryTextColor,
     SecondaryBackgroundColor,
     SuccessColor,
@@ -22,11 +22,10 @@ import {
 } from "./style/colors.ts";
 import { RelayIcon } from "./icons/relay-icon.tsx";
 import { DeleteIcon } from "./icons/delete-icon.tsx";
-import { RelayConfig, RemoveBlowaterRelay } from "./relay-config.ts";
+import { default_blowater_relay, RelayConfig, RemoveBlowaterRelay } from "./relay-config.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 import { emitFunc } from "../event-bus.ts";
 import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { blowater } from "../../libs/nostr.ts/relay-list.test.ts";
 import { InMemoryAccountContext, NostrAccountContext } from "../../libs/nostr.ts/nostr.ts";
 import { PrivateKey } from "../../libs/nostr.ts/key.ts";
 
@@ -35,7 +34,7 @@ export interface SettingProps {
     relayConfig: RelayConfig;
     relayPool: ConnectionPool;
     myAccountContext: NostrAccountContext;
-    emit: emitFunc<RelayConfigChange | ViewRelayDetail>;
+    emit: emitFunc<RelayConfigChange | ViewRelayDetail | ViewRecommendedRelaysList>;
     show: boolean;
 }
 
@@ -101,10 +100,15 @@ export type ViewRelayDetail = {
     url: string;
 };
 
+export type ViewRecommendedRelaysList = {
+    type: "ViewRecommendedRelaysList";
+    relayConfig: RelayConfig;
+};
+
 type RelaySettingProp = {
     relayConfig: RelayConfig;
     relayPool: ConnectionPool;
-    emit: emitFunc<RelayConfigChange | ViewRelayDetail>;
+    emit: emitFunc<RelayConfigChange | ViewRelayDetail | ViewRecommendedRelaysList>;
 };
 
 type RelaySettingState = {
@@ -155,6 +159,13 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
         this.props.emit({
             type: "ViewRelayDetail",
             url: url,
+        });
+    };
+
+    showRecommendedRelaysList = () => {
+        this.props.emit({
+            type: "ViewRecommendedRelaysList",
+            relayConfig: this.props.relayConfig,
         });
     };
 
@@ -209,7 +220,7 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
                         class={`${InputClass}`}
                     />
                     <button
-                        class={`ml-[0.75rem] w-[5.9375rem] h-[3rem] p-[0.75rem] rounded-lg ${NoOutlineClass} bg-[${DividerBackgroundColor}] hover:bg-[${HoverButtonBackgroudColor}] ${CenterClass} text-[${PrimaryTextColor}]`}
+                        class={`ml-[0.75rem] w-[5.9375rem] h-[3rem] p-[0.75rem] rounded-lg ${NoOutlineClass} bg-[${DividerBackgroundColor}] hover:bg-[${HoverButtonBackgroundColor}] ${CenterClass} text-[${PrimaryTextColor}]`}
                         onClick={addRelay}
                     >
                         Add
@@ -224,7 +235,7 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
                         return (
                             <li
                                 onClick={() => this.showRelayDetail(r.url)}
-                                class={`w-full px-[1rem] py-[0.75rem] rounded-lg bg-[${DividerBackgroundColor}80] mb-[0.5rem]  flex items-center justify-between cursor-pointer hover:bg-[${HoverButtonBackgroudColor}]`}
+                                class={`w-full px-[1rem] py-[0.75rem] rounded-lg bg-[${DividerBackgroundColor}80] mb-[0.5rem]  flex items-center justify-between cursor-pointer hover:bg-[${HoverButtonBackgroundColor}]`}
                             >
                                 <div class={`flex items-center flex-1 overflow-hidden`}>
                                     <span
@@ -236,7 +247,7 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
                                     </span>
                                     <span class={`truncate`}>{r.url}</span>
                                 </div>
-                                {r.url != blowater
+                                {r.url != default_blowater_relay
                                     ? (
                                         <button
                                             class={`w-[2rem] h-[2rem] rounded-lg bg-transparent hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
@@ -272,6 +283,12 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
                         );
                     })}
                 </ul>
+                <button
+                    class={`w-full p-[0.75rem] mt-[1.5rem] rounded-lg ${NoOutlineClass} ${CenterClass} ${LinearGradientsClass}  hover:bg-gradient-to-l text-[${PrimaryTextColor}]`}
+                    onClick={this.showRecommendedRelaysList}
+                >
+                    View Recommended Relays
+                </button>
             </Fragment>
         );
     }

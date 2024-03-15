@@ -5,10 +5,7 @@ import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { prepareEncryptedNostrEvent } from "../../libs/nostr.ts/event.ts";
 import { PrivateKey } from "../../libs/nostr.ts/key.ts";
-import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
-import { Datebase_View } from "../database.ts";
-import { GroupChatSyncer, GroupMessageController } from "../features/gm.ts";
-import { ProfileSyncer } from "../features/profile.ts";
+import { Database_View } from "../database.ts";
 import { LamportTime } from "../time.ts";
 import { testEventBus } from "./_setup.test.ts";
 import { OtherConfig } from "./config-other.ts";
@@ -21,12 +18,8 @@ const db = NewIndexedDB();
 if (db instanceof Error) {
     fail(db.message);
 }
-const database = await Datebase_View.New(db, db, db);
 
-const pool = new ConnectionPool();
-const profileSyncer = new ProfileSyncer(database, pool);
-
-const gmc = new GroupMessageController(ctx, new GroupChatSyncer(database, pool), profileSyncer);
+const database = await Database_View.New(db, db, db);
 const dm_list = new DM_List(ctx);
 
 for (let i = 0; i < 20; i++) {
@@ -49,13 +42,15 @@ const otherConfig = OtherConfig.Empty(new Channel(), ctx, new LamportTime());
 const view = () =>
     render(
         <ConversationList
-            hasNewMessages={dm_list}
-            eventBus={testEventBus}
+            getters={{
+                convoListRetriever: dm_list,
+                newMessageChecker: dm_list,
+                pinListGetter: otherConfig,
+                profileGetter: database,
+            }}
+            eventSub={testEventBus}
             emit={testEventBus.emit}
-            profileGetter={database}
-            groupChatListGetter={gmc}
-            convoListRetriever={dm_list}
-            pinListGetter={otherConfig}
+            userBlocker={dm_list}
         />,
         document.body,
     );

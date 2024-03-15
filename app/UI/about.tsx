@@ -32,7 +32,6 @@ export function About(emit: emitFunc<SelectConversation>) {
                         if (pub instanceof Error) throw pub;
                         emit({
                             type: "SelectConversation",
-                            isGroupChat: false,
                             pubkey: pub,
                         });
                     }}

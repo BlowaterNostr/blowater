@@ -3,8 +3,8 @@ import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master
 import { parseJSON, ProfileData } from "./features/profile.ts";
 import { NostrEvent, NostrKind, Tag, verifyEvent } from "../libs/nostr.ts/nostr.ts";
 import { PublicKey } from "../libs/nostr.ts/key.ts";
-import { ProfileController } from "./UI/search.tsx";
-import { UserBlocker } from "./UI/app_update.tsx";
+import { ProfileGetter, ProfileSetter } from "./UI/search.tsx";
+import { NoteID } from "../libs/nostr.ts/nip19.ts";
 
 const buffer_size = 2000;
 export interface Indices {
@@ -61,7 +61,9 @@ export interface RelayRecordGetter {
     getRelayRecord: (eventID: string) => Set<string>;
 }
 
-export class Datebase_View implements ProfileController, EventGetter, EventRemover, RelayRecordGetter {
+export class Database_View
+    implements ProfileSetter, ProfileGetter, EventGetter, EventRemover, RelayRecordGetter {
+    //
     public readonly sourceOfChange = csp.chan<Parsed_Event>(buffer_size);
     private readonly caster = csp.multi<Parsed_Event>(this.sourceOfChange);
     private readonly profiles = new Map<string, Profile_Nostr_Event>();
@@ -105,7 +107,7 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
         const all_removed_events = await eventMarker.getAllMarks();
         const all_relay_records = await relayAdapter.getAllRelayRecords();
         // Construct the View
-        const db = new Datebase_View(
+        const db = new Database_View(
             eventsAdapter,
             relayAdapter,
             eventMarker,
@@ -135,6 +137,16 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
         }
         return this.events.get(keys.id);
     }
+
+    getEventByID = (id: string | NoteID) => {
+        if (id instanceof NoteID) {
+            id = id.hex;
+        }
+        if (this.removedEvents.has(id)) {
+            return;
+        }
+        return this.events.get(id);
+    };
 
     *getAllEvents() {
         for (const event of this.events.values()) {
@@ -175,6 +187,10 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
         return this.profiles.get(pubkey.hex);
     }
 
+    getUniqueProfileCount(): number {
+        return this.profiles.size;
+    }
+
     setProfile(profileEvent: Profile_Nostr_Event): void {
         const profile = this.profiles.get(profileEvent.pubkey);
         if (profile) {
@@ -186,7 +202,8 @@ export class Datebase_View implements ProfileController, EventGetter, EventRemov
         }
     }
 
-    async addEvent(event: NostrEvent, url?: string) {
+    // If url is undefined, it's a locally created event that's not confirmed by relays yet.
+    async addEvent(event: NostrEvent, url?: string | undefined) {
         const ok = await verifyEvent(event);
         if (!ok) {
             return ok;

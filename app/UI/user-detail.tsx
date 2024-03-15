@@ -11,6 +11,7 @@ import { UserIcon } from "./icons/user-icon.tsx";
 import { CopyButton } from "./components/copy-button.tsx";
 import { LinkColor } from "./style/colors.ts";
 import { findUrlInString } from "./message.ts";
+import { robohash } from "./relay-detail.tsx";
 
 export type BlockUser = {
     type: "BlockUser";
@@ -34,7 +35,7 @@ export function UserDetail(props: UserDetailProps) {
         <div class={`px-2 py-3 text-[#7A818C]`}>
             <Avatar
                 class={`w-64 h-64 m-auto`}
-                picture={props.targetUserProfile.picture}
+                picture={props.targetUserProfile.picture || robohash(props.pubkey.hex)}
             />
             <h1 class={`text-[#F3F4EA] truncate text-[1.4rem] my-4 max-w-full text-center`}>
                 {props.targetUserProfile.name || props.pubkey.bech32()}

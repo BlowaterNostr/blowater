@@ -1,16 +1,15 @@
 /** @jsx h */
-import { h } from "https://esm.sh/preact@10.17.1";
+import { ComponentChildren, h } from "https://esm.sh/preact@10.17.1";
 import { Channel, closed, sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { prepareEncryptedNostrEvent, prepareNormalNostrEvent } from "../../libs/nostr.ts/event.ts";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { NoteID } from "../../libs/nostr.ts/nip19.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
-import { Datebase_View } from "../database.ts";
+import { Database_View } from "../database.ts";
 import { emitFunc, EventBus } from "../event-bus.ts";
-import { DirectedMessageController, sendDMandImages } from "../features/dm.ts";
-import { GroupMessageController } from "../features/gm.ts";
-import { ProfileSyncer, saveProfile } from "../features/profile.ts";
+import { DirectedMessageController, sendDirectMessages } from "../features/dm.ts";
+import { saveProfile } from "../features/profile.ts";
 import {
     Encrypted_Event,
     getTags,
@@ -26,24 +25,29 @@ import { PopOverInputChannel } from "./components/popover.tsx";
 import { OtherConfig } from "./config-other.ts";
 import { DM_List } from "./conversation-list.ts";
 import { ContactUpdate } from "./conversation-list.tsx";
-import { CreateGroup, CreateGroupChat, StartCreateGroupChat } from "./create-group.tsx";
 import { StartInvite } from "./dm.tsx";
 import { EditGroup, StartEditGroupChatProfile } from "./edit-group.tsx";
 import { SaveProfile } from "./edit-profile.tsx";
-import { EditorEvent, EditorModel, new_DM_EditorModel, SendMessage } from "./editor.tsx";
+import { EditorEvent, SendMessage } from "./editor.tsx";
 import { EventDetail, EventDetailItem } from "./event-detail.tsx";
-import { InviteUsersToGroup } from "./invite-button.tsx";
+import { EventSender } from "../../libs/nostr.ts/relay.interface.ts";
+
 import { DirectMessagePanelUpdate } from "./message-panel.tsx";
 import { ChatMessage } from "./message.ts";
-import { InstallPrompt, NavigationUpdate } from "./nav.tsx";
+import { InstallPrompt, NavigationModel, NavigationUpdate, SelectRelay } from "./nav.tsx";
 import { notify } from "./notification.ts";
-import { RelayDetail } from "./relay-detail.tsx";
+import { RelayInformationComponent } from "./relay-detail.tsx";
 import { Search } from "./search.tsx";
 import { SearchUpdate, SelectConversation } from "./search_model.ts";
-import { RelayConfigChange, ViewRelayDetail } from "./setting.tsx";
-import { SignInEvent } from "./signIn.tsx";
+import { RelayConfigChange, ViewRecommendedRelaysList, ViewRelayDetail } from "./setting.tsx";
+import { SignInEvent } from "./sign-in.ts";
 import { TagSelected } from "./contact-tags.tsx";
-import { BlockUser, UnblockUser } from "./user-detail.tsx";
+import { BlockUser, UnblockUser, UserDetail } from "./user-detail.tsx";
+import { RelayRecommendList } from "./relay-recommend-list.tsx";
+import { HidePopOver } from "./components/popover.tsx";
+import { Social_Model } from "./channel-container.tsx";
+import { DM_Model } from "./dm.tsx";
+import { SyncEvent } from "./message-panel.tsx";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -51,22 +55,27 @@ export type UI_Interaction_Event =
     | EditorEvent
     | NavigationUpdate
     | DirectMessagePanelUpdate
+    | BackToChannelList
     | BackToContactList
     | SaveProfile
     | PinConversation
     | UnpinConversation
     | SignInEvent
     | RelayConfigChange
-    | CreateGroupChat
-    | StartCreateGroupChat
     | StartEditGroupChatProfile
     | StartInvite
-    | InviteUsersToGroup
     | ViewRelayDetail
+    | ViewRecommendedRelaysList
     | TagSelected
     | BlockUser
-    | UnblockUser;
+    | UnblockUser
+    | SelectRelay
+    | HidePopOver
+    | SyncEvent;
 
+type BackToChannelList = {
+    type: "BackToChannelList";
+};
 type BackToContactList = {
     type: "BackToContactList";
 };
@@ -85,16 +94,16 @@ export type UserBlocker = {
 export async function* UI_Interaction_Update(args: {
     model: Model;
     eventBus: AppEventBus;
-    dbView: Datebase_View;
+    dbView: Database_View;
     pool: ConnectionPool;
     popOver: PopOverInputChannel;
+    rightPanel: Channel<() => ComponentChildren>;
     newNostrEventChannel: Channel<NostrEvent>;
     lamport: LamportTime;
     installPrompt: InstallPrompt;
 }) {
     const { model, dbView, eventBus, pool, installPrompt } = args;
-    const events = eventBus.onChange();
-    for await (const event of events) {
+    for await (const event of eventBus.onChange()) {
         console.log(event);
         switch (event.type) {
             case "SignInEvent":
@@ -113,6 +122,7 @@ export async function* UI_Interaction_Update(args: {
                         eventBus,
                         pool,
                         popOverInputChan: args.popOver,
+                        rightPanelInputChan: args.rightPanel,
                         otherConfig,
                         lamport: args.lamport,
                         installPrompt,
@@ -132,17 +142,20 @@ export async function* UI_Interaction_Update(args: {
             continue;
         } // All events below are only valid after signning in
         //
-
-        //
+        else if (event.type == "SelectRelay") {
+            model.currentRelay = event.relay.url;
+        } //
         // Searchx
         //
-        else if (event.type == "CancelPopOver") {
-            model.search.isSearching = false;
+        else if (event.type == "HidePopOver") {
+            app.popOverInputChan.put({
+                children: undefined,
+            });
         } else if (event.type == "StartSearch") {
-            model.search.isSearching = true;
+            app.database.getProfilesByText;
             const search = (
                 <Search
-                    placeholder={"Search a user's public key or name"}
+                    placeholder={`Search a user's public key or name (${app.database.getUniqueProfileCount()} profiles)`}
                     db={app.database}
                     emit={eventBus.emit}
                 />
@@ -154,25 +167,29 @@ export async function* UI_Interaction_Update(args: {
         //
         else if (event.type == "ViewRelayDetail") {
             app.popOverInputChan.put({
-                children: <RelayDetail relayUrl={event.url} profileGetter={app.database} />,
+                children: <RelayInformationComponent relayUrl={event.url} profileGetter={app.database} />,
+            });
+        } else if (event.type == "ViewRecommendedRelaysList") {
+            app.popOverInputChan.put({
+                children: (
+                    <RelayRecommendList
+                        relayConfig={event.relayConfig}
+                        emit={eventBus.emit}
+                    />
+                ),
             });
         } //
         //
         // Contacts
         //
         else if (event.type == "SelectConversation") {
+            console.log("SelectConversation", event.pubkey.hex);
             model.navigationModel.activeNav = "DM";
-            model.search.isSearching = false;
-            updateConversation(app.model, event.pubkey, event.isGroupChat);
-
-            if (!model.dm.focusedContent.get(event.pubkey.hex)) {
-                model.dm.focusedContent.set(event.pubkey.hex, event.pubkey);
-            }
+            model.dm.currentConversation = event.pubkey;
             app.popOverInputChan.put({ children: undefined });
-            app.model.dm.isGroupMessage = event.isGroupChat;
-            app.conversationLists.markRead(event.pubkey, event.isGroupChat);
+            app.conversationLists.markRead(event.pubkey);
         } else if (event.type == "BackToContactList") {
-            model.dm.currentEditor = undefined;
+            model.dm.currentConversation = undefined;
         } else if (event.type == "PinConversation") {
             const err1 = await app.otherConfig.addPin(event.pubkey);
             if (err1 instanceof Error) {
@@ -190,45 +207,27 @@ export async function* UI_Interaction_Update(args: {
         // Editor
         //
         else if (event.type == "SendMessage") {
+            const currentRelay = pool.getRelay(model.currentRelay);
+            if (!currentRelay) {
+                console.error(`currentRelay is not found: ${model.currentRelay}`);
+                continue;
+            }
             handle_SendMessage(
                 event,
                 app.ctx,
                 app.lamport,
-                pool,
-                app.model.dmEditors,
-                app.model.gmEditors,
+                currentRelay,
                 app.database,
-                app.groupChatController,
+                model,
             ).then((res) => {
                 if (res instanceof Error) {
                     console.error("update:SendMessage", res);
                 }
             });
         } else if (event.type == "UpdateMessageFiles") {
-            const editors = event.isGroupChat ? model.gmEditors : model.dmEditors;
-            const editor = editors.get(event.pubkey.hex);
-            if (editor) {
-                editor.files = event.files;
-            } else {
-                editors.set(event.pubkey.hex, {
-                    files: event.files,
-                    pubkey: event.pubkey,
-                    text: "",
-                });
-            }
+            console.log("to be implemented");
         } else if (event.type == "UpdateEditorText") {
-            const editorMap = event.isGroupChat ? model.gmEditors : model.dmEditors;
-            const editor = editorMap.get(event.pubkey.hex);
-            if (editor) {
-                editor.text = event.text;
-            } else {
-                editorMap.set(event.pubkey.hex, {
-                    files: [],
-                    text: event.text,
-                    pubkey: event.pubkey,
-                });
-            }
-            console.log(editor);
+            console.log("to be implemented");
         } //
         //
         // Profile
@@ -248,82 +247,38 @@ export async function* UI_Interaction_Update(args: {
             model.navigationModel.activeNav = event.id;
         } //
         //
+        // Channel
+        //
+        else if (event.type == "SelectChannel") {
+            if (!model.currentRelay) {
+                console.error("currentRelay is not set");
+                continue;
+            }
+            model.social.relaySelectedChannel.set(model.currentRelay, event.channel);
+            app.popOverInputChan.put({ children: undefined });
+        } else if (event.type == "BackToChannelList") {
+            model.social.relaySelectedChannel.delete(model.currentRelay);
+            app.popOverInputChan.put({ children: undefined });
+        } //
         // DM
         //
-        else if (event.type == "InviteUsersToGroup") {
-            for (const pubkey of event.usersPublicKey) {
-                const invitationEvent = await app.groupChatController.createInvitation(
-                    event.groupPublicKey,
-                    pubkey,
-                );
-                if (invitationEvent instanceof Error) {
-                    console.error(invitationEvent);
-                    continue;
-                }
-                const err = await pool.sendEvent(invitationEvent);
-                if (err instanceof Error) {
-                    console.error(err);
-                    continue;
-                }
-            }
-        } else if (event.type == "ViewThread") {
-            if (model.navigationModel.activeNav == "DM") {
-                if (model.dm.currentEditor) {
-                    model.dm.focusedContent.set(
-                        model.dm.currentEditor.pubkey.hex,
-                        event.root,
+        else if (event.type == "ViewUserDetail") {
+            app.rightPanelInputChan.put(
+                () => {
+                    return (
+                        <UserDetail
+                            targetUserProfile={app.database.getProfilesByPublicKey(event.pubkey)?.profile ||
+                                {}}
+                            pubkey={event.pubkey}
+                            emit={eventBus.emit}
+                            // dmList={app.conversationLists}
+                            blocked={app.conversationLists.isUserBlocked(event.pubkey)}
+                        />
                     );
-                }
-            }
-        } else if (event.type == "ViewUserDetail") {
-            if (model.dm.currentEditor) {
-                const currentFocus = model.dm.focusedContent.get(model.dm.currentEditor.pubkey.hex);
-                if (
-                    currentFocus instanceof PublicKey &&
-                    currentFocus.hex == event.pubkey.hex &&
-                    currentFocus.hex == model.dm.currentEditor.pubkey.hex
-                ) {
-                } else {
-                    model.dm.focusedContent.set(
-                        model.dm.currentEditor.pubkey.hex,
-                        event.pubkey,
-                    );
-                }
-            }
-        } else if (event.type == "OpenNote") {
-            open(`https://nostrapp.link/#${NoteID.FromHex(event.event.id).bech32()}?select=true`);
-        } else if (event.type == "StartCreateGroupChat") {
-            app.popOverInputChan.put({
-                children: <CreateGroup emit={eventBus.emit} />,
-            });
-        } else if (event.type == "CreateGroupChat") {
-            const profileData = event.profileData;
-
-            const groupCreation = app.groupChatController.createGroupChat();
-            const creationEvent = await app.groupChatController.encodeCreationToNostrEvent(groupCreation);
-            if (creationEvent instanceof Error) {
-                console.error(creationEvent);
-                continue;
-            }
-            const err = await pool.sendEvent(creationEvent);
-            if (err instanceof Error) {
-                console.error(err);
-                continue;
-            }
-            const profileEvent = await prepareNormalNostrEvent(
-                groupCreation.groupKey,
-                {
-                    kind: NostrKind.META_DATA,
-                    content: JSON.stringify(profileData),
                 },
             );
-            const err2 = pool.sendEvent(profileEvent);
-            if (err2 instanceof Error) {
-                console.error(err2);
-                continue;
-            }
-            app.popOverInputChan.put({ children: undefined });
-            app.profileSyncer.add(groupCreation.groupKey.publicKey.hex);
+        } else if (event.type == "OpenNote") {
+            open(`https://nostrapp.link/#${NoteID.FromHex(event.event.id).bech32()}?select=true`);
         } else if (event.type == "StartEditGroupChatProfile") {
             app.popOverInputChan.put({
                 children: (
@@ -416,8 +371,26 @@ export async function* UI_Interaction_Update(args: {
             app.conversationLists.blockUser(event.pubkey);
         } else if (event.type == "UnblockUser") {
             app.conversationLists.unblockUser(event.pubkey);
+        } else if (event.type == "SyncEvent") {
+            for (const relay of app.pool.getRelays()) {
+                relay.getEvent(event.eventID).then((nostr_event) => {
+                    if (nostr_event instanceof Error) {
+                        console.error(nostr_event);
+                        return;
+                    }
+                    if (nostr_event) {
+                        app.database.addEvent(nostr_event, relay.url);
+                    }
+                });
+            }
+            yield false; // do not update UI
+            continue;
+        } else {
+            console.log(event, "is not handled");
+            yield false;
+            continue;
         }
-        yield model;
+        yield true;
     }
 }
 
@@ -429,36 +402,15 @@ export type ChatMessagesGetter = {
     getChatMessages(publicKey: string): ChatMessage[];
 };
 
-export function updateConversation(
-    model: Model,
-    targetPublicKey: PublicKey,
-    isGroupChat: boolean,
-) {
-    const editorMap = isGroupChat ? model.gmEditors : model.dmEditors;
-    let editor = editorMap.get(targetPublicKey.hex);
-    // If this conversation is new
-    if (editor == undefined) {
-        editor = {
-            pubkey: targetPublicKey,
-            files: [],
-            text: "",
-        };
-        editorMap.set(targetPublicKey.hex, editor);
-    }
-    model.dm.currentEditor = editor;
-}
-
 //////////////
 // Database //
 //////////////
 export async function* Database_Update(
     ctx: NostrAccountContext,
-    database: Datebase_View,
+    database: Database_View,
     model: Model,
-    profileSyncer: ProfileSyncer,
     lamport: LamportTime,
     convoLists: DM_List,
-    groupController: GroupMessageController,
     dmController: DirectedMessageController,
     emit: emitFunc<SelectConversation>,
     args: {
@@ -482,7 +434,6 @@ export async function* Database_Update(
             changes_events.push(e);
         }
 
-        profileSyncer.add(...changes_events.map((e) => e.pubkey));
         convoLists.addEvents(changes_events, true);
         for (let e of changes_events) {
             const t = getTags(e).lamport_timestamp;
@@ -490,30 +441,6 @@ export async function* Database_Update(
                 lamport.set(t);
             }
             if (e.kind == NostrKind.META_DATA || e.kind == NostrKind.DIRECT_MESSAGE) {
-                for (const contact of convoLists.convoSummaries.values()) {
-                    const editor = model.dmEditors.get(contact.pubkey.hex);
-                    if (editor == null) { // a stranger sends a message
-                        const pubkey = PublicKey.FromHex(contact.pubkey.hex);
-                        if (pubkey instanceof Error) {
-                            throw pubkey; // impossible
-                        }
-                        model.dmEditors.set(
-                            contact.pubkey.hex,
-                            new_DM_EditorModel(
-                                pubkey,
-                            ),
-                        );
-                    }
-                }
-
-                if (model.dm.currentEditor) {
-                    updateConversation(
-                        model,
-                        model.dm.currentEditor.pubkey,
-                        false,
-                    );
-                }
-
                 if (e.kind == NostrKind.META_DATA) {
                     // my profile update
                     if (ctx && e.pubkey == ctx.publicKey.hex) {
@@ -524,6 +451,7 @@ export async function* Database_Update(
                         model.myProfile = newProfile.profile;
                     }
                 } else if (e.kind == NostrKind.DIRECT_MESSAGE) {
+                    console.log("add event");
                     const err = await dmController.addEvent({
                         ...e,
                         kind: e.kind,
@@ -531,27 +459,7 @@ export async function* Database_Update(
                     if (err instanceof Error) {
                         console.error(err);
                     }
-                }
-            } else if (e.kind == NostrKind.Group_Message) {
-                {
-                    const err = await groupController.addEvent({
-                        ...e,
-                        kind: e.kind,
-                    });
-                    if (err instanceof Error) {
-                        console.error(err, e);
-                        await database.remove(e.id);
-                    }
-                }
-                {
-                    const err = await dmController.addEvent({
-                        ...e,
-                        kind: e.kind,
-                    });
-                    if (err instanceof Error) {
-                        console.error(err);
-                        await database.remove(e.id);
-                    }
+                    console.log("add event done");
                 }
             } else if (e.kind == NostrKind.Encrypted_Custom_App_Data) {
                 console.log(e);
@@ -580,18 +488,6 @@ export async function* Database_Update(
                                 emit({
                                     type: "SelectConversation",
                                     pubkey: k,
-                                    isGroupChat: false,
-                                });
-                            } else if (e.kind == NostrKind.Group_Message) {
-                                const k = PublicKey.FromHex(e.pubkey);
-                                if (k instanceof Error) {
-                                    console.error(k);
-                                    return;
-                                }
-                                emit({
-                                    type: "SelectConversation",
-                                    pubkey: k,
-                                    isGroupChat: true,
                                 });
                             } else if (e.kind == NostrKind.TEXT_NOTE) {
                                 // todo
@@ -613,71 +509,51 @@ export async function handle_SendMessage(
     event: SendMessage,
     ctx: NostrAccountContext,
     lamport: LamportTime,
-    pool: ConnectionPool,
-    dmEditors: Map<string, EditorModel>,
-    gmEditors: Map<string, EditorModel>,
-    db: Datebase_View,
-    groupControl: GroupMessageController,
+    eventSender: EventSender,
+    db: Database_View,
+    args: {
+        navigationModel: NavigationModel;
+        social: Social_Model;
+        dm: {
+            currentConversation: PublicKey | undefined;
+        };
+    },
 ) {
-    if (event.isGroupChat) {
-        const textEvent = await groupControl.prepareGroupMessageEvent(
-            event.pubkey,
-            event.text,
-        );
-        if (textEvent instanceof Error) {
-            return textEvent;
-        }
-        const err = await pool.sendEvent(textEvent);
-        if (err instanceof Error) {
-            return err;
-        }
-
-        for (const blob of event.files) {
-            const imageEvent = await groupControl.prepareGroupMessageEvent(
-                event.pubkey,
-                blob,
-            );
-            if (imageEvent instanceof Error) {
-                return imageEvent;
-            }
-
-            const err = await pool.sendEvent(imageEvent);
-            if (err instanceof Error) {
-                return err;
-            }
-        }
-        const editor = gmEditors.get(event.pubkey.hex);
-        if (editor) {
-            editor.files = [];
-            editor.text = "";
-        }
-    } else {
-        const events = await sendDMandImages({
+    if (event.text.length == 0) {
+        return new Error("can't send empty message");
+    }
+    let events;
+    if (args.navigationModel.activeNav == "DM") {
+        events = await sendDirectMessages({
             sender: ctx,
-            receiverPublicKey: event.pubkey,
+            receiverPublicKey: args.dm.currentConversation as PublicKey,
             message: event.text,
             files: event.files,
             lamport_timestamp: lamport.now(),
-            pool,
+            eventSender,
             tags: [],
         });
         if (events instanceof Error) {
             return events;
         }
-        {
-            // clearing the editor before sending the message to relays
-            // so that even if the sending is awaiting, the UI will clear
-            const editor = dmEditors.get(event.pubkey.hex);
-            if (editor) {
-                editor.files = [];
-                editor.text = "";
-            }
+    } else if (args.navigationModel.activeNav == "Social") {
+        const nostr_event = await prepareNormalNostrEvent(ctx, {
+            content: event.text,
+            kind: NostrKind.TEXT_NOTE,
+        });
+        const err = await eventSender.sendEvent(nostr_event);
+        if (err instanceof Error) {
+            return err;
         }
-        for (const eventSent of events) {
-            const err = await db.addEvent(eventSent);
-            if (err instanceof Error) {
-                console.error(err);
-            }
+        events = [nostr_event];
+    } else {
+        return new Error(`${args.navigationModel.activeNav} should not send messages`);
+    }
+
+    for (const eventSent of events) {
+        const err = await db.addEvent(eventSent, undefined);
+        if (err instanceof Error) {
+            console.error(err);
         }
     }
 }

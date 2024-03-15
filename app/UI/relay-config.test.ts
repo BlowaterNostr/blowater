@@ -1,8 +1,8 @@
-import { assertEquals, assertInstanceOf, fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
+import { assertEquals, assertInstanceOf, fail } from "https://deno.land/std@0.202.0/testing/asserts.ts";
 import { InMemoryAccountContext } from "../../libs/nostr.ts/nostr.ts";
-import { ConnectionPool } from "../../lib/nostr-ts/relay-pool.ts";
 import { RelayConfig, RemoveBlowaterRelay } from "./relay-config.ts";
-import { blowater, damus } from "../../lib/nostr-ts/relay-list.test.ts";
+import { blowater, damus } from "../../libs/nostr.ts/relay-list.test.ts";
+import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 
 Deno.test("relay config", async () => {
     const pool = new ConnectionPool();

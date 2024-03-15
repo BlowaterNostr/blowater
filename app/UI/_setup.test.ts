@@ -1,4 +1,4 @@
-import { Datebase_View, EventMark, EventMarker, EventsAdapter, Indices, RelayRecorder } from "../database.ts";
+import { Database_View, EventMark, EventMarker, EventsAdapter, Indices, RelayRecorder } from "../database.ts";
 import { EventBus } from "../event-bus.ts";
 import { NostrEvent } from "../../libs/nostr.ts/nostr.ts";
 import { UI_Interaction_Event } from "./app_update.tsx";
@@ -53,5 +53,5 @@ export async function test_db_view() {
             return Array.from(marks.values());
         },
     };
-    return await Datebase_View.New(testEventsAdapter, testRelayRecorder, testEventMarker);
+    return await Database_View.New(testEventsAdapter, testRelayRecorder, testEventMarker);
 }

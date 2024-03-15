@@ -1,20 +1,21 @@
 import { NavigationModel } from "./nav.tsx";
-import { SearchInitModel, SearchModel } from "./search_model.ts";
 import { ProfileData } from "../features/profile.ts";
-import { EditorModel } from "./editor.tsx";
+
 import { DM_Model } from "./dm.tsx";
+import { Social_Model } from "./channel-container.tsx";
 import { App } from "./app.tsx";
+import { PublicKey } from "../../libs/nostr.ts/key.ts";
+import { default_blowater_relay } from "./relay-config.ts";
 
 export type Model = {
-    app: App | undefined; // app is only available after sign-in
+    app?: App; // app is only available after sign-in
+    currentRelay: string;
     dm: DM_Model;
-    search: SearchModel;
 
-    dmEditors: Map<string, EditorModel>;
-    gmEditors: Map<string, EditorModel>;
+    social: Social_Model;
 
     // profile
-    myProfile: ProfileData | undefined;
+    myProfile?: ProfileData;
     newProfileField: {
         key: string;
         value: string;
@@ -25,23 +26,21 @@ export type Model = {
 };
 
 export function initialModel(): Model {
-    const editors: Map<string, EditorModel> = new Map();
     return {
         app: undefined,
-        search: SearchInitModel(),
+        currentRelay: default_blowater_relay,
         dm: {
-            focusedContent: new Map(),
-            currentEditor: undefined,
-            isGroupMessage: false,
+            currentConversation: undefined,
         },
-        dmEditors: editors,
-        gmEditors: new Map(),
+        social: {
+            relaySelectedChannel: new Map(),
+        },
         newProfileField: {
             key: "",
             value: "",
         },
         navigationModel: {
-            activeNav: "DM",
+            activeNav: "Social",
         },
         myProfile: undefined,
     };

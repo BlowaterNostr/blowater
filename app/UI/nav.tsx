@@ -1,6 +1,5 @@
 /** @jsx h */
-import { ComponentChild, Fragment, h } from "https://esm.sh/preact@10.17.1";
-import { Avatar } from "./components/avatar.tsx";
+import { ComponentChild, h } from "https://esm.sh/preact@10.17.1";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import {
     PrimaryBackgroundColor,
@@ -12,13 +11,19 @@ import { ChatIcon } from "./icons/chat-icon.tsx";
 import { UserIcon } from "./icons/user-icon.tsx";
 import { SettingIcon } from "./icons/setting-icon.tsx";
 import { Component } from "https://esm.sh/preact@10.17.1";
-import { ProfileGetter } from "./search.tsx";
-import { ProfileData } from "../features/profile.ts";
 import { AboutIcon } from "./icons/about-icon.tsx";
 
 import { CenterClass, NoOutlineClass } from "./components/tw.ts";
 import { emitFunc } from "../event-bus.ts";
 import { DownloadIcon } from "./icons/download-icon.tsx";
+import { Profile_Nostr_Event } from "../nostr.ts";
+import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
+import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
+import { RelaySwitchList } from "./relay-switch-list.tsx";
+import { SocialIcon } from "./icons/social-icon.tsx";
+import { SearchIcon } from "./icons/search-icon.tsx";
+import { StartSearch } from "./search_model.ts";
+import { setState } from "./_helper.ts";
 
 export type InstallPrompt = {
     event: Event | undefined;
@@ -29,24 +34,30 @@ export type NavigationUpdate = {
     id: NavTabID;
 };
 
+export type SelectRelay = {
+    type: "SelectRelay";
+    relay: SingleRelayConnection;
+};
+
 export type NavigationModel = {
     activeNav: NavTabID;
 };
 
 type Props = {
     publicKey: PublicKey;
-    profileGetter: ProfileGetter;
-    emit: emitFunc<NavigationUpdate>;
-    isMobile?: boolean;
+    profile: Profile_Nostr_Event | undefined;
+    emit: emitFunc<NavigationUpdate | SelectRelay | StartSearch>;
     installPrompt: InstallPrompt;
+    pool: ConnectionPool;
+    currentRelay?: string;
+    activeNav: NavTabID;
 };
 
 type State = {
-    activeIndex: number;
     installPrompt: InstallPrompt;
 };
 
-type NavTabID = "DM" | "Profile" | "About" | "Setting";
+type NavTabID = "Social" | "DM" | "Search" | "Profile" | "About" | "Setting";
 type NavTab = {
     icon: (active: boolean) => ComponentChild;
     id: NavTabID;
@@ -72,14 +83,21 @@ export class NavBar extends Component<Props, State> {
     };
 
     state: State = {
-        activeIndex: 0,
         installPrompt: this.props.installPrompt,
     };
-    myProfile: ProfileData | undefined;
+
     tabs: NavTab[] = [
+        {
+            icon: (active: boolean) => <SocialIcon class={this.styles.icons(active)} />,
+            id: "Social",
+        },
         {
             icon: (active: boolean) => <ChatIcon class={this.styles.icons(active)} />,
             id: "DM",
+        },
+        {
+            icon: (active: boolean) => <SearchIcon class={this.styles.icons(active)} />,
+            id: "Search",
         },
         {
             icon: (active: boolean) => <UserIcon class={this.styles.icons(active)} />,
@@ -95,22 +113,13 @@ export class NavBar extends Component<Props, State> {
         },
     ];
 
-    componentWillMount() {
-        this.myProfile = this.props.profileGetter.getProfilesByPublicKey(this.props.publicKey)?.profile;
-    }
-
-    changeTab = (activeIndex: number) => {
-        if (activeIndex == this.state.activeIndex) {
+    changeTab = async (activeNav: NavTabID) => {
+        if (activeNav == this.props.activeNav) {
             return;
         }
-
         this.props.emit({
             type: "ChangeNavigation",
-            id: this.tabs[activeIndex].id,
-        });
-
-        this.setState({
-            activeIndex: activeIndex,
+            id: activeNav,
         });
     };
 
@@ -130,53 +139,38 @@ export class NavBar extends Component<Props, State> {
         }
     };
 
-    render() {
+    render(props: Props) {
         return (
-            this.props.isMobile
-                ? (
-                    <div class={this.styles.mobileContainer}>
-                        {this.tabs.map((tab, index) => (
-                            <Fragment>
-                                {index == this.tabs.length - 1 && this.state.installPrompt.event
-                                    ? (
-                                        <button class={this.styles.tabs(false)} onClick={this.install}>
-                                            <DownloadIcon class={this.styles.icons(false)} />
-                                        </button>
-                                    )
-                                    : undefined}
-                                <button
-                                    onClick={() => this.changeTab(index)}
-                                    class={this.styles.tabs(this.state.activeIndex == index)}
-                                >
-                                    {tab.icon(this.state.activeIndex == index)}
+            <div class={this.styles.container}>
+                {/* <Avatar class={this.styles.avatar} picture={this.props.profile?.profile?.picture} /> */}
+                {<RelaySwitchList emit={props.emit} pool={props.pool} currentRelay={props.currentRelay} />}
+                {this.tabs.map(({ icon, id }) => (
+                    <div class={this.styles.tabsContainer}>
+                        {id === "Setting" && this.state.installPrompt.event
+                            ? (
+                                <button class={this.styles.tabs(false)} onClick={this.install}>
+                                    <DownloadIcon class={this.styles.icons(false)} />
                                 </button>
-                            </Fragment>
-                        ))}
-                    </div>
-                )
-                : (
-                    <div class={this.styles.container}>
-                        <Avatar class={this.styles.avatar} picture={this.myProfile?.picture} />
-                        {this.tabs.map((tab, index) => (
-                            <div class={this.styles.tabsContainer}>
-                                {index == this.tabs.length - 1 && this.state.installPrompt.event
-                                    ? (
-                                        <button class={this.styles.tabs(false)} onClick={this.install}>
-                                            <DownloadIcon class={this.styles.icons(false)} />
-                                        </button>
-                                    )
-                                    : undefined}
+                            )
+                            : undefined}
 
-                                <button
-                                    onClick={() => this.changeTab(index)}
-                                    class={this.styles.tabs(this.state.activeIndex == index)}
-                                >
-                                    {tab.icon(this.state.activeIndex == index)}
-                                </button>
-                            </div>
-                        ))}
+                        <button
+                            onClick={() => {
+                                if (id === "Search") {
+                                    props.emit({
+                                        type: "StartSearch",
+                                    });
+                                } else {
+                                    this.changeTab(id);
+                                }
+                            }}
+                            class={this.styles.tabs(this.props.activeNav === id)}
+                        >
+                            {icon(this.props.activeNav === id)}
+                        </button>
                     </div>
-                )
+                ))}
+            </div>
         );
     }
 }

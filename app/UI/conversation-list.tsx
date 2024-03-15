@@ -8,36 +8,36 @@ import { PinConversation, UnpinConversation } from "../nostr.ts";
 import { UI_Interaction_Event, UserBlocker } from "./app_update.tsx";
 import { Avatar } from "./components/avatar.tsx";
 import { CenterClass, LinearGradientsClass } from "./components/tw.ts";
-import { IS_BETA_VERSION } from "./config.js";
+
 import { ConversationSummary, sortUserInfo } from "./conversation-list.ts";
-import { StartCreateGroupChat } from "./create-group.tsx";
+
 import { ChatIcon } from "./icons/chat-icon.tsx";
-import { GroupIcon } from "./icons/group-icon.tsx";
 import { PinIcon } from "./icons/pin-icon.tsx";
 import { UnpinIcon } from "./icons/unpin-icon.tsx";
 import { ProfileGetter } from "./search.tsx";
 import { SearchUpdate, SelectConversation } from "./search_model.ts";
 import { ErrorColor, PrimaryTextColor, SecondaryBackgroundColor } from "./style/colors.ts";
 import { ContactTag, ContactTags, TagSelected } from "./contact-tags.tsx";
+import { ViewUserDetail } from "./message-panel.tsx";
+import { robohash } from "./relay-detail.tsx";
 
 export interface ConversationListRetriever {
     getContacts: () => Iterable<ConversationSummary>;
     getStrangers: () => Iterable<ConversationSummary>;
     getConversations: (keys: Iterable<string>) => Iterable<ConversationSummary>;
-    getConversationType(pubkey: PublicKey, isGourpChat: boolean): ConversationType;
+    getConversationType(pubkey: PublicKey): ConversationType;
 }
 
 export interface GroupMessageListGetter {
     getConversationList: () => Iterable<ConversationSummary>;
 }
 
-export type ConversationType = ContactTag | "Group";
+export type ConversationType = ContactTag;
 
 export type ContactUpdate =
     | SearchUpdate
     | PinConversation
-    | UnpinConversation
-    | StartCreateGroupChat;
+    | UnpinConversation;
 
 export interface NewMessageChecker {
     newNessageCount(pubkey: PublicKey, isGourpChat: boolean): number;
@@ -45,13 +45,14 @@ export interface NewMessageChecker {
 }
 
 type Props = {
-    emit: emitFunc<ContactUpdate | SearchUpdate | TagSelected>;
-    eventBus: EventSubscriber<UI_Interaction_Event>;
-    convoListRetriever: ConversationListRetriever;
-    groupChatListGetter: GroupMessageListGetter;
-    hasNewMessages: NewMessageChecker;
-    pinListGetter: PinListGetter;
-    profileGetter: ProfileGetter;
+    emit: emitFunc<ContactUpdate | SearchUpdate | TagSelected | ViewUserDetail>;
+    eventSub: EventSubscriber<UI_Interaction_Event>;
+    getters: {
+        convoListRetriever: ConversationListRetriever;
+        newMessageChecker: NewMessageChecker;
+        pinListGetter: PinListGetter;
+        profileGetter: ProfileGetter;
+    };
     userBlocker: UserBlocker;
 };
 
@@ -66,13 +67,12 @@ export class ConversationList extends Component<Props, State> {
     }
 
     async componentDidMount() {
-        for await (const e of this.props.eventBus.onChange()) {
+        for await (const e of this.props.eventSub.onChange()) {
             if (e.type == "SelectConversation") {
                 this.setState({
                     currentSelected: e,
-                    selectedContactGroup: this.props.convoListRetriever.getConversationType(
+                    selectedContactGroup: this.props.getters.convoListRetriever.getConversationType(
                         e.pubkey,
-                        e.isGroupChat,
                     ),
                 });
             } else if (e.type == "tagSelected") {
@@ -90,9 +90,8 @@ export class ConversationList extends Component<Props, State> {
 
     render(props: Props) {
         let listToRender: ConversationSummary[];
-        const contacts = Array.from(props.convoListRetriever.getContacts());
-        const strangers = Array.from(props.convoListRetriever.getStrangers());
-        const groups = Array.from(props.groupChatListGetter.getConversationList());
+        const contacts = Array.from(props.getters.convoListRetriever.getContacts());
+        const strangers = Array.from(props.getters.convoListRetriever.getStrangers());
         const blocked = props.userBlocker.getBlockedUsers();
         let isGroupChat = false;
         switch (this.state.selectedContactGroup) {
@@ -102,19 +101,14 @@ export class ConversationList extends Component<Props, State> {
             case "strangers":
                 listToRender = strangers;
                 break;
-            case "Group":
-                listToRender = groups;
-                isGroupChat = true;
-                break;
             case "blocked":
-                listToRender = Array.from(props.convoListRetriever.getConversations(blocked));
+                listToRender = Array.from(props.getters.convoListRetriever.getConversations(blocked));
         }
         const convoListToRender = [];
-        console.log(contacts, strangers, blocked);
         for (const conversationSummary of listToRender) {
             convoListToRender.push({
                 conversation: conversationSummary,
-                newMessageCount: props.hasNewMessages.newNessageCount(
+                newMessageCount: props.getters.newMessageChecker.newNessageCount(
                     conversationSummary.pubkey,
                     isGroupChat,
                 ),
@@ -138,36 +132,16 @@ export class ConversationList extends Component<Props, State> {
                                     type: "StartSearch",
                                 });
                             }}
-                            class={tw`w-full h-10 ${CenterClass} text-sm text-[${PrimaryTextColor}] !hover:bg-transparent hover:font-bold group`}
+                            class={`w-full h-10 ${CenterClass} text-sm text-[${PrimaryTextColor}] !hover:bg-transparent hover:font-bold group`}
                         >
                             <ChatIcon
-                                class={tw`w-4 h-4 mr-1 text-[${PrimaryTextColor}] stroke-current`}
+                                class={`w-4 h-4 mr-1 text-[${PrimaryTextColor}] stroke-current`}
                                 style={{
                                     fill: "none",
                                 }}
                             />
                             New Chat
                         </button>
-                        {IS_BETA_VERSION
-                            ? (
-                                <Fragment>
-                                    <div class={tw`h-4 w-1 bg-[${PrimaryTextColor}] !p-0`}></div>
-                                    <button
-                                        onClick={async () => {
-                                            props.emit({
-                                                type: "StartCreateGroupChat",
-                                            });
-                                        }}
-                                        class={tw`w-full h-10 ${CenterClass} text-sm text-[${PrimaryTextColor}] !hover:bg-transparent hover:font-bold group`}
-                                    >
-                                        <GroupIcon
-                                            class={tw`w-4 h-4 mr-1 text-[${PrimaryTextColor}] fill-current`}
-                                        />
-                                        New Group
-                                    </button>
-                                </Fragment>
-                            )
-                            : undefined}
                     </div>
                 </div>
 
@@ -179,10 +153,8 @@ export class ConversationList extends Component<Props, State> {
                 <ContactGroup
                     contacts={Array.from(convoListToRender.values())}
                     currentSelected={this.state.currentSelected}
-                    pinListGetter={props.pinListGetter}
-                    isGroupChat={listToRender === groups}
                     emit={props.emit}
-                    profileGetter={props.profileGetter}
+                    getters={props.getters}
                 />
             </div>
         );
@@ -196,17 +168,18 @@ export interface PinListGetter {
 type ConversationListProps = {
     contacts: { conversation: ConversationSummary; newMessageCount: number }[];
     currentSelected: SelectConversation | undefined;
-    pinListGetter: PinListGetter;
-    isGroupChat: boolean;
-    emit: emitFunc<ContactUpdate>;
-    profileGetter: ProfileGetter;
+    emit: emitFunc<ContactUpdate | ViewUserDetail>;
+    getters: {
+        pinListGetter: PinListGetter;
+        profileGetter: ProfileGetter;
+    };
 };
 
 function ContactGroup(props: ConversationListProps) {
     props.contacts.sort((a, b) => {
         return sortUserInfo(a.conversation, b.conversation);
     });
-    const pinList = props.pinListGetter.getPinList();
+    const pinList = props.getters.pinListGetter.getPinList();
     const pinned = [];
     const unpinned = [];
     for (const contact of props.contacts) {
@@ -218,26 +191,25 @@ function ContactGroup(props: ConversationListProps) {
     }
     // console.log("ContactGroup", Date.now() - t);
     return (
-        <ul class={tw`overflow-auto flex-1 p-2 text-[#96989D]`}>
+        <ul class={`overflow-auto flex-1 p-2 text-[#96989D]`}>
             {pinned.map((contact) => {
                 let profile;
-                const profileEvent = props.profileGetter.getProfilesByPublicKey(contact.conversation.pubkey);
+                const profileEvent = props.getters.profileGetter.getProfilesByPublicKey(
+                    contact.conversation.pubkey,
+                );
                 if (profileEvent) {
                     profile = profileEvent.profile;
                 }
                 return (
                     <li
-                        class={tw`${
+                        class={`${
                             props.currentSelected && contact.conversation.pubkey.hex ===
-                                    props.currentSelected.pubkey.hex &&
-                                props.isGroupChat == props.currentSelected.isGroupChat
-                                ? "bg-[#42464D] text-[#FFFFFF]"
-                                : "bg-[#42464D] text-[#96989D]"
+                                props.currentSelected.pubkey.hex &&
+                            "bg-[#42464D] text-[#96989D]"
                         } cursor-pointer p-2 hover:bg-[#3C3F45] mb-2 rounded-lg flex items-center w-full relative group`}
                         onClick={selectConversation(
                             props.emit,
                             contact.conversation.pubkey,
-                            props.isGroupChat,
                         )}
                     >
                         <ConversationListItem
@@ -248,7 +220,7 @@ function ContactGroup(props: ConversationListProps) {
                         />
 
                         <button
-                            class={tw`
+                            class={`
                                 w-6 h-6 absolute hidden group-hover:flex top-[-0.75rem] right-[0.75rem]
                                 focus:outline-none focus-visible:outline-none rounded-full hover:bg-[#42464D] ${CenterClass}
                                 bg-[#42464D] hover:bg-[#2F3136]`}
@@ -264,7 +236,7 @@ function ContactGroup(props: ConversationListProps) {
                             }}
                         >
                             <UnpinIcon
-                                class={tw`w-4 h-4`}
+                                class={`w-4 h-4`}
                                 style={{
                                     fill: "#ED4245",
                                 }}
@@ -276,23 +248,22 @@ function ContactGroup(props: ConversationListProps) {
 
             {unpinned.map((contact) => {
                 let profile;
-                const profileEvent = props.profileGetter.getProfilesByPublicKey(contact.conversation.pubkey);
+                const profileEvent = props.getters.profileGetter.getProfilesByPublicKey(
+                    contact.conversation.pubkey,
+                );
                 if (profileEvent) {
                     profile = profileEvent.profile;
                 }
                 return (
                     <li
-                        class={tw`${
+                        class={`${
                             props.currentSelected && contact.conversation?.pubkey.hex ===
-                                    props.currentSelected.pubkey.hex &&
-                                props.isGroupChat == props.currentSelected.isGroupChat
-                                ? "bg-[#42464D] text-[#FFFFFF]"
-                                : "bg-transparent text-[#96989D]"
+                                props.currentSelected.pubkey.hex &&
+                            "bg-transparent text-[#96989D]"
                         } cursor-pointer p-2 hover:bg-[#3C3F45] my-2 rounded-lg flex items-center w-full relative group`}
                         onClick={selectConversation(
                             props.emit,
                             contact.conversation.pubkey,
-                            props.isGroupChat,
                         )}
                     >
                         <ConversationListItem
@@ -303,7 +274,7 @@ function ContactGroup(props: ConversationListProps) {
                         />
 
                         <button
-                            class={tw`
+                            class={`
                             w-6 h-6 absolute hidden group-hover:flex top-[-0.75rem] right-[0.75rem]
                             focus:outline-none focus-visible:outline-none rounded-full hover:bg-[#42464D] ${CenterClass}
                             bg-[#42464D] hover:bg-[#2F3136]`}
@@ -319,7 +290,7 @@ function ContactGroup(props: ConversationListProps) {
                             }}
                         >
                             <PinIcon
-                                class={tw`w-4 h-4`}
+                                class={`w-4 h-4`}
                                 style={{
                                     fill: "rgb(185, 187, 190)",
                                     stroke: "rgb(185, 187, 190)",
@@ -345,19 +316,19 @@ function ConversationListItem(props: ListItemProps) {
     return (
         <Fragment>
             <Avatar
-                class={tw`w-8 h-8 mr-2`}
-                picture={props.profile?.picture}
+                class={`w-8 h-8 mr-2`}
+                picture={props.profile?.picture || robohash(props.conversation.pubkey.hex)}
             />
             <div
-                class={tw`flex-1 overflow-hidden relative`}
+                class={`flex-1 overflow-hidden relative`}
             >
-                <p class={tw`truncate w-full`}>
+                <p class={`truncate w-full`}>
                     {props.profile?.name || props.conversation.pubkey.bech32()}
                 </p>
                 {props.conversation.newestEventReceivedByMe !== undefined
                     ? (
                         <p
-                            class={tw`text-[#78828B] text-[0.8rem] truncate`}
+                            class={`text-[#78828B] text-[0.8rem] truncate`}
                         >
                             {new Date(
                                 props.conversation.newestEventReceivedByMe
@@ -370,7 +341,7 @@ function ConversationListItem(props: ListItemProps) {
                 {props.newMessageCount > 0
                     ? (
                         <span
-                            class={tw`absolute bottom-0 right-0 px-1 text-[${PrimaryTextColor}] text-xs rounded-full bg-[${ErrorColor}]`}
+                            class={`absolute bottom-0 right-0 px-1 text-[${PrimaryTextColor}] text-xs rounded-full bg-[${ErrorColor}]`}
                         >
                             {props.newMessageCount}
                         </span>
@@ -379,7 +350,7 @@ function ConversationListItem(props: ListItemProps) {
                 {props.isPinned
                     ? (
                         <PinIcon
-                            class={tw`w-3 h-3 absolute top-0 right-0`}
+                            class={`w-3 h-3 absolute top-0 right-0`}
                             style={{
                                 fill: "rgb(185, 187, 190)",
                                 stroke: "rgb(185, 187, 190)",
@@ -393,11 +364,9 @@ function ConversationListItem(props: ListItemProps) {
     );
 }
 
-const selectConversation =
-    (emit: emitFunc<SelectConversation>, pubkey: PublicKey, isGroupChat: boolean) => () => {
-        emit({
-            type: "SelectConversation",
-            pubkey,
-            isGroupChat,
-        });
-    };
+const selectConversation = (emit: emitFunc<SelectConversation>, pubkey: PublicKey) => () => {
+    emit({
+        type: "SelectConversation",
+        pubkey,
+    });
+};

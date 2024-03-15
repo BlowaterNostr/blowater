@@ -3,38 +3,29 @@ import { createRef, h } from "https://esm.sh/preact@10.17.1";
 import { CenterClass, LinearGradientsClass, NoOutlineClass } from "./components/tw.ts";
 import { emitFunc } from "../event-bus.ts";
 
+import { NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { ImageIcon } from "./icons/image-icon.tsx";
 import { DividerBackgroundColor, PrimaryBackgroundColor, PrimaryTextColor } from "./style/colors.ts";
 import { SendIcon } from "./icons/send-icon.tsx";
 import { Component } from "https://esm.sh/preact@10.17.1";
 import { RemoveIcon } from "./icons/remove-icon.tsx";
-import { isMobile } from "./_helper.ts";
-
-export type EditorModel = {
-    readonly pubkey: PublicKey;
-    text: string;
-    files: Blob[];
-};
-
-export function new_DM_EditorModel(
-    pubkey: PublicKey,
-): EditorModel {
-    return {
-        pubkey: pubkey,
-        text: "",
-        files: [],
-    };
-}
+import { isMobile, setState } from "./_helper.ts";
 
 export type EditorEvent = SendMessage | UpdateEditorText | UpdateMessageFiles;
 
 export type SendMessage = {
     readonly type: "SendMessage";
-    readonly pubkey: PublicKey;
-    text: string;
-    files: Blob[];
-    isGroupChat: boolean;
+    readonly text: string;
+    readonly files: Blob[];
+};
+
+type EditorID = {
+    type: "Pubkey";
+    pubkey: PublicKey;
+} | {
+    type: "relay";
+    relay: string;
 };
 
 export type UpdateEditorText = {
@@ -54,13 +45,8 @@ type EditorProps = {
     // UI
     readonly placeholder: string;
     readonly maxHeight: string;
-    // Logic
-    readonly targetNpub: PublicKey;
-    readonly text: string;
-    files: Blob[];
     //
     readonly emit: emitFunc<EditorEvent>;
-    readonly isGroupChat: boolean;
 };
 
 export type EditorState = {
@@ -74,13 +60,6 @@ export class Editor extends Component<EditorProps, EditorState> {
         files: [],
     };
 
-    componentDidMount(): void {
-        this.setState({
-            text: this.props.text,
-            files: this.props.files,
-        });
-    }
-
     componentWillReceiveProps(nextProps: Readonly<EditorProps>) {
         if (!isMobile()) {
             this.textareaElement.current.focus();
@@ -93,27 +72,19 @@ export class Editor extends Component<EditorProps, EditorState> {
         const props = this.props;
         props.emit({
             type: "SendMessage",
-            pubkey: props.targetNpub,
-            files: props.files,
-            text: props.text,
-            isGroupChat: props.isGroupChat,
+            files: this.state.files,
+            text: this.state.text,
         });
         this.textareaElement.current.setAttribute(
             "rows",
             "1",
         );
-        this.setState({ text: "", files: [] });
+        await setState(this, { text: "", files: [] });
     };
 
     removeFile = (index: number) => {
         const files = this.state.files;
         const newFiles = files.slice(0, index).concat(files.slice(index + 1));
-        this.props.emit({
-            type: "UpdateMessageFiles",
-            files: newFiles,
-            pubkey: this.props.targetNpub,
-            isGroupChat: this.props.isGroupChat,
-        });
         this.setState({
             files: newFiles,
         });
@@ -157,13 +128,7 @@ export class Editor extends Component<EditorProps, EditorState> {
                             }
                             propsfiles = propsfiles.concat([file]);
                         }
-                        this.props.emit({
-                            type: "UpdateMessageFiles",
-                            files: propsfiles,
-                            pubkey: this.props.targetNpub,
-                            isGroupChat: this.props.isGroupChat,
-                        });
-                        this.setState({
+                        await setState(this, {
                             files: propsfiles,
                         });
                     }}
@@ -218,12 +183,6 @@ export class Editor extends Component<EditorProps, EditorState> {
                         class={`flex-1 bg-transparent focus-visible:outline-none placeholder-[${PrimaryTextColor}4D] text-[0.8rem] text-[#D2D3D5] whitespace-nowrap resize-none overflow-x-hidden overflow-y-auto`}
                         placeholder={this.props.placeholder}
                         onInput={(e) => {
-                            this.props.emit({
-                                type: "UpdateEditorText",
-                                pubkey: this.props.targetNpub,
-                                text: e.currentTarget.value,
-                                isGroupChat: this.props.isGroupChat,
-                            });
                             const lines = e.currentTarget.value.split("\n");
                             e.currentTarget.setAttribute(
                                 "rows",
@@ -250,11 +209,8 @@ export class Editor extends Component<EditorProps, EditorState> {
                                     const image = await item.getType(
                                         "image/png",
                                     );
-                                    this.props.emit({
-                                        type: "UpdateMessageFiles",
-                                        isGroupChat: this.props.isGroupChat,
-                                        pubkey: this.props.targetNpub,
-                                        files: this.props.files.concat([image]),
+                                    await setState(this, {
+                                        files: this.state.files.concat([image]),
                                     });
                                 } catch (e) {
                                     console.error(e);

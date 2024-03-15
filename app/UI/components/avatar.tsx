@@ -2,7 +2,7 @@
 import { h } from "https://esm.sh/preact@10.17.1";
 
 export function Avatar(props: {
-    picture: string | undefined;
+    picture: string;
     style?:
         | string
         | h.JSX.CSSProperties
@@ -14,12 +14,14 @@ export function Avatar(props: {
     return (
         <div class={`sticky ${props.class}`} style={props.style}>
             {/* Container for positioning */}
-            <SantaHat class="absolute -top-1/3 left-1/4 w-full z-10 -scale-x-100 opacity-50" />
-            <SantaHat class="absolute -top-1/3 left-1/4 w-full -z-10 -scale-x-100" />
+            {
+                /* <SantaHat class="absolute -top-1/3 left-1/4 w-full z-10 -scale-x-100 opacity-50" />
+            <SantaHat class="absolute -top-1/3 left-1/4 w-full -z-10 -scale-x-100" /> */
+            }
             <img
                 onClick={props.onClick}
                 class={`w-full h-full rounded-full ${props.onClick ? "cursor-pointer" : ""}`}
-                src={props.picture ? props.picture : "logo.webp"}
+                src={props.picture}
                 alt="avatar"
                 onError={(e) => {
                     e.currentTarget.src = "logo.webp";
@@ -71,5 +73,29 @@ function SantaHat(props: { class?: string }) {
                 fill="#880E4F"
             />
         </svg>
+    );
+}
+
+export function RelayAvatar(props: {
+    icon: string;
+}) {
+    return (
+        <img
+            class={`w-full h-full rounded-full`}
+            src={props.icon}
+            alt="avatar"
+            onError={(e) => {
+                e.currentTarget.src = "logo.webp";
+                e.currentTarget.style.objectFit = "contain";
+            }}
+            onLoad={(e) => {
+                if (e.currentTarget.src.endsWith("logo.webp")) {
+                    e.currentTarget.style.objectFit = "contain";
+                } else {
+                    e.currentTarget.style.objectFit = "cover";
+                }
+            }}
+        >
+        </img>
     );
 }

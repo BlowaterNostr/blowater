@@ -13,6 +13,7 @@ import { emitFunc } from "../event-bus.ts";
 import { SearchUpdate } from "./search_model.ts";
 import { Profile_Nostr_Event } from "../nostr.ts";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
+import { robohash } from "./relay-detail.tsx";
 
 export type SearchResultChannel = Channel<SearchResult[]>;
 
@@ -22,15 +23,14 @@ type SearchResult = {
     id: string;
 };
 
-export type ProfileController = ProfileSetter & ProfileGetter;
-
 export interface ProfileSetter {
-    setProfile(profileEvent: Profile_Nostr_Event): void;
+    setProfile(profileEvent: Profile_Nostr_Event, relayURL: string): void;
 }
 
 export interface ProfileGetter {
     getProfilesByText(input: string): Profile_Nostr_Event[];
     getProfilesByPublicKey(pubkey: PublicKey): Profile_Nostr_Event | undefined;
+    getUniqueProfileCount(): number;
 }
 
 type Props = {
@@ -89,7 +89,6 @@ export class Search extends Component<Props, State> {
         this.props.emit({
             type: "SelectConversation",
             pubkey: profile instanceof PublicKey ? profile : profile.publicKey,
-            isGroupChat: false, // todo
         });
     };
 
@@ -111,7 +110,7 @@ export class Search extends Component<Props, State> {
                         >
                             <Avatar
                                 class={this.styles.result.item.avatar}
-                                picture={undefined}
+                                picture={robohash(this.state.searchResults.hex)}
                             />
                             <p class={this.styles.result.item.text}>
                                 {this.state.searchResults.bech32()}
@@ -129,7 +128,7 @@ export class Search extends Component<Props, State> {
                                     >
                                         <Avatar
                                             class={this.styles.result.item.avatar}
-                                            picture={result.profile.picture}
+                                            picture={result.profile.picture || robohash(result.pubkey)}
                                         />
                                         <p class={this.styles.result.item.text}>
                                             {result.profile.name}

@@ -7,7 +7,7 @@ import {
     NostrKind,
     UnsignedNostrEvent,
 } from "../../libs/nostr.ts/nostr.ts";
-import { LocalPrivateKeyController } from "./signIn.tsx";
+import { LocalPrivateKeyController } from "./sign-in.ts";
 
 type NIP07 = {
     getPublicKey(): Promise<string>;
@@ -116,8 +116,8 @@ export class Nip7ExtensionContext implements NostrAccountContext {
     };
 }
 
-export async function GetLocalStorageAccountContext(pin: string) {
-    const priKey = await LocalPrivateKeyController.getKey(pin);
+export async function GetLocalStorageAccountContext() {
+    const priKey = await LocalPrivateKeyController.getKey("blowater");
     if (priKey instanceof Error) {
         return priKey;
     } else if (priKey == undefined) {

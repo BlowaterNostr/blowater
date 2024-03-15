@@ -3,23 +3,18 @@ import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { h, render } from "https://esm.sh/preact@10.17.1";
 import { prepareEncryptedNostrEvent } from "../../libs/nostr.ts/event.ts";
 import { InMemoryAccountContext, NostrKind } from "../../libs/nostr.ts/nostr.ts";
-import { relays } from "../../libs/nostr.ts/relay-list.test.ts";
-import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 import { test_db_view, testEventBus } from "./_setup.test.ts";
 import { DirectedMessageController } from "../features/dm.ts";
-import { DM_List } from "./conversation-list.ts";
-import { MessagePanel } from "./message-panel.tsx";
+import { MessageList } from "./message-list.tsx";
 import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 
-const pool = new ConnectionPool();
-pool.addRelayURL(relays[2]);
 const database = await test_db_view();
 
 const ctx = InMemoryAccountContext.Generate();
 const dmController = new DirectedMessageController(ctx);
 
 const event = await prepareEncryptedNostrEvent(ctx, {
-    content: `test`,
+    content: `test\ntest`,
     encryptKey: ctx.publicKey,
     kind: NostrKind.DIRECT_MESSAGE,
     tags: [
@@ -28,35 +23,30 @@ const event = await prepareEncryptedNostrEvent(ctx, {
 });
 if (event instanceof Error) fail(event.message);
 
-await dmController.addEvent(event);
-
-const messages = dmController.getChatMessages(ctx.publicKey.hex);
-
-for (let i = 10;; i++) {
+let messages = dmController.getChatMessages(ctx.publicKey.hex);
+for (let i = 1;; i++) {
     messages.push({
         author: ctx.publicKey,
         content: `${i}`,
-        created_at: new Date(),
-        event: messages[0].event,
+        created_at: new Date(i * 1000 * (i % 3 == 0 ? 61 : 29)),
+        // @ts-ignore
+        event: event,
         lamport: i,
         type: "text",
     });
+
     render(
-        <div class="w-screen h-screen">
-            <MessagePanel
-                getters={{
-                    profileGetter: database,
-                    relayRecordGetter: database,
-                    isUserBlocked: new DM_List(ctx).isUserBlocked,
-                    getEventByID: database.getEventByID,
-                }}
-                myPublicKey={ctx.publicKey}
-                emit={testEventBus.emit}
-                eventSub={testEventBus}
-                messages={messages}
-            />
-        </div>,
+        <MessageList
+            myPublicKey={ctx.publicKey}
+            messages={messages}
+            emit={testEventBus.emit}
+            getters={{
+                profileGetter: database,
+                relayRecordGetter: database,
+                getEventByID: database.getEventByID,
+            }}
+        />,
         document.body,
     );
-    await sleep(100);
+    await sleep(333);
 }

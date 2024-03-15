@@ -24,17 +24,17 @@ cov:
 	file_server -p 4508 cov_profile/html
 
 fmt:
-	deno fmt --options-indent-width 4 --options-line-width 110
+	deno fmt
 
 fmt-check:
-	deno fmt --options-indent-width 4 --check --options-line-width 110
+	deno fmt --check
 
 install:
 	deno install --allow-net --allow-read https://deno.land/std@0.178.0/http/file_server.ts
 
 cache:
-	rm -f deno.lock UI/deno.lock
-	cd UI && deno cache -r _main.tsx
+	rm -f deno.lock
+	deno cache -r app/UI/_main.tsx
 	deno cache -r *.ts
 
 clear-coverage:

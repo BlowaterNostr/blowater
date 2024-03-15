@@ -1,15 +1,11 @@
 /** @jsx h */
 import { h, render } from "https://esm.sh/preact@10.17.1";
-import { CreateGroup } from "./create-group.tsx";
 import { testEventBus } from "./_setup.test.ts";
+import { SignIn } from "./sign-in.tsx";
 
 render(
-    <CreateGroup
+    <SignIn
         emit={testEventBus.emit}
     />,
     document.body,
 );
-
-for await (const e of testEventBus.onChange()) {
-    console.log(e);
-}

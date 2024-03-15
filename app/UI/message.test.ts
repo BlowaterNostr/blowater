@@ -1,8 +1,9 @@
-import { assertEquals } from "https://deno.land/std@0.176.0/testing/asserts.ts";
+import { assertEquals } from "https://deno.land/std@0.202.0/testing/asserts.ts";
 import { ChatMessage, findUrlInString, groupContinuousMessages, parseContent } from "./message.ts";
 import { PrivateKey, PublicKey } from "../../libs/nostr.ts/key.ts";
-import { Nevent, NostrAddress } from "../../lib/nostr-ts/nip19.ts";
+
 import { NostrKind } from "../../libs/nostr.ts/nostr.ts";
+import { Nevent, NostrAddress } from "../../libs/nostr.ts/nip19.ts";
 
 Deno.test("inline parse", async (t) => {
     const data = [
