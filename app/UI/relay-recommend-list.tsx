@@ -45,10 +45,6 @@ export class RelayRecommendList extends Component<RelayRecommendListProps> {
                 <div class={`text-lg mt-4`}>
                     Recommend Relays
                 </div>
-                <div class={`text-sm px-20 text-center`}>
-                    Blowater automatically discovers relays as you browse the network. Adding more relays will
-                    generally make things quicker to load, at the expense of higher data usage.
-                </div>
                 <ul
                     class={`mt-[0.5rem] text-[${PrimaryTextColor}] flex flex-col justify-center items-center w-full`}
                 >
