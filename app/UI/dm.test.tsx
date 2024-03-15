@@ -6,7 +6,7 @@ import { prepareEncryptedNostrEvent } from "../../libs/nostr.ts/event.ts";
 import { InMemoryAccountContext, NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { relays } from "../../libs/nostr.ts/relay-list.test.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
-import { Datebase_View } from "../database.ts";
+import { Database_View } from "../database.ts";
 import { DirectedMessageController } from "../features/dm.ts";
 import { LamportTime } from "../time.ts";
 import { testEventBus } from "./_setup.test.ts";
@@ -26,7 +26,7 @@ const indexedDB = NewIndexedDB();
 if (indexedDB instanceof Error) {
     fail(indexedDB.message);
 }
-const database = await Datebase_View.New(indexedDB, indexedDB, indexedDB);
+const database = await Database_View.New(indexedDB, indexedDB, indexedDB);
 
 const lamport = new LamportTime();
 
