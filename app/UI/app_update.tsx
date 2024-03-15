@@ -48,6 +48,8 @@ import { HidePopOver } from "./components/popover.tsx";
 import { Social_Model } from "./channel-container.tsx";
 import { DM_Model } from "./dm.tsx";
 import { SyncEvent } from "./message-panel.tsx";
+import { ToastChannel } from "./components/toast.tsx";
+import { LinkColor } from "./style/colors.ts";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -101,7 +103,7 @@ export async function* UI_Interaction_Update(args: {
     newNostrEventChannel: Channel<NostrEvent>;
     lamport: LamportTime;
     installPrompt: InstallPrompt;
-    toastInputChan: Channel<string>;
+    toastInputChan: ToastChannel;
 }) {
     const { model, dbView, eventBus, pool, installPrompt } = args;
     for await (const event of eventBus.onChange()) {
@@ -213,21 +215,36 @@ export async function* UI_Interaction_Update(args: {
         // Editor
         //
         else if (event.type == "SendMessage") {
-            const currentRelay = pool.getRelay(model.currentRelay);
-            if (!currentRelay) {
-                console.error(`currentRelay is not found: ${model.currentRelay}`);
-                continue;
-            }
             handle_SendMessage(
                 event,
                 app.ctx,
                 app.lamport,
-                currentRelay,
+                current_relay,
                 app.database,
                 model,
             ).then((res) => {
                 if (res instanceof Error) {
-                    console.error("update:SendMessage", res);
+                    console.error(res);
+                    app.toastInputChan.put(() => (
+                        <div
+                            class="hover:cursor-pointer"
+                            onClick={() => {
+                                eventBus.emit({
+                                    type: "ViewRelayDetail",
+                                    url: current_relay.url,
+                                });
+                            }}
+                        >
+                            sending message is rejected
+                            <div>reason: {res.message}</div>
+                            <div>please contact the admin of relay</div>
+                            <div
+                                class={`text-[${LinkColor}] hover:underline`}
+                            >
+                                {current_relay.url}
+                            </div>
+                        </div>
+                    ));
                 }
             });
         } else if (event.type == "UpdateMessageFiles") {
@@ -240,7 +257,7 @@ export async function* UI_Interaction_Update(args: {
         //
         else if (event.type == "SaveProfile") {
             if (current_relay.status() != "Open") {
-                app.toastInputChan.put(`${current_relay.url} is not connected yet`);
+                app.toastInputChan.put(() => `${current_relay.url} is not connected yet`);
             } else {
                 const result = await saveProfile(
                     event.profile,
@@ -249,9 +266,9 @@ export async function* UI_Interaction_Update(args: {
                 );
                 app.popOverInputChan.put({ children: undefined });
                 if (result instanceof Error) {
-                    app.toastInputChan.put(result.message);
+                    app.toastInputChan.put(() => result.message);
                 } else {
-                    app.toastInputChan.put("profile has been updated");
+                    app.toastInputChan.put(() => "profile has been updated");
                 }
             }
         } //

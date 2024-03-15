@@ -1,29 +1,29 @@
 /** @jsx h */
-import { Component } from "https://esm.sh/preact@10.17.1";
+import { Component, ComponentChildren } from "https://esm.sh/preact@10.17.1";
 import { h } from "https://esm.sh/preact@10.17.1";
 import { PrimaryBackgroundColor, PrimaryTextColor } from "../style/colors.ts";
 import { Channel, sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { setState } from "../_helper.ts";
 
-export type ToastChannel = Channel<string>;
+export type ToastChannel = Channel<() => ComponentChildren>;
 
 type Props = {
     inputChan: ToastChannel;
 };
 
 type State = {
-    content: string;
+    content: ComponentChildren;
 };
 
 export class Toast extends Component<Props, State> {
-    state = { content: "" };
+    state = { content: undefined };
 
     async componentDidMount() {
         for await (const message of this.props.inputChan) {
             await setState(this, {
-                content: message,
+                content: message(),
             });
-            await sleep(2333);
+            await sleep(5000);
             await setState(this, {
                 content: "",
             });
