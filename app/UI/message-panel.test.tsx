@@ -6,7 +6,6 @@ import { InMemoryAccountContext, NostrKind } from "../../libs/nostr.ts/nostr.ts"
 import { relays } from "../../libs/nostr.ts/relay-list.test.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 import { test_db_view, testEventBus } from "./_setup.test.ts";
-import { EventSyncer } from "./event_syncer.ts";
 import { DirectedMessageController } from "../features/dm.ts";
 import { DM_List } from "./conversation-list.ts";
 import { MessagePanel } from "./message-panel.tsx";
@@ -15,7 +14,6 @@ import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/maste
 const pool = new ConnectionPool();
 pool.addRelayURL(relays[2]);
 const database = await test_db_view();
-const eventSyncer = new EventSyncer(pool, database);
 
 const ctx = InMemoryAccountContext.Generate();
 const dmController = new DirectedMessageController(ctx);

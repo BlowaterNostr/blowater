@@ -7,10 +7,9 @@ import { testEventBus } from "./_setup.test.ts";
 import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 import { InMemoryAccountContext, NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { NewIndexedDB } from "./dexie-db.ts";
-import { Datebase_View } from "../database.ts";
+import { Database_View } from "../database.ts";
 import { prepareEncryptedNostrEvent } from "../../libs/nostr.ts/event.ts";
 import { DM_List } from "./conversation-list.ts";
-import { EventSyncer } from "./event_syncer.ts";
 
 const ctx = InMemoryAccountContext.Generate();
 
@@ -18,7 +17,7 @@ const indexedDB = NewIndexedDB();
 if (indexedDB instanceof Error) {
     fail(indexedDB.message);
 }
-const database = await Datebase_View.New(indexedDB, indexedDB, indexedDB);
+const database = await Database_View.New(indexedDB, indexedDB, indexedDB);
 
 const pool = new ConnectionPool();
 pool.addRelayURL(relays[2]);
@@ -52,10 +51,10 @@ render(
             profileGetter: database,
             relayRecordGetter: database,
             isUserBlocked: dm_list.isUserBlocked,
+            getEventByID: database.getEventByID,
         }}
         messages={[]}
         relaySelectedChannel={new Map()}
-        eventSyncer={new EventSyncer(pool, database)}
     />,
     document.body,
 );

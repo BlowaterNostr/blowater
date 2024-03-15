@@ -61,7 +61,7 @@ export interface RelayRecordGetter {
     getRelayRecord: (eventID: string) => Set<string>;
 }
 
-export class Datebase_View
+export class Database_View
     implements ProfileSetter, ProfileGetter, EventGetter, EventRemover, RelayRecordGetter {
     //
     public readonly sourceOfChange = csp.chan<Parsed_Event>(buffer_size);
@@ -107,7 +107,7 @@ export class Datebase_View
         const all_removed_events = await eventMarker.getAllMarks();
         const all_relay_records = await relayAdapter.getAllRelayRecords();
         // Construct the View
-        const db = new Datebase_View(
+        const db = new Database_View(
             eventsAdapter,
             relayAdapter,
             eventMarker,

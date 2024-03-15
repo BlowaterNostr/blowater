@@ -6,7 +6,7 @@ import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { NoteID } from "../../libs/nostr.ts/nip19.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
-import { Datebase_View } from "../database.ts";
+import { Database_View } from "../database.ts";
 import { emitFunc, EventBus } from "../event-bus.ts";
 import { DirectedMessageController, sendDirectMessages } from "../features/dm.ts";
 import { saveProfile } from "../features/profile.ts";
@@ -94,7 +94,7 @@ export type UserBlocker = {
 export async function* UI_Interaction_Update(args: {
     model: Model;
     eventBus: AppEventBus;
-    dbView: Datebase_View;
+    dbView: Database_View;
     pool: ConnectionPool;
     popOver: PopOverInputChannel;
     rightPanel: Channel<() => ComponentChildren>;
@@ -372,7 +372,17 @@ export async function* UI_Interaction_Update(args: {
         } else if (event.type == "UnblockUser") {
             app.conversationLists.unblockUser(event.pubkey);
         } else if (event.type == "SyncEvent") {
-            app.eventSyncer.syncEvent(event.eventID);
+            for (const relay of app.pool.getRelays()) {
+                relay.getEvent(event.eventID).then((nostr_event) => {
+                    if (nostr_event instanceof Error) {
+                        console.error(nostr_event);
+                        return;
+                    }
+                    if (nostr_event) {
+                        app.database.addEvent(nostr_event, relay.url);
+                    }
+                });
+            }
             yield false; // do not update UI
             continue;
         } else {
@@ -397,7 +407,7 @@ export type ChatMessagesGetter = {
 //////////////
 export async function* Database_Update(
     ctx: NostrAccountContext,
-    database: Datebase_View,
+    database: Database_View,
     model: Model,
     lamport: LamportTime,
     convoLists: DM_List,
@@ -500,7 +510,7 @@ export async function handle_SendMessage(
     ctx: NostrAccountContext,
     lamport: LamportTime,
     eventSender: EventSender,
-    db: Datebase_View,
+    db: Database_View,
     args: {
         navigationModel: NavigationModel;
         social: Social_Model;

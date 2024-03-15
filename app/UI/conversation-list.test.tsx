@@ -5,7 +5,7 @@ import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { prepareEncryptedNostrEvent } from "../../libs/nostr.ts/event.ts";
 import { PrivateKey } from "../../libs/nostr.ts/key.ts";
-import { Datebase_View } from "../database.ts";
+import { Database_View } from "../database.ts";
 import { LamportTime } from "../time.ts";
 import { testEventBus } from "./_setup.test.ts";
 import { OtherConfig } from "./config-other.ts";
@@ -19,7 +19,7 @@ if (db instanceof Error) {
     fail(db.message);
 }
 
-const database = await Datebase_View.New(db, db, db);
+const database = await Database_View.New(db, db, db);
 const dm_list = new DM_List(ctx);
 
 for (let i = 0; i < 20; i++) {

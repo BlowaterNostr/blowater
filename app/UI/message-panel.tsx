@@ -9,7 +9,7 @@ import { ProfileData } from "../features/profile.ts";
 import { Parsed_Event, PinConversation, UnpinConversation } from "../nostr.ts";
 import { UI_Interaction_Event } from "./app_update.tsx";
 import { Editor, EditorEvent } from "./editor.tsx";
-import { EventSyncer } from "./event_syncer.ts";
+
 import { AboutIcon } from "./icons/about-icon.tsx";
 import { ChatMessage, parseContent, urlIsImage, urlIsVideo } from "./message.ts";
 import { NoteCard } from "./note-card.tsx";

@@ -4,7 +4,7 @@ import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/mas
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
-import { Datebase_View } from "../database.ts";
+import { Database_View } from "../database.ts";
 import { EventBus } from "../event-bus.ts";
 import { DirectedMessageController, getAllEncryptedMessagesOf, InvalidEvent } from "../features/dm.ts";
 import { About } from "./about.tsx";
@@ -16,7 +16,6 @@ import { DM_List } from "./conversation-list.ts";
 import { DexieDatabase } from "./dexie-db.ts";
 import { DirectMessageContainer } from "./dm.tsx";
 import { EditProfile } from "./edit-profile.tsx";
-import { EventSyncer } from "./event_syncer.ts";
 import { RelayConfig } from "./relay-config.ts";
 import { ProfileGetter } from "./search.tsx";
 import { Setting } from "./setting.tsx";
@@ -51,7 +50,7 @@ export async function Start(database: DexieDatabase) {
     const pool = new ConnectionPool();
     const popOverInputChan: PopOverInputChannel = new Channel();
     const rightPanelInputChan: Channel<() => ComponentChildren> = new Channel();
-    const dbView = await Datebase_View.New(database, database, database);
+    const dbView = await Database_View.New(database, database, database);
     const newNostrEventChannel = new Channel<NostrEvent>();
     (async () => {
         for await (const event of newNostrEventChannel) {
@@ -139,7 +138,7 @@ export async function Start(database: DexieDatabase) {
 
 export class App {
     private constructor(
-        public readonly database: Datebase_View,
+        public readonly database: Database_View,
         public readonly model: Model,
         public readonly ctx: NostrAccountContext,
         public readonly eventBus: EventBus<UI_Interaction_Event>,
@@ -147,7 +146,6 @@ export class App {
         public readonly popOverInputChan: PopOverInputChannel,
         public readonly rightPanelInputChan: Channel<() => ComponentChildren>,
         public readonly otherConfig: OtherConfig,
-        public readonly eventSyncer: EventSyncer,
         public readonly conversationLists: DM_List,
         public readonly relayConfig: RelayConfig,
         public readonly lamport: LamportTime,
@@ -155,7 +153,7 @@ export class App {
     ) {}
 
     static async Start(args: {
-        database: Datebase_View;
+        database: Database_View;
         model: Model;
         ctx: NostrAccountContext;
         eventBus: EventBus<UI_Interaction_Event>;
@@ -168,7 +166,6 @@ export class App {
     }) {
         const all_events = Array.from(args.database.getAllEvents());
         args.lamport.fromEvents(all_events);
-        const eventSyncer = new EventSyncer(args.pool, args.database);
 
         // init relay config
         const relayConfig = await RelayConfig.FromLocalStorage({
@@ -214,7 +211,6 @@ export class App {
             args.popOverInputChan,
             args.rightPanelInputChan,
             args.otherConfig,
-            eventSyncer,
             conversationLists,
             relayConfig,
             args.lamport,
@@ -459,7 +455,7 @@ export function getFocusedContent(
 }
 
 async function sync_dm_events(
-    database: Datebase_View,
+    database: Database_View,
     ctx: NostrAccountContext,
     pool: ConnectionPool,
 ) {
@@ -478,7 +474,7 @@ async function sync_dm_events(
 }
 
 async function sync_profile_events(
-    database: Datebase_View,
+    database: Database_View,
     pool: ConnectionPool,
 ) {
     const messageStream = await pool.newSub("sync_profile_events", {
@@ -497,7 +493,7 @@ async function sync_profile_events(
     }
 }
 
-const sync_kind_1 = async (pool: ConnectionPool, database: Datebase_View) => {
+const sync_kind_1 = async (pool: ConnectionPool, database: Database_View) => {
     const stream = await pool.newSub("sync_kind_1", {
         kinds: [NostrKind.TEXT_NOTE],
     });
@@ -505,7 +501,7 @@ const sync_kind_1 = async (pool: ConnectionPool, database: Datebase_View) => {
         return stream;
     }
     for await (const msg of stream.chan) {
-        if (msg.res.type == "EOSE") {
+        if (msg.res.type == "EOSE" || msg.res.type == "NOTICE") {
             continue;
         }
         const ok = await database.addEvent(msg.res.event, msg.url);
@@ -519,7 +515,7 @@ const sync_kind_1 = async (pool: ConnectionPool, database: Datebase_View) => {
 const sync_client_specific_data = async (
     pool: ConnectionPool,
     ctx: NostrAccountContext,
-    database: Datebase_View,
+    database: Database_View,
 ) => {
     const stream = await pool.newSub(OtherConfig.name, {
         authors: [ctx.publicKey.hex],
@@ -529,7 +525,7 @@ const sync_client_specific_data = async (
         throw stream; // crash the app
     }
     for await (const msg of stream.chan) {
-        if (msg.res.type == "EOSE") {
+        if (msg.res.type == "EOSE" || msg.res.type == "NOTICE") {
             continue;
         }
         const ok = await database.addEvent(msg.res.event, msg.url);
