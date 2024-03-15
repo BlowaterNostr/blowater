@@ -1,7 +1,7 @@
 /** @jsx h */
 import { h, render, VNode } from "https://esm.sh/preact@10.17.1";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { PublicKey } from "../../libs/nostr.ts/key.ts";
+import { InvalidKey, PublicKey } from "../../libs/nostr.ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 import { Database_View } from "../database.ts";
@@ -203,7 +203,9 @@ export class App {
                     });
                     if (error instanceof Error) {
                         console.error(error.message);
-                        await args.database.remove(e.id);
+                        if (error instanceof InvalidKey) {
+                            await args.database.remove(e.id);
+                        }
                     }
                 } else {
                     continue;

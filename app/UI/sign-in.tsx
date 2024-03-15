@@ -14,6 +14,7 @@ import { SignInEvent } from "./sign-in.ts";
 import { SaveProfile } from "./edit-profile.tsx";
 import { setState } from "./_helper.ts";
 import { robohash } from "./relay-detail.tsx";
+import { Nip7ExtensionContext } from "./account-context.ts";
 
 interface Props {
     emit: emitFunc<SaveProfile | SignInEvent>;
@@ -109,7 +110,24 @@ export class SignIn extends Component<Props, State> {
                     onClick={() => this.setState({ step: { type: "signin", private_key: "" } })}
                     class={`w-full p-3 rounded-lg  flex items-center justify-center bg-[#4d4f57] hover:bg-[#6c6f77]`}
                 >
-                    Login
+                    Login with private key
+                </button>
+                <div class="my-1"></div>
+                <button
+                    onClick={async () => {
+                        const nip07 = await Nip7ExtensionContext.New();
+                        if (nip07 instanceof Error || nip07 == undefined) {
+                            console.error(nip07);
+                            return;
+                        }
+                        this.props.emit({
+                            type: "SignInEvent",
+                            ctx: nip07,
+                        });
+                    }}
+                    class={`w-full p-3 rounded-lg  flex items-center justify-center bg-[#4d4f57] hover:bg-[#6c6f77]`}
+                >
+                    Login with NIP-07 extensions
                 </button>
             </Fragment>
         );
