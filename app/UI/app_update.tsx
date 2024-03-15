@@ -101,6 +101,7 @@ export async function* UI_Interaction_Update(args: {
     newNostrEventChannel: Channel<NostrEvent>;
     lamport: LamportTime;
     installPrompt: InstallPrompt;
+    toastInputChan: Channel<string>;
 }) {
     const { model, dbView, eventBus, pool, installPrompt } = args;
     for await (const event of eventBus.onChange()) {
@@ -126,6 +127,7 @@ export async function* UI_Interaction_Update(args: {
                         otherConfig,
                         lamport: args.lamport,
                         installPrompt,
+                        toastInputChan: args.toastInputChan,
                     });
                     model.app = app;
                 } else {
@@ -141,7 +143,11 @@ export async function* UI_Interaction_Update(args: {
             console.warn("This could not happen!");
             continue;
         } // All events below are only valid after signning in
-        //
+        const current_relay = pool.getRelay(model.currentRelay);
+        if (current_relay == undefined) {
+            console.error(Array.from(pool.getRelays()));
+            continue;
+        } //
         else if (event.type == "SelectRelay") {
             model.currentRelay = event.relay.url;
         } //
@@ -233,12 +239,21 @@ export async function* UI_Interaction_Update(args: {
         // Profile
         //
         else if (event.type == "SaveProfile") {
-            await saveProfile(
-                event.profile,
-                event.ctx,
-                pool,
-            );
-            app.popOverInputChan.put({ children: undefined });
+            if (current_relay.status() != "Open") {
+                app.toastInputChan.put(`${current_relay.url} is not connected yet`);
+            } else {
+                const result = await saveProfile(
+                    event.profile,
+                    event.ctx,
+                    current_relay,
+                );
+                app.popOverInputChan.put({ children: undefined });
+                if (result instanceof Error) {
+                    app.toastInputChan.put(result.message);
+                } else {
+                    app.toastInputChan.put("profile has been updated");
+                }
+            }
         } //
         //
         // Navigation
@@ -294,23 +309,7 @@ export async function* UI_Interaction_Update(args: {
                 children: <div></div>,
             });
         } else if (event.type == "RelayConfigChange") {
-            const e = await prepareEncryptedNostrEvent(app.ctx, {
-                kind: NostrKind.Custom_App_Data,
-                encryptKey: app.ctx.publicKey,
-                content: JSON.stringify(event),
-                tags: [],
-            });
-            if (e instanceof Error) {
-                console.error(e);
-                continue;
-            }
-            {
-                const err = await pool.sendEvent(e);
-                if (err instanceof Error) {
-                    console.error(err);
-                    continue;
-                }
-            }
+            console.log(event, "not handled yet");
         } else if (event.type == "ViewEventDetail") {
             const nostrEvent = event.message.event;
             const eventID = nostrEvent.id;
