@@ -11,44 +11,29 @@ import { LocalPrivateKeyController } from "./sign-in.ts";
 
 type NIP07 = {
     getPublicKey(): Promise<string>;
-    signEvent(event: UnsignedNostrEvent): Promise<NostrEvent>;
+    signEvent<T extends NostrKind>(event: UnsignedNostrEvent<T>): Promise<NostrEvent<T>>;
+    getRelays(): { [url: string]: { read: boolean; write: boolean } };
     nip04: {
         encrypt: (pubkey: string, plaintext: string) => Promise<string | Error>;
         decrypt: (pubkey: string, ciphertext: string) => Promise<string | Error>;
     };
-    enabled: boolean;
-    enable: () => Promise<{ enabled: boolean }>;
+    nip44: {
+        encrypt: (pubkey: string, plaintext: string) => Promise<string | Error>;
+        decrypt: (pubkey: string, ciphertext: string) => Promise<string | Error>;
+    };
 };
 
 export class Nip7ExtensionContext implements NostrAccountContext {
-    private readonly operationChan = chan<
-        {
-            op: "encrypt";
-            pubkey: string;
-            plaintext: string;
-        } | {
-            op: "signEvent";
-            event: UnsignedNostrEvent;
-        }
-    >();
-
-    private readonly encryptChan = chan<string | Error>();
-    // private readonly decryptChan = chan<string | Error>();
-    private readonly signEventChan = chan<NostrEvent>();
-
     static async New(): Promise<Nip7ExtensionContext | Error | undefined> {
-        async function getExtensionObject(): Promise<NIP07 | undefined> {
-            // wait for alby or nos2x init
-            await sleep(20);
-            if ("nostr" in window) {
-                return window.nostr as NIP07;
-            }
+        // wait for nip-07 extension init
+        await sleep(20);
+        let ext;
+        if ("nostr" in window) {
+            ext = window.nostr as NIP07;
+        } else {
             return undefined;
         }
-        const ext = await getExtensionObject();
-        if (ext === undefined) {
-            return undefined;
-        }
+
         let pubkey: string | undefined;
         try {
             pubkey = await ext.getPublicKey();
@@ -63,53 +48,41 @@ export class Nip7ExtensionContext implements NostrAccountContext {
     }
 
     private constructor(
-        private alby: NIP07,
+        private nip07: NIP07,
         public publicKey: PublicKey,
     ) {
-        console.log(alby);
-        (async () => {
-            for await (const op of this.operationChan) {
-                if (op.op == "encrypt") {
-                    try {
-                        const res = await alby.nip04.encrypt(op.pubkey, op.plaintext);
-                        await this.encryptChan.put(res);
-                    } catch (e) {
-                        await this.encryptChan.put(e as Error);
-                    }
-                } else if (op.op === "signEvent") {
-                    const res = await alby.signEvent(op.event);
-                    await this.signEventChan.put(res);
-                }
-            }
-        })();
+        console.log(nip07);
     }
 
-    async signEvent<T extends NostrKind = NostrKind>(event: UnsignedNostrEvent<T>): Promise<NostrEvent<T>> {
-        await this.operationChan.put({ op: "signEvent", event: event });
-        const res = await this.signEventChan.pop();
-        if (res === closed) {
-            throw new Error("unreachable");
-        }
-        // @ts-ignore
-        return res;
+    async signEvent<T extends NostrKind = NostrKind>(event: UnsignedNostrEvent<T>) {
+        return this.nip07.signEvent(event);
     }
 
     encrypt = async (pubkey: string, plaintext: string) => {
-        await this.operationChan.put({
-            op: "encrypt",
-            pubkey,
-            plaintext,
-        });
-        const res = await this.encryptChan.pop();
-        if (res === closed) {
-            throw new Error("unreachable");
+        if (!("nip44" in this.nip07)) {
+            return new Error(
+                "This NIP-07 extension does not implement NIP-44, please use a NIP-44 compatible one",
+            );
         }
-        return res;
+        try {
+            return this.nip07.nip44.encrypt(pubkey, plaintext);
+        } catch (e) {
+            return e as Error;
+        }
     };
+
     decrypt = async (pubkey: string, ciphertext: string) => {
         try {
-            const res = await this.alby.nip04.decrypt(pubkey, ciphertext);
-            return res;
+            if (ciphertext.includes("?iv")) {
+                return await this.nip07.nip04.decrypt(pubkey, ciphertext);
+            } else {
+                if (!("nip44" in this.nip07)) {
+                    return new Error(
+                        "This NIP-07 extension does not implement NIP-44, please use a NIP-44 compatible one",
+                    );
+                }
+                return await this.nip07.nip44.decrypt(pubkey, ciphertext);
+            }
         } catch (e) {
             return e as Error;
         }

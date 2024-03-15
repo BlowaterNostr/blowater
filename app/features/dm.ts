@@ -1,10 +1,18 @@
 import { prepareEncryptedNostrEvent } from "../../libs/nostr.ts/event.ts";
-import { PublicKey } from "../../libs/nostr.ts/key.ts";
+import { InvalidKey, PublicKey } from "../../libs/nostr.ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 import { DirectMessageGetter } from "../UI/app_update.tsx";
 import { ChatMessage, parseContent } from "../UI/message.ts";
-import { compare, getTags, Parsed_Event, prepareNostrImageEvent, Tag, Tags } from "../nostr.ts";
+import {
+    compare,
+    DirectedMessage_Event,
+    getTags,
+    Parsed_Event,
+    prepareNostrImageEvent,
+    Tag,
+    Tags,
+} from "../nostr.ts";
 import { EventSender } from "../../libs/nostr.ts/relay.interface.ts";
 
 import {
@@ -203,7 +211,7 @@ export class DirectedMessageController implements DirectMessageGetter {
         } else {
             parsedTags = getTags(event);
         }
-        let publicKey;
+        let publicKey: PublicKey | InvalidKey;
         if ("publicKey" in event) {
             publicKey = event.publicKey;
         } else {
@@ -212,7 +220,7 @@ export class DirectedMessageController implements DirectMessageGetter {
                 return publicKey;
             }
         }
-        let dmEvent = await parseDM(
+        const result = await parseDM(
             {
                 ...event,
                 kind,
@@ -221,40 +229,43 @@ export class DirectedMessageController implements DirectMessageGetter {
             parsedTags,
             publicKey,
         );
-        if ("type" in dmEvent) {
-            if (dmEvent.type == "Other") {
-                return dmEvent.error;
-            } else if (dmEvent.type == "NotMyMessage") {
-                return; // ignore
-            }
+
+        if (result.type == "Other") {
+            return result;
+        } else if (result.type == "NotMyMessage") {
+            return result;
+        } else if (result.type == "error") {
+            return result;
         }
-        if (dmEvent instanceof Error) {
-            return dmEvent;
-        }
-        const isImage = dmEvent.parsedTags.image;
+
+        const dm_event = result.event;
+        const isImage = dm_event.parsedTags.image;
         let chatMessage: ChatMessage;
         if (isImage) {
-            const imageBase64 = dmEvent.decryptedContent;
+            const imageBase64 = dm_event.decryptedContent;
             chatMessage = {
-                event: dmEvent,
-                author: dmEvent.publicKey,
+                event: dm_event,
+                author: dm_event.publicKey,
                 content: imageBase64,
                 type: "image",
-                created_at: new Date(dmEvent.created_at * 1000),
-                lamport: dmEvent.parsedTags.lamport_timestamp,
+                created_at: new Date(dm_event.created_at * 1000),
+                lamport: dm_event.parsedTags.lamport_timestamp,
             };
         } else {
             chatMessage = {
-                event: dmEvent,
-                author: dmEvent.publicKey,
-                content: dmEvent.decryptedContent,
+                event: dm_event,
+                author: dm_event.publicKey,
+                content: dm_event.decryptedContent,
                 type: "text",
-                created_at: new Date(dmEvent.created_at * 1000),
-                lamport: dmEvent.parsedTags.lamport_timestamp,
+                created_at: new Date(dm_event.created_at * 1000),
+                lamport: dm_event.parsedTags.lamport_timestamp,
             };
         }
         this.directed_messages.set(event.id, chatMessage);
         /* do not await */ this.new_message_chan.put(chatMessage);
+        return {
+            type: true,
+        };
     }
 
     onChange() {
@@ -277,22 +288,42 @@ async function parseDM(
     ctx: NostrAccountContext,
     parsedTags: Tags,
     publicKey: PublicKey,
-) {
+): Promise<
+    {
+        type: "NotMyMessage";
+        error: Error;
+    } | {
+        type: "Other";
+        error: Error;
+    } | {
+        type: "error";
+        error: Error;
+    } | {
+        type: "event";
+        event: DirectedMessage_Event;
+    }
+> {
     const theOther = whoIamTalkingTo(event, ctx.publicKey);
     if (theOther.type != true) {
         return theOther;
     }
     const decrypted = await ctx.decrypt(theOther.talkingTo, event.content);
     if (decrypted instanceof Error) {
-        return decrypted;
+        return {
+            type: "error",
+            error: decrypted,
+        };
     }
     return {
-        ...event,
-        kind: event.kind,
-        parsedTags,
-        publicKey,
-        decryptedContent: decrypted,
-        parsedContentItems: Array.from(parseContent(decrypted)),
+        type: "event",
+        event: {
+            ...event,
+            kind: event.kind,
+            parsedTags,
+            publicKey,
+            decryptedContent: decrypted,
+            parsedContentItems: Array.from(parseContent(decrypted)),
+        },
     };
 }
 
