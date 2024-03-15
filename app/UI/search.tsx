@@ -45,7 +45,7 @@ type State = {
 
 export class Search extends Component<Props, State> {
     state: State = { searchResults: [] };
-    inputRef = createRef();
+    inputRef = createRef<HTMLInputElement>();
     styles = {
         container: `flex flex-col h-full w-full bg-[${SecondaryBackgroundColor}]`,
         searchInput:
@@ -62,7 +62,9 @@ export class Search extends Component<Props, State> {
     };
 
     componentDidMount() {
-        this.inputRef.current?.focus();
+        if (this.inputRef.current) {
+            this.inputRef.current.focus();
+        }
     }
 
     search = (e: h.JSX.TargetedEvent<HTMLInputElement, Event>) => {
@@ -82,7 +84,9 @@ export class Search extends Component<Props, State> {
     };
 
     onSelect = (profile: Profile_Nostr_Event | PublicKey) => () => {
-        this.inputRef.current.value = "";
+        if (this.inputRef.current) {
+            this.inputRef.current.value = "";
+        }
         this.setState({
             searchResults: [],
         });

@@ -26,7 +26,7 @@ import { robohash } from "./relay-detail.tsx";
 
 export type SaveProfile = {
     type: "SaveProfile";
-    profile: ProfileData;
+    profile: ProfileData | undefined;
     ctx: NostrAccountContext;
 };
 
@@ -129,10 +129,6 @@ export class EditProfile extends Component<Props, State> {
     };
 
     onSubmit = () => {
-        if (!this.state.profile) {
-            return;
-        }
-
         this.props.emit({
             type: "SaveProfile",
             ctx: this.props.ctx,
