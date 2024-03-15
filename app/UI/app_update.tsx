@@ -1,7 +1,7 @@
 /** @jsx h */
 import { ComponentChildren, h } from "https://esm.sh/preact@10.17.1";
 import { Channel, closed, sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { prepareEncryptedNostrEvent, prepareNormalNostrEvent } from "../../libs/nostr.ts/event.ts";
+import { prepareNormalNostrEvent } from "../../libs/nostr.ts/event.ts";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { NoteID } from "../../libs/nostr.ts/nip19.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
@@ -30,7 +30,6 @@ import { EditGroup, StartEditGroupChatProfile } from "./edit-group.tsx";
 import { SaveProfile } from "./edit-profile.tsx";
 import { EditorEvent, SendMessage } from "./editor.tsx";
 import { EventDetail, EventDetailItem } from "./event-detail.tsx";
-import { EventSender } from "../../libs/nostr.ts/relay.interface.ts";
 
 import { DirectMessagePanelUpdate } from "./message-panel.tsx";
 import { ChatMessage } from "./message.ts";
@@ -46,10 +45,10 @@ import { BlockUser, UnblockUser, UserDetail } from "./user-detail.tsx";
 import { RelayRecommendList } from "./relay-recommend-list.tsx";
 import { HidePopOver } from "./components/popover.tsx";
 import { Social_Model } from "./channel-container.tsx";
-import { DM_Model } from "./dm.tsx";
 import { SyncEvent } from "./message-panel.tsx";
 import { SendingEventRejection, ToastChannel } from "./components/toast.tsx";
-import { LinkColor } from "./style/colors.ts";
+import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
+import { default_blowater_relay } from "./relay-config.ts";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -108,35 +107,34 @@ export async function* UI_Interaction_Update(args: {
     const { model, dbView, eventBus, pool, installPrompt } = args;
     for await (const event of eventBus.onChange()) {
         console.log(event);
-        switch (event.type) {
-            case "SignInEvent":
-                const ctx = event.ctx;
-                if (ctx) {
-                    console.log("sign in as", ctx.publicKey.bech32());
-                    const otherConfig = await OtherConfig.FromLocalStorage(
-                        ctx,
-                        args.newNostrEventChannel,
-                        args.lamport,
-                    );
-                    const app = await App.Start({
-                        database: dbView,
-                        model,
-                        ctx,
-                        eventBus,
-                        pool,
-                        popOverInputChan: args.popOver,
-                        rightPanelInputChan: args.rightPanel,
-                        otherConfig,
-                        lamport: args.lamport,
-                        installPrompt,
-                        toastInputChan: args.toastInputChan,
-                    });
-                    model.app = app;
-                } else {
-                    console.error("failed to sign in");
-                }
-                yield model;
-                continue;
+        if (event.type == "SignInEvent") {
+            const ctx = event.ctx;
+            if (ctx) {
+                console.log("sign in as", ctx.publicKey.bech32());
+                const otherConfig = await OtherConfig.FromLocalStorage(
+                    ctx,
+                    args.newNostrEventChannel,
+                    args.lamport,
+                );
+                const app = await App.Start({
+                    database: dbView,
+                    model,
+                    ctx,
+                    eventBus,
+                    pool,
+                    popOverInputChan: args.popOver,
+                    rightPanelInputChan: args.rightPanel,
+                    otherConfig,
+                    lamport: args.lamport,
+                    installPrompt,
+                    toastInputChan: args.toastInputChan,
+                });
+                model.app = app;
+            } else {
+                console.error("failed to sign in");
+            }
+            yield model;
+            continue;
         }
 
         const app = model.app;
@@ -144,13 +142,22 @@ export async function* UI_Interaction_Update(args: {
             console.warn(event, "is not valid before signing");
             console.warn("This could not happen!");
             continue;
-        } // All events below are only valid after signning in
+        }
+
         const current_relay = pool.getRelay(model.currentRelay);
         if (current_relay == undefined) {
             console.error(Array.from(pool.getRelays()));
             continue;
-        } //
-        else if (event.type == "SelectRelay") {
+        }
+
+        const blowater_relay = pool.getRelay(default_blowater_relay);
+        if (blowater_relay == undefined) {
+            console.error(Array.from(pool.getRelays()));
+            continue;
+        }
+
+        // All events below are only valid after signning in
+        if (event.type == "SelectRelay") {
             model.currentRelay = event.relay.url;
         } //
         // Searchx
@@ -219,9 +226,12 @@ export async function* UI_Interaction_Update(args: {
                 event,
                 app.ctx,
                 app.lamport,
-                current_relay,
                 app.database,
-                model,
+                {
+                    ...model,
+                    current_relay,
+                    blowater_relay,
+                },
             ).then((res) => {
                 if (res instanceof Error) {
                     console.error(res);
@@ -512,7 +522,6 @@ export async function handle_SendMessage(
     event: SendMessage,
     ctx: NostrAccountContext,
     lamport: LamportTime,
-    eventSender: EventSender,
     db: Database_View,
     args: {
         navigationModel: NavigationModel;
@@ -520,31 +529,41 @@ export async function handle_SendMessage(
         dm: {
             currentConversation: PublicKey | undefined;
         };
+        blowater_relay: SingleRelayConnection;
+        current_relay: SingleRelayConnection;
     },
 ) {
     if (event.text.length == 0) {
         return new Error("can't send empty message");
     }
-    let events;
+
+    let events: NostrEvent[];
     if (args.navigationModel.activeNav == "DM") {
-        events = await sendDirectMessages({
+        const events_send = await sendDirectMessages({
             sender: ctx,
             receiverPublicKey: args.dm.currentConversation as PublicKey,
             message: event.text,
             files: event.files,
             lamport_timestamp: lamport.now(),
-            eventSender,
+            eventSender: args.blowater_relay,
             tags: [],
         });
-        if (events instanceof Error) {
-            return events;
+        if (events_send instanceof Error) {
+            return events_send;
         }
+        for (const event of events_send) {
+            const result = args.current_relay.sendEvent(event);
+            if (result instanceof Error) {
+                return result;
+            }
+        }
+        events = events_send;
     } else if (args.navigationModel.activeNav == "Social") {
         const nostr_event = await prepareNormalNostrEvent(ctx, {
             content: event.text,
             kind: NostrKind.TEXT_NOTE,
         });
-        const err = await eventSender.sendEvent(nostr_event);
+        const err = await args.current_relay.sendEvent(nostr_event);
         if (err instanceof Error) {
             return err;
         }
