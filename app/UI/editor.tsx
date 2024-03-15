@@ -60,13 +60,13 @@ export class Editor extends Component<EditorProps, EditorState> {
         files: [],
     };
 
-    componentWillReceiveProps(nextProps: Readonly<EditorProps>) {
-        if (!isMobile()) {
+    componentWillReceiveProps() {
+        if (!isMobile() && this.textareaElement.current) {
             this.textareaElement.current.focus();
         }
     }
 
-    textareaElement = createRef();
+    textareaElement = createRef<HTMLTextAreaElement>();
 
     sendMessage = async () => {
         const props = this.props;
@@ -75,7 +75,7 @@ export class Editor extends Component<EditorProps, EditorState> {
             files: this.state.files,
             text: this.state.text,
         });
-        this.textareaElement.current.setAttribute(
+        this.textareaElement.current?.setAttribute(
             "rows",
             "1",
         );

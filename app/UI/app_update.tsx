@@ -48,7 +48,7 @@ import { HidePopOver } from "./components/popover.tsx";
 import { Social_Model } from "./channel-container.tsx";
 import { DM_Model } from "./dm.tsx";
 import { SyncEvent } from "./message-panel.tsx";
-import { ToastChannel } from "./components/toast.tsx";
+import { SendingEventRejection, ToastChannel } from "./components/toast.tsx";
 import { LinkColor } from "./style/colors.ts";
 
 export type UI_Interaction_Event =
@@ -225,26 +225,9 @@ export async function* UI_Interaction_Update(args: {
             ).then((res) => {
                 if (res instanceof Error) {
                     console.error(res);
-                    app.toastInputChan.put(() => (
-                        <div
-                            class="hover:cursor-pointer"
-                            onClick={() => {
-                                eventBus.emit({
-                                    type: "ViewRelayDetail",
-                                    url: current_relay.url,
-                                });
-                            }}
-                        >
-                            sending message is rejected
-                            <div>reason: {res.message}</div>
-                            <div>please contact the admin of relay</div>
-                            <div
-                                class={`text-[${LinkColor}] hover:underline`}
-                            >
-                                {current_relay.url}
-                            </div>
-                        </div>
-                    ));
+                    app.toastInputChan.put(
+                        SendingEventRejection(eventBus.emit, current_relay.url, res.message),
+                    );
                 }
             });
         } else if (event.type == "UpdateMessageFiles") {
@@ -258,6 +241,8 @@ export async function* UI_Interaction_Update(args: {
         else if (event.type == "SaveProfile") {
             if (current_relay.status() != "Open") {
                 app.toastInputChan.put(() => `${current_relay.url} is not connected yet`);
+            } else if (event.profile == undefined) {
+                app.toastInputChan.put(() => "profile is empty");
             } else {
                 const result = await saveProfile(
                     event.profile,
@@ -266,7 +251,9 @@ export async function* UI_Interaction_Update(args: {
                 );
                 app.popOverInputChan.put({ children: undefined });
                 if (result instanceof Error) {
-                    app.toastInputChan.put(() => result.message);
+                    app.toastInputChan.put(
+                        SendingEventRejection(eventBus.emit, current_relay.url, result.message),
+                    );
                 } else {
                     app.toastInputChan.put(() => "profile has been updated");
                 }

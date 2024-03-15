@@ -79,7 +79,7 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
                                 <input
                                     type="text"
                                     class="flex-grow border rounded-lg mx-2 my-1 px-2"
-                                    placeholder="Search relay"
+                                    placeholder="filter relays"
                                     value={this.state.searchRelayValue}
                                     onInput={this.handleSearchRelayInput}
                                 />

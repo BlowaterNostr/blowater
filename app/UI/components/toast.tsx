@@ -1,9 +1,11 @@
 /** @jsx h */
 import { Component, ComponentChildren } from "https://esm.sh/preact@10.17.1";
 import { h } from "https://esm.sh/preact@10.17.1";
-import { PrimaryBackgroundColor, PrimaryTextColor } from "../style/colors.ts";
+import { LinkColor, PrimaryBackgroundColor, PrimaryTextColor } from "../style/colors.ts";
 import { Channel, sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { setState } from "../_helper.ts";
+import { emitFunc } from "../../event-bus.ts";
+import { ViewRelayDetail } from "../setting.tsx";
 
 export type ToastChannel = Channel<() => ComponentChildren>;
 
@@ -44,3 +46,24 @@ export class Toast extends Component<Props, State> {
         );
     }
 }
+
+export const SendingEventRejection = (emit: emitFunc<ViewRelayDetail>, url: string, reason: string) => () => (
+    <div
+        class="hover:cursor-pointer"
+        onClick={() => {
+            emit({
+                type: "ViewRelayDetail",
+                url: url,
+            });
+        }}
+    >
+        sending message is rejected
+        <div>reason: {reason}</div>
+        <div>please contact the admin of relay</div>
+        <div
+            class={`text-[${LinkColor}] hover:underline`}
+        >
+            {url}
+        </div>
+    </div>
+);
