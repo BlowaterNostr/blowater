@@ -24,6 +24,7 @@ import {
 } from "./style/colors.ts";
 import { BlockUser, UnblockUser } from "./user-detail.tsx";
 import { func_GetEventByID, MessageList } from "./message-list.tsx";
+import { MessageList_V0 } from "./message-list.tsx";
 
 export type DirectMessagePanelUpdate =
     | ViewUserDetail
@@ -74,6 +75,32 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
                     <div class={`flex-1`}></div>
 
                     <MessageList
+                        myPublicKey={props.myPublicKey}
+                        messages={props.messages}
+                        emit={props.emit}
+                        getters={props.getters}
+                    />
+
+                    <Editor
+                        maxHeight="30vh"
+                        emit={props.emit}
+                        placeholder=""
+                    />
+                </div>
+            </div>
+        );
+        return vnode;
+    }
+}
+
+export class MessagePanel_V0 extends Component<DirectMessagePanelProps> {
+    render(props: DirectMessagePanelProps) {
+        let vnode = (
+            <div class={`flex h-full w-full relative ${BackgroundColor_MessagePanel}`}>
+                <div class={`flex flex-col h-full flex-1 overflow-hidden`}>
+                    <div class={`flex-1`}></div>
+
+                    <MessageList_V0
                         myPublicKey={props.myPublicKey}
                         messages={props.messages}
                         emit={props.emit}

@@ -8,7 +8,7 @@ import { ChatMessagesGetter, UI_Interaction_Event, UserBlocker } from "./app_upd
 import { IconButtonClass } from "./components/tw.ts";
 
 import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
-import { MessagePanel } from "./message-panel.tsx";
+import { MessagePanel, MessagePanel_V0 } from "./message-panel.tsx";
 import { ProfileGetter } from "./search.tsx";
 
 import {
@@ -74,7 +74,7 @@ export class DirectMessageContainer extends Component<DirectMessageContainerProp
                                 profileGetter={this.props.getters.profileGetter}
                             />
                             <div class={`flex-1 overflow-auto`}>
-                                <MessagePanel
+                                <MessagePanel_V0
                                     key={this.props.currentConversation}
                                     myPublicKey={props.ctx.publicKey}
                                     emit={props.bus.emit}
