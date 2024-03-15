@@ -40,7 +40,7 @@ interface MessageListState {
     offset: number;
 }
 
-const ItemsOfPerPage = 20;
+const ItemsOfPerPage = 50;
 
 export class MessageList extends Component<MessageListProps, MessageListState> {
     readonly messagesULElement = createRef<HTMLUListElement>();
@@ -142,6 +142,92 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
                 top: this.messagesULElement.current.scrollHeight,
                 left: 0,
                 behavior: "smooth",
+            });
+        }
+    };
+}
+
+export class MessageList_V0 extends Component<MessageListProps> {
+    readonly messagesULElement = createRef<HTMLUListElement>();
+
+    jitter = new JitterPrevention(100);
+
+    async componentDidMount() {
+        this.goToButtom(false);
+    }
+
+    componentDidUpdate(previousProps: Readonly<MessageListProps>): void {
+        // todo: this is not a correct check of if new message is received
+        // a better check is to see if the
+        // current newest message is newer than previous newest message
+        if (previousProps.messages.length < this.props.messages.length) {
+            this.goToButtom(false);
+        }
+    }
+
+    render() {
+        const messages_to_render = this.sortAndSliceMessage();
+        console.log(messages_to_render);
+        const groups = groupContinuousMessages(messages_to_render, (pre, cur) => {
+            const sameAuthor = pre.event.pubkey == cur.event.pubkey;
+            const _66sec = Math.abs(cur.created_at.getTime() - pre.created_at.getTime()) <
+                1000 * 60;
+            return sameAuthor && _66sec;
+        });
+        const messageBoxGroups = [];
+        for (const messages of groups) {
+            const profileEvent = this.props.getters.profileGetter
+                .getProfilesByPublicKey(messages[0].author);
+            messageBoxGroups.push(
+                MessageBoxGroup({
+                    messages: messages,
+                    myPublicKey: this.props.myPublicKey,
+                    emit: this.props.emit,
+                    authorProfile: profileEvent ? profileEvent.profile : undefined,
+                    getters: this.props.getters,
+                }),
+            );
+        }
+
+        return (
+            <div
+                class={`w-full overflow-hidden ${BackgroundColor_MessagePanel}`}
+                style={{
+                    transform: "perspective(none)",
+                }}
+            >
+                <button
+                    id="go to bottom"
+                    onClick={() => this.goToButtom(true)}
+                    class={`${IconButtonClass} fixed z-10 bottom-8 right-4 h-10 w-10 rotate-[-90deg] bg-[#42464D] hover:bg-[#2F3136]`}
+                >
+                    <LeftArrowIcon
+                        class={`w-6 h-6`}
+                        style={{
+                            fill: "#F3F4EA",
+                        }}
+                    />
+                </button>
+                <ul
+                    class={`w-full h-full overflow-y-auto overflow-x-hidden py-9 mobile:py-2 px-2 mobile:px-0 flex flex-col`}
+                    ref={this.messagesULElement}
+                >
+                    {messageBoxGroups}
+                </ul>
+            </div>
+        );
+    }
+
+    sortAndSliceMessage = () => {
+        return sortMessage(this.props.messages);
+    };
+
+    goToButtom = (smooth: boolean) => {
+        if (this.messagesULElement.current) {
+            this.messagesULElement.current.scrollTo({
+                top: this.messagesULElement.current.scrollHeight,
+                left: 0,
+                behavior: smooth ? "smooth" : undefined,
             });
         }
     };
