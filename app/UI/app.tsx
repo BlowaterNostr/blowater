@@ -33,6 +33,7 @@ import { ComponentChildren } from "https://esm.sh/preact@10.17.1";
 import { SignIn } from "./sign-in.tsx";
 import { getTags, Parsed_Event } from "../nostr.ts";
 import { Toast } from "./components/toast.tsx";
+import { ToastChannel } from "./components/toast.tsx";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
@@ -51,7 +52,7 @@ export async function Start(database: DexieDatabase) {
     const pool = new ConnectionPool();
     const popOverInputChan: PopOverInputChannel = new Channel();
     const rightPanelInputChan: Channel<() => ComponentChildren> = new Channel();
-    const toastInputChan: Channel<string> = new Channel();
+    const toastInputChan: ToastChannel = new Channel();
     const dbView = await Database_View.New(database, database, database);
     const newNostrEventChannel = new Channel<NostrEvent>();
     (async () => {
@@ -156,7 +157,7 @@ export class App {
         public readonly relayConfig: RelayConfig,
         public readonly lamport: LamportTime,
         public readonly dmController: DirectedMessageController,
-        public readonly toastInputChan: Channel<string>,
+        public readonly toastInputChan: ToastChannel,
     ) {}
 
     static async Start(args: {
@@ -170,7 +171,7 @@ export class App {
         otherConfig: OtherConfig;
         lamport: LamportTime;
         installPrompt: InstallPrompt;
-        toastInputChan: Channel<string>;
+        toastInputChan: ToastChannel;
     }) {
         const all_events = Array.from(args.database.getAllEvents());
         args.lamport.fromEvents(all_events);
@@ -293,7 +294,7 @@ type AppProps = {
     pool: ConnectionPool;
     popOverInputChan: PopOverInputChannel;
     rightPanelInputChan: Channel<() => ComponentChildren>;
-    toastInputChan: Channel<string>;
+    toastInputChan: ToastChannel;
     installPrompt: InstallPrompt;
 };
 
