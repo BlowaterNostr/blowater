@@ -364,15 +364,25 @@ export async function* UI_Interaction_Update(args: {
                     title: "Relays",
                     fields: Array.from(app.database.getRelayRecord(nostrEvent.id)),
                 },
-                {
+            ];
+            if (nostrEvent.kind == NostrKind.DIRECT_MESSAGE) {
+                items.push({
                     title: "Content",
                     fields: [
                         content,
                         event.message.content,
                         originalEventRaw,
                     ],
-                },
-            ];
+                });
+            } else {
+                items.push({
+                    title: "Content",
+                    fields: [
+                        event.message.content,
+                        originalEventRaw,
+                    ],
+                });
+            }
             app.popOverInputChan.put({
                 children: (
                     <EventDetail
@@ -558,7 +568,7 @@ export async function handle_SendMessage(
             }
         }
         events = events_send;
-    } else if (args.navigationModel.activeNav == "Social") {
+    } else if (args.navigationModel.activeNav == "Public") {
         const nostr_event = await prepareNormalNostrEvent(ctx, {
             content: event.text,
             kind: NostrKind.TEXT_NOTE,

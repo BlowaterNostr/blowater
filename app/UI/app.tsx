@@ -352,7 +352,7 @@ export class AppComponent extends Component<AppProps> {
         }
 
         let socialNode: VNode | undefined;
-        if (model.navigationModel.activeNav == "Social" && model.currentRelay) {
+        if (model.navigationModel.activeNav == "Public" && model.currentRelay) {
             socialNode = (
                 <ChannelContainer
                     ctx={myAccountCtx}
@@ -511,6 +511,7 @@ async function sync_profile_events(
 const sync_kind_1 = async (pool: ConnectionPool, database: Database_View) => {
     const stream = await pool.newSub("sync_kind_1", {
         kinds: [NostrKind.TEXT_NOTE],
+        since: Math.floor(Date.now() / 1000) - 24 * 60 * 60, // 24 hours
     });
     if (stream instanceof Error) {
         return stream;
