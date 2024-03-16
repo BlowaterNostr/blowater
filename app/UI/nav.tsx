@@ -57,7 +57,7 @@ type State = {
     installPrompt: InstallPrompt;
 };
 
-type NavTabID = "Social" | "DM" | "Search" | "Profile" | "About" | "Setting";
+type NavTabID = "Public" | "DM" | "Search" | "Profile" | "About" | "Setting";
 type NavTab = {
     icon: (active: boolean) => ComponentChild;
     id: NavTabID;
@@ -89,7 +89,7 @@ export class NavBar extends Component<Props, State> {
     tabs: NavTab[] = [
         {
             icon: (active: boolean) => <SocialIcon class={this.styles.icons(active)} />,
-            id: "Social",
+            id: "Public",
         },
         {
             icon: (active: boolean) => <ChatIcon class={this.styles.icons(active)} />,

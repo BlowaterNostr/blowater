@@ -40,7 +40,7 @@ export function initialModel(): Model {
             value: "",
         },
         navigationModel: {
-            activeNav: "Social",
+            activeNav: "Public",
         },
         myProfile: undefined,
     };
