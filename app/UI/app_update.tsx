@@ -171,7 +171,7 @@ export async function* UI_Interaction_Update(args: {
             const search = (
                 <Search
                     placeholder={`Search a user's public key or name (${app.database.getUniqueProfileCount()} profiles)`}
-                    db={app.database}
+                    profileGetter={app.database}
                     emit={eventBus.emit}
                 />
             );

@@ -2,10 +2,12 @@
 import { createRef, h } from "https://esm.sh/preact@10.17.1";
 import { Avatar } from "./components/avatar.tsx";
 import {
+    BackgroundColor_HoverButton,
     DividerBackgroundColor,
     PlaceholderColor,
     PrimaryTextColor,
     SecondaryBackgroundColor,
+    TextColor_Primary,
 } from "./style/colors.ts";
 import { Component } from "https://esm.sh/preact@10.17.1";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
@@ -14,6 +16,7 @@ import { SearchUpdate } from "./search_model.ts";
 import { Profile_Nostr_Event } from "../nostr.ts";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { robohash } from "./relay-detail.tsx";
+import { BackgroundColor_MessagePanel } from "./style/colors.ts";
 
 export type SearchResultChannel = Channel<SearchResult[]>;
 
@@ -35,17 +38,24 @@ export interface ProfileGetter {
 
 type Props = {
     placeholder: string;
-    db: ProfileGetter;
+    profileGetter: ProfileGetter;
     emit: emitFunc<SearchUpdate>;
 };
 
 type State = {
     searchResults: Profile_Nostr_Event[] | PublicKey;
+    offset: number;
 };
 
+const page_size = 9;
 export class Search extends Component<Props, State> {
-    state: State = { searchResults: [] };
+    state: State = {
+        searchResults: [],
+        offset: 0,
+    };
+
     inputRef = createRef<HTMLInputElement>();
+
     styles = {
         container: `flex flex-col h-full w-full bg-[${SecondaryBackgroundColor}]`,
         searchInput:
@@ -68,19 +78,24 @@ export class Search extends Component<Props, State> {
     }
 
     search = (e: h.JSX.TargetedEvent<HTMLInputElement, Event>) => {
+        const t = Date.now();
+        this.setState({
+            offset: 0,
+        });
         const text = e.currentTarget.value;
         const pubkey = PublicKey.FromString(text);
         if (pubkey instanceof Error) {
-            const profiles = this.props.db.getProfilesByText(text);
+            const profiles = this.props.profileGetter.getProfilesByText(text);
             this.setState({
                 searchResults: profiles,
             });
         } else {
-            const profile_event = this.props.db.getProfilesByPublicKey(pubkey);
+            const profile_event = this.props.profileGetter.getProfilesByPublicKey(pubkey);
             this.setState({
                 searchResults: profile_event ? [profile_event] : pubkey,
             });
         }
+        console.log("time", Date.now() - t);
     };
 
     onSelect = (profile: Profile_Nostr_Event | PublicKey) => () => {
@@ -106,44 +121,84 @@ export class Search extends Component<Props, State> {
                     class={this.styles.searchInput}
                     placeholder={this.props.placeholder}
                 />
+                <div class={`flex flex-row justify-evenly ${TextColor_Primary}`}>
+                    <button
+                        class={`border px-2 mt-1 rounded hover:${BackgroundColor_HoverButton}`}
+                        onClick={() => {
+                            const newOffset = this.state.offset - page_size;
+                            if (newOffset >= 0) {
+                                this.setState({
+                                    offset: newOffset,
+                                });
+                            }
+                        }}
+                    >
+                        previous page
+                    </button>
+                    <button
+                        class={`border px-2 mt-1 rounded hover:${BackgroundColor_HoverButton}`}
+                        onClick={() => {
+                            if (this.state.searchResults instanceof PublicKey) {
+                                return;
+                            }
+                            const newOffset = this.state.offset + page_size;
+                            if (newOffset < this.state.searchResults.length) {
+                                this.setState({
+                                    offset: newOffset,
+                                });
+                            }
+                        }}
+                    >
+                        next page
+                    </button>
+                </div>
                 {this.state.searchResults instanceof PublicKey
-                    ? (
-                        <li
-                            onClick={this.onSelect(this.state.searchResults)}
-                            class={this.styles.result.item.container}
-                        >
-                            <Avatar
-                                class={this.styles.result.item.avatar}
-                                picture={robohash(this.state.searchResults.hex)}
-                            />
-                            <p class={this.styles.result.item.text}>
-                                {this.state.searchResults.bech32()}
-                            </p>
-                        </li>
-                    )
+                    ? this.pubkeyItem(this.state.searchResults)
                     : this.state.searchResults.length > 0
                     ? (
                         <ul class={this.styles.result.container}>
-                            {this.state.searchResults.map((result) => {
-                                return (
-                                    <li
-                                        onClick={this.onSelect(result)}
-                                        class={this.styles.result.item.container}
-                                    >
-                                        <Avatar
-                                            class={this.styles.result.item.avatar}
-                                            picture={result.profile.picture || robohash(result.pubkey)}
-                                        />
-                                        <p class={this.styles.result.item.text}>
-                                            {result.profile.name}
-                                        </p>
-                                    </li>
-                                );
-                            })}
+                            {this.state.searchResults.slice(
+                                this.state.offset,
+                                this.state.offset + page_size,
+                            ).map(this.profileItem)}
                         </ul>
                     )
                     : undefined}
             </div>
         );
     }
+
+    pubkeyItem = (pubkey: PublicKey) => {
+        return (
+            <li
+                onClick={this.onSelect(pubkey)}
+                class={this.styles.result.item.container}
+            >
+                <Avatar
+                    class={this.styles.result.item.avatar}
+                    picture={robohash(pubkey.hex)}
+                />
+                <p class={this.styles.result.item.text}>
+                    {pubkey.bech32()}
+                </p>
+            </li>
+        );
+    };
+
+    profileItem = (result: Profile_Nostr_Event) => {
+        return (
+            <li
+                onClick={this.onSelect(result)}
+                class={this.styles.result.item.container}
+            >
+                <Avatar
+                    class={this.styles.result.item.avatar}
+                    picture={result.profile.picture || robohash(result.pubkey)}
+                />
+                <p class={this.styles.result.item.text}>
+                    {result.profile.name}
+                </p>
+            </li>
+        );
+    };
 }

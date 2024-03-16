@@ -1,7 +1,6 @@
-/** @jsx h */
-import { h, render } from "https://esm.sh/preact@10.17.1";
+import { render } from "https://esm.sh/preact@10.17.1";
 import { Setting } from "./setting.tsx";
-import { defaultRelays, RelayConfig } from "./relay-config.ts";
+import { RelayConfig } from "./relay-config.ts";
 import { InMemoryAccountContext } from "../../libs/nostr.ts/nostr.ts";
 import { PrivateKey } from "../../libs/nostr.ts/key.ts";
 import { testEventBus } from "./_setup.test.ts";
@@ -10,9 +9,6 @@ import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 const pool = new ConnectionPool();
 const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
 const relayConfig = RelayConfig.Default({ ctx, relayPool: pool });
-for (const url of defaultRelays) {
-    relayConfig.add(url);
-}
 
 render(
     Setting({
