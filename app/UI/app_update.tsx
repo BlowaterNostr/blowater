@@ -279,10 +279,6 @@ export async function* UI_Interaction_Update(args: {
         // Channel
         //
         else if (event.type == "SelectChannel") {
-            if (!model.currentRelay) {
-                console.error("currentRelay is not set");
-                continue;
-            }
             model.social.relaySelectedChannel.set(model.currentRelay, event.channel);
             app.popOverInputChan.put({ children: undefined });
         } else if (event.type == "BackToChannelList") {
@@ -324,16 +320,22 @@ export async function* UI_Interaction_Update(args: {
             });
         } else if (event.type == "RelayConfigChange") {
             (async () => {
-                let relay;
                 if (event.kind == "add") {
-                    relay = await app.relayConfig.add(event.url);
+                    const relay = await app.relayConfig.add(event.url);
+                    if (relay instanceof Error) {
+                        console.error(relay);
+                        const msg = relay.message;
+                        app.toastInputChan.put(() => msg);
+                    }
                 } else {
-                    relay = await app.relayConfig.remove(event.url);
-                }
-                if (relay instanceof Error) {
-                    console.error(relay);
-                    const msg = relay.message;
-                    app.toastInputChan.put(() => msg);
+                    const err = await app.relayConfig.remove(event.url);
+                    if (err instanceof Error) {
+                        app.toastInputChan.put(() => err.message);
+                        return;
+                    }
+                    if (current_relay.url == event.url) {
+                        model.currentRelay = default_blowater_relay;
+                    }
                 }
             })();
         } else if (event.type == "ViewEventDetail") {
