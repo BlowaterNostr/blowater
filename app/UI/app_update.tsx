@@ -188,7 +188,7 @@ export async function* UI_Interaction_Update(args: {
             app.popOverInputChan.put({
                 children: (
                     <RelayRecommendList
-                        relayConfig={event.relayConfig}
+                        relayConfig={app.relayConfig}
                         emit={eventBus.emit}
                     />
                 ),
@@ -323,7 +323,19 @@ export async function* UI_Interaction_Update(args: {
                 children: <div></div>,
             });
         } else if (event.type == "RelayConfigChange") {
-            console.log(event, "not handled yet");
+            (async () => {
+                let relay;
+                if (event.kind == "add") {
+                    relay = await app.relayConfig.add(event.url);
+                } else {
+                    relay = await app.relayConfig.remove(event.url);
+                }
+                if (relay instanceof Error) {
+                    console.error(relay);
+                    const msg = relay.message;
+                    app.toastInputChan.put(() => msg);
+                }
+            })();
         } else if (event.type == "ViewEventDetail") {
             const nostrEvent = event.message.event;
             const eventID = nostrEvent.id;
