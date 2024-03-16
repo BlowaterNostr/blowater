@@ -63,7 +63,7 @@ export const Setting = (props: SettingProps) => {
                     <div class={`px-[1rem] py-[1.5rem] ${inputBorderClass} rounded-lg mt-[1.5rem]`}>
                         <RelaySetting
                             emit={props.emit}
-                            relayConfig={props.relayConfig}
+                            getRelayURLs={props.relayConfig.getRelayURLs}
                             relayPool={props.relayPool}
                         >
                         </RelaySetting>
@@ -102,11 +102,12 @@ export type ViewRelayDetail = {
 
 export type ViewRecommendedRelaysList = {
     type: "ViewRecommendedRelaysList";
-    relayConfig: RelayConfig;
 };
 
+export type func_GetRelayURLs = () => Set<string>;
+
 type RelaySettingProp = {
-    relayConfig: RelayConfig;
+    getRelayURLs: func_GetRelayURLs;
     relayPool: ConnectionPool;
     emit: emitFunc<RelayConfigChange | ViewRelayDetail | ViewRecommendedRelaysList>;
 };
@@ -141,7 +142,7 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
 
     computeRelayStatus(props: RelaySettingProp) {
         const _relayStatus: { url: string; status: keyof typeof colors }[] = [];
-        for (const url of props.relayConfig.getRelayURLs()) {
+        for (const url of props.getRelayURLs()) {
             const relay = props.relayPool.getRelay(url);
             let status: keyof typeof colors = "Closed";
             if (relay) {
@@ -165,7 +166,6 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
     showRecommendedRelaysList = () => {
         this.props.emit({
             type: "ViewRecommendedRelaysList",
-            relayConfig: this.props.relayConfig,
         });
     };
 
@@ -175,25 +175,19 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
         const relayStatus = this.computeRelayStatus(props);
 
         const addRelay = async () => {
-            // props.eventBus.emit({ type: "AddRelay" });
             console.log("add", addRelayInput);
-            if (addRelayInput.length > 0) {
-                const p = props.relayConfig.add(addRelayInput);
-                this.setState({
-                    addRelayInput: "",
-                    relayStatus: this.computeRelayStatus(props),
-                });
-                const relay = await p;
-                if (relay instanceof Error) {
-                    console.error(relay);
-                    return;
-                }
-                props.emit({
-                    type: "RelayConfigChange",
-                    kind: "add",
-                    url: relay.url,
-                });
+            if (addRelayInput.length < 0) {
+                return;
             }
+            this.setState({
+                addRelayInput: "",
+                relayStatus: this.computeRelayStatus(props),
+            });
+            props.emit({
+                type: "RelayConfigChange",
+                kind: "add",
+                url: addRelayInput,
+            });
         };
 
         return (
@@ -251,24 +245,7 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
                                     ? (
                                         <button
                                             class={`w-[2rem] h-[2rem] rounded-lg bg-transparent hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
-                                            onClick={async (e) => {
-                                                e.stopPropagation();
-                                                const p = props.relayConfig.remove(r.url);
-                                                this.setState({
-                                                    relayStatus: this.computeRelayStatus(props),
-                                                });
-                                                props.emit({
-                                                    type: "RelayConfigChange",
-                                                    kind: "remove",
-                                                    url: r.url,
-                                                });
-                                                const err = await p;
-                                                if (err instanceof RemoveBlowaterRelay) {
-                                                    this.setState({
-                                                        error: "blowater relay is not allowed to be removed",
-                                                    });
-                                                }
-                                            }}
+                                            onClick={this.removeRelay(props, r.url)}
                                         >
                                             <DeleteIcon
                                                 class={`w-[1rem] h-[1rem]`}
@@ -292,4 +269,16 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
             </Fragment>
         );
     }
+
+    removeRelay = (props: RelaySettingProp, url: string) => async (e: Event) => {
+        e.stopPropagation();
+        this.setState({
+            relayStatus: this.computeRelayStatus(props),
+        });
+        props.emit({
+            type: "RelayConfigChange",
+            kind: "remove",
+            url: url,
+        });
+    };
 }
