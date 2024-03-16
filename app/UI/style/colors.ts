@@ -6,6 +6,8 @@ export const HoverButtonBackgroundColor = "#52525B";
 export const BackgroundColor_Primary = "bg-[#18181B]";
 export const BackgroundColor_Secondary = "bg-[#27272A]";
 export const BackgroundColor_MessagePanel = "bg-[#36393F]";
+export const BackgroundColor_HoverButton = "bg-[#52525B]";
+export const TextColor_Primary = "text-[#FFFFFF]";
 
 export const PrimaryTextColor = "#FFFFFF";
 export const SecondaryTextColor = "#8B8B8D";

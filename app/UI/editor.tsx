@@ -60,12 +60,6 @@ export class Editor extends Component<EditorProps, EditorState> {
         files: [],
     };
 
-    componentWillReceiveProps() {
-        if (!isMobile() && this.textareaElement.current) {
-            this.textareaElement.current.focus();
-        }
-    }
-
     textareaElement = createRef<HTMLTextAreaElement>();
 
     sendMessage = async () => {
