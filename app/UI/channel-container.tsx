@@ -131,7 +131,8 @@ function TopBar(props: {
                 items-center justify-between bg-[#2F3136]`}
         >
             <div class={`flex items-center overflow-hidden`}>
-                <button
+                {
+                    /* <button
                     class={`w-6 h-6 mx-2 ${IconButtonClass}`}
                 >
                     <LeftArrowIcon
@@ -140,10 +141,10 @@ function TopBar(props: {
                             fill: "rgb(185, 187, 190)",
                         }}
                     />
-                </button>
+                </button> */
+                }
                 <span
-                    class={`text-[#F3F4EA] text-[1.2rem]
-                            hover:text-[#60a5fa] hover:cursor-pointer
+                    class={`text-[#F3F4EA] text-[1.2rem] mx-4
                             whitespace-nowrap truncate`}
                 >
                     {props.currentSelected}
