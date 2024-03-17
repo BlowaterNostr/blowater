@@ -1,9 +1,11 @@
 import { not_cancelled, sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { prepareNormalNostrEvent } from "../libs/nostr.ts/event.ts";
 import { PrivateKey } from "../libs/nostr.ts/key.ts";
-import { InMemoryAccountContext, NostrEvent, NostrKind } from "../libs/nostr.ts/nostr.ts";
-import { assertEquals, fail } from "https://deno.land/std@0.202.0/testing/asserts.ts";
+import { InMemoryAccountContext, NostrKind } from "../libs/nostr.ts/nostr.ts";
 import { test_db_view } from "./UI/_setup.test.ts";
+import { Parsed_Event } from "./nostr.ts";
+import { assertEquals } from "https://deno.land/std@0.202.0/assert/assert_equals.ts";
+import { fail } from "https://deno.land/std@0.202.0/assert/fail.ts";
 
 Deno.test("Database", async () => {
     const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
@@ -29,7 +31,11 @@ Deno.test("Database", async () => {
         event_to_add,
     );
 
-    const e = await stream.pop() as NostrEvent;
+    const res = await stream.pop() as {
+        event: Parsed_Event;
+        relay?: string | undefined;
+    };
+    const e = res.event;
     assertEquals(
         {
             content: e.content,
@@ -49,8 +55,18 @@ Deno.test("Database", async () => {
     const event_to_add2 = await prepareNormalNostrEvent(ctx, { kind: NostrKind.TEXT_NOTE, content: "2" });
     // console.log(event_to_add2.id, event_to_add.id)
     await db.addEvent(event_to_add2);
-    const e2 = await stream.pop() as NostrEvent;
-    assertEquals(e2, await stream2.pop() as NostrEvent);
+    const res_2 = await stream.pop() as {
+        event: Parsed_Event;
+        relay?: string | undefined;
+    };
+    const e2 = res_2.event;
+    assertEquals(
+        res_2,
+        await stream2.pop() as {
+            event: Parsed_Event;
+            relay?: string | undefined;
+        },
+    );
     assertEquals({
         content: e2.content,
         created_at: e2.created_at,
@@ -70,10 +86,10 @@ Deno.test("Relay Record", async () => {
     const event_to_add = await prepareNormalNostrEvent(ctx, { kind: NostrKind.TEXT_NOTE, content: "1" });
     const event_to_add_2 = await prepareNormalNostrEvent(ctx, { kind: NostrKind.TEXT_NOTE, content: "2" });
     await db.addEvent(event_to_add); // send by client
-    assertEquals(await db.getRelayRecord(event_to_add.id), new Set<string>());
+    assertEquals(db.getRelayRecord(event_to_add.id), new Set<string>());
 
     await db.addEvent(event_to_add_2, "wss://relay.blowater.app"); // receiver from relay
-    assertEquals(await db.getRelayRecord(event_to_add_2.id), new Set(["wss://relay.blowater.app"]));
+    assertEquals(db.getRelayRecord(event_to_add_2.id), new Set(["wss://relay.blowater.app"]));
 
     await db.addEvent(event_to_add_2, "wss://relay.test.app");
     assertEquals(
@@ -86,6 +102,7 @@ Deno.test("Relay Record", async () => {
         ),
     );
 
+    await stream.pop();
     await stream.pop();
     await stream.pop();
 

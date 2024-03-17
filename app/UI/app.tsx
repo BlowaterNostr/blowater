@@ -27,7 +27,7 @@ import { Component } from "https://esm.sh/preact@10.17.1";
 import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 import { ChannelContainer } from "./channel-container.tsx";
 import { ChatMessage } from "./message.ts";
-import { filter, map } from "./_helper.ts";
+import { filter, forever, map } from "./_helper.ts";
 import { RightPanel } from "./components/right-panel.tsx";
 import { ComponentChildren } from "https://esm.sh/preact@10.17.1";
 import { SignIn } from "./sign-in.tsx";
@@ -108,7 +108,7 @@ export async function Start(database: DexieDatabase) {
     );
 
     for await (
-        let ok of UI_Interaction_Update({
+        let _ of UI_Interaction_Update({
             model,
             eventBus,
             dbView: dbView,
@@ -121,9 +121,6 @@ export async function Start(database: DexieDatabase) {
             toastInputChan: toastInputChan,
         })
     ) {
-        if (ok == false) {
-            continue;
-        }
         const t = Date.now();
         {
             render(
@@ -396,8 +393,6 @@ export class AppComponent extends Component<AppProps> {
             );
         }
 
-        console.debug("AppComponent:2", Date.now() - t);
-
         const final = (
             <div class={`h-screen w-full flex`}>
                 <NavBar
@@ -551,12 +546,3 @@ const sync_client_specific_data = async (
         }
     }
 };
-
-// f should not resolve, if it does resolve, it should only throw an error
-async function forever(f: Promise<Error | undefined | void>) {
-    const r = await f;
-    if (r == undefined) {
-        throw new Error(`${f} should not resolve`);
-    }
-    throw r;
-}

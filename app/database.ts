@@ -64,8 +64,8 @@ export interface RelayRecordGetter {
 export class Database_View
     implements ProfileSetter, ProfileGetter, EventGetter, EventRemover, RelayRecordGetter {
     //
-    public readonly sourceOfChange = csp.chan<Parsed_Event>(buffer_size);
-    private readonly caster = csp.multi<Parsed_Event>(this.sourceOfChange);
+    public readonly sourceOfChange = csp.chan<{ event: Parsed_Event; relay?: string }>(buffer_size);
+    private readonly caster = csp.multi<{ event: Parsed_Event; relay?: string }>(this.sourceOfChange);
     private readonly profiles = new Map<string, Profile_Nostr_Event>();
 
     private constructor(
@@ -218,12 +218,6 @@ export class Database_View
             await this.recordRelay(event.id, url);
         }
 
-        // check if the event exists
-        const storedEvent = await this.eventsAdapter.get({ id: event.id });
-        if (storedEvent) { // event exist
-            return false;
-        }
-
         // parse the event to desired format
         const pubkey = PublicKey.FromHex(event.pubkey);
         if (pubkey instanceof Error) {
@@ -235,6 +229,15 @@ export class Database_View
             parsedTags: getTags(event),
             publicKey: pubkey,
         };
+
+        // check if the event exists
+        const storedEvent = await this.eventsAdapter.get({ id: event.id });
+        if (storedEvent) { // event exist
+            if (url) {
+                this.sourceOfChange.put({ event: parsedEvent, relay: url });
+            }
+            return false;
+        }
 
         // add event to database and notify subscribers
         console.log("Database.addEvent", event);
@@ -251,7 +254,7 @@ export class Database_View
         }
 
         await this.eventsAdapter.put(event);
-        /* not await */ this.sourceOfChange.put(parsedEvent);
+        /* not await */ this.sourceOfChange.put({ event: parsedEvent, relay: url });
         return parsedEvent;
     }
 
@@ -260,7 +263,7 @@ export class Database_View
     //////////////////
     subscribe() {
         const c = this.caster.copy();
-        const res = csp.chan<Parsed_Event>(buffer_size);
+        const res = csp.chan<{ event: Parsed_Event; relay?: string }>(buffer_size);
         (async () => {
             for await (const newE of c) {
                 const err = await res.put(newE);
