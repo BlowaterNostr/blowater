@@ -393,8 +393,6 @@ export class AppComponent extends Component<AppProps> {
             );
         }
 
-        console.debug("AppComponent:2", Date.now() - t);
-
         const final = (
             <div class={`h-screen w-full flex`}>
                 <NavBar

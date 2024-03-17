@@ -54,7 +54,6 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
     async componentDidUpdate(previousProps: Readonly<MessageListProps>) {
         const newest = last(this.props.messages);
         const pre_newest = last(previousProps.messages);
-        console.log("componentDidUpdate", newest, pre_newest);
         if (
             newest && pre_newest && newest.author.hex == this.props.myPublicKey.hex &&
             newest.event.id != pre_newest.event.id
