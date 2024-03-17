@@ -227,7 +227,6 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
             const storedEvent = this.getEventByID(event.id);
             if (storedEvent) { // event exist
                 if (new_relay_record) {
-                    console.log("new_relay_record, addEvent, setProfile", event.id, storedEvent);
                     this.sourceOfChange.put({ event: parsedEvent, relay: url });
                 }
                 return false;
@@ -244,11 +243,9 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
             if (pEvent instanceof Error) {
                 return pEvent;
             }
-            console.log("addEvent, setProfile");
             this.setProfile(pEvent);
         }
 
-        console.log("eventsAdapter.put", event);
         await this.eventsAdapter.put(event);
         /* not await */ this.sourceOfChange.put({ event: parsedEvent, relay: url });
         return parsedEvent;
