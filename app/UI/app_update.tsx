@@ -1,6 +1,12 @@
 /** @jsx h */
 import { ComponentChildren, h } from "https://esm.sh/preact@10.17.1";
-import { Channel, closed, sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import {
+    Channel,
+    closed,
+    PopChannel,
+    PutChannel,
+    sleep,
+} from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { prepareNormalNostrEvent } from "../../libs/nostr.ts/event.ts";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { NoteID } from "../../libs/nostr.ts/nip19.ts";
@@ -49,6 +55,7 @@ import { SyncEvent } from "./message-panel.tsx";
 import { SendingEventRejection, ToastChannel } from "./components/toast.tsx";
 import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 import { default_blowater_relay } from "./relay-config.ts";
+import { forever } from "./_helper.ts";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -92,7 +99,7 @@ export type UserBlocker = {
 /////////////////////
 // UI Interfaction //
 /////////////////////
-export async function* UI_Interaction_Update(args: {
+export function UI_Interaction_Update(args: {
     model: Model;
     eventBus: AppEventBus;
     dbView: Database_View;
@@ -103,7 +110,24 @@ export async function* UI_Interaction_Update(args: {
     lamport: LamportTime;
     installPrompt: InstallPrompt;
     toastInputChan: ToastChannel;
-}) {
+}): Channel<true> {
+    const chan = new Channel<true>();
+    forever(handle_update_event(chan, args));
+    return chan;
+}
+
+const handle_update_event = async (chan: PutChannel<true>, args: {
+    model: Model;
+    eventBus: AppEventBus;
+    dbView: Database_View;
+    pool: ConnectionPool;
+    popOver: PopOverInputChannel;
+    rightPanel: Channel<() => ComponentChildren>;
+    newNostrEventChannel: Channel<NostrEvent>;
+    lamport: LamportTime;
+    installPrompt: InstallPrompt;
+    toastInputChan: ToastChannel;
+}) => {
     const { model, dbView, eventBus, pool, installPrompt } = args;
     for await (const event of eventBus.onChange()) {
         console.log(event);
@@ -133,7 +157,6 @@ export async function* UI_Interaction_Update(args: {
             } else {
                 console.error("failed to sign in");
             }
-            yield model;
             continue;
         }
 
@@ -244,6 +267,8 @@ export async function* UI_Interaction_Update(args: {
                     app.toastInputChan.put(
                         SendingEventRejection(eventBus.emit, current_relay.url, res.message),
                     );
+                } else {
+                    chan.put(true);
                 }
             });
         } else if (event.type == "UpdateMessageFiles") {
@@ -298,7 +323,8 @@ export async function* UI_Interaction_Update(args: {
                 () => {
                     return (
                         <UserDetail
-                            targetUserProfile={app.database.getProfilesByPublicKey(event.pubkey)?.profile ||
+                            targetUserProfile={app.database.getProfilesByPublicKey(event.pubkey)
+                                ?.profile ||
                                 {}}
                             pubkey={event.pubkey}
                             emit={eventBus.emit}
@@ -426,16 +452,14 @@ export async function* UI_Interaction_Update(args: {
                     }
                 });
             }
-            yield false; // do not update UI
             continue;
         } else {
             console.log(event, "is not handled");
-            yield false;
             continue;
         }
-        yield true;
+        await chan.put(true);
     }
-}
+};
 
 export type DirectMessageGetter = ChatMessagesGetter & {
     getDirectMessageStream(publicKey: string): Channel<ChatMessage>;
@@ -474,7 +498,7 @@ export async function* Database_Update(
                 console.error("unreachable: db changes channel should never close");
                 break;
             }
-            changes_events.push(e);
+            changes_events.push(e.event);
         }
 
         convoLists.addEvents(changes_events, true);

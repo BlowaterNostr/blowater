@@ -25,3 +25,12 @@ export function* filter<X>(iter: Iterable<X>, filterer: (item: X) => boolean) {
         }
     }
 }
+
+// f should not resolve, if it does resolve, it should only throw an error
+export async function forever(f: Promise<Error | undefined | void>) {
+    const r = await f;
+    if (r == undefined) {
+        throw new Error(`${f} should not resolve`);
+    }
+    throw r;
+}

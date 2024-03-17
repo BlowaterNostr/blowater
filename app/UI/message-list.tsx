@@ -51,6 +51,19 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
 
     jitter = new JitterPrevention(100);
 
+    async componentDidUpdate(previousProps: Readonly<MessageListProps>) {
+        const newest = last(this.props.messages);
+        const pre_newest = last(previousProps.messages);
+        console.log("componentDidUpdate", newest, pre_newest);
+        if (
+            newest && pre_newest && newest.author.hex == this.props.myPublicKey.hex &&
+            newest.event.id != pre_newest.event.id
+        ) {
+            await this.goToLastPage();
+            this.goToButtom(false);
+        }
+    }
+
     async componentDidMount() {
         const offset = this.props.messages.length - ItemsOfPerPage;
         await setState(this, { offset: offset <= 0 ? 0 : offset });
@@ -58,7 +71,6 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
 
     render() {
         const messages_to_render = this.sortAndSliceMessage();
-        console.log(messages_to_render);
         const groups = groupContinuousMessages(messages_to_render, (pre, cur) => {
             const sameAuthor = pre.event.pubkey == cur.event.pubkey;
             const _66sec = Math.abs(cur.created_at.getTime() - pre.created_at.getTime()) <
@@ -88,7 +100,7 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
                 }}
             >
                 <button
-                    onClick={this.goToButtom}
+                    onClick={() => this.goToButtom(true)}
                     class={`${IconButtonClass} fixed z-10 bottom-8 right-4 h-10 w-10 rotate-[-90deg] bg-[#42464D] hover:bg-[#2F3136]`}
                 >
                     <LeftArrowIcon
@@ -136,14 +148,22 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
         }
     };
 
-    goToButtom = () => {
+    goToButtom = (smooth: boolean) => {
         if (this.messagesULElement.current) {
             this.messagesULElement.current.scrollTo({
                 top: this.messagesULElement.current.scrollHeight,
                 left: 0,
-                behavior: "smooth",
+                behavior: smooth ? "smooth" : undefined,
             });
         }
+    };
+
+    goToLastPage = async () => {
+        const newOffset = this.props.messages.length - ItemsOfPerPage / 2;
+        await setState(this, {
+            offset: newOffset > 0 ? newOffset : 0,
+        });
+        console.log("goToLastPage", this.state.offset);
     };
 }
 
@@ -378,4 +398,12 @@ function MessageActions(
             </button>
         </div>
     );
+}
+
+function last<T>(array: Array<T>): T | undefined {
+    if (array.length == 0) {
+        return undefined;
+    } else {
+        return array[array.length - 1];
+    }
 }
