@@ -104,7 +104,6 @@ Deno.test("Relay Record", async () => {
 
     await stream.pop();
     await stream.pop();
-    await stream.pop();
 
     const isCanceled = await sleep(10, stream.pop());
     assertEquals(isCanceled, not_cancelled);

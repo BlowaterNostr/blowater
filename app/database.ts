@@ -214,8 +214,9 @@ export class Database_View
             return false;
         }
 
+        let new_relay_record = false;
         if (url) {
-            await this.recordRelay(event.id, url);
+            new_relay_record = await this.recordRelay(event.id, url);
         }
 
         // parse the event to desired format
@@ -233,7 +234,7 @@ export class Database_View
         // check if the event exists
         const storedEvent = await this.eventsAdapter.get({ id: event.id });
         if (storedEvent) { // event exist
-            if (url) {
+            if (new_relay_record) {
                 this.sourceOfChange.put({ event: parsedEvent, relay: url });
             }
             return false;
@@ -281,13 +282,16 @@ export class Database_View
     }
 
     private async recordRelay(eventID: string, url: string) {
+        await this.relayRecorder.setRelayRecord(eventID, url);
         const records = this.relayRecords.get(eventID);
         if (records) {
+            const size = records.size;
             records.add(url);
+            return records.size > size;
         } else {
             this.relayRecords.set(eventID, new Set([url]));
+            return true;
         }
-        await this.relayRecorder.setRelayRecord(eventID, url);
     }
 }
 
