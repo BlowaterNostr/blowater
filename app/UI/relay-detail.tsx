@@ -3,6 +3,7 @@ import { Component, ComponentChildren, Fragment, h } from "https://esm.sh/preact
 import { CopyButton } from "./components/copy-button.tsx";
 import { CenterClass, InputClass } from "./components/tw.ts";
 import {
+    BackgroundColor_HoverButton,
     ErrorColor,
     HintTextColor,
     PrimaryTextColor,
@@ -14,6 +15,9 @@ import { ProfileGetter } from "./search.tsx";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { Loading } from "./components/loading.tsx";
 import { RelayIcon } from "./icons/relay-icon.tsx";
+import { Profile_Nostr_Event } from "../nostr.ts";
+import { emitFunc } from "../event-bus.ts";
+import { SelectConversation } from "./search_model.ts";
 
 export type RelayInformation = {
     name?: string;
@@ -35,11 +39,7 @@ type State = {
 type Props = {
     relayUrl: string;
     profileGetter: ProfileGetter;
-};
-
-export type RelayInfoItem = {
-    title: string;
-    field: ComponentChildren;
+    emit: emitFunc<SelectConversation>;
 };
 
 export class RelayInformationComponent extends Component<Props, State> {
@@ -49,7 +49,6 @@ export class RelayInformationComponent extends Component<Props, State> {
         error: `text-[${ErrorColor}] ${CenterClass}`,
         header: {
             container: `text-lg flex text-[${PrimaryTextColor}] pb-4`,
-            icon: `w-8 h-8 mr-4 text-[${TitleIconColor}] stroke-current`,
         },
     };
 
@@ -86,66 +85,90 @@ export class RelayInformationComponent extends Component<Props, State> {
     }
 
     render() {
-        const items: RelayInfoItem[] = [
-            {
-                title: "Admin",
-                field: this.state.relayInfo.pubkey &&
-                    (
-                        <AuthorField
-                            publicKey={this.state.relayInfo.pubkey}
-                            profileGetter={this.props.profileGetter}
-                        />
-                    ),
-            },
-            {
-                title: "Contact",
-                field: this.state.relayInfo.contact && <TextField text={this.state.relayInfo.contact} />,
-            },
-            {
-                title: "Description",
-                field: this.state.relayInfo.description && (
-                    <TextField text={this.state.relayInfo.description} />
-                ),
-            },
-            {
-                title: "Software",
-                field: this.state.relayInfo.software && <TextField text={this.state.relayInfo.software} />,
-            },
-            {
-                title: "Version",
-                field: this.state.relayInfo.version && <TextField text={this.state.relayInfo.version} />,
-            },
-            {
-                title: "Supported Nips",
-                field: this.state.relayInfo.supported_nips && (
-                    <TextField text={this.state.relayInfo.supported_nips.join(",")} />
-                ),
-            },
-        ];
-
         let vNode;
         if (this.state.isLoading) {
             vNode = <Loading />;
         } else if (this.state.error) {
             vNode = <p class={this.styles.error}>{this.state.error}</p>;
         } else {
-            vNode = items.map((item) => {
-                if (item.field) {
-                    return (
+            const nodes = [];
+            if (this.state.relayInfo.pubkey) {
+                const pubkey = PublicKey.FromString(this.state.relayInfo.pubkey);
+                if (pubkey instanceof Error) {
+                } else {
+                    nodes.push(
                         <Fragment>
-                            <p class={this.styles.title}>{item.title}</p>
-                            {item.field}
-                        </Fragment>
+                            <p class={this.styles.title}>Admin</p>
+                            <AuthorField
+                                publicKey={pubkey}
+                                profileData={this.props.profileGetter.getProfilesByPublicKey(pubkey)}
+                                emit={this.props.emit}
+                            />
+                        </Fragment>,
                     );
                 }
-            });
+            }
+            if (this.state.relayInfo.contact) {
+                nodes.push(
+                    <Fragment>
+                        <p class={this.styles.title}>Contact</p>
+                        <TextField text={this.state.relayInfo.contact} />
+                    </Fragment>,
+                );
+            }
+            if (this.state.relayInfo.description) {
+                nodes.push(
+                    <Fragment>
+                        <p class={this.styles.title}>Description</p>
+                        <TextField text={this.state.relayInfo.description} />
+                    </Fragment>,
+                );
+            }
+            if (this.state.relayInfo.software) {
+                nodes.push(
+                    <Fragment>
+                        <p class={this.styles.title}>Software</p>
+                        <TextField text={this.state.relayInfo.software} />
+                    </Fragment>,
+                );
+            }
+            if (this.state.relayInfo.version) {
+                nodes.push(
+                    <Fragment>
+                        <p class={this.styles.title}>Version</p>
+                        <TextField text={this.state.relayInfo.version} />
+                    </Fragment>,
+                );
+            }
+            if (this.state.relayInfo.supported_nips) {
+                nodes.push(
+                    <Fragment>
+                        <p class={this.styles.title}>Supported NIPs</p>
+                        <TextField text={this.state.relayInfo.supported_nips.join(", ")} />
+                    </Fragment>,
+                );
+            }
+            vNode = (
+                <div>
+                    {nodes}
+                </div>
+            );
         }
 
         return (
             <div class={this.styles.container}>
                 <p class={this.styles.header.container}>
-                    <RelayIcon class={this.styles.header.icon} />
-                    Relay Detail -- {this.props.relayUrl}
+                    {this.state.relayInfo.icon
+                        ? (
+                            <Avatar
+                                class="w-8 h-8 mr-2"
+                                picture={this.state.relayInfo.icon || robohash(this.props.relayUrl)}
+                            />
+                        )
+                        : undefined}
+                    {this.state.relayInfo.name}
+                    <div class="mx-2"></div>
+                    {this.props.relayUrl}
                 </p>
                 {vNode}
             </div>
@@ -154,33 +177,31 @@ export class RelayInformationComponent extends Component<Props, State> {
 }
 
 function AuthorField(props: {
-    publicKey: string;
-    profileGetter: ProfileGetter;
+    publicKey: PublicKey;
+    profileData: Profile_Nostr_Event | undefined;
+    emit: emitFunc<SelectConversation>;
 }) {
     const styles = {
-        container: `flex items-center ${InputClass}`,
         avatar: `h-8 w-8 mr-2`,
         icon: `w-4 h-4 text-[${HintTextColor}] fill-current rotate-180`,
         name: `overflow-x-auto flex-1`,
     };
 
-    const pubkey = PublicKey.FromString(props.publicKey);
-    if (pubkey instanceof Error) {
-        return null;
-    }
-    const profileData = props.profileGetter.getProfilesByPublicKey(pubkey);
-
+    const { profileData, publicKey } = props;
     return (
         <Fragment>
-            <div class={styles.container}>
+            <div
+                class={`flex items-center ${InputClass} mt-4 hover:${BackgroundColor_HoverButton} hover:cursor-pointer`}
+                onClick={() => props.emit({ type: "SelectConversation", pubkey: props.publicKey })}
+            >
                 <Avatar
-                    picture={profileData?.profile.picture || robohash(props.publicKey)}
+                    picture={profileData?.profile.picture || robohash(publicKey.bech32())}
                     class={styles.avatar}
                 />
-                <p class={styles.name}>{profileData?.profile.name || pubkey.bech32()}</p>
+                <p class={styles.name}>{profileData?.profile.name || publicKey.bech32()}</p>
             </div>
 
-            <TextField text={pubkey.bech32()} />
+            <TextField text={publicKey.bech32()} />
         </Fragment>
     );
 }
