@@ -11,9 +11,9 @@ export type RelayRecord = {
 export class DexieDatabase extends Dexie implements EventsAdapter, RelayRecorder, EventMarker, EventRemover {
     // 'events' is added by dexie when declaring the stores()
     // We just tell the typing system this is the case
-    events!: Table<NostrEvent>;
-    relayRecords!: Table<RelayRecord>;
-    eventMarks!: Table<EventMark>;
+    private events!: Table<NostrEvent>;
+    private relayRecords!: Table<RelayRecord>;
+    private eventMarks!: Table<EventMark>;
 
     constructor() {
         super("Events");
@@ -28,9 +28,12 @@ export class DexieDatabase extends Dexie implements EventsAdapter, RelayRecorder
         return this.events.toArray();
     }
     async get(keys: Indices) {
-        return this.events.get(keys);
+        const e = await this.events.get(keys);
+        console.error("dexie get", e);
+        return e;
     }
     async put(e: NostrEvent<NostrKind, Tag>): Promise<void> {
+        console.log("dexie put", e);
         await this.events.put(e);
     }
     async remove(id: string) {

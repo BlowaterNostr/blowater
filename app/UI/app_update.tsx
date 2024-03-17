@@ -32,7 +32,6 @@ import { OtherConfig } from "./config-other.ts";
 import { DM_List } from "./conversation-list.ts";
 import { ContactUpdate } from "./conversation-list.tsx";
 import { StartInvite } from "./dm.tsx";
-import { EditGroup, StartEditGroupChatProfile } from "./edit-group.tsx";
 import { SaveProfile } from "./edit-profile.tsx";
 import { EditorEvent, SendMessage } from "./editor.tsx";
 import { EventDetail, EventDetailItem } from "./event-detail.tsx";
@@ -70,7 +69,6 @@ export type UI_Interaction_Event =
     | UnpinConversation
     | SignInEvent
     | RelayConfigChange
-    | StartEditGroupChatProfile
     | StartInvite
     | ViewRelayDetail
     | ViewRecommendedRelaysList
@@ -280,24 +278,23 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
         // Profile
         //
         else if (event.type == "SaveProfile") {
-            if (current_relay.status() != "Open") {
-                app.toastInputChan.put(() => `${current_relay.url} is not connected yet`);
-            } else if (event.profile == undefined) {
+            if (event.profile == undefined) {
                 app.toastInputChan.put(() => "profile is empty");
             } else {
-                const result = await saveProfile(
+                saveProfile(
                     event.profile,
                     event.ctx,
                     current_relay,
-                );
-                app.popOverInputChan.put({ children: undefined });
-                if (result instanceof Error) {
-                    app.toastInputChan.put(
-                        SendingEventRejection(eventBus.emit, current_relay.url, result.message),
-                    );
-                } else {
-                    app.toastInputChan.put(() => "profile has been updated");
-                }
+                ).then((result) => {
+                    app.popOverInputChan.put({ children: undefined });
+                    if (result instanceof Error) {
+                        app.toastInputChan.put(
+                            SendingEventRejection(eventBus.emit, current_relay.url, result.message),
+                        );
+                    } else {
+                        app.toastInputChan.put(() => "profile has been updated");
+                    }
+                });
             }
         } //
         //
@@ -336,16 +333,6 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
             );
         } else if (event.type == "OpenNote") {
             open(`https://nostrapp.link/#${NoteID.FromHex(event.event.id).bech32()}?select=true`);
-        } else if (event.type == "StartEditGroupChatProfile") {
-            app.popOverInputChan.put({
-                children: (
-                    <EditGroup
-                        emit={eventBus.emit}
-                        ctx={event.ctx}
-                        profileGetter={app.database}
-                    />
-                ),
-            });
         } else if (event.type == "StartInvite") {
             app.popOverInputChan.put({
                 children: <div></div>,
@@ -508,16 +495,7 @@ export async function* Database_Update(
                 lamport.set(t);
             }
             if (e.kind == NostrKind.META_DATA || e.kind == NostrKind.DIRECT_MESSAGE) {
-                if (e.kind == NostrKind.META_DATA) {
-                    // my profile update
-                    if (ctx && e.pubkey == ctx.publicKey.hex) {
-                        const newProfile = database.getProfilesByPublicKey(ctx.publicKey);
-                        if (newProfile == undefined) {
-                            throw new Error("impossible");
-                        }
-                        model.myProfile = newProfile.profile;
-                    }
-                } else if (e.kind == NostrKind.DIRECT_MESSAGE) {
+                if (e.kind == NostrKind.DIRECT_MESSAGE) {
                     console.log("add event");
                     const err = await dmController.addEvent({
                         ...e,

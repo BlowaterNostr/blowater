@@ -38,16 +38,21 @@ type profileItem = {
 
 type Props = {
     ctx: NostrAccountContext;
-    profileGetter: ProfileGetter;
+    profile: ProfileData | undefined;
     emit: emitFunc<SaveProfile>;
 };
 
 type State = {
-    profile: ProfileData | undefined;
+    profileData: ProfileData;
     newFieldKeyError: string;
 };
 
 export class EditProfile extends Component<Props, State> {
+    state: Readonly<State> = {
+        newFieldKeyError: "",
+        profileData: {},
+    };
+
     styles = {
         container: `py-4 bg-[${SecondaryBackgroundColor}]`,
         banner: {
@@ -73,17 +78,6 @@ export class EditProfile extends Component<Props, State> {
         },
     };
 
-    componentDidMount() {
-        const { ctx, profileGetter } = this.props;
-        this.setState({
-            profile: profileGetter.getProfilesByPublicKey(ctx.publicKey)?.profile,
-        });
-    }
-
-    shouldComponentUpdate(_: Readonly<Props>, nextState: Readonly<State>, __: any): boolean {
-        return JSON.stringify(this.state.profile) != JSON.stringify(nextState.profile);
-    }
-
     newFieldKey = createRef<HTMLInputElement>();
     newFieldValue = createRef<HTMLTextAreaElement>();
 
@@ -96,8 +90,8 @@ export class EditProfile extends Component<Props, State> {
         if (key) {
             const value = e.currentTarget.value;
             this.setState({
-                profile: {
-                    ...this.state.profile,
+                profileData: {
+                    ...this.state.profileData,
                     [key]: value,
                 },
             });
@@ -117,8 +111,8 @@ export class EditProfile extends Component<Props, State> {
         }
 
         this.setState({
-            profile: {
-                ...this.state.profile,
+            profileData: {
+                ...this.state.profileData,
                 [this.newFieldKey.current.value]: this.newFieldValue.current.value,
             },
             newFieldKeyError: "",
@@ -132,7 +126,7 @@ export class EditProfile extends Component<Props, State> {
         this.props.emit({
             type: "SaveProfile",
             ctx: this.props.ctx,
-            profile: this.state.profile,
+            profile: this.state.profileData,
         });
     };
 
@@ -140,15 +134,15 @@ export class EditProfile extends Component<Props, State> {
         const profileItems: profileItem[] = [
             {
                 key: "name",
-                value: this.state.profile?.name,
+                value: this.state.profileData.name || this.props.profile?.name,
             },
             {
                 key: "banner",
-                value: this.state.profile?.banner,
+                value: this.state.profileData.banner || this.props.profile?.banner,
             },
             {
                 key: "picture",
-                value: this.state.profile?.picture,
+                value: this.state.profileData.picture || this.props.profile?.picture,
                 hint: (
                     <span class={this.styles.field.hint.text}>
                         You can upload your images on websites like{" "}
@@ -160,49 +154,13 @@ export class EditProfile extends Component<Props, State> {
             },
             {
                 key: "about",
-                value: this.state.profile?.about,
+                value: this.state.profileData.about || this.props.profile?.about,
             },
             {
                 key: "website",
-                value: this.state.profile?.website,
+                value: this.state.profileData.website || this.props.profile?.website,
             },
         ];
-
-        if (this.state.profile) {
-            for (const [key, value] of Object.entries(this.state.profile)) {
-                if (["name", "picture", "about", "website", "banner"].includes(key) || !value) {
-                    continue;
-                }
-
-                profileItems.push({
-                    key: key,
-                    value: value,
-                });
-            }
-        }
-
-        const banner = this.state.profile?.banner
-            ? (
-                <div
-                    class={this.styles.banner.container}
-                    style={{
-                        background: `url(${
-                            this.state.profile?.banner ? this.state.profile.banner : "default-bg.png"
-                        }) no-repeat center center / cover`,
-                    }}
-                >
-                    <Avatar
-                        picture={this.state.profile?.picture || robohash(this.props.ctx.publicKey.hex)}
-                        class={`w-24 h-24 m-auto absolute top-60 left-1/2 rounded-full box-border border-2 border-[${PrimaryTextColor}] -translate-x-2/4`}
-                    />
-                </div>
-            )
-            : (
-                <Avatar
-                    picture={this.state.profile?.picture || robohash(this.props.ctx.publicKey.hex)}
-                    class={`w-24 h-24 m-auto box-border border-2 border-[${PrimaryTextColor}]`}
-                />
-            );
 
         const items = profileItems.map((item) => (
             <Fragment>
@@ -224,7 +182,6 @@ export class EditProfile extends Component<Props, State> {
 
         return (
             <div class={this.styles.container}>
-                {banner}
                 {items}
 
                 <div class={this.styles.divider}></div>
