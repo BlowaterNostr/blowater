@@ -2,7 +2,6 @@ import { NostrAccountContext } from "../../libs/nostr.ts/nostr.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 import { parseJSON } from "../features/profile.ts";
 import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
-import { damus } from "../../libs/nostr.ts/relay-list.test.ts";
 
 export const default_blowater_relay = "wss://blowater.nostr1.com";
 
@@ -39,11 +38,6 @@ export class RelayConfig {
     static Default(args: { ctx: NostrAccountContext; relayPool: ConnectionPool }) {
         const config = new RelayConfig(args);
         config.add(default_blowater_relay).then((res) => {
-            if (res instanceof Error) {
-                console.error(res);
-            }
-        });
-        config.add(damus).then((res) => {
             if (res instanceof Error) {
                 console.error(res);
             }

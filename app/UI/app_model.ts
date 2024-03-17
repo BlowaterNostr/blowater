@@ -15,7 +15,6 @@ export type Model = {
     social: Social_Model;
 
     // profile
-    myProfile?: ProfileData;
     newProfileField: {
         key: string;
         value: string;
@@ -42,6 +41,5 @@ export function initialModel(): Model {
         navigationModel: {
             activeNav: "Public",
         },
-        myProfile: undefined,
     };
 }

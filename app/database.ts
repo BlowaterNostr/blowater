@@ -61,10 +61,8 @@ export interface RelayRecordGetter {
     getRelayRecord: (eventID: string) => Set<string>;
 }
 
-export class Database_View
-    implements ProfileSetter, ProfileGetter, EventGetter, EventRemover, RelayRecordGetter {
-    //
-    public readonly sourceOfChange = csp.chan<{ event: Parsed_Event; relay?: string }>(buffer_size);
+export class Database_View implements ProfileSetter, ProfileGetter, EventRemover, RelayRecordGetter {
+    private readonly sourceOfChange = csp.chan<{ event: Parsed_Event; relay?: string }>(buffer_size);
     private readonly caster = csp.multi<{ event: Parsed_Event; relay?: string }>(this.sourceOfChange);
     private readonly profiles = new Map<string, Profile_Nostr_Event>();
 
@@ -129,13 +127,6 @@ export class Database_View
         }
 
         return db;
-    }
-
-    get(keys: Indices): Parsed_Event | undefined {
-        if (this.removedEvents.has(keys.id)) {
-            return;
-        }
-        return this.events.get(keys.id);
     }
 
     getEventByID = (id: string | NoteID) => {
@@ -232,12 +223,14 @@ export class Database_View
         };
 
         // check if the event exists
-        const storedEvent = await this.eventsAdapter.get({ id: event.id });
-        if (storedEvent) { // event exist
-            if (new_relay_record) {
-                this.sourceOfChange.put({ event: parsedEvent, relay: url });
+        {
+            const storedEvent = this.getEventByID(event.id);
+            if (storedEvent) { // event exist
+                if (new_relay_record) {
+                    this.sourceOfChange.put({ event: parsedEvent, relay: url });
+                }
+                return false;
             }
-            return false;
         }
 
         // add event to database and notify subscribers
@@ -246,8 +239,7 @@ export class Database_View
         this.events.set(parsedEvent.id, parsedEvent);
 
         if (parsedEvent.kind == NostrKind.META_DATA) {
-            // @ts-ignore
-            const pEvent = parseProfileEvent(parsedEvent);
+            const pEvent = parseProfileEvent(parsedEvent as NostrEvent<NostrKind.META_DATA>);
             if (pEvent instanceof Error) {
                 return pEvent;
             }

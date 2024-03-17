@@ -240,12 +240,6 @@ export class App {
             forever(sync_kind_1(this.pool, this.database));
         }
 
-        /* my profile */
-        const myProfileEvent = this.database.getProfilesByPublicKey(this.ctx.publicKey);
-        if (myProfileEvent != undefined) {
-            this.model.myProfile = myProfileEvent.profile;
-        }
-
         // Database
         (async () => {
             let i = 0;
@@ -415,7 +409,7 @@ export class AppComponent extends Component<AppProps> {
                     >
                         <EditProfile
                             ctx={model.app.ctx}
-                            profileGetter={app.database}
+                            profile={app.database.getProfilesByPublicKey(myAccountCtx.publicKey)?.profile}
                             emit={props.eventBus.emit}
                         />
                     </div>

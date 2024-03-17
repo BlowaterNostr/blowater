@@ -1,7 +1,6 @@
 import { Parsed_Event, Profile_Nostr_Event } from "../nostr.ts";
 import { prepareNormalNostrEvent } from "../../libs/nostr.ts/event.ts";
 
-import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 import { NostrAccountContext, NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 

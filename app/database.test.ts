@@ -14,7 +14,7 @@ Deno.test("Database", async () => {
     const stream = db.subscribe();
     const event_to_add = await prepareNormalNostrEvent(ctx, { kind: NostrKind.TEXT_NOTE, content: "1" });
     await db.addEvent(event_to_add);
-    const e1 = db.get({ id: event_to_add.id });
+    const e1 = db.getEventByID(event_to_add.id);
     if (!e1) {
         fail();
     }
@@ -115,20 +115,20 @@ Deno.test("mark removed event", async () => {
     const event_to_add = await prepareNormalNostrEvent(ctx, { kind: NostrKind.TEXT_NOTE, content: "1" });
 
     const parsed_event = await db.addEvent(event_to_add);
-    const retrieved_event = db.get({ id: event_to_add.id });
+    const retrieved_event = db.getEventByID(event_to_add.id);
     if (retrieved_event == undefined) fail();
 
     assertEquals(parsed_event, retrieved_event);
     assertEquals(retrieved_event.id, event_to_add.id);
 
     await db.remove(event_to_add.id);
-    const retrieved_event_2 = db.get({ id: event_to_add.id });
+    const retrieved_event_2 = db.getEventByID(event_to_add.id);
     assertEquals(retrieved_event_2, undefined);
 
     const added_event = await db.addEvent(event_to_add);
     assertEquals(added_event, false);
 
-    const retrieved_event_3 = db.get({ id: event_to_add.id });
+    const retrieved_event_3 = db.getEventByID(event_to_add.id);
     assertEquals(retrieved_event_3, undefined);
 });
 
