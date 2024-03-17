@@ -182,7 +182,13 @@ export async function* UI_Interaction_Update(args: {
         //
         else if (event.type == "ViewRelayDetail") {
             app.popOverInputChan.put({
-                children: <RelayInformationComponent relayUrl={event.url} profileGetter={app.database} />,
+                children: (
+                    <RelayInformationComponent
+                        relayUrl={event.url}
+                        profileGetter={app.database}
+                        emit={app.eventBus.emit}
+                    />
+                ),
             });
         } else if (event.type == "ViewRecommendedRelaysList") {
             app.popOverInputChan.put({
