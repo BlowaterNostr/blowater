@@ -13,7 +13,6 @@ export async function saveProfile(
         sender,
         { kind: NostrKind.META_DATA, content: JSON.stringify(profile) },
     );
-    console.log("saveProfile", event.id);
     return relay.sendEvent(event);
 }
 

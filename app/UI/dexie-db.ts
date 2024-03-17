@@ -29,11 +29,9 @@ export class DexieDatabase extends Dexie implements EventsAdapter, RelayRecorder
     }
     async get(keys: Indices) {
         const e = await this.events.get(keys);
-        console.error("dexie get", e);
         return e;
     }
     async put(e: NostrEvent<NostrKind, Tag>): Promise<void> {
-        console.log("dexie put", e);
         await this.events.put(e);
     }
     async remove(id: string) {
