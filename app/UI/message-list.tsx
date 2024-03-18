@@ -20,6 +20,7 @@ import { ProfileData } from "../features/profile.ts";
 import { isMobile, setState } from "./_helper.ts";
 import { Avatar } from "./components/avatar.tsx";
 import { AboutIcon } from "./icons/about-icon.tsx";
+import { ReplyIcon } from "./icons/reply-icon.tsx";
 import { BackgroundColor_MessagePanel, PrimaryTextColor } from "./style/colors.ts";
 import { Parsed_Event } from "../nostr.ts";
 import { NoteID } from "../../libs/nostr.ts/nip19.ts";
@@ -374,13 +375,27 @@ function MessageActions(
 ) {
     return (
         <div
-            class={`hidden group-hover:flex absolute top-[-0.75rem] right-[3rem]`}
-            style={{
-                boxShadow: "2px 2px 5px 0 black",
-            }}
+            class={`hidden
+            group-hover:flex
+            h-8
+            bg-[#313338] border-[#27292D] border border-solid rounded
+            hover:drop-shadow-lg
+            absolute top-[-1rem] right-[3rem]  `}
         >
             <button
-                class={`w-6 h-6 flex items-center justify-center`}
+                class={`flex items-center justify-center
+                rounded-l
+                p-1
+                bg-[#313338] hover:bg-[#3A3C41]`}
+            >
+                <ReplyIcon class={`w-5 h-5 text-[#B6BAC0] hover:text-[#D9DBDE]`} />
+            </button>
+
+            <button
+                class={`flex items-center justify-center
+                rounded-r
+                p-1
+                bg-[#313338] hover:bg-[#3A3C41]`}
                 onClick={async () => {
                     emit({
                         type: "ViewEventDetail",
@@ -388,12 +403,7 @@ function MessageActions(
                     });
                 }}
             >
-                <AboutIcon
-                    class={`w-4 h-4 scale-150`}
-                    style={{
-                        fill: PrimaryTextColor,
-                    }}
-                />
+                <AboutIcon class={`w-5 h-5 text-[#B6BAC0] hover:text-[#D9DBDE]`} />
             </button>
         </div>
     );
