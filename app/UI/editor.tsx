@@ -92,11 +92,11 @@ export class Editor extends Component<EditorProps, EditorState> {
 
     onHighlightTargetMessage = async () => {
         //TODO: emit event to highlight target message
-    }
+    };
 
     onRestoreToNormalMode = async () => {
         //TODO: emit event to restore to normal mode
-    }
+    };
 
     render() {
         const uploadFileInput = createRef();
@@ -117,8 +117,10 @@ export class Editor extends Component<EditorProps, EditorState> {
                                     Replying to <span class="font-bold">Bob</span>
                                 </div>
                             </button>
-                            <button class={`h-6 w-6 flex justify-center items-center`}
-                            onClick={this.onRestoreToNormalMode}>
+                            <button
+                                class={`h-6 w-6 flex justify-center items-center`}
+                                onClick={this.onRestoreToNormalMode}
+                            >
                                 <XCircleIcon class="h-4 w-4" />
                             </button>
                         </div>
