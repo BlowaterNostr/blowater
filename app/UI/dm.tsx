@@ -44,7 +44,22 @@ export type StartInvite = {
     publicKey: PublicKey;
 };
 
-export class DirectMessageContainer extends Component<DirectMessageContainerProps> {
+type DirectMessageContainerState = {
+    mode: {
+        type: "normal";
+    } | {
+        type: "reply";
+    };
+};
+
+export class DirectMessageContainer
+    extends Component<DirectMessageContainerProps, DirectMessageContainerState> {
+    state: DirectMessageContainerState = {
+        mode: {
+            type: "normal",
+        },
+    };
+
     render(props: DirectMessageContainerProps) {
         const t = Date.now();
         console.log(DirectMessageContainer.name, "?");
@@ -75,6 +90,7 @@ export class DirectMessageContainer extends Component<DirectMessageContainerProp
                             />
                             <div class={`flex-1 overflow-auto`}>
                                 <MessagePanel_V0
+                                    mode={this.state.mode}
                                     key={this.props.currentConversation}
                                     myPublicKey={props.ctx.publicKey}
                                     emit={props.bus.emit}

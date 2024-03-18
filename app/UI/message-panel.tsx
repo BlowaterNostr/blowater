@@ -46,7 +46,11 @@ export type ViewUserDetail = {
 
 interface DirectMessagePanelProps {
     myPublicKey: PublicKey;
-
+    mode: {
+        type: "normal";
+    } | {
+        type: "reply";
+    };
     emit: emitFunc<
         | EditorEvent
         | DirectMessagePanelUpdate
@@ -82,6 +86,7 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
                     />
 
                     <Editor
+                        mode={props.mode}
                         maxHeight="30vh"
                         emit={props.emit}
                         placeholder=""
@@ -108,6 +113,7 @@ export class MessagePanel_V0 extends Component<DirectMessagePanelProps> {
                     />
 
                     <Editor
+                        mode={props.mode}
                         maxHeight="30vh"
                         emit={props.emit}
                         placeholder=""

@@ -104,6 +104,7 @@ export class ChannelContainer extends Component<ChannelContainerProps, ChannelCo
                             <div class={`flex-1 overflow-auto`}>
                                 {
                                     <MessagePanel
+                                        mode={{ type: "normal" }}
                                         myPublicKey={props.ctx.publicKey}
                                         emit={props.bus.emit}
                                         eventSub={props.bus}
