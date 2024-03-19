@@ -14,8 +14,6 @@ import { MessagePanel } from "./message-panel.tsx";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { ChatMessage } from "./message.ts";
 import { func_GetEventByID } from "./message-list.tsx";
-import { PrimaryTextColor, SecondaryBackgroundColor } from "./style/colors.ts";
-import { PublicFilterList } from "./channel-list.tsx";
 import { Filter, FilterContent } from "./filter.tsx";
 
 export type Public_Model = {
@@ -58,15 +56,7 @@ export class PublicMessageContainer extends Component<Props, State> {
 
     async componentDidMount() {
         for await (const e of this.props.bus.onChange()) {
-            if (e.type == "SelectRelay") {
-                await setState(this, {
-                    currentSelectedChannel: "general", // this.props.relaySelectedChannel.get(e.relay.url),
-                });
-            } else if (e.type == "BackToChannelList") {
-                // await setState(this, {
-                //     currentSelectedChannel: undefined,
-                // });
-            } else if (e.type == "FilterContent") {
+            if (e.type == "FilterContent") {
                 await setState(this, {
                     filter: e,
                 });

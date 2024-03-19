@@ -1,5 +1,4 @@
 import { Component, h } from "https://esm.sh/preact@10.17.1";
-import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { emitFunc } from "../event-bus.ts";
 
 type Props = {
@@ -8,7 +7,6 @@ type Props = {
 
 export class Filter extends Component<Props, {}> {
     render() {
-        const authors: PublicKey[] = [];
         return (
             <div class="border flex flex-col items-center">
                 <div class="flex flex-row border">
