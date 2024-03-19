@@ -1,15 +1,15 @@
 import { Component, h } from "https://esm.sh/preact@10.17.1";
-import { SelectChannel } from "./search_model.ts";
+
 import { emitFunc } from "../event-bus.ts";
 
-type ChannelListProps = {
+type Props = {
     relay: string;
     currentSelected: string | undefined;
-    emit: emitFunc<SelectChannel>;
+    emit: emitFunc<>;
     channels: string[];
 };
 
-export class ChannelList extends Component<ChannelListProps> {
+export class PublicFilterList extends Component<Props> {
     render() {
         return (
             <div>
@@ -20,7 +20,7 @@ export class ChannelList extends Component<ChannelListProps> {
         );
     }
 
-    ChannelListItem(props: ChannelListProps, name: string, isSelected: boolean) {
+    ChannelListItem(props: Props, name: string, isSelected: boolean) {
         const selected = isSelected ? " bg-[#404248] text-[#fff]" : "";
         return (
             <div
@@ -30,20 +30,9 @@ export class ChannelList extends Component<ChannelListProps> {
                 hover:text-[#fff]
                 hover:bg-[#36373C]
                 hover:cursor-pointer` + selected}
-                onClick={selectChannel(
-                    props.emit,
-                    name,
-                )}
             >
                 # {name}
             </div>
         );
     }
 }
-
-const selectChannel = (emit: emitFunc<SelectChannel>, channel: string) => () => {
-    return emit({
-        type: "SelectChannel",
-        channel,
-    });
-};

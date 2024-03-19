@@ -25,7 +25,7 @@ import { LamportTime } from "../time.ts";
 import { InstallPrompt, NavBar } from "./nav.tsx";
 import { Component } from "https://esm.sh/preact@10.17.1";
 import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
-import { ChannelContainer } from "./channel-container.tsx";
+import { PublicMessageContainer } from "./public-message-container.tsx";
 import { ChatMessage } from "./message.ts";
 import { filter, forever, map } from "./_helper.ts";
 import { RightPanel } from "./components/right-panel.tsx";
@@ -342,12 +342,12 @@ export class AppComponent extends Component<AppProps> {
             }
         }
 
-        let socialNode: VNode | undefined;
+        let publicNode: VNode | undefined;
         if (model.navigationModel.activeNav == "Public" && model.currentRelay) {
-            socialNode = (
-                <ChannelContainer
+            publicNode = (
+                <PublicMessageContainer
                     ctx={myAccountCtx}
-                    {...model.social}
+                    {...model.public}
                     getters={{
                         convoListRetriever: app.conversationLists,
                         newMessageChecker: app.conversationLists,
@@ -414,7 +414,7 @@ export class AppComponent extends Component<AppProps> {
                         />
                     </div>
                 </div>
-                {socialNode}
+                {publicNode}
                 {dmVNode}
                 {aboutNode}
                 {Setting({

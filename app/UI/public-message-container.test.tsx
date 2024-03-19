@@ -1,6 +1,6 @@
 import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { h, render } from "https://esm.sh/preact@10.17.1";
-import { ChannelContainer } from "./channel-container.tsx";
+import { PublicMessageContainer } from "./public-message-container.tsx";
 import { relays } from "../../libs/nostr.ts/relay-list.test.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 import { testEventBus } from "./_setup.test.ts";
@@ -41,7 +41,7 @@ dm_list.addEvents([e], true);
 dm_list.addEvents(Array.from(database.getAllEvents()), true);
 
 render(
-    <ChannelContainer
+    <PublicMessageContainer
         ctx={ctx}
         relay={relay}
         bus={testEventBus}

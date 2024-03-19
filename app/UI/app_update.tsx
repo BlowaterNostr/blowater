@@ -49,7 +49,7 @@ import { TagSelected } from "./contact-tags.tsx";
 import { BlockUser, UnblockUser, UserDetail } from "./user-detail.tsx";
 import { RelayRecommendList } from "./relay-recommend-list.tsx";
 import { HidePopOver } from "./components/popover.tsx";
-import { Social_Model } from "./channel-container.tsx";
+import { Public_Model } from "./public-message-container.tsx";
 import { SyncEvent } from "./message-panel.tsx";
 import { SendingEventRejection, ToastChannel } from "./components/toast.tsx";
 import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
@@ -308,11 +308,8 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
         //
         // Channel
         //
-        else if (event.type == "SelectChannel") {
-            model.social.relaySelectedChannel.set(model.currentRelay, event.channel);
-            app.popOverInputChan.put({ children: undefined });
-        } else if (event.type == "BackToChannelList") {
-            model.social.relaySelectedChannel.delete(model.currentRelay);
+        else if (event.type == "BackToChannelList") {
+            model.public.relaySelectedChannel.delete(model.currentRelay);
             app.popOverInputChan.put({ children: undefined });
         } //
         // DM
@@ -559,7 +556,7 @@ export async function handle_SendMessage(
     db: Database_View,
     args: {
         navigationModel: NavigationModel;
-        social: Social_Model;
+        public: Public_Model;
         dm: {
             currentConversation: PublicKey | undefined;
         };
