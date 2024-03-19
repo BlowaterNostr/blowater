@@ -56,6 +56,7 @@ import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 import { default_blowater_relay } from "./relay-config.ts";
 import { forever } from "./_helper.ts";
 import { func_GetEventByID } from "./message-list.tsx";
+import { FilterContent } from "./filter.tsx";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -78,7 +79,8 @@ export type UI_Interaction_Event =
     | UnblockUser
     | SelectRelay
     | HidePopOver
-    | SyncEvent;
+    | SyncEvent
+    | FilterContent;
 
 type BackToChannelList = {
     type: "BackToChannelList";
