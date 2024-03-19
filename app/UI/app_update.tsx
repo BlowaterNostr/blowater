@@ -55,6 +55,7 @@ import { SendingEventRejection, ToastChannel } from "./components/toast.tsx";
 import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 import { default_blowater_relay } from "./relay-config.ts";
 import { forever } from "./_helper.ts";
+import { generateTags } from "./editor.ts";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -578,7 +579,7 @@ export async function handle_SendMessage(
             files: event.files,
             lamport_timestamp: lamport.now(),
             eventSender: args.blowater_relay,
-            tags: [],
+            tags: generateTags(event.text),
         });
         if (events_send instanceof Error) {
             return events_send;
@@ -594,7 +595,7 @@ export async function handle_SendMessage(
         const nostr_event = await prepareNormalNostrEvent(ctx, {
             content: event.text,
             kind: NostrKind.TEXT_NOTE,
-            tags: event.tags || [],
+            tags: generateTags(event.text),
         });
         const err = await args.current_relay.sendEvent(nostr_event);
         if (err instanceof Error) {

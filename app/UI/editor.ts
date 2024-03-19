@@ -2,20 +2,27 @@ import { Tag } from "../nostr.ts";
 import { parseContent } from "./message.ts";
 
 export function generateTags(content: string) {
-    let tags: Tag[] = [];
+    const eTags = new Map<string, [string, string]>();
+    const pTags = new Set<string>();
     const parsedTextItems = parseContent(content);
     for (const item of parsedTextItems) {
         if (item.type === "nevent") {
-            tags.push(["e", item.event.pointer.id, item.event.pointer.relays?.[0] || "", "mention"]);
-            item.event.pointer.pubkey ? tags.push(["p", item.event.pointer.pubkey.hex, "", "mention"]) : null;
-            tags.push(["q", item.event.pointer.id]);
+            eTags.set(item.event.pointer.id, [item.event.pointer.relays?.[0] || "", "mention"]);
+            if (item.event.pointer.pubkey) {
+                pTags.add(item.event.pointer.pubkey.hex);
+            }
         } else if (item.type === "npub") {
-            tags.push(["p", item.pubkey.hex, "", "mention"]);
+            pTags.add(item.pubkey.hex);
+        } else if (item.type === "note") {
+            eTags.set(item.noteID.hex, ["", "mention"]);
         }
     }
-    // Remove duplicate tags, which refer to the first and second elements of the tag.
-    tags = tags.filter((tag, index, self) => {
-        return index === self.findIndex((t) => t[0] === tag[0] && t[1] === tag[1]);
+    let tags: Tag[] = [];
+    eTags.forEach((v, k) => {
+        tags.push(["e", k, v[0], v[1]]);
+    });
+    pTags.forEach((v) => {
+        tags.push(["p", v]);
     });
     return tags;
 }

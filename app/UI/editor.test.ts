@@ -20,12 +20,6 @@ Deno.test("generate tags", async (t) => {
                 [
                     "p",
                     "887f827161338ef4d3e83482498664ad7454caf9bda7d080c3b32821f1394708",
-                    "",
-                    "mention",
-                ],
-                [
-                    "q",
-                    "2373bce349593cb8c1ce97643f7b4f233e341694d70ccefd9146ca993d07bff7",
                 ],
             ],
         },
@@ -35,8 +29,6 @@ Deno.test("generate tags", async (t) => {
                 [
                     "p",
                     "f36d27618877c76bb0ccfd946beb23f95d56cd67f20d0733886f83d207b824e8",
-                    "",
-                    "mention",
                 ],
             ],
         },
@@ -47,8 +39,6 @@ Deno.test("generate tags", async (t) => {
                 [
                     "p",
                     "f36d27618877c76bb0ccfd946beb23f95d56cd67f20d0733886f83d207b824e8",
-                    "",
-                    "mention",
                 ],
             ],
         },

@@ -21,7 +21,6 @@ export type SendMessage = {
     readonly type: "SendMessage";
     readonly text: string;
     readonly files: Blob[];
-    readonly tags?: Tag[];
 };
 
 type EditorID = {
@@ -68,12 +67,10 @@ export class Editor extends Component<EditorProps, EditorState> {
 
     sendMessage = async () => {
         const props = this.props;
-        let tags: Tag[] = generateTags(this.state.text);
         props.emit({
             type: "SendMessage",
             files: this.state.files,
             text: this.state.text,
-            tags,
         });
         this.textareaElement.current?.setAttribute(
             "rows",
