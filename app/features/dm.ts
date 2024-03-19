@@ -29,9 +29,8 @@ export async function sendDirectMessages(args: {
     files: Blob[];
     lamport_timestamp: number;
     eventSender: EventSender;
-    tags: Tag[];
 }) {
-    const { tags, sender, receiverPublicKey, message, files, lamport_timestamp, eventSender } = args;
+    const { sender, receiverPublicKey, message, files, lamport_timestamp, eventSender } = args;
     console.log("sendDMandImages", message, files);
     const eventsToSend: NostrEvent[] = [];
     if (message.trim().length !== 0) {
@@ -44,7 +43,6 @@ export async function sendDirectMessages(args: {
                 tags: [
                     ["p", receiverPublicKey.hex],
                     ["lamport", String(lamport_timestamp)],
-                    ...tags,
                 ],
                 content: message,
             },

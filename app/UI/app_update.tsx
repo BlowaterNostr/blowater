@@ -3,7 +3,6 @@ import { ComponentChildren, h } from "https://esm.sh/preact@10.17.1";
 import {
     Channel,
     closed,
-    PopChannel,
     PutChannel,
     sleep,
 } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
@@ -22,6 +21,7 @@ import {
     Parsed_Event,
     PinConversation,
     Profile_Nostr_Event,
+    Tag,
     UnpinConversation,
 } from "../nostr.ts";
 import { LamportTime } from "../time.ts";
@@ -37,7 +37,7 @@ import { EditorEvent, SendMessage } from "./editor.tsx";
 import { EventDetail, EventDetailItem } from "./event-detail.tsx";
 
 import { DirectMessagePanelUpdate } from "./message-panel.tsx";
-import { ChatMessage } from "./message.ts";
+import { ChatMessage, parseContent } from "./message.ts";
 import { InstallPrompt, NavigationModel, NavigationUpdate, SelectRelay } from "./nav.tsx";
 import { notify } from "./notification.ts";
 import { RelayInformationComponent } from "./relay-detail.tsx";
@@ -55,7 +55,7 @@ import { SendingEventRejection, ToastChannel } from "./components/toast.tsx";
 import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 import { default_blowater_relay } from "./relay-config.ts";
 import { forever } from "./_helper.ts";
-import { generateTags } from "./editor.ts";
+import { func_GetEventByID } from "./message-list.tsx";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -259,6 +259,7 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                     ...model,
                     current_relay,
                     blowater_relay,
+                    getEventByID: app.database.getEventByID,
                 },
             ).then((res) => {
                 if (res instanceof Error) {
@@ -564,6 +565,7 @@ export async function handle_SendMessage(
         };
         blowater_relay: SingleRelayConnection;
         current_relay: SingleRelayConnection;
+        getEventByID: func_GetEventByID;
     },
 ) {
     if (event.text.length == 0) {
@@ -579,7 +581,6 @@ export async function handle_SendMessage(
             files: event.files,
             lamport_timestamp: lamport.now(),
             eventSender: args.blowater_relay,
-            tags: generateTags(event.text),
         });
         if (events_send instanceof Error) {
             return events_send;
@@ -595,7 +596,7 @@ export async function handle_SendMessage(
         const nostr_event = await prepareNormalNostrEvent(ctx, {
             content: event.text,
             kind: NostrKind.TEXT_NOTE,
-            tags: generateTags(event.text),
+            tags: generateTags(event.text, args.getEventByID, args.current_relay.url),
         });
         const err = await args.current_relay.sendEvent(nostr_event);
         if (err instanceof Error) {
@@ -612,4 +613,34 @@ export async function handle_SendMessage(
             console.error(err);
         }
     }
+}
+
+export function generateTags(content: string, getEventByID: func_GetEventByID, current_relay: string) {
+    const eTags = new Map<string, [string, string]>();
+    const pTags = new Set<string>();
+    const parsedTextItems = parseContent(content);
+    for (const item of parsedTextItems) {
+        if (item.type === "nevent") {
+            eTags.set(item.event.pointer.id, [item.event.pointer.relays?.[0] || "", "mention"]);
+            if (item.event.pointer.pubkey) {
+                pTags.add(item.event.pointer.pubkey.hex);
+            }
+        } else if (item.type === "npub") {
+            pTags.add(item.pubkey.hex);
+        } else if (item.type === "note") {
+            eTags.set(item.noteID.hex, [current_relay, "mention"]);
+            const event = getEventByID(item.noteID);
+            if (event) {
+                pTags.add(event.pubkey);
+            }
+        }
+    }
+    let tags: Tag[] = [];
+    eTags.forEach((v, k) => {
+        tags.push(["e", k, v[0], v[1]]);
+    });
+    pTags.forEach((v) => {
+        tags.push(["p", v]);
+    });
+    return tags;
 }
