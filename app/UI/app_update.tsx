@@ -64,7 +64,6 @@ export type UI_Interaction_Event =
     | EditorEvent
     | NavigationUpdate
     | DirectMessagePanelUpdate
-    | BackToChannelList
     | BackToContactList
     | SaveProfile
     | PinConversation
@@ -82,9 +81,6 @@ export type UI_Interaction_Event =
     | SyncEvent
     | FilterContent;
 
-type BackToChannelList = {
-    type: "BackToChannelList";
-};
 type BackToContactList = {
     type: "BackToContactList";
 };
@@ -308,12 +304,6 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
             model.navigationModel.activeNav = event.id;
         } //
         //
-        // Channel
-        //
-        else if (event.type == "BackToChannelList") {
-            model.public.relaySelectedChannel.delete(model.currentRelay);
-            app.popOverInputChan.put({ children: undefined });
-        } //
         // DM
         //
         else if (event.type == "ViewUserDetail") {
