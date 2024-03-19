@@ -578,6 +578,7 @@ export async function handle_SendMessage(
             files: event.files,
             lamport_timestamp: lamport.now(),
             eventSender: args.blowater_relay,
+            tags: event.tags || [],
         });
         if (events_send instanceof Error) {
             return events_send;

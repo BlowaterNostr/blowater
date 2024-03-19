@@ -21,7 +21,6 @@ export type SendMessage = {
     readonly type: "SendMessage";
     readonly text: string;
     readonly files: Blob[];
-    //TODO: add tags
     readonly tags?: Tag[];
 };
 

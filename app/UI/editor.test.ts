@@ -41,7 +41,8 @@ Deno.test("generate tags", async (t) => {
             ],
         },
         {
-            input: "Duplicate public key: nostr:npub17dkjwcvgwlrkhvxvlk2xh6erl9w4dnt87gxswvugd7paypacyn5qp8gy87 nostr:npub17dkjwcvgwlrkhvxvlk2xh6erl9w4dnt87gxswvugd7paypacyn5qp8gy87",
+            input:
+                "Duplicate public key: nostr:npub17dkjwcvgwlrkhvxvlk2xh6erl9w4dnt87gxswvugd7paypacyn5qp8gy87 nostr:npub17dkjwcvgwlrkhvxvlk2xh6erl9w4dnt87gxswvugd7paypacyn5qp8gy87",
             output: [
                 [
                     "p",
