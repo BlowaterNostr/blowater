@@ -11,9 +11,6 @@ import { SendIcon } from "./icons/send-icon.tsx";
 import { Component } from "https://esm.sh/preact@10.17.1";
 import { RemoveIcon } from "./icons/remove-icon.tsx";
 import { isMobile, setState } from "./_helper.ts";
-import { Tag } from "../nostr.ts";
-import { parseContent } from "./message.ts";
-import { generateTags } from "./editor.ts";
 
 export type EditorEvent = SendMessage | UpdateEditorText | UpdateMessageFiles;
 
