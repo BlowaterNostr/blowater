@@ -578,7 +578,6 @@ export async function handle_SendMessage(
             files: event.files,
             lamport_timestamp: lamport.now(),
             eventSender: args.blowater_relay,
-            tags: [],
         });
         if (events_send instanceof Error) {
             return events_send;
@@ -594,6 +593,7 @@ export async function handle_SendMessage(
         const nostr_event = await prepareNormalNostrEvent(ctx, {
             content: event.text,
             kind: NostrKind.TEXT_NOTE,
+            tags: event.tags || [],
         });
         const err = await args.current_relay.sendEvent(nostr_event);
         if (err instanceof Error) {

@@ -11,6 +11,9 @@ import { SendIcon } from "./icons/send-icon.tsx";
 import { Component } from "https://esm.sh/preact@10.17.1";
 import { RemoveIcon } from "./icons/remove-icon.tsx";
 import { isMobile, setState } from "./_helper.ts";
+import { Tag } from "../nostr.ts";
+import { parseContent } from "./message.ts";
+import { generateTags } from "./editor.ts";
 
 export type EditorEvent = SendMessage | UpdateEditorText | UpdateMessageFiles;
 
@@ -18,6 +21,8 @@ export type SendMessage = {
     readonly type: "SendMessage";
     readonly text: string;
     readonly files: Blob[];
+    //TODO: add tags
+    readonly tags?: Tag[];
 };
 
 type EditorID = {
@@ -64,10 +69,12 @@ export class Editor extends Component<EditorProps, EditorState> {
 
     sendMessage = async () => {
         const props = this.props;
+        let tags: Tag[] = generateTags(this.state.text);
         props.emit({
             type: "SendMessage",
             files: this.state.files,
             text: this.state.text,
+            tags,
         });
         this.textareaElement.current?.setAttribute(
             "rows",
