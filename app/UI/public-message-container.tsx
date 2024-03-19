@@ -1,7 +1,6 @@
 import { Component, h } from "https://esm.sh/preact@10.17.1";
-import { ChannelList } from "./channel-list.tsx";
 import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
-import { EventBus } from "../event-bus.ts";
+import { emitFunc, EventBus } from "../event-bus.ts";
 import { UI_Interaction_Event } from "./app_update.tsx";
 import { setState } from "./_helper.ts";
 import { ProfileGetter } from "./search.tsx";
@@ -11,20 +10,19 @@ import { NewMessageChecker } from "./conversation-list.tsx";
 import { ConversationListRetriever } from "./conversation-list.tsx";
 import { NostrAccountContext } from "../../libs/nostr.ts/nostr.ts";
 
-import { IconButtonClass } from "./components/tw.ts";
-import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
 import { MessagePanel } from "./message-panel.tsx";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { ChatMessage } from "./message.ts";
 import { func_GetEventByID } from "./message-list.tsx";
+import { Filter, FilterContent } from "./filter.tsx";
 
-export type Social_Model = {
+export type Public_Model = {
     relaySelectedChannel: Map<string, /* relay url */ string /* channel name */>;
 };
 
 export type func_IsUserBlocked = (pubkey: PublicKey) => boolean;
 
-type ChannelContainerProps = {
+type Props = {
     ctx: NostrAccountContext;
     relay: SingleRelayConnection;
     bus: EventBus<UI_Interaction_Event>;
@@ -37,78 +35,64 @@ type ChannelContainerProps = {
         isUserBlocked: func_IsUserBlocked;
         getEventByID: func_GetEventByID;
     };
-} & Social_Model;
+} & Public_Model;
 
-type ChannelContainerState = {
+type State = {
     currentSelectedChannel: string /*channel name*/ | undefined;
     currentEditor: {
         text: string;
     };
+    filter: FilterContent | undefined;
 };
 
-export class ChannelContainer extends Component<ChannelContainerProps, ChannelContainerState> {
-    state: ChannelContainerState = {
+export class PublicMessageContainer extends Component<Props, State> {
+    state: State = {
         currentSelectedChannel: "general",
         currentEditor: {
             text: "",
         },
+        filter: undefined,
     };
 
     async componentDidMount() {
         for await (const e of this.props.bus.onChange()) {
-            if (e.type == "SelectChannel") {
+            if (e.type == "FilterContent") {
                 await setState(this, {
-                    currentSelectedChannel: e.channel,
+                    filter: e,
                 });
-            } else if (e.type == "SelectRelay") {
-                await setState(this, {
-                    currentSelectedChannel: "general", // this.props.relaySelectedChannel.get(e.relay.url),
-                });
-            } else if (e.type == "BackToChannelList") {
-                // await setState(this, {
-                //     currentSelectedChannel: undefined,
-                // });
             }
         }
     }
 
-    render(props: ChannelContainerProps, state: ChannelContainerState) {
+    render(props: Props, state: State) {
+        let msgs = props.messages;
+        const filter = this.state.filter;
+        if (filter) {
+            msgs = this.props.messages.filter((msg) => {
+                if (filter.content == "") {
+                    return true;
+                }
+                return msg.content.toLowerCase().includes(filter.content.toLowerCase());
+            });
+        }
         return (
             <div class="flex flex-row h-full w-full flex bg-[#36393F] overflow-hidden">
-                {
-                    /* <div
-                    class={`h-screen w-60 max-sm:w-full
-                        flex flex-col bg-[${SecondaryBackgroundColor}]  `}
-                >
-                    <div
-                        class={`flex items-center w-full h-20 font-bold text-xl text-[${PrimaryTextColor}] m-1 p-3 border-b border-[#36393F]`}
-                    >
-                        {new URL(props.relay.url).host}
-                    </div>
-                    <ChannelList
-                        relay={props.relay.url}
-                        currentSelected={state.currentSelectedChannel}
-                        channels={["general", "games", "work"]}
-                        emit={props.bus.emit}
-                    />
-                </div> */
-                }
                 {this.state.currentSelectedChannel
                     ? (
                         <div class={`flex flex-col flex-1 overflow-hidden`}>
                             <TopBar
-                                bus={props.bus}
                                 currentSelected={state.currentSelectedChannel}
-                                profileGetter={props.getters.profileGetter}
+                                emit={props.bus.emit}
                             />
                             <div class={`flex-1 overflow-auto`}>
                                 {
                                     <MessagePanel
+                                        key={props.relay.url}
                                         myPublicKey={props.ctx.publicKey}
                                         emit={props.bus.emit}
                                         eventSub={props.bus}
                                         getters={props.getters}
-                                        messages={props.messages}
+                                        messages={msgs}
                                     />
                                 }
                             </div>
@@ -121,9 +105,8 @@ export class ChannelContainer extends Component<ChannelContainerProps, ChannelCo
 }
 
 function TopBar(props: {
-    bus: EventBus<UI_Interaction_Event>;
     currentSelected: string | undefined;
-    profileGetter: ProfileGetter;
+    emit: emitFunc<FilterContent>;
 }) {
     return (
         <div
@@ -131,24 +114,15 @@ function TopBar(props: {
                 items-center justify-between bg-[#2F3136]`}
         >
             <div class={`flex items-center overflow-hidden`}>
-                {
-                    /* <button
-                    class={`w-6 h-6 mx-2 ${IconButtonClass}`}
-                >
-                    <LeftArrowIcon
-                        class={`w-4 h-4`}
-                        style={{
-                            fill: "rgb(185, 187, 190)",
-                        }}
-                    />
-                </button> */
-                }
                 <span
                     class={`text-[#F3F4EA] text-[1.2rem] mx-4
                             whitespace-nowrap truncate`}
                 >
                     {props.currentSelected}
                 </span>
+                <div>
+                    <Filter {...props}></Filter>
+                </div>
             </div>
         </div>
     );

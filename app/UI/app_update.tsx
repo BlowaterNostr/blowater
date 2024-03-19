@@ -49,13 +49,14 @@ import { TagSelected } from "./contact-tags.tsx";
 import { BlockUser, UnblockUser, UserDetail } from "./user-detail.tsx";
 import { RelayRecommendList } from "./relay-recommend-list.tsx";
 import { HidePopOver } from "./components/popover.tsx";
-import { Social_Model } from "./channel-container.tsx";
+import { Public_Model } from "./public-message-container.tsx";
 import { SyncEvent } from "./message-panel.tsx";
 import { SendingEventRejection, ToastChannel } from "./components/toast.tsx";
 import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 import { default_blowater_relay } from "./relay-config.ts";
 import { forever } from "./_helper.ts";
 import { func_GetEventByID } from "./message-list.tsx";
+import { FilterContent } from "./filter.tsx";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -63,7 +64,6 @@ export type UI_Interaction_Event =
     | EditorEvent
     | NavigationUpdate
     | DirectMessagePanelUpdate
-    | BackToChannelList
     | BackToContactList
     | SaveProfile
     | PinConversation
@@ -78,11 +78,9 @@ export type UI_Interaction_Event =
     | UnblockUser
     | SelectRelay
     | HidePopOver
-    | SyncEvent;
+    | SyncEvent
+    | FilterContent;
 
-type BackToChannelList = {
-    type: "BackToChannelList";
-};
 type BackToContactList = {
     type: "BackToContactList";
 };
@@ -306,15 +304,6 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
             model.navigationModel.activeNav = event.id;
         } //
         //
-        // Channel
-        //
-        else if (event.type == "SelectChannel") {
-            model.social.relaySelectedChannel.set(model.currentRelay, event.channel);
-            app.popOverInputChan.put({ children: undefined });
-        } else if (event.type == "BackToChannelList") {
-            model.social.relaySelectedChannel.delete(model.currentRelay);
-            app.popOverInputChan.put({ children: undefined });
-        } //
         // DM
         //
         else if (event.type == "ViewUserDetail") {
@@ -559,7 +548,7 @@ export async function handle_SendMessage(
     db: Database_View,
     args: {
         navigationModel: NavigationModel;
-        social: Social_Model;
+        public: Public_Model;
         dm: {
             currentConversation: PublicKey | undefined;
         };
