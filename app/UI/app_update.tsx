@@ -436,6 +436,29 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                 });
             }
             continue;
+        } else if (event.type == "FilterContent") {
+            const pubkey = PublicKey.FromBech32(event.content.trim());
+            if (pubkey instanceof PublicKey) {
+                (async () => {
+                    const sub = await pool.newSub(pubkey.bech32(), {
+                        kinds: [NostrKind.TEXT_NOTE],
+                        authors: [pubkey.hex],
+                    });
+                    if (sub instanceof Error) {
+                        console.error(sub);
+                        await pool.closeSub(pubkey.bech32());
+                        return;
+                    }
+                    for await (const msg of sub.chan) {
+                        if (msg.res.type == "EOSE") {
+                            break;
+                        } else if (msg.res.type == "EVENT") {
+                            await app.database.addEvent(msg.res.event);
+                        }
+                    }
+                    await pool.closeSub(pubkey.bech32());
+                })();
+            }
         } else {
             console.log(event, "is not handled");
             continue;

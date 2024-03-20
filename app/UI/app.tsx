@@ -501,7 +501,7 @@ async function sync_profile_events(
 const sync_kind_1 = async (pool: ConnectionPool, database: Database_View) => {
     const stream = await pool.newSub("sync_kind_1", {
         kinds: [NostrKind.TEXT_NOTE],
-        since: Math.floor(Date.now() / 1000) - 24 * 60 * 60, // 24 hours
+        since: Math.floor(Date.now() / 1000) - 6 * 60 * 60, // 6 hours
     });
     if (stream instanceof Error) {
         return stream;

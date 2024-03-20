@@ -15,6 +15,7 @@ import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { ChatMessage } from "./message.ts";
 import { func_GetEventByID } from "./message-list.tsx";
 import { Filter, FilterContent } from "./filter.tsx";
+import { NoteID } from "../../libs/nostr.ts/nip19.ts";
 
 export type Public_Model = {
     relaySelectedChannel: Map<string, /* relay url */ string /* channel name */>;
@@ -68,12 +69,7 @@ export class PublicMessageContainer extends Component<Props, State> {
         let msgs = props.messages;
         const filter = this.state.filter;
         if (filter) {
-            msgs = this.props.messages.filter((msg) => {
-                if (filter.content == "") {
-                    return true;
-                }
-                return msg.content.toLowerCase().includes(filter.content.toLowerCase());
-            });
+            msgs = filter_messages(this.props.messages, filter);
         }
         return (
             <div class="flex flex-row h-full w-full flex bg-[#36393F] overflow-hidden">
@@ -126,4 +122,29 @@ function TopBar(props: {
             </div>
         </div>
     );
+}
+
+function filter_messages(msgs: ChatMessage[], filter: FilterContent) {
+    const filter_string = filter.content.trim().toLocaleLowerCase();
+    const pubkey = PublicKey.FromBech32(filter_string);
+    const is_pubkey = pubkey instanceof PublicKey;
+    const noteID = NoteID.FromBech32(filter_string);
+    const is_note = noteID instanceof NoteID;
+    msgs = msgs.filter((msg) => {
+        if (msg.content.toLocaleLowerCase().indexOf(filter_string) != -1) {
+            return true;
+        }
+        if (is_pubkey) {
+            if (msg.author.hex == pubkey.hex) {
+                return true;
+            }
+        }
+        if (is_note) {
+            if (msg.event.id == noteID.hex) {
+                return true;
+            }
+        }
+        return false;
+    });
+    return msgs;
 }
