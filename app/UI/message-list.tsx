@@ -397,6 +397,9 @@ function MessageItem(props: MessageItemProps) {
             </li>
         );
     } else if (props.mode == "reply") {
+        const profile = props.getters.profileGetter.getProfilesByPublicKey(props.replyTo.publicKey)?.profile;
+        const picture = profile?.picture || robohash(props.replyTo.publicKey.hex);
+        const name = profile?.name || profile?.display_name || props.replyTo.publicKey.hex.slice(0, 6);
         return (
             <li
                 class={`px-4 pt-2 hover:bg-[#32353B] w-full max-w-full flex flex-col pr-8 mobile:pr-4 group relative ${
@@ -404,15 +407,16 @@ function MessageItem(props: MessageItemProps) {
                 }`}
             >
                 {MessageActions(props.msg, props.emit)}
-                {props.replyTo
-                    ? (
-                        <div class="w-full">
-                            <div class="w-64 overflow-hidden whitespace-nowrap text-overflow-ellipsis">
-                                {props.replyTo.content}
-                            </div>
-                        </div>
-                    )
-                    : undefined}
+                <div class="w-full flex flex-row">
+                    <Avatar
+                        class={`h-4 w-4  mt-[0.45rem] mr-2`}
+                        picture={picture}
+                    />
+                    <div>{name}</div>
+                    <div class="w-64 overflow-hidden whitespace-nowrap text-overflow-ellipsis">
+                        {props.replyTo.content}
+                    </div>
+                </div>
                 <div class="flex items-start">
                     <Avatar
                         class={`h-8 w-8 mt-[0.45rem] mr-2`}
