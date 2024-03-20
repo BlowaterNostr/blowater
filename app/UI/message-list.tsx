@@ -71,14 +71,14 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
     render() {
         console.log(this.state.offset, this.props.messages.length);
         const messages_to_render = this.sortAndSliceMessage();
-        let messagesModeArray: ("normal" | "head" | "reply")[] = [];
+        let modeArr: ("normal" | "head" | "reply")[] = [];
         for (let i = messages_to_render.length - 1; i >= 0; i--) {
             if (messages_to_render[i].event.parsedTags.e.length > 0) {
-                messagesModeArray[i] = "reply";
+                modeArr[i] = "reply";
                 continue;
             }
             if (i == messages_to_render.length - 1) {
-                messagesModeArray[i] = "head";
+                modeArr[i] = "head";
                 continue;
             }
             if (
@@ -88,16 +88,16 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
                             messages_to_render[i + 1].created_at.getTime(),
                     ) < 1000 * 60
             ) {
-                if (messagesModeArray[i + 1] != "reply") messagesModeArray[i + 1] = "normal";
-                messagesModeArray[i] = "head";
+                if (modeArr[i + 1] != "reply") modeArr[i + 1] = "normal";
+                modeArr[i] = "head";
                 continue;
             }
-            messagesModeArray[i] = "head";
+            modeArr[i] = "head";
         }
-        const messageBoxGroups = [];
+        const messageItems = [];
         for (let i = 0; i < messages_to_render.length; i++) {
-            if (messagesModeArray[i] == "head") {
-                messageBoxGroups.push(
+            if (modeArr[i] == "head") {
+                messageItems.push(
                     <MessageItem
                         mode={"head"}
                         msg={messages_to_render[i]}
@@ -109,8 +109,8 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
                         myPublicKey={this.props.myPublicKey}
                     />,
                 );
-            } else if (messagesModeArray[i] == "normal") {
-                messageBoxGroups.push(
+            } else if (modeArr[i] == "normal") {
+                messageItems.push(
                     <MessageItem
                         mode={"normal"}
                         msg={messages_to_render[i]}
@@ -118,9 +118,9 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
                         getters={this.props.getters}
                     />,
                 );
-            } else if (messagesModeArray[i] == "reply") {
+            } else if (modeArr[i] == "reply") {
                 const replyTo = this.props.getters.getEventByID(messages_to_render[i].event.parsedTags.e[0]);
-                messageBoxGroups.push(
+                messageItems.push(
                     <MessageItem
                         mode={"reply"}
                         msg={messages_to_render[i]}
@@ -161,7 +161,7 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
                     <button class={`${IconButtonClass}`} onClick={this.prePage}>
                         load earlier messages
                     </button>
-                    {messageBoxGroups}
+                    {messageItems}
                     <button class={`${IconButtonClass}`} onClick={this.nextPage}>
                         load more messages
                     </button>
@@ -231,14 +231,14 @@ export class MessageList_V0 extends Component<MessageListProps> {
 
     render() {
         const messages_to_render = this.sortAndSliceMessage();
-        let messagesModeArray: ("normal" | "head" | "reply")[] = [];
+        let modeArr: ("normal" | "head" | "reply")[] = [];
         for (let i = messages_to_render.length - 1; i >= 0; i--) {
             if (messages_to_render[i].event.parsedTags.e.length > 0) {
-                messagesModeArray[i] = "reply";
+                modeArr[i] = "reply";
                 continue;
             }
             if (i == messages_to_render.length - 1) {
-                messagesModeArray[i] = "head";
+                modeArr[i] = "head";
                 continue;
             }
             if (
@@ -248,16 +248,16 @@ export class MessageList_V0 extends Component<MessageListProps> {
                             messages_to_render[i + 1].created_at.getTime(),
                     ) < 1000 * 60
             ) {
-                if (messagesModeArray[i + 1] != "reply") messagesModeArray[i + 1] = "normal";
-                messagesModeArray[i] = "head";
+                if (modeArr[i + 1] != "reply") modeArr[i + 1] = "normal";
+                modeArr[i] = "head";
                 continue;
             }
-            messagesModeArray[i] = "head";
+            modeArr[i] = "head";
         }
-        const messageBoxGroups = [];
+        const messageItems = [];
         for (let i = 0; i < messages_to_render.length; i++) {
-            if (messagesModeArray[i] == "head") {
-                messageBoxGroups.push(
+            if (modeArr[i] == "head") {
+                messageItems.push(
                     <MessageItem
                         mode={"head"}
                         msg={messages_to_render[i]}
@@ -269,8 +269,8 @@ export class MessageList_V0 extends Component<MessageListProps> {
                         myPublicKey={this.props.myPublicKey}
                     />,
                 );
-            } else if (messagesModeArray[i] == "normal") {
-                messageBoxGroups.push(
+            } else if (modeArr[i] == "normal") {
+                messageItems.push(
                     <MessageItem
                         mode={"normal"}
                         msg={messages_to_render[i]}
@@ -278,9 +278,9 @@ export class MessageList_V0 extends Component<MessageListProps> {
                         getters={this.props.getters}
                     />,
                 );
-            } else if (messagesModeArray[i] == "reply") {
+            } else if (modeArr[i] == "reply") {
                 const replyTo = this.props.getters.getEventByID(messages_to_render[i].event.parsedTags.e[0]);
-                messageBoxGroups.push(
+                messageItems.push(
                     <MessageItem
                         mode={"reply"}
                         msg={messages_to_render[i]}
@@ -319,7 +319,7 @@ export class MessageList_V0 extends Component<MessageListProps> {
                     class={`w-full h-full overflow-y-auto overflow-x-hidden py-9 mobile:py-2 px-2 mobile:px-0 flex flex-col`}
                     ref={this.messagesULElement}
                 >
-                    {messageBoxGroups}
+                    {messageItems}
                 </ul>
             </div>
         );
