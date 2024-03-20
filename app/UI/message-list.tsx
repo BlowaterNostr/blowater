@@ -1,4 +1,4 @@
-import { Component, createRef, h } from "https://esm.sh/preact@10.17.1";
+import { Component, ComponentChildren, createRef, h, RefObject } from "https://esm.sh/preact@10.17.1";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { RelayRecordGetter } from "../database.ts";
 import { emitFunc } from "../event-bus.ts";
@@ -24,8 +24,9 @@ import { BackgroundColor_MessagePanel, PrimaryTextColor } from "./style/colors.t
 import { Parsed_Event } from "../nostr.ts";
 import { NoteID } from "../../libs/nostr.ts/nip19.ts";
 import { robohash } from "./relay-detail.tsx";
+import { NostrEvent } from "../../libs/nostr.ts/nostr.ts";
 
-interface MessageListProps {
+interface Props {
     myPublicKey: PublicKey;
     messages: ChatMessage[];
     emit: emitFunc<DirectMessagePanelUpdate | SelectConversation | SyncEvent>;
@@ -42,7 +43,7 @@ interface MessageListState {
 
 const ItemsOfPerPage = 50;
 
-export class MessageList extends Component<MessageListProps, MessageListState> {
+export class MessageList extends Component<Props, MessageListState> {
     readonly messagesULElement = createRef<HTMLUListElement>();
 
     state = {
@@ -51,7 +52,7 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
 
     jitter = new JitterPrevention(100);
 
-    async componentDidUpdate(previousProps: Readonly<MessageListProps>) {
+    async componentDidUpdate(previousProps: Readonly<Props>) {
         const newest = last(this.props.messages);
         const pre_newest = last(previousProps.messages);
         if (
@@ -74,12 +75,12 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
             const sameAuthor = pre.event.pubkey == cur.event.pubkey;
             const _66sec = Math.abs(cur.created_at.getTime() - pre.created_at.getTime()) <
                 1000 * 60;
-            return sameAuthor && _66sec;
+            const is_not_reply = cur.event.parsedTags.e.length > 0;
+            return sameAuthor && _66sec && is_not_reply;
         });
         const messageBoxGroups = [];
         for (const messages of groups) {
-            const profileEvent = this.props.getters.profileGetter
-                .getProfilesByPublicKey(messages[0].author);
+            const profileEvent = this.props.getters.profileGetter.getProfilesByPublicKey(messages[0].author);
             messageBoxGroups.push(
                 MessageBoxGroup({
                     messages: messages,
@@ -92,35 +93,14 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
         }
 
         return (
-            <div
-                class={`w-full overflow-hidden ${BackgroundColor_MessagePanel}`}
-                style={{
-                    transform: "perspective(none)",
-                }}
-            >
-                <button
-                    onClick={() => this.goToButtom(true)}
-                    class={`${IconButtonClass} fixed z-10 bottom-8 right-4 h-10 w-10 rotate-[-90deg] bg-[#42464D] hover:bg-[#2F3136]`}
-                >
-                    <LeftArrowIcon
-                        class={`w-6 h-6`}
-                        style={{
-                            fill: "#F3F4EA",
-                        }}
-                    />
+            <div class="w-full overflow-y-auto">
+                <button class={`${IconButtonClass}`} onClick={this.prePage}>
+                    load earlier messages
                 </button>
-                <ul
-                    class={`w-full h-full overflow-y-auto overflow-x-hidden py-9 mobile:py-2 px-2 mobile:px-0 flex flex-col`}
-                    ref={this.messagesULElement}
-                >
-                    <button class={`${IconButtonClass}`} onClick={this.prePage}>
-                        load earlier messages
-                    </button>
-                    {messageBoxGroups}
-                    <button class={`${IconButtonClass}`} onClick={this.nextPage}>
-                        load more messages
-                    </button>
-                </ul>
+                {MessageListView(this.goToButtom, this.messagesULElement, messageBoxGroups)}
+                <button class={`${IconButtonClass}`} onClick={this.nextPage}>
+                    load more messages
+                </button>
             </div>
         );
     }
@@ -170,7 +150,40 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
     };
 }
 
-export class MessageList_V0 extends Component<MessageListProps> {
+function MessageListView(
+    goToButtom: (smooth: boolean) => void,
+    messagesULElement: RefObject<HTMLUListElement>,
+    messageBoxGroups: ComponentChildren,
+) {
+    return (
+        <div
+            class={`w-full overflow-hidden ${BackgroundColor_MessagePanel}`}
+            style={{
+                transform: "perspective(none)",
+            }}
+        >
+            <button
+                onClick={() => goToButtom(true)}
+                class={`${IconButtonClass} fixed z-10 bottom-8 right-4 h-10 w-10 rotate-[-90deg] bg-[#42464D] hover:bg-[#2F3136]`}
+            >
+                <LeftArrowIcon
+                    class={`w-6 h-6`}
+                    style={{
+                        fill: "#F3F4EA",
+                    }}
+                />
+            </button>
+            <ul
+                class={`w-full h-full overflow-y-auto overflow-x-hidden py-9 mobile:py-2 px-2 mobile:px-0 flex flex-col`}
+                ref={messagesULElement}
+            >
+                {messageBoxGroups}
+            </ul>
+        </div>
+    );
+}
+
+export class MessageList_V0 extends Component<Props> {
     readonly messagesULElement = createRef<HTMLUListElement>();
 
     jitter = new JitterPrevention(100);
@@ -179,7 +192,7 @@ export class MessageList_V0 extends Component<MessageListProps> {
         this.goToButtom(false);
     }
 
-    componentDidUpdate(previousProps: Readonly<MessageListProps>): void {
+    componentDidUpdate(previousProps: Readonly<Props>): void {
         // todo: this is not a correct check of if new message is received
         // a better check is to see if the
         // current newest message is newer than previous newest message
@@ -190,7 +203,6 @@ export class MessageList_V0 extends Component<MessageListProps> {
 
     render() {
         const messages_to_render = this.sortAndSliceMessage();
-        console.log(messages_to_render);
         const groups = groupContinuousMessages(messages_to_render, (pre, cur) => {
             const sameAuthor = pre.event.pubkey == cur.event.pubkey;
             const _66sec = Math.abs(cur.created_at.getTime() - pre.created_at.getTime()) <
@@ -212,33 +224,7 @@ export class MessageList_V0 extends Component<MessageListProps> {
             );
         }
 
-        return (
-            <div
-                class={`w-full overflow-hidden ${BackgroundColor_MessagePanel}`}
-                style={{
-                    transform: "perspective(none)",
-                }}
-            >
-                <button
-                    id="go to bottom"
-                    onClick={() => this.goToButtom(true)}
-                    class={`${IconButtonClass} fixed z-10 bottom-8 right-4 h-10 w-10 rotate-[-90deg] bg-[#42464D] hover:bg-[#2F3136]`}
-                >
-                    <LeftArrowIcon
-                        class={`w-6 h-6`}
-                        style={{
-                            fill: "#F3F4EA",
-                        }}
-                    />
-                </button>
-                <ul
-                    class={`w-full h-full overflow-y-auto overflow-x-hidden py-9 mobile:py-2 px-2 mobile:px-0 flex flex-col`}
-                    ref={this.messagesULElement}
-                >
-                    {messageBoxGroups}
-                </ul>
-            </div>
-        );
+        return MessageListView(this.goToButtom, this.messagesULElement, messageBoxGroups);
     }
 
     sortAndSliceMessage = () => {
@@ -292,48 +278,63 @@ function MessageBoxGroup(props: {
 }) {
     const first_message = props.messages[0];
     const rows = [];
+    let replyTo = undefined;
+    if (first_message.event.parsedTags.e.length > 0) {
+        const reply_to_event = props.getters.getEventByID(first_message.event.parsedTags.e[0][0]);
+        let author = undefined;
+        if (reply_to_event?.pubkey) {
+            const profile = props.getters.profileGetter.getProfilesByPublicKey(reply_to_event.publicKey);
+            if (profile) {
+                author = profile.profile.name;
+            }
+        }
+        replyTo = <ReplyTo replyTo={reply_to_event} replyName={author} />;
+    }
     rows.push(
-        <li
-            class={`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 mobile:pr-4 group relative ${
-                isMobile() ? "select-none" : ""
-            }`}
-        >
-            {MessageActions(first_message, props.emit)}
-            <Avatar
-                class={`h-8 w-8 mt-[0.45rem] mr-2`}
-                picture={props.authorProfile?.picture ||
-                    robohash(first_message.author.hex)}
-                onClick={() => {
-                    props.emit({
-                        type: "ViewUserDetail",
-                        pubkey: first_message.author,
-                    });
-                }}
-            />
-
-            <div
-                class={`flex-1`}
-                style={{
-                    maxWidth: "calc(100% - 2.75rem)",
-                }}
+        <div>
+            {replyTo}
+            <li
+                class={`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 mobile:pr-4 group relative ${
+                    isMobile() ? "select-none" : ""
+                }`}
             >
-                {NameAndTime(
-                    first_message.author,
-                    props.authorProfile,
-                    props.myPublicKey,
-                    first_message.created_at,
-                )}
-                <pre
-                    class={`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto text-sm`}
+                {MessageActions(first_message, props.emit)}
+                <Avatar
+                    class={`h-8 w-8 mt-[0.45rem] mr-2`}
+                    picture={props.authorProfile?.picture ||
+                        robohash(first_message.author.hex)}
+                    onClick={() => {
+                        props.emit({
+                            type: "ViewUserDetail",
+                            pubkey: first_message.author,
+                        });
+                    }}
+                />
+
+                <div
+                    class={`flex-1`}
+                    style={{
+                        maxWidth: "calc(100% - 2.75rem)",
+                    }}
                 >
+                    {NameAndTime(
+                        first_message.author,
+                        props.authorProfile,
+                        props.myPublicKey,
+                        first_message.created_at,
+                    )}
+                    <pre
+                        class={`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto text-sm`}
+                    >
                     {ParseMessageContent(
                         first_message,
                         props.emit,
                         props.getters,
                         )}
-                </pre>
-            </div>
-        </li>,
+                    </pre>
+                </div>
+            </li>
+        </div>,
     );
 
     for (let i = 1; i < props.messages.length; i++) {
@@ -409,4 +410,25 @@ function last<T>(array: Array<T>): T | undefined {
     } else {
         return array[array.length - 1];
     }
+}
+
+function ReplyTo(props: { replyTo?: NostrEvent; replyName?: string; replayPic?: string }) {
+    return (
+        <div class="w-full flex flex-row">
+            <div class="w-10 h-5 shrink-0">
+                <div class="w-5 h-2.5 border-l-2 border-t-2 rounded-tl translate-y-2.5 translate-x-4 border-[#4F5058]" />
+            </div>
+            <div class="flex flex-row w-full justify-start items-center text-[#A3A6AA] gap-2 font-roboto text-sm pr-5">
+                <div>
+                    <Avatar class="h-4 w-4 shrink-0" picture={props.replayPic || ""} />
+                    <div class="whitespace-nowrap md:shrink-0 truncate w-30">
+                        @{props.replyName}
+                    </div>
+                    <div class="overflow-hidden whitespace-nowrap truncate text-overflow-ellipsis w-[90%]">
+                        {props.replyTo?.content}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 }
