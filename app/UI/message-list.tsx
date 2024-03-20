@@ -71,67 +71,48 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
     render() {
         console.log(this.state.offset, this.props.messages.length);
         const messages_to_render = this.sortAndSliceMessage();
-        let modeArr: ("normal" | "head" | "reply")[] = [];
-        for (let i = messages_to_render.length - 1; i >= 0; i--) {
-            if (messages_to_render[i].event.parsedTags.e.length > 0) {
-                modeArr[i] = "reply";
-                continue;
+
+        const modeArr = messages_to_render.map((message, i, arr) => {
+            if (message.event.parsedTags.e.length > 0) return "reply";
+            const isLast = i === arr.length - 1;
+            const isNextSameAuthorWithinOneMinute = !isLast &&
+                message.event.pubkey === arr[i + 1].event.pubkey &&
+                Math.abs(message.created_at.getTime() - arr[i + 1].created_at.getTime()) < 1000 * 60;
+            if (isLast || isNextSameAuthorWithinOneMinute) return "head";
+            return isNextSameAuthorWithinOneMinute ? "normal" : "head";
+        });
+
+        const messageItems = messages_to_render.map((message, i) => {
+            const commonProps = { msg: message, emit: this.props.emit, getters: this.props.getters };
+            const authorProfile = this.props.getters.profileGetter.getProfilesByPublicKey(message.author)
+                ?.profile;
+            const myPublicKey = this.props.myPublicKey;
+
+            switch (modeArr[i]) {
+                case "head":
+                    return (
+                        <HeadMessageItem
+                            {...commonProps}
+                            authorProfile={authorProfile}
+                            myPublicKey={myPublicKey}
+                        />
+                    );
+                case "normal":
+                    return <NormalMessageItem {...commonProps} />;
+                case "reply":
+                    const replyTo = this.props.getters.getEventByID(message.event.parsedTags.e[0]);
+                    return (
+                        <ReplyMessageItem
+                            {...commonProps}
+                            authorProfile={authorProfile}
+                            myPublicKey={myPublicKey}
+                            replyTo={replyTo}
+                        />
+                    );
+                default:
+                    return null;
             }
-            if (i == messages_to_render.length - 1) {
-                modeArr[i] = "head";
-                continue;
-            }
-            if (
-                messages_to_render[i].event.pubkey == messages_to_render[i + 1].event.pubkey &&
-                Math.abs(
-                        messages_to_render[i].created_at.getTime() -
-                            messages_to_render[i + 1].created_at.getTime(),
-                    ) < 1000 * 60
-            ) {
-                if (modeArr[i + 1] != "reply") modeArr[i + 1] = "normal";
-                modeArr[i] = "head";
-                continue;
-            }
-            modeArr[i] = "head";
-        }
-        const messageItems = [];
-        for (let i = 0; i < messages_to_render.length; i++) {
-            if (modeArr[i] == "head") {
-                messageItems.push(
-                    <HeadMessageItem
-                        msg={messages_to_render[i]}
-                        emit={this.props.emit}
-                        getters={this.props.getters}
-                        authorProfile={this.props.getters.profileGetter.getProfilesByPublicKey(
-                            messages_to_render[i].author,
-                        )?.profile}
-                        myPublicKey={this.props.myPublicKey}
-                    />,
-                );
-            } else if (modeArr[i] == "normal") {
-                messageItems.push(
-                    <NormalMessageItem
-                        msg={messages_to_render[i]}
-                        emit={this.props.emit}
-                        getters={this.props.getters}
-                    />,
-                );
-            } else if (modeArr[i] == "reply") {
-                const replyTo = this.props.getters.getEventByID(messages_to_render[i].event.parsedTags.e[0]);
-                messageItems.push(
-                    <ReplyMessageItem
-                        msg={messages_to_render[i]}
-                        emit={this.props.emit}
-                        getters={this.props.getters}
-                        authorProfile={this.props.getters.profileGetter.getProfilesByPublicKey(
-                            messages_to_render[i].author,
-                        )?.profile}
-                        myPublicKey={this.props.myPublicKey}
-                        replyTo={replyTo}
-                    />,
-                );
-            }
-        }
+        });
 
         return (
             <div
@@ -228,67 +209,36 @@ export class MessageList_V0 extends Component<MessageListProps> {
 
     render() {
         const messages_to_render = this.sortAndSliceMessage();
-        let modeArr: ("normal" | "head" | "reply")[] = [];
-        for (let i = messages_to_render.length - 1; i >= 0; i--) {
-            if (messages_to_render[i].event.parsedTags.e.length > 0) {
-                modeArr[i] = "reply";
-                continue;
+        const modeArr = messages_to_render.map((message, i, arr) => {
+            const isLast = i === arr.length - 1;
+            const isNextSameAuthorWithinOneMinute = !isLast &&
+                message.event.pubkey === arr[i + 1].event.pubkey &&
+                Math.abs(message.created_at.getTime() - arr[i + 1].created_at.getTime()) < 1000 * 60;
+            if (isLast || isNextSameAuthorWithinOneMinute) return "head";
+            return isNextSameAuthorWithinOneMinute ? "normal" : "head";
+        });
+
+        const messageItems = messages_to_render.map((message, i) => {
+            const commonProps = { msg: message, emit: this.props.emit, getters: this.props.getters };
+            const authorProfile = this.props.getters.profileGetter.getProfilesByPublicKey(message.author)
+                ?.profile;
+            const myPublicKey = this.props.myPublicKey;
+
+            switch (modeArr[i]) {
+                case "head":
+                    return (
+                        <HeadMessageItem
+                            {...commonProps}
+                            authorProfile={authorProfile}
+                            myPublicKey={myPublicKey}
+                        />
+                    );
+                case "normal":
+                    return <NormalMessageItem {...commonProps} />;
+                default:
+                    return null;
             }
-            if (i == messages_to_render.length - 1) {
-                modeArr[i] = "head";
-                continue;
-            }
-            if (
-                messages_to_render[i].event.pubkey == messages_to_render[i + 1].event.pubkey &&
-                Math.abs(
-                        messages_to_render[i].created_at.getTime() -
-                            messages_to_render[i + 1].created_at.getTime(),
-                    ) < 1000 * 60
-            ) {
-                if (modeArr[i + 1] != "reply") modeArr[i + 1] = "normal";
-                modeArr[i] = "head";
-                continue;
-            }
-            modeArr[i] = "head";
-        }
-        const messageItems = [];
-        for (let i = 0; i < messages_to_render.length; i++) {
-            if (modeArr[i] == "head") {
-                messageItems.push(
-                    <HeadMessageItem
-                        msg={messages_to_render[i]}
-                        emit={this.props.emit}
-                        getters={this.props.getters}
-                        authorProfile={this.props.getters.profileGetter.getProfilesByPublicKey(
-                            messages_to_render[i].author,
-                        )?.profile}
-                        myPublicKey={this.props.myPublicKey}
-                    />,
-                );
-            } else if (modeArr[i] == "normal") {
-                messageItems.push(
-                    <NormalMessageItem
-                        msg={messages_to_render[i]}
-                        emit={this.props.emit}
-                        getters={this.props.getters}
-                    />,
-                );
-            } else if (modeArr[i] == "reply") {
-                const replyTo = this.props.getters.getEventByID(messages_to_render[i].event.parsedTags.e[0]);
-                messageItems.push(
-                    <ReplyMessageItem
-                        msg={messages_to_render[i]}
-                        emit={this.props.emit}
-                        getters={this.props.getters}
-                        authorProfile={this.props.getters.profileGetter.getProfilesByPublicKey(
-                            messages_to_render[i].author,
-                        )?.profile}
-                        myPublicKey={this.props.myPublicKey}
-                        replyTo={replyTo}
-                    />,
-                );
-            }
-        }
+        });
 
         return (
             <div
