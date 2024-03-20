@@ -57,6 +57,8 @@ import { default_blowater_relay } from "./relay-config.ts";
 import { forever } from "./_helper.ts";
 import { func_GetEventByID } from "./message-list.tsx";
 import { FilterContent } from "./filter.tsx";
+import { CloseRightPanel } from "./components/right-panel.tsx";
+import { RightPanelChannel } from "./components/right-panel.tsx";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -79,7 +81,8 @@ export type UI_Interaction_Event =
     | SelectRelay
     | HidePopOver
     | SyncEvent
-    | FilterContent;
+    | FilterContent
+    | CloseRightPanel;
 
 type BackToContactList = {
     type: "BackToContactList";
@@ -102,7 +105,7 @@ export function UI_Interaction_Update(args: {
     dbView: Database_View;
     pool: ConnectionPool;
     popOver: PopOverInputChannel;
-    rightPanel: Channel<() => ComponentChildren>;
+    rightPanel: RightPanelChannel;
     newNostrEventChannel: Channel<NostrEvent>;
     lamport: LamportTime;
     installPrompt: InstallPrompt;
@@ -119,7 +122,7 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
     dbView: Database_View;
     pool: ConnectionPool;
     popOver: PopOverInputChannel;
-    rightPanel: Channel<() => ComponentChildren>;
+    rightPanel: RightPanelChannel;
     newNostrEventChannel: Channel<NostrEvent>;
     lamport: LamportTime;
     installPrompt: InstallPrompt;
@@ -302,6 +305,8 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
         //
         else if (event.type == "ChangeNavigation") {
             model.navigationModel.activeNav = event.id;
+        } else if (event.type == "CloseRightPanel") {
+            app.rightPanelInputChan.put(undefined);
         } //
         //
         // DM

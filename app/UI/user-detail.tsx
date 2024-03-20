@@ -12,6 +12,8 @@ import { CopyButton } from "./components/copy-button.tsx";
 import { LinkColor } from "./style/colors.ts";
 import { findUrlInString } from "./message.ts";
 import { robohash } from "./relay-detail.tsx";
+import { SelectConversation } from "./search_model.ts";
+import { CloseRightPanel } from "./components/right-panel.tsx";
 
 export type BlockUser = {
     type: "BlockUser";
@@ -27,7 +29,7 @@ type UserDetailProps = {
     targetUserProfile: ProfileData;
     pubkey: PublicKey;
     blocked: boolean;
-    emit: emitFunc<DirectMessagePanelUpdate | BlockUser | UnblockUser>;
+    emit: emitFunc<DirectMessagePanelUpdate | BlockUser | UnblockUser | SelectConversation | CloseRightPanel>;
 };
 
 export function UserDetail(props: UserDetailProps) {
@@ -39,9 +41,23 @@ export function UserDetail(props: UserDetailProps) {
                 class={`w-64 h-64 m-auto`}
                 picture={props.targetUserProfile.picture || robohash(props.pubkey.hex)}
             />
-            <h1 class={`text-[#F3F4EA] truncate text-[1.4rem] my-4 max-w-full text-center`}>
-                {name}
-            </h1>
+            <div class="flex flex-col items-center">
+                <h1
+                    class={`text-[#F3F4EA] truncate text-[1.4rem] my-4 max-w-full text-center` +
+                        ` inline-block hover:text-[#60a5fa] hover:cursor-pointer`}
+                    onClick={(_) => {
+                        props.emit({
+                            type: "SelectConversation",
+                            pubkey: props.pubkey,
+                        });
+                        props.emit({
+                            type: "CloseRightPanel",
+                        });
+                    }}
+                >
+                    {name}
+                </h1>
+            </div>
             <div class={`flex items-start overflow-hidden w-full group`}>
                 <KeyIcon
                     class={`w-6 h-6 mr-2`}
