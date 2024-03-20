@@ -16,7 +16,6 @@ import { SearchUpdate } from "./search_model.ts";
 import { Profile_Nostr_Event } from "../nostr.ts";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { robohash } from "./relay-detail.tsx";
-import { BackgroundColor_MessagePanel } from "./style/colors.ts";
 
 export type SearchResultChannel = Channel<SearchResult[]>;
 

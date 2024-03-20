@@ -8,7 +8,7 @@ import { ChatMessagesGetter, UI_Interaction_Event, UserBlocker } from "./app_upd
 import { IconButtonClass } from "./components/tw.ts";
 
 import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
-import { MessagePanel, MessagePanel_V0 } from "./message-panel.tsx";
+import { MessagePanel_V0 } from "./message-panel.tsx";
 import { ProfileGetter } from "./search.tsx";
 
 import {
