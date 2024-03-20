@@ -16,7 +16,6 @@ import { SearchUpdate } from "./search_model.ts";
 import { Profile_Nostr_Event } from "../nostr.ts";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { robohash } from "./relay-detail.tsx";
-import { BackgroundColor_MessagePanel } from "./style/colors.ts";
 
 export type SearchResultChannel = Channel<SearchResult[]>;
 
@@ -78,7 +77,6 @@ export class Search extends Component<Props, State> {
     }
 
     search = (e: h.JSX.TargetedEvent<HTMLInputElement, Event>) => {
-        const t = Date.now();
         this.setState({
             offset: 0,
         });
@@ -95,7 +93,6 @@ export class Search extends Component<Props, State> {
                 searchResults: profile_event ? [profile_event] : pubkey,
             });
         }
-        console.log("time", Date.now() - t);
     };
 
     onSelect = (profile: Profile_Nostr_Event | PublicKey) => () => {
@@ -196,7 +193,7 @@ export class Search extends Component<Props, State> {
                     picture={result.profile.picture || robohash(result.pubkey)}
                 />
                 <p class={this.styles.result.item.text}>
-                    {result.profile.name}
+                    {result.profile.name || result.profile.display_name}
                 </p>
             </li>
         );
