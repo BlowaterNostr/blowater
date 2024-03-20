@@ -5,13 +5,15 @@ import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 import { emitFunc } from "../event-bus.ts";
 import { RelayAvatar } from "./components/avatar.tsx";
 import { SelectRelay } from "./nav.tsx";
+import { NavigationUpdate } from "./nav.tsx";
 import { getRelayInformation, RelayInformation, robohash } from "./relay-detail.tsx";
 import { setState } from "./_helper.ts";
+import { AddIcon } from "./icons/add-icon.tsx";
 
 type RelaySwitchListProps = {
     currentRelay?: string;
     pool: ConnectionPool;
-    emit: emitFunc<SelectRelay>;
+    emit: emitFunc<SelectRelay | NavigationUpdate>;
 };
 
 type RelaySwitchListState = {
@@ -90,6 +92,28 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
                             >
                                 {relayList}
                             </div>
+                            <div
+                                class={`flex flex-row mx-1 my-1 hover:bg-[rgb(244,244,244)] hover:cursor-pointer items-center rounded`}
+                                onClick={this.onAddRelay}
+                            >
+                                <div
+                                    class={`flex justify-center items-center w-12 h-12 rounded-md border-none`}
+                                >
+                                    <div
+                                        class={`flex justify-center items-center w-10 h-10 border rounded-md bg-[#F2F2F2]`}
+                                    >
+                                        <AddIcon
+                                            style={{
+                                                width: "60%",
+                                                height: "60%",
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                                <div class="px-1 font-light">
+                                    Add a relay
+                                </div>
+                            </div>
                         </div>
                     )
                     : undefined}
@@ -133,6 +157,16 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
         this.props.emit({
             type: "SelectRelay",
             relay,
+        });
+    };
+
+    onAddRelay = async () => {
+        await setState(this, {
+            showRelayList: false,
+        });
+        this.props.emit({
+            type: "ChangeNavigation",
+            id: "Setting",
         });
     };
 }
