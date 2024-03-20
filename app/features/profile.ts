@@ -19,6 +19,7 @@ export async function saveProfile(
 // aka user profile
 export interface ProfileData {
     name?: string;
+    display_name?: string;
     picture?: string;
     about?: string;
     website?: string;

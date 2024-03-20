@@ -31,6 +31,8 @@ type UserDetailProps = {
 };
 
 export function UserDetail(props: UserDetailProps) {
+    const name = props.targetUserProfile.name || props.targetUserProfile.display_name ||
+        props.pubkey.bech32();
     return (
         <div class={`px-2 py-3 text-[#7A818C]`}>
             <Avatar
@@ -38,7 +40,7 @@ export function UserDetail(props: UserDetailProps) {
                 picture={props.targetUserProfile.picture || robohash(props.pubkey.hex)}
             />
             <h1 class={`text-[#F3F4EA] truncate text-[1.4rem] my-4 max-w-full text-center`}>
-                {props.targetUserProfile.name || props.pubkey.bech32()}
+                {name}
             </h1>
             <div class={`flex items-start overflow-hidden w-full group`}>
                 <KeyIcon

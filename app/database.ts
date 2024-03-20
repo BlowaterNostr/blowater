@@ -165,8 +165,10 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
         const result = [];
         for (const event of this.profiles.values()) {
             if (
-                event.profile.name &&
-                event.profile.name?.toLocaleLowerCase().indexOf(name.toLowerCase()) != -1
+                (event.profile.name &&
+                    event.profile.name?.toLocaleLowerCase().indexOf(name.toLowerCase()) != -1) ||
+                (event.profile.display_name &&
+                    event.profile.display_name?.toLocaleLowerCase().indexOf(name.toLocaleLowerCase()) != -1)
             ) {
                 result.push(event);
             }
@@ -175,7 +177,8 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
     }
 
     getProfilesByPublicKey(pubkey: PublicKey): Profile_Nostr_Event | undefined {
-        return this.profiles.get(pubkey.hex);
+        const profile = this.profiles.get(pubkey.hex);
+        return profile;
     }
 
     getUniqueProfileCount(): number {

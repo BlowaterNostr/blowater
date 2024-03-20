@@ -137,17 +137,19 @@ export function NameAndTime(
     myPublicKey: PublicKey,
     created_at: Date,
 ) {
-    let show = author.bech32();
+    let show_name;
     if (author.hex == myPublicKey.hex) {
-        show = "Me";
-    } else if (author_profile?.name) {
-        show = author_profile.name;
+        show_name = "Me";
+    } else if (author_profile) {
+        show_name = author_profile.name || author_profile.display_name || author.bech32();
+    } else {
+        show_name = author.bech32();
     }
 
     return (
         <p class={`overflow-hidden flex`}>
             <p class={`text-[#FFFFFF] text-[0.9rem] truncate mobile:hidden`}>
-                {show}
+                {show_name}
             </p>
             <p class={`text-[#A3A6AA] ml-4 text-[0.8rem] whitespace-nowrap mobile:ml-0 mobile:text-xs`}>
                 {created_at.toLocaleString()}
