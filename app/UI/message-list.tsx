@@ -472,84 +472,64 @@ function MessageItem(props: MessageItemProps) {
 }
 
 function MessageBoxGroup(props: MessageBoxGroupProps) {
-    const first_message = props.messages[0];
-    const rows = [];
+    const { messages, emit, getters, authorProfile, myPublicKey } = props;
+    const firstMessage = messages[0];
+    const hasReply = firstMessage.event.parsedTags.e.length > 0;
+    const replyTo = hasReply ? getters.getEventByID(firstMessage.event.parsedTags.e[0]) : null;
 
-    if (first_message.event.parsedTags.e.length > 0) {
-        const replyTo = props.getters.getEventByID(first_message.event.parsedTags.e[0]);
-        if (replyTo) {
-            rows.push(
-                <MessageItem
-                    mode="reply"
-                    msg={first_message}
-                    emit={props.emit}
-                    getters={props.getters}
-                    authorProfile={props.authorProfile}
-                    myPublicKey={props.myPublicKey}
-                    replyTo={replyTo}
-                />,
-            );
-        } else {
-            rows.push(
-                <MessageItem
-                    mode="head"
-                    msg={first_message}
-                    emit={props.emit}
-                    getters={props.getters}
-                    authorProfile={props.authorProfile}
-                    myPublicKey={props.myPublicKey}
-                />,
-            );
-        }
-    } else {
-        rows.push(
-            <MessageItem
-                mode="head"
-                msg={first_message}
-                emit={props.emit}
-                getters={props.getters}
-                authorProfile={props.authorProfile}
-                myPublicKey={props.myPublicKey}
-            />,
-        );
-    }
-
-    for (let i = 1; i < props.messages.length; i++) {
-        const msg = props.messages[i];
-        if (first_message.event.parsedTags.e.length > 0) {
-            const replyTo = props.getters.getEventByID(first_message.event.parsedTags.e[0]);
+    const messageItems = messages.map((msg, index) => {
+        if (index === 0) {
             if (replyTo) {
-                rows.push(
+                return (
                     <MessageItem
-                        mode="reply"
-                        msg={first_message}
-                        emit={props.emit}
-                        getters={props.getters}
-                        authorProfile={props.authorProfile}
-                        myPublicKey={props.myPublicKey}
+                        mode={"reply"}
+                        msg={msg}
+                        emit={emit}
+                        getters={getters}
+                        authorProfile={authorProfile}
+                        myPublicKey={myPublicKey}
                         replyTo={replyTo}
-                    />,
+                    />
                 );
             } else {
-                rows.push(
-                    <MessageItem mode="normal" msg={msg} emit={props.emit} getters={props.getters} />,
+                return (
+                    <MessageItem
+                        mode={"head"}
+                        msg={msg}
+                        emit={emit}
+                        getters={getters}
+                        authorProfile={authorProfile}
+                        myPublicKey={myPublicKey}
+                    />
                 );
             }
         } else {
-            rows.push(
-                <MessageItem mode="normal" msg={msg} emit={props.emit} getters={props.getters} />,
-            );
+            if (replyTo) {
+                return (
+                    <MessageItem
+                        mode={"reply"}
+                        msg={msg}
+                        emit={emit}
+                        getters={getters}
+                        authorProfile={authorProfile}
+                        myPublicKey={myPublicKey}
+                        replyTo={replyTo}
+                    />
+                );
+            } else {
+                return (
+                    <MessageItem
+                        mode={"normal"}
+                        msg={msg}
+                        emit={emit}
+                        getters={getters}
+                    />
+                );
+            }
         }
-    }
+    });
 
-    const vnode = (
-        <Fragment>
-            {rows}
-        </Fragment>
-    );
-
-    // console.log("MessageBoxGroup", Date.now() - t);
-    return vnode;
+    return <Fragment>{messageItems}</Fragment>;
 }
 
 function MessageActions(
