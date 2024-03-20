@@ -98,8 +98,7 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
         for (let i = 0; i < messages_to_render.length; i++) {
             if (modeArr[i] == "head") {
                 messageItems.push(
-                    <MessageItem
-                        mode={"head"}
+                    <HeadMessageItem
                         msg={messages_to_render[i]}
                         emit={this.props.emit}
                         getters={this.props.getters}
@@ -111,8 +110,7 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
                 );
             } else if (modeArr[i] == "normal") {
                 messageItems.push(
-                    <MessageItem
-                        mode={"normal"}
+                    <NormalMessageItem
                         msg={messages_to_render[i]}
                         emit={this.props.emit}
                         getters={this.props.getters}
@@ -121,8 +119,7 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
             } else if (modeArr[i] == "reply") {
                 const replyTo = this.props.getters.getEventByID(messages_to_render[i].event.parsedTags.e[0]);
                 messageItems.push(
-                    <MessageItem
-                        mode={"reply"}
+                    <ReplyMessageItem
                         msg={messages_to_render[i]}
                         emit={this.props.emit}
                         getters={this.props.getters}
@@ -258,8 +255,7 @@ export class MessageList_V0 extends Component<MessageListProps> {
         for (let i = 0; i < messages_to_render.length; i++) {
             if (modeArr[i] == "head") {
                 messageItems.push(
-                    <MessageItem
-                        mode={"head"}
+                    <HeadMessageItem
                         msg={messages_to_render[i]}
                         emit={this.props.emit}
                         getters={this.props.getters}
@@ -271,8 +267,7 @@ export class MessageList_V0 extends Component<MessageListProps> {
                 );
             } else if (modeArr[i] == "normal") {
                 messageItems.push(
-                    <MessageItem
-                        mode={"normal"}
+                    <NormalMessageItem
                         msg={messages_to_render[i]}
                         emit={this.props.emit}
                         getters={this.props.getters}
@@ -281,8 +276,7 @@ export class MessageList_V0 extends Component<MessageListProps> {
             } else if (modeArr[i] == "reply") {
                 const replyTo = this.props.getters.getEventByID(messages_to_render[i].event.parsedTags.e[0]);
                 messageItems.push(
-                    <MessageItem
-                        mode={"reply"}
+                    <ReplyMessageItem
                         msg={messages_to_render[i]}
                         emit={this.props.emit}
                         getters={this.props.getters}
@@ -361,86 +355,155 @@ export type func_GetEventByID = (
     id: string | NoteID,
 ) => Parsed_Event | undefined;
 
-type MessageItemProps = {
-    mode: "normal";
+interface MessageItemCommonProps {
     msg: ChatMessage;
     emit: emitFunc<
         DirectMessagePanelUpdate | ViewUserDetail | SelectConversation | SyncEvent
     >;
     getters: {
         profileGetter: ProfileGetter;
-        relayRecordGetter: RelayRecordGetter;
         getEventByID: func_GetEventByID;
     };
-} | {
-    mode: "head";
-    msg: ChatMessage;
-    emit: emitFunc<
-        DirectMessagePanelUpdate | ViewUserDetail | SelectConversation | SyncEvent
-    >;
-    getters: {
-        profileGetter: ProfileGetter;
-        relayRecordGetter: RelayRecordGetter;
-        getEventByID: func_GetEventByID;
-    };
-    authorProfile: ProfileData | undefined;
-    myPublicKey: PublicKey;
-} | {
-    mode: "reply";
-    msg: ChatMessage;
-    emit: emitFunc<
-        DirectMessagePanelUpdate | ViewUserDetail | SelectConversation | SyncEvent
-    >;
-    getters: {
-        profileGetter: ProfileGetter;
-        relayRecordGetter: RelayRecordGetter;
-        getEventByID: func_GetEventByID;
-    };
-    authorProfile: ProfileData | undefined;
-    myPublicKey: PublicKey;
-    replyTo?: Parsed_Event;
-};
+}
 
-function MessageItem(props: MessageItemProps) {
-    if (props.mode == "normal") {
-        return (
-            <li
-                class={`px-4 hover:bg-[#32353B] w-full max-w-full flex items-center pr-8 mobile:pr-4 group relative text-sm ${
-                    isMobile() ? "select-none" : ""
-                }`}
+interface OptionalAuthorAndPublicKey {
+    authorProfile?: ProfileData;
+    myPublicKey: PublicKey;
+}
+
+interface OptionalReply {
+    replyTo?: Parsed_Event;
+}
+
+function NormalMessageItem(props: MessageItemCommonProps) {
+    return (
+        <li
+            class={`px-4 hover:bg-[#32353B] w-full max-w-full flex items-center pr-8 mobile:pr-4 group relative text-sm ${
+                isMobile() ? "select-none" : ""
+            }`}
+        >
+            {MessageActions(props.msg, props.emit)}
+            {Time(props.msg.created_at)}
+            <div
+                class={`flex-1`}
+                style={{
+                    maxWidth: "calc(100% - 2.75rem)",
+                }}
             >
-                {MessageActions(props.msg, props.emit)}
-                {Time(props.msg.created_at)}
-                <div
-                    class={`flex-1`}
-                    style={{
-                        maxWidth: "calc(100% - 2.75rem)",
-                    }}
+                <pre
+                    class={`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto`}
                 >
-                    <pre
-                        class={`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto`}
-                    >
-                    {ParseMessageContent(props.msg, props.emit, props.getters)}
-                    </pre>
-                </div>
-            </li>
-        );
-    } else if (props.mode == "head") {
-        return (
-            <li
-                class={`px-4 pt-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 mobile:pr-4 group relative ${
-                    isMobile() ? "select-none" : ""
-                }`}
+                {ParseMessageContent(props.msg, props.emit, props.getters)}
+                </pre>
+            </div>
+        </li>
+    );
+}
+
+function HeadMessageItem(props: MessageItemCommonProps & OptionalAuthorAndPublicKey) {
+    return (
+        <li
+            class={`px-4 pt-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 mobile:pr-4 group relative ${
+                isMobile() ? "select-none" : ""
+            }`}
+        >
+            {MessageActions(props.msg, props.emit)}
+            <Avatar
+                class={`h-8 w-8 mt-[0.45rem] mr-2`}
+                picture={props.authorProfile?.picture ||
+                    robohash(props.msg.author.hex)}
+                onClick={() => {
+                    props.emit({
+                        type: "ViewUserDetail",
+                        pubkey: props.msg.author,
+                    });
+                }}
+            />
+
+            <div
+                class={`flex-1`}
+                style={{
+                    maxWidth: "calc(100% - 2.75rem)",
+                }}
             >
-                {MessageActions(props.msg, props.emit)}
+                {NameAndTime(
+                    props.msg.author,
+                    props.authorProfile,
+                    props.myPublicKey,
+                    props.msg.created_at,
+                )}
+                <pre
+                    class={`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto text-sm`}
+                >
+                {ParseMessageContent(
+                    props.msg,
+                    props.emit,
+                    props.getters,
+                    )}
+                </pre>
+            </div>
+        </li>
+    );
+}
+
+function ReplyMessageItem({
+    msg,
+    authorProfile,
+    myPublicKey,
+    replyTo,
+    emit,
+    getters,
+}: MessageItemCommonProps & OptionalAuthorAndPublicKey & OptionalReply) {
+    const getReplyDetails = () => {
+        if (!replyTo) return {};
+        const replyProfile = getters.profileGetter.getProfilesByPublicKey(replyTo.publicKey)?.profile;
+        const replyName = replyProfile?.name || replyProfile?.display_name ||
+            replyTo.publicKey.hex.slice(0, 6);
+        const replyPicture = replyProfile?.picture || robohash(replyName);
+
+        return { replyName, replyPicture };
+    };
+
+    const { replyName, replyPicture } = getReplyDetails();
+
+    return (
+        <li
+            class={`px-4 pt-4 hover:bg-[#32353B] w-full max-w-full flex flex-col pr-8 mobile:pr-4 group relative ${
+                isMobile() ? "select-none" : ""
+            }`}
+        >
+            {MessageActions(msg, emit)}
+            <div class="w-full flex flex-row">
+                <div class="w-10 h-5 shrink-0">
+                    <div class="w-5 h-2.5 border-l-2 border-t-2 rounded-tl translate-y-2.5 translate-x-4 border-[#A3A6AA]" />
+                </div>
+                <div class="flex flex-row justify-start items-center text-[#A3A6AA] gap-2 font-roboto text-sm">
+                    {replyTo
+                        ? (
+                            <>
+                                <Avatar class="h-4 w-4" picture={replyPicture || ""} />
+                                <div class="whitespace-nowrap">@{replyName}</div>
+                                <div class="overflow-hidden whitespace-nowrap text-overflow-ellipsis">
+                                    {replyTo.content}
+                                </div>
+                            </>
+                        )
+                        : (
+                            <div class="overflow-hidden whitespace-nowrap text-overflow-ellipsis">
+                                {msg.event.parsedTags.e[0]}
+                            </div>
+                        )}
+                </div>
+            </div>
+            <div class="flex items-start">
                 <Avatar
                     class={`h-8 w-8 mt-[0.45rem] mr-2`}
-                    picture={props.authorProfile?.picture ||
-                        robohash(props.msg.author.hex)}
+                    picture={authorProfile?.picture ||
+                        robohash(msg.author.hex)}
                     onClick={() => {
-                        props.emit({
+                        emit({
                             type: "ViewUserDetail",
-                            pubkey: props.msg.author,
+                            pubkey: msg.author,
                         });
                     }}
                 />
@@ -452,155 +515,24 @@ function MessageItem(props: MessageItemProps) {
                     }}
                 >
                     {NameAndTime(
-                        props.msg.author,
-                        props.authorProfile,
-                        props.myPublicKey,
-                        props.msg.created_at,
+                        msg.author,
+                        authorProfile,
+                        myPublicKey,
+                        msg.created_at,
                     )}
                     <pre
                         class={`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto text-sm`}
                     >
                     {ParseMessageContent(
-                        props.msg,
-                        props.emit,
-                        props.getters,
+                        msg,
+                        emit,
+                        getters,
                         )}
                     </pre>
                 </div>
-            </li>
-        );
-    } else {
-        if (!props.replyTo) {
-            return (
-                <li
-                    class={`px-4 pt-4 hover:bg-[#32353B] w-full max-w-full flex flex-col pr-8 mobile:pr-4 group relative ${
-                        isMobile() ? "select-none" : ""
-                    }`}
-                >
-                    {MessageActions(props.msg, props.emit)}
-                    <div class="w-full flex flex-row">
-                        <div class="w-10 h-5 shrink-0">
-                            <div class="w-5 h-2.5 border-l-2 border-t-2 rounded-tl translate-y-2.5 translate-x-4 border-[#A3A6AA]" />
-                        </div>
-                        <div class="flex flex-row justify-start items-center text-[#A3A6AA] gap-2
-                        font-roboto text-sm">
-                            <div class="overflow-hidden whitespace-nowrap text-overflow-ellipsis ">
-                                {props.msg.event.parsedTags.e[0]}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex items-start">
-                        <Avatar
-                            class={`h-8 w-8 mt-[0.45rem] mr-2`}
-                            picture={props.authorProfile?.picture ||
-                                robohash(props.msg.author.hex)}
-                            onClick={() => {
-                                props.emit({
-                                    type: "ViewUserDetail",
-                                    pubkey: props.msg.author,
-                                });
-                            }}
-                        />
-
-                        <div
-                            class={`flex-1`}
-                            style={{
-                                maxWidth: "calc(100% - 2.75rem)",
-                            }}
-                        >
-                            {NameAndTime(
-                                props.msg.author,
-                                props.authorProfile,
-                                props.myPublicKey,
-                                props.msg.created_at,
-                            )}
-                            <pre
-                                class={`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto text-sm`}
-                            >
-                    {ParseMessageContent(
-                        props.msg,
-                        props.emit,
-                        props.getters,
-                        )}
-                            </pre>
-                        </div>
-                    </div>
-                </li>
-            );
-        }
-        const replyProfile = props.getters.profileGetter.getProfilesByPublicKey(props.replyTo.publicKey)
-            ?.profile;
-        const replyPicture = replyProfile?.picture || robohash(props.replyTo.publicKey.hex);
-        const replyName = replyProfile?.name || replyProfile?.display_name ||
-            props.replyTo.publicKey.hex.slice(0, 6);
-        return (
-            <li
-                class={`px-4 pt-4 hover:bg-[#32353B] w-full max-w-full flex flex-col pr-8 mobile:pr-4 group relative ${
-                    isMobile() ? "select-none" : ""
-                }`}
-            >
-                {MessageActions(props.msg, props.emit)}
-                <div class="w-full flex flex-row">
-                    <div class="w-10 h-5 shrink-0">
-                        <div class="w-5 h-2.5 border-l-2 border-t-2 rounded-tl translate-y-2.5 translate-x-4 border-[#A3A6AA]" />
-                    </div>
-                    <div class="flex flex-row justify-start items-center text-[#A3A6AA] gap-2
-                        font-roboto text-sm">
-                        <div
-                            class={`h-4 w-4`}
-                        >
-                            <Avatar
-                                class={`h-4 w-4`}
-                                picture={replyPicture}
-                            />
-                        </div>
-                        <div class="whitespace-nowrap">
-                            @{replyName}
-                        </div>
-                        <div class="overflow-hidden whitespace-nowrap text-overflow-ellipsis ">
-                            {props.replyTo.content}
-                        </div>
-                    </div>
-                </div>
-                <div class="flex items-start">
-                    <Avatar
-                        class={`h-8 w-8 mt-[0.45rem] mr-2`}
-                        picture={props.authorProfile?.picture ||
-                            robohash(props.msg.author.hex)}
-                        onClick={() => {
-                            props.emit({
-                                type: "ViewUserDetail",
-                                pubkey: props.msg.author,
-                            });
-                        }}
-                    />
-
-                    <div
-                        class={`flex-1`}
-                        style={{
-                            maxWidth: "calc(100% - 2.75rem)",
-                        }}
-                    >
-                        {NameAndTime(
-                            props.msg.author,
-                            props.authorProfile,
-                            props.myPublicKey,
-                            props.msg.created_at,
-                        )}
-                        <pre
-                            class={`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto text-sm`}
-                        >
-                    {ParseMessageContent(
-                        props.msg,
-                        props.emit,
-                        props.getters,
-                        )}
-                        </pre>
-                    </div>
-                </div>
-            </li>
-        );
-    }
+            </div>
+        </li>
+    );
 }
 
 function MessageActions(
