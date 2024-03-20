@@ -51,13 +51,6 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
 
     jitter = new JitterPrevention(100);
 
-    async componentWillReceiveProps(nextPrpos: MessageListProps) {
-        if (nextPrpos.messages.length != this.props.messages.length) {
-            await setState(this, { offset: 0 });
-            await this.goToLastPage();
-        }
-    }
-
     async componentDidUpdate(previousProps: Readonly<MessageListProps>) {
         const newest = last(this.props.messages);
         const pre_newest = last(previousProps.messages);
