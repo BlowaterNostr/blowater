@@ -274,7 +274,7 @@ export type func_GetEventByID = (
     id: string | NoteID,
 ) => Parsed_Event | undefined;
 
-function MessageBoxGroup(props: {
+interface MessageBoxGroupProps {
     authorProfile: ProfileData | undefined;
     messages: ChatMessage[];
     myPublicKey: PublicKey;
@@ -286,63 +286,58 @@ function MessageBoxGroup(props: {
         relayRecordGetter: RelayRecordGetter;
         getEventByID: func_GetEventByID;
     };
-}) {
-    const first_message = props.messages[0];
-    const rows = [];
-    rows.push(
-        <li
-            class={`px-4 pt-2 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 mobile:pr-4 group relative ${
-                isMobile() ? "select-none" : ""
-            }`}
-        >
-            {MessageActions(first_message, props.emit)}
-            <Avatar
-                class={`h-8 w-8 mt-[0.45rem] mr-2`}
-                picture={props.authorProfile?.picture ||
-                    robohash(first_message.author.hex)}
-                onClick={() => {
-                    props.emit({
-                        type: "ViewUserDetail",
-                        pubkey: first_message.author,
-                    });
-                }}
-            />
+}
 
-            <div
-                class={`flex-1`}
-                style={{
-                    maxWidth: "calc(100% - 2.75rem)",
-                }}
-            >
-                {NameAndTime(
-                    first_message.author,
-                    props.authorProfile,
-                    props.myPublicKey,
-                    first_message.created_at,
-                )}
-                <pre
-                    class={`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto text-sm`}
-                >
-                    {ParseMessageContent(
-                        first_message,
-                        props.emit,
-                        props.getters,
-                        )}
-                </pre>
-            </div>
-        </li>,
-    );
+type MessageItemProps = {
+    mode: "normal";
+    msg: ChatMessage;
+    emit: emitFunc<
+        DirectMessagePanelUpdate | ViewUserDetail | SelectConversation | SyncEvent
+    >;
+    getters: {
+        profileGetter: ProfileGetter;
+        relayRecordGetter: RelayRecordGetter;
+        getEventByID: func_GetEventByID;
+    };
+} | {
+    mode: "head";
+    msg: ChatMessage;
+    emit: emitFunc<
+        DirectMessagePanelUpdate | ViewUserDetail | SelectConversation | SyncEvent
+    >;
+    getters: {
+        profileGetter: ProfileGetter;
+        relayRecordGetter: RelayRecordGetter;
+        getEventByID: func_GetEventByID;
+    };
+    authorProfile: ProfileData | undefined;
+    myPublicKey: PublicKey;
+} | {
+    mode: "reply";
+    msg: ChatMessage;
+    emit: emitFunc<
+        DirectMessagePanelUpdate | ViewUserDetail | SelectConversation | SyncEvent
+    >;
+    getters: {
+        profileGetter: ProfileGetter;
+        relayRecordGetter: RelayRecordGetter;
+        getEventByID: func_GetEventByID;
+    };
+    authorProfile: ProfileData | undefined;
+    myPublicKey: PublicKey;
+    replyTo: Parsed_Event;
+};
 
-    for (let i = 1; i < props.messages.length; i++) {
-        const msg = props.messages[i];
-        rows.push(
+function MessageItem(props: MessageItemProps) {
+    if (props.mode == "normal") {
+        return (
             <li
                 class={`px-4 hover:bg-[#32353B] w-full max-w-full flex items-center pr-8 mobile:pr-4 group relative text-sm ${
                     isMobile() ? "select-none" : ""
                 }`}
             >
-                {MessageActions(msg, props.emit)}
-                {Time(msg.created_at)}
+                {MessageActions(props.msg, props.emit)}
+                {Time(props.msg.created_at)}
                 <div
                     class={`flex-1`}
                     style={{
@@ -352,11 +347,183 @@ function MessageBoxGroup(props: {
                     <pre
                         class={`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto`}
                     >
-                    {ParseMessageContent(msg, props.emit, props.getters)}
+                    {ParseMessageContent(props.msg, props.emit, props.getters)}
                     </pre>
                 </div>
-            </li>,
+            </li>
         );
+    } else if (props.mode == "head") {
+        return (
+            <li
+                class={`px-4 pt-2 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 mobile:pr-4 group relative ${
+                    isMobile() ? "select-none" : ""
+                }`}
+            >
+                {MessageActions(props.msg, props.emit)}
+                <Avatar
+                    class={`h-8 w-8 mt-[0.45rem] mr-2`}
+                    picture={props.authorProfile?.picture ||
+                        robohash(props.msg.author.hex)}
+                    onClick={() => {
+                        props.emit({
+                            type: "ViewUserDetail",
+                            pubkey: props.msg.author,
+                        });
+                    }}
+                />
+
+                <div
+                    class={`flex-1`}
+                    style={{
+                        maxWidth: "calc(100% - 2.75rem)",
+                    }}
+                >
+                    {NameAndTime(
+                        props.msg.author,
+                        props.authorProfile,
+                        props.myPublicKey,
+                        props.msg.created_at,
+                    )}
+                    <pre
+                        class={`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto text-sm`}
+                    >
+                    {ParseMessageContent(
+                        props.msg,
+                        props.emit,
+                        props.getters,
+                        )}
+                    </pre>
+                </div>
+            </li>
+        );
+    } else if (props.mode == "reply") {
+        return (
+            <li
+                class={`px-4 pt-2 hover:bg-[#32353B] w-full max-w-full flex flex-col pr-8 mobile:pr-4 group relative ${
+                    isMobile() ? "select-none" : ""
+                }`}
+            >
+                {MessageActions(props.msg, props.emit)}
+                {props.replyTo
+                    ? (
+                        <div class="w-full">
+                            <div class="w-64 overflow-hidden whitespace-nowrap text-overflow-ellipsis">
+                                {props.replyTo.content}
+                            </div>
+                        </div>
+                    )
+                    : undefined}
+                <div class="flex items-start">
+                    <Avatar
+                        class={`h-8 w-8 mt-[0.45rem] mr-2`}
+                        picture={props.authorProfile?.picture ||
+                            robohash(props.msg.author.hex)}
+                        onClick={() => {
+                            props.emit({
+                                type: "ViewUserDetail",
+                                pubkey: props.msg.author,
+                            });
+                        }}
+                    />
+
+                    <div
+                        class={`flex-1`}
+                        style={{
+                            maxWidth: "calc(100% - 2.75rem)",
+                        }}
+                    >
+                        {NameAndTime(
+                            props.msg.author,
+                            props.authorProfile,
+                            props.myPublicKey,
+                            props.msg.created_at,
+                        )}
+                        <pre
+                            class={`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto text-sm`}
+                        >
+                    {ParseMessageContent(
+                        props.msg,
+                        props.emit,
+                        props.getters,
+                        )}
+                        </pre>
+                    </div>
+                </div>
+            </li>
+        );
+    }
+    return <div>mode error</div>;
+}
+
+function MessageBoxGroup(props: MessageBoxGroupProps) {
+    const first_message = props.messages[0];
+    const rows = [];
+
+    if (first_message.event.parsedTags.e.length > 0) {
+        const replyTo = props.getters.getEventByID(first_message.event.parsedTags.e[0]);
+        if (replyTo) {
+            rows.push(
+                <MessageItem
+                    mode="reply"
+                    msg={first_message}
+                    emit={props.emit}
+                    getters={props.getters}
+                    authorProfile={props.authorProfile}
+                    myPublicKey={props.myPublicKey}
+                    replyTo={replyTo}
+                />,
+            );
+        } else {
+            rows.push(
+                <MessageItem
+                    mode="head"
+                    msg={first_message}
+                    emit={props.emit}
+                    getters={props.getters}
+                    authorProfile={props.authorProfile}
+                    myPublicKey={props.myPublicKey}
+                />,
+            );
+        }
+    } else {
+        rows.push(
+            <MessageItem
+                mode="head"
+                msg={first_message}
+                emit={props.emit}
+                getters={props.getters}
+                authorProfile={props.authorProfile}
+                myPublicKey={props.myPublicKey}
+            />,
+        );
+    }
+
+    for (let i = 1; i < props.messages.length; i++) {
+        const msg = props.messages[i];
+        if (first_message.event.parsedTags.e.length > 0) {
+            const replyTo = props.getters.getEventByID(first_message.event.parsedTags.e[0]);
+            if (replyTo) {
+                rows.push(
+                    <MessageItem
+                        mode="reply"
+                        msg={first_message}
+                        emit={props.emit}
+                        getters={props.getters}
+                        authorProfile={props.authorProfile}
+                        myPublicKey={props.myPublicKey}
+                        replyTo={replyTo}
+                    />,
+                );
+            } else {
+                rows.push(
+                    <MessageItem mode="normal" msg={msg} emit={props.emit} getters={props.getters} />,
+                );
+            }
+        } else {
+            rows.push(
+                <MessageItem mode="normal" msg={msg} emit={props.emit} getters={props.getters} />,
+            );
+        }
     }
 
     const vnode = (
