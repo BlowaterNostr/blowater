@@ -75,7 +75,7 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
                     <div class={`flex-1`}></div>
 
                     <MessageList
-                        key={props.messages[0]?.event.id} // this is not a 100% correct key which should be a stable hash of the whole array
+                        key={props.messages[0]?.event.id + `${props.messages.length}`} // this is not a 100% correct key which should be a stable hash of the whole array
                         myPublicKey={props.myPublicKey}
                         messages={props.messages}
                         emit={props.emit}
