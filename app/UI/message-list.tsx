@@ -75,7 +75,7 @@ export class MessageList extends Component<Props, MessageListState> {
             const sameAuthor = pre.event.pubkey == cur.event.pubkey;
             const _66sec = Math.abs(cur.created_at.getTime() - pre.created_at.getTime()) <
                 1000 * 60;
-            const is_not_reply = cur.event.parsedTags.e.length > 0;
+            const is_not_reply = cur.event.parsedTags.e.length > 0; // todo: make a isReply(event) function
             return sameAuthor && _66sec && is_not_reply;
         });
         const messageBoxGroups = [];
@@ -278,6 +278,9 @@ function MessageBoxGroup(props: {
 }) {
     const first_message = props.messages[0];
     const rows = [];
+
+    // check if the first message is a reply message
+    // todo: make a isReply(event) function
     let replyTo = undefined;
     if (first_message.event.parsedTags.e.length > 0) {
         const reply_to_event = props.getters.getEventByID(first_message.event.parsedTags.e[0][0]);
@@ -290,6 +293,7 @@ function MessageBoxGroup(props: {
         }
         replyTo = <ReplyTo replyTo={reply_to_event} replyName={author} />;
     }
+
     rows.push(
         <div>
             {replyTo}
@@ -369,7 +373,6 @@ function MessageBoxGroup(props: {
         </ul>
     );
 
-    // console.log("MessageBoxGroup", Date.now() - t);
     return vnode;
 }
 
