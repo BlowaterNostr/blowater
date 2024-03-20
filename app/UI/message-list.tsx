@@ -12,7 +12,7 @@ import {
     Time,
     ViewUserDetail,
 } from "./message-panel.tsx";
-import { ChatMessage, groupContinuousMessages, sortMessage } from "./message.ts";
+import { ChatMessage, sortMessage } from "./message.ts";
 import { ProfileGetter } from "./search.tsx";
 import { SelectConversation } from "./search_model.ts";
 import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
@@ -353,7 +353,7 @@ function NormalMessageItem(props: MessageItemCommonProps) {
 function HeadMessageItem(props: MessageItemCommonProps & OptionalAuthorAndPublicKey) {
     return (
         <li
-            class={`px-4 pt-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 mobile:pr-4 group relative ${
+            class={`px-4 py-2 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 mobile:pr-4 group relative ${
                 isMobile() ? "select-none" : ""
             }`}
         >
@@ -408,7 +408,7 @@ function ReplyMessageItem({
         if (!replyTo) return {};
         const replyProfile = getters.profileGetter.getProfilesByPublicKey(replyTo.publicKey)?.profile;
         const replyName = replyProfile?.name || replyProfile?.display_name ||
-            replyTo.publicKey.hex.slice(0, 6);
+            replyTo.publicKey.bech32();
         const replyPicture = replyProfile?.picture || robohash(replyName);
 
         return { replyName, replyPicture };
@@ -418,22 +418,24 @@ function ReplyMessageItem({
 
     return (
         <li
-            class={`px-4 pt-4 hover:bg-[#32353B] w-full max-w-full flex flex-col pr-8 mobile:pr-4 group relative ${
+            class={`px-4 py-2 hover:bg-[#32353B] w-full max-w-full flex flex-col pr-8 mobile:pr-4 group relative ${
                 isMobile() ? "select-none" : ""
             }`}
         >
             {MessageActions(msg, emit)}
             <div class="w-full flex flex-row">
                 <div class="w-10 h-5 shrink-0">
-                    <div class="w-5 h-2.5 border-l-2 border-t-2 rounded-tl translate-y-2.5 translate-x-4 border-[#A3A6AA]" />
+                    <div class="w-5 h-2.5 border-l-2 border-t-2 rounded-tl translate-y-2.5 translate-x-4 border-[#4F5058]" />
                 </div>
-                <div class="flex flex-row justify-start items-center text-[#A3A6AA] gap-2 font-roboto text-sm">
+                <div class="flex flex-row w-full justify-start items-center text-[#A3A6AA] gap-2 font-roboto text-sm pr-5">
                     {replyTo
                         ? (
                             <>
-                                <Avatar class="h-4 w-4" picture={replyPicture || ""} />
-                                <div class="whitespace-nowrap">@{replyName}</div>
-                                <div class="overflow-hidden whitespace-nowrap text-overflow-ellipsis">
+                                <Avatar class="h-4 w-4 shrink-0" picture={replyPicture || ""} />
+                                <div class="whitespace-nowrap md:shrink-0 truncate w-30">
+                                    @{replyName}
+                                </div>
+                                <div class="overflow-hidden whitespace-nowrap truncate text-overflow-ellipsis w-[90%]">
                                     {replyTo.content}
                                 </div>
                             </>
