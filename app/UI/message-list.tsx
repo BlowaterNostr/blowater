@@ -409,24 +409,26 @@ function MessageItem(props: MessageItemProps) {
                 }`}
             >
                 {MessageActions(props.msg, props.emit)}
-                <div class="flex flex-row justify-start items-center text-[#A3A6AA] gap-2
-                        font-roboto text-sm">
-                    <div class="w-10 h-5">
+                <div class="w-full flex flex-row">
+                    <div class="w-10 h-5 shrink-0">
                         <div class="w-5 h-2.5 border-l-2 border-t-2 rounded-tl translate-y-2.5 translate-x-4 border-[#A3A6AA]" />
                     </div>
-                    <div
-                        class={`h-4 w-4`}
-                    >
-                        <Avatar
+                    <div class="flex flex-row justify-start items-center text-[#A3A6AA] gap-2
+                        font-roboto text-sm">
+                        <div
                             class={`h-4 w-4`}
-                            picture={replyPicture}
-                        />
-                    </div>
-                    <div class="whitespace-nowrap">
-                        @{replyName}
-                    </div>
-                    <div class="overflow-hidden whitespace-nowrap text-overflow-ellipsis ">
-                        {props.replyTo.content}
+                        >
+                            <Avatar
+                                class={`h-4 w-4`}
+                                picture={replyPicture}
+                            />
+                        </div>
+                        <div class="whitespace-nowrap">
+                            @{replyName}
+                        </div>
+                        <div class="overflow-hidden whitespace-nowrap text-overflow-ellipsis ">
+                            {props.replyTo.content}
+                        </div>
                     </div>
                 </div>
                 <div class="flex items-start">
