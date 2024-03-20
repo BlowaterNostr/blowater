@@ -355,7 +355,7 @@ function MessageItem(props: MessageItemProps) {
     } else if (props.mode == "head") {
         return (
             <li
-                class={`px-4 pt-2 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 mobile:pr-4 group relative ${
+                class={`px-4 pt-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 mobile:pr-4 group relative ${
                     isMobile() ? "select-none" : ""
                 }`}
             >
@@ -397,23 +397,35 @@ function MessageItem(props: MessageItemProps) {
             </li>
         );
     } else if (props.mode == "reply") {
-        const profile = props.getters.profileGetter.getProfilesByPublicKey(props.replyTo.publicKey)?.profile;
-        const picture = profile?.picture || robohash(props.replyTo.publicKey.hex);
-        const name = profile?.name || profile?.display_name || props.replyTo.publicKey.hex.slice(0, 6);
+        const replyProfile = props.getters.profileGetter.getProfilesByPublicKey(props.replyTo.publicKey)
+            ?.profile;
+        const replyPicture = replyProfile?.picture || robohash(props.replyTo.publicKey.hex);
+        const replyName = replyProfile?.name || replyProfile?.display_name ||
+            props.replyTo.publicKey.hex.slice(0, 6);
         return (
             <li
-                class={`px-4 pt-2 hover:bg-[#32353B] w-full max-w-full flex flex-col pr-8 mobile:pr-4 group relative ${
+                class={`px-4 pt-4 hover:bg-[#32353B] w-full max-w-full flex flex-col pr-8 mobile:pr-4 group relative ${
                     isMobile() ? "select-none" : ""
                 }`}
             >
                 {MessageActions(props.msg, props.emit)}
-                <div class="w-full flex flex-row">
-                    <Avatar
-                        class={`h-4 w-4  mt-[0.45rem] mr-2`}
-                        picture={picture}
-                    />
-                    <div>{name}</div>
-                    <div class="w-64 overflow-hidden whitespace-nowrap text-overflow-ellipsis">
+                <div class="flex flex-row justify-start items-center text-[#A3A6AA] gap-2
+                        font-roboto text-sm">
+                    <div class="w-10 h-5">
+                        <div class="w-5 h-2.5 border-l-2 border-t-2 rounded-tl translate-y-2.5 translate-x-4 border-[#A3A6AA]" />
+                    </div>
+                    <div
+                        class={`h-4 w-4`}
+                    >
+                        <Avatar
+                            class={`h-4 w-4`}
+                            picture={replyPicture}
+                        />
+                    </div>
+                    <div class="whitespace-nowrap">
+                        @{replyName}
+                    </div>
+                    <div class="overflow-hidden whitespace-nowrap text-overflow-ellipsis ">
                         {props.replyTo.content}
                     </div>
                 </div>
