@@ -71,25 +71,69 @@ export class MessageList extends Component<MessageListProps, MessageListState> {
     render() {
         console.log(this.state.offset, this.props.messages.length);
         const messages_to_render = this.sortAndSliceMessage();
-        const groups = groupContinuousMessages(messages_to_render, (pre, cur) => {
-            const sameAuthor = pre.event.pubkey == cur.event.pubkey;
-            const _66sec = Math.abs(cur.created_at.getTime() - pre.created_at.getTime()) <
-                1000 * 60;
-            return sameAuthor && _66sec;
-        });
+        let messagesModeArray: ("normal" | "head" | "reply")[] = [];
+        for (let i = messages_to_render.length - 1; i >= 0; i--) {
+            if (messages_to_render[i].event.parsedTags.e.length > 0) {
+                messagesModeArray[i] = "reply";
+                continue;
+            }
+            if (i == messages_to_render.length - 1) {
+                messagesModeArray[i] = "head";
+                continue;
+            }
+            if (
+                messages_to_render[i].event.pubkey == messages_to_render[i + 1].event.pubkey &&
+                Math.abs(
+                        messages_to_render[i].created_at.getTime() -
+                            messages_to_render[i + 1].created_at.getTime(),
+                    ) < 1000 * 60
+            ) {
+                if (messagesModeArray[i + 1] != "reply") messagesModeArray[i + 1] = "normal";
+                messagesModeArray[i] = "head";
+                continue;
+            }
+            messagesModeArray[i] = "head";
+        }
         const messageBoxGroups = [];
-        for (const messages of groups) {
-            const profileEvent = this.props.getters.profileGetter
-                .getProfilesByPublicKey(messages[0].author);
-            messageBoxGroups.push(
-                MessageBoxGroup({
-                    messages: messages,
-                    myPublicKey: this.props.myPublicKey,
-                    emit: this.props.emit,
-                    authorProfile: profileEvent ? profileEvent.profile : undefined,
-                    getters: this.props.getters,
-                }),
-            );
+        for (let i = 0; i < messages_to_render.length; i++) {
+            if (messagesModeArray[i] == "head") {
+                messageBoxGroups.push(
+                    <MessageItem
+                        mode={"head"}
+                        msg={messages_to_render[i]}
+                        emit={this.props.emit}
+                        getters={this.props.getters}
+                        authorProfile={this.props.getters.profileGetter.getProfilesByPublicKey(
+                            messages_to_render[i].author,
+                        )?.profile}
+                        myPublicKey={this.props.myPublicKey}
+                    />,
+                );
+            } else if (messagesModeArray[i] == "normal") {
+                messageBoxGroups.push(
+                    <MessageItem
+                        mode={"normal"}
+                        msg={messages_to_render[i]}
+                        emit={this.props.emit}
+                        getters={this.props.getters}
+                    />,
+                );
+            } else if (messagesModeArray[i] == "reply") {
+                const replyTo = this.props.getters.getEventByID(messages_to_render[i].event.parsedTags.e[0]);
+                messageBoxGroups.push(
+                    <MessageItem
+                        mode={"reply"}
+                        msg={messages_to_render[i]}
+                        emit={this.props.emit}
+                        getters={this.props.getters}
+                        authorProfile={this.props.getters.profileGetter.getProfilesByPublicKey(
+                            messages_to_render[i].author,
+                        )?.profile}
+                        myPublicKey={this.props.myPublicKey}
+                        replyTo={replyTo}
+                    />,
+                );
+            }
         }
 
         return (
@@ -187,26 +231,69 @@ export class MessageList_V0 extends Component<MessageListProps> {
 
     render() {
         const messages_to_render = this.sortAndSliceMessage();
-        console.log(messages_to_render);
-        const groups = groupContinuousMessages(messages_to_render, (pre, cur) => {
-            const sameAuthor = pre.event.pubkey == cur.event.pubkey;
-            const _66sec = Math.abs(cur.created_at.getTime() - pre.created_at.getTime()) <
-                1000 * 60;
-            return sameAuthor && _66sec;
-        });
+        let messagesModeArray: ("normal" | "head" | "reply")[] = [];
+        for (let i = messages_to_render.length - 1; i >= 0; i--) {
+            if (messages_to_render[i].event.parsedTags.e.length > 0) {
+                messagesModeArray[i] = "reply";
+                continue;
+            }
+            if (i == messages_to_render.length - 1) {
+                messagesModeArray[i] = "head";
+                continue;
+            }
+            if (
+                messages_to_render[i].event.pubkey == messages_to_render[i + 1].event.pubkey &&
+                Math.abs(
+                        messages_to_render[i].created_at.getTime() -
+                            messages_to_render[i + 1].created_at.getTime(),
+                    ) < 1000 * 60
+            ) {
+                if (messagesModeArray[i + 1] != "reply") messagesModeArray[i + 1] = "normal";
+                messagesModeArray[i] = "head";
+                continue;
+            }
+            messagesModeArray[i] = "head";
+        }
         const messageBoxGroups = [];
-        for (const messages of groups) {
-            const profileEvent = this.props.getters.profileGetter
-                .getProfilesByPublicKey(messages[0].author);
-            messageBoxGroups.push(
-                MessageBoxGroup({
-                    messages: messages,
-                    myPublicKey: this.props.myPublicKey,
-                    emit: this.props.emit,
-                    authorProfile: profileEvent ? profileEvent.profile : undefined,
-                    getters: this.props.getters,
-                }),
-            );
+        for (let i = 0; i < messages_to_render.length; i++) {
+            if (messagesModeArray[i] == "head") {
+                messageBoxGroups.push(
+                    <MessageItem
+                        mode={"head"}
+                        msg={messages_to_render[i]}
+                        emit={this.props.emit}
+                        getters={this.props.getters}
+                        authorProfile={this.props.getters.profileGetter.getProfilesByPublicKey(
+                            messages_to_render[i].author,
+                        )?.profile}
+                        myPublicKey={this.props.myPublicKey}
+                    />,
+                );
+            } else if (messagesModeArray[i] == "normal") {
+                messageBoxGroups.push(
+                    <MessageItem
+                        mode={"normal"}
+                        msg={messages_to_render[i]}
+                        emit={this.props.emit}
+                        getters={this.props.getters}
+                    />,
+                );
+            } else if (messagesModeArray[i] == "reply") {
+                const replyTo = this.props.getters.getEventByID(messages_to_render[i].event.parsedTags.e[0]);
+                messageBoxGroups.push(
+                    <MessageItem
+                        mode={"reply"}
+                        msg={messages_to_render[i]}
+                        emit={this.props.emit}
+                        getters={this.props.getters}
+                        authorProfile={this.props.getters.profileGetter.getProfilesByPublicKey(
+                            messages_to_render[i].author,
+                        )?.profile}
+                        myPublicKey={this.props.myPublicKey}
+                        replyTo={replyTo}
+                    />,
+                );
+            }
         }
 
         return (
@@ -274,20 +361,6 @@ export type func_GetEventByID = (
     id: string | NoteID,
 ) => Parsed_Event | undefined;
 
-interface MessageBoxGroupProps {
-    authorProfile: ProfileData | undefined;
-    messages: ChatMessage[];
-    myPublicKey: PublicKey;
-    emit: emitFunc<
-        DirectMessagePanelUpdate | ViewUserDetail | SelectConversation | SyncEvent
-    >;
-    getters: {
-        profileGetter: ProfileGetter;
-        relayRecordGetter: RelayRecordGetter;
-        getEventByID: func_GetEventByID;
-    };
-}
-
 type MessageItemProps = {
     mode: "normal";
     msg: ChatMessage;
@@ -325,7 +398,7 @@ type MessageItemProps = {
     };
     authorProfile: ProfileData | undefined;
     myPublicKey: PublicKey;
-    replyTo: Parsed_Event;
+    replyTo?: Parsed_Event;
 };
 
 function MessageItem(props: MessageItemProps) {
@@ -396,7 +469,65 @@ function MessageItem(props: MessageItemProps) {
                 </div>
             </li>
         );
-    } else if (props.mode == "reply") {
+    } else {
+        if (!props.replyTo) {
+            return (
+                <li
+                    class={`px-4 pt-4 hover:bg-[#32353B] w-full max-w-full flex flex-col pr-8 mobile:pr-4 group relative ${
+                        isMobile() ? "select-none" : ""
+                    }`}
+                >
+                    {MessageActions(props.msg, props.emit)}
+                    <div class="w-full flex flex-row">
+                        <div class="w-10 h-5 shrink-0">
+                            <div class="w-5 h-2.5 border-l-2 border-t-2 rounded-tl translate-y-2.5 translate-x-4 border-[#A3A6AA]" />
+                        </div>
+                        <div class="flex flex-row justify-start items-center text-[#A3A6AA] gap-2
+                        font-roboto text-sm">
+                            <div class="overflow-hidden whitespace-nowrap text-overflow-ellipsis ">
+                                {props.msg.event.parsedTags.e[0]}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <Avatar
+                            class={`h-8 w-8 mt-[0.45rem] mr-2`}
+                            picture={props.authorProfile?.picture ||
+                                robohash(props.msg.author.hex)}
+                            onClick={() => {
+                                props.emit({
+                                    type: "ViewUserDetail",
+                                    pubkey: props.msg.author,
+                                });
+                            }}
+                        />
+
+                        <div
+                            class={`flex-1`}
+                            style={{
+                                maxWidth: "calc(100% - 2.75rem)",
+                            }}
+                        >
+                            {NameAndTime(
+                                props.msg.author,
+                                props.authorProfile,
+                                props.myPublicKey,
+                                props.msg.created_at,
+                            )}
+                            <pre
+                                class={`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto text-sm`}
+                            >
+                    {ParseMessageContent(
+                        props.msg,
+                        props.emit,
+                        props.getters,
+                        )}
+                            </pre>
+                        </div>
+                    </div>
+                </li>
+            );
+        }
         const replyProfile = props.getters.profileGetter.getProfilesByPublicKey(props.replyTo.publicKey)
             ?.profile;
         const replyPicture = replyProfile?.picture || robohash(props.replyTo.publicKey.hex);
@@ -470,68 +601,6 @@ function MessageItem(props: MessageItemProps) {
             </li>
         );
     }
-    return <div>mode error</div>;
-}
-
-function MessageBoxGroup(props: MessageBoxGroupProps) {
-    const { messages, emit, getters, authorProfile, myPublicKey } = props;
-    const firstMessage = messages[0];
-    const hasReply = firstMessage.event.parsedTags.e.length > 0;
-    const replyTo = hasReply ? getters.getEventByID(firstMessage.event.parsedTags.e[0]) : null;
-
-    const messageItems = messages.map((msg, index) => {
-        if (index === 0) {
-            if (replyTo) {
-                return (
-                    <MessageItem
-                        mode={"reply"}
-                        msg={msg}
-                        emit={emit}
-                        getters={getters}
-                        authorProfile={authorProfile}
-                        myPublicKey={myPublicKey}
-                        replyTo={replyTo}
-                    />
-                );
-            } else {
-                return (
-                    <MessageItem
-                        mode={"head"}
-                        msg={msg}
-                        emit={emit}
-                        getters={getters}
-                        authorProfile={authorProfile}
-                        myPublicKey={myPublicKey}
-                    />
-                );
-            }
-        } else {
-            if (replyTo) {
-                return (
-                    <MessageItem
-                        mode={"reply"}
-                        msg={msg}
-                        emit={emit}
-                        getters={getters}
-                        authorProfile={authorProfile}
-                        myPublicKey={myPublicKey}
-                        replyTo={replyTo}
-                    />
-                );
-            } else {
-                return (
-                    <MessageItem
-                        mode={"normal"}
-                        msg={msg}
-                        emit={emit}
-                        getters={getters}
-                    />
-                );
-            }
-        }
-    });
-
-    return <Fragment>{messageItems}</Fragment>;
 }
 
 function MessageActions(
