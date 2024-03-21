@@ -287,12 +287,13 @@ function MessageBoxGroup(props: {
     const rows = [];
 
     // check if the first message is a reply message
-    // todo: make a isReply(event) function
-    let replyTo = undefined;
-    if (first_message.event.parsedTags.e.length > 0) {
-        const reply_to_event = props.getters.getEventByID(first_message.event.parsedTags.e[0]);
+    function isReply(event: Parsed_Event) {
+        if (event.parsedTags.e.length == 0) {
+            return;
+        }
+        const reply_to_event = props.getters.getEventByID(event.parsedTags.e[0]);
         if (!reply_to_event) {
-            console.error("reply_to_event not found", first_message.event.parsedTags.e[0]);
+            console.error("reply_to_event not found", event.parsedTags.e[0]);
             return;
         }
         let author = reply_to_event.publicKey.bech32();
@@ -305,9 +306,7 @@ function MessageBoxGroup(props: {
                 picture = profile.profile.picture || robohash(reply_to_event.publicKey.hex);
             }
         }
-        replyTo = (
-            <ReplyTo msg={first_message} replyTo={reply_to_event} replyName={author} replayPic={picture} />
-        );
+        return <ReplyTo msg={first_message} replyTo={event} replyName={author} replayPic={picture} />;
     }
 
     rows.push(
@@ -317,7 +316,7 @@ function MessageBoxGroup(props: {
             }`}
         >
             {MessageActions(first_message, props.emit)}
-            {replyTo}
+            {isReply(first_message.event)}
             <div class="flex items-start">
                 <Avatar
                     class={`h-8 w-8 mt-[0.45rem] mr-2`}
