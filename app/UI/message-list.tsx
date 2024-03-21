@@ -93,12 +93,12 @@ export class MessageList extends Component<Props, MessageListState> {
         }
 
         return (
-            <div class="w-full overflow-y-auto">
-                <button class={`${IconButtonClass}`} onClick={this.prePage}>
+            <div class="w-full flex flex-col overflow-auto">
+                <button class={`${IconButtonClass} shrink-0`} onClick={this.prePage}>
                     load earlier messages
                 </button>
                 {MessageListView(this.goToButtom, this.messagesULElement, messageBoxGroups)}
-                <button class={`${IconButtonClass}`} onClick={this.nextPage}>
+                <button class={`${IconButtonClass} shrink-0`} onClick={this.nextPage}>
                     load more messages
                 </button>
             </div>
