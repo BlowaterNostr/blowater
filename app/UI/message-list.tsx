@@ -31,7 +31,6 @@ import { BackgroundColor_MessagePanel, PrimaryTextColor } from "./style/colors.t
 import { Parsed_Event } from "../nostr.ts";
 import { NoteID } from "../../libs/nostr.ts/nip19.ts";
 import { robohash } from "./relay-detail.tsx";
-import { NostrEvent } from "../../libs/nostr.ts/nostr.ts";
 
 interface Props {
     myPublicKey: PublicKey;
@@ -293,8 +292,7 @@ function MessageBoxGroup(props: {
         }
         const reply_to_event = props.getters.getEventByID(event.parsedTags.e[0]);
         if (!reply_to_event) {
-            console.error("reply_to_event not found", event.parsedTags.e[0]);
-            return;
+            return <ReplyTo unknown noteId={NoteID.FromString(event.parsedTags.e[0])} />;
         }
         let author = reply_to_event.publicKey.bech32();
         let picture = robohash(reply_to_event.publicKey.hex);
@@ -306,7 +304,7 @@ function MessageBoxGroup(props: {
                 picture = profile.profile.picture || robohash(reply_to_event.publicKey.hex);
             }
         }
-        return <ReplyTo msg={first_message} replyTo={event} replyName={author} replayPic={picture} />;
+        return <ReplyTo content={event.content} replyName={author} replayPic={picture} />;
     }
 
     rows.push(
@@ -430,29 +428,34 @@ function last<T>(array: Array<T>): T | undefined {
     }
 }
 
-function ReplyTo(props: { msg: ChatMessage; replyTo?: NostrEvent; replyName: string; replayPic: string }) {
+function ReplyTo(
+    props: { unknown?: false; content: string; replyName: string; replayPic: string } | {
+        unknown: true;
+        noteId: NoteID;
+    },
+) {
     return (
         <div class="w-full flex flex-row">
             <div class="w-10 h-5 shrink-0">
                 <div class="w-5 h-2.5 border-l-2 border-t-2 rounded-tl translate-y-2.5 translate-x-4 border-[#4F5058]" />
             </div>
             <div class="flex flex-row w-full justify-start items-center text-[#A3A6AA] gap-2 font-roboto text-sm pr-5">
-                {props.replyTo
+                {props.unknown
                     ? (
+                        <div class="overflow-hidden whitespace-nowrap text-overflow-ellipsis">
+                            {props.noteId.bech32()}
+                        </div>
+                    )
+                    : (
                         <>
-                            <Avatar class="h-4 w-4 shrink-0" picture={props.replayPic} />
+                            <Avatar class="h-4 w-4 shrink-0" picture={props.replayPic || ""} />
                             <div class="whitespace-nowrap md:shrink-0 truncate w-30">
                                 @{props.replyName}
                             </div>
                             <div class="overflow-hidden whitespace-nowrap truncate text-overflow-ellipsis w-[90%]">
-                                {props.replyTo.content}
+                                {props.content}
                             </div>
                         </>
-                    )
-                    : (
-                        <div class="overflow-hidden whitespace-nowrap text-overflow-ellipsis">
-                            {props.msg.event.parsedTags.e[0]}
-                        </div>
                     )}
             </div>
         </div>
