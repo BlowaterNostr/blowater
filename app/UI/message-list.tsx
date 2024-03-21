@@ -1,4 +1,11 @@
-import { Component, ComponentChildren, createRef, h, RefObject } from "https://esm.sh/preact@10.17.1";
+import {
+    Component,
+    ComponentChildren,
+    createRef,
+    Fragment,
+    h,
+    RefObject,
+} from "https://esm.sh/preact@10.17.1";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { RelayRecordGetter } from "../database.ts";
 import { emitFunc } from "../event-bus.ts";
@@ -283,26 +290,35 @@ function MessageBoxGroup(props: {
     // todo: make a isReply(event) function
     let replyTo = undefined;
     if (first_message.event.parsedTags.e.length > 0) {
-        const reply_to_event = props.getters.getEventByID(first_message.event.parsedTags.e[0][0]);
-        let author = undefined;
-        if (reply_to_event?.pubkey) {
+        const reply_to_event = props.getters.getEventByID(first_message.event.parsedTags.e[0]);
+        if (!reply_to_event) {
+            console.error("reply_to_event not found", first_message.event.parsedTags.e[0]);
+            return;
+        }
+        let author = reply_to_event.publicKey.bech32();
+        let picture = robohash(reply_to_event.publicKey.hex);
+        if (reply_to_event.pubkey) {
             const profile = props.getters.profileGetter.getProfilesByPublicKey(reply_to_event.publicKey);
             if (profile) {
-                author = profile.profile.name;
+                author = profile.profile.name || profile.profile.display_name ||
+                    reply_to_event?.publicKey.bech32();
+                picture = profile.profile.picture || robohash(reply_to_event.publicKey.hex);
             }
         }
-        replyTo = <ReplyTo replyTo={reply_to_event} replyName={author} />;
+        replyTo = (
+            <ReplyTo msg={first_message} replyTo={reply_to_event} replyName={author} replayPic={picture} />
+        );
     }
 
     rows.push(
-        <div>
+        <li
+            class={`px-4 hover:bg-[#32353B] w-full max-w-full flex flex-col pr-8 mobile:pr-4 group relative ${
+                isMobile() ? "select-none" : ""
+            }`}
+        >
+            {MessageActions(first_message, props.emit)}
             {replyTo}
-            <li
-                class={`px-4 hover:bg-[#32353B] w-full max-w-full flex items-start pr-8 mobile:pr-4 group relative ${
-                    isMobile() ? "select-none" : ""
-                }`}
-            >
-                {MessageActions(first_message, props.emit)}
+            <div class="flex items-start">
                 <Avatar
                     class={`h-8 w-8 mt-[0.45rem] mr-2`}
                     picture={props.authorProfile?.picture ||
@@ -330,15 +346,15 @@ function MessageBoxGroup(props: {
                     <pre
                         class={`text-[#DCDDDE] whitespace-pre-wrap break-words font-roboto text-sm`}
                     >
-                    {ParseMessageContent(
-                        first_message,
-                        props.emit,
-                        props.getters,
-                        )}
+                {ParseMessageContent(
+                   first_message,
+                    props.emit,
+                    props.getters,
+                    )}
                     </pre>
                 </div>
-            </li>
-        </div>,
+            </div>
+        </li>,
     );
 
     for (let i = 1; i < props.messages.length; i++) {
@@ -415,22 +431,30 @@ function last<T>(array: Array<T>): T | undefined {
     }
 }
 
-function ReplyTo(props: { replyTo?: NostrEvent; replyName?: string; replayPic?: string }) {
+function ReplyTo(props: { msg: ChatMessage; replyTo?: NostrEvent; replyName: string; replayPic: string }) {
     return (
         <div class="w-full flex flex-row">
             <div class="w-10 h-5 shrink-0">
                 <div class="w-5 h-2.5 border-l-2 border-t-2 rounded-tl translate-y-2.5 translate-x-4 border-[#4F5058]" />
             </div>
             <div class="flex flex-row w-full justify-start items-center text-[#A3A6AA] gap-2 font-roboto text-sm pr-5">
-                <div>
-                    <Avatar class="h-4 w-4 shrink-0" picture={props.replayPic || ""} />
-                    <div class="whitespace-nowrap md:shrink-0 truncate w-30">
-                        @{props.replyName}
-                    </div>
-                    <div class="overflow-hidden whitespace-nowrap truncate text-overflow-ellipsis w-[90%]">
-                        {props.replyTo?.content}
-                    </div>
-                </div>
+                {props.replyTo
+                    ? (
+                        <>
+                            <Avatar class="h-4 w-4 shrink-0" picture={props.replayPic} />
+                            <div class="whitespace-nowrap md:shrink-0 truncate w-30">
+                                @{props.replyName}
+                            </div>
+                            <div class="overflow-hidden whitespace-nowrap truncate text-overflow-ellipsis w-[90%]">
+                                {props.replyTo.content}
+                            </div>
+                        </>
+                    )
+                    : (
+                        <div class="overflow-hidden whitespace-nowrap text-overflow-ellipsis">
+                            {props.msg.event.parsedTags.e[0]}
+                        </div>
+                    )}
             </div>
         </div>
     );
