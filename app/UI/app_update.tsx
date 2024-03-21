@@ -312,6 +312,7 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
         // DM
         //
         else if (event.type == "ViewUserDetail") {
+            sync_user_detail_data({ pool, pubkey: event.pubkey, database: app.database, profile_only: true });
             app.rightPanelInputChan.put(
                 () => {
                     return (
@@ -439,25 +440,7 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
         } else if (event.type == "FilterContent") {
             const pubkey = PublicKey.FromBech32(event.content.trim());
             if (pubkey instanceof PublicKey) {
-                (async () => {
-                    const sub = await pool.newSub(pubkey.bech32(), {
-                        kinds: [NostrKind.TEXT_NOTE],
-                        authors: [pubkey.hex],
-                    });
-                    if (sub instanceof Error) {
-                        console.error(sub);
-                        await pool.closeSub(pubkey.bech32());
-                        return;
-                    }
-                    for await (const msg of sub.chan) {
-                        if (msg.res.type == "EOSE") {
-                            break;
-                        } else if (msg.res.type == "EVENT") {
-                            await app.database.addEvent(msg.res.event);
-                        }
-                    }
-                    await pool.closeSub(pubkey.bech32());
-                })();
+                sync_user_detail_data({ pool, pubkey, database: app.database });
             }
         } else {
             console.log(event, "is not handled");
@@ -660,4 +643,30 @@ export function generateTags(content: string, getEventByID: func_GetEventByID, c
         tags.push(["p", v]);
     });
     return tags;
+}
+
+async function sync_user_detail_data(
+    args: { pool: ConnectionPool; pubkey: PublicKey; database: Database_View; profile_only?: boolean },
+) {
+    const kinds = [NostrKind.META_DATA];
+    if (!args.profile_only) {
+        kinds.push(NostrKind.TEXT_NOTE);
+    }
+    const sub = await args.pool.newSub(args.pubkey.bech32(), {
+        kinds,
+        authors: [args.pubkey.hex],
+    });
+    if (sub instanceof Error) {
+        console.error(sub);
+        await args.pool.closeSub(args.pubkey.bech32());
+        return;
+    }
+    for await (const msg of sub.chan) {
+        if (msg.res.type == "EOSE") {
+            break;
+        } else if (msg.res.type == "EVENT") {
+            await args.database.addEvent(msg.res.event);
+        }
+    }
+    await args.pool.closeSub(args.pubkey.bech32());
 }
