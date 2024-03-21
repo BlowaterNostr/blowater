@@ -304,7 +304,7 @@ function MessageBoxGroup(props: {
                 picture = profile.profile.picture || robohash(reply_to_event.publicKey.hex);
             }
         }
-        return <ReplyTo content={event.content} replyName={author} replayPic={picture} />;
+        return <ReplyTo content={reply_to_event.content} replyName={author} replayPic={picture} />;
     }
 
     rows.push(
