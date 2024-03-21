@@ -81,7 +81,7 @@ export class MessageList extends Component<Props, MessageListState> {
             const sameAuthor = pre.event.pubkey == cur.event.pubkey;
             const _66sec = Math.abs(cur.created_at.getTime() - pre.created_at.getTime()) <
                 1000 * 60;
-            const is_not_reply = cur.event.parsedTags.e.length > 0; // todo: make a isReply(event) function
+            const is_not_reply = cur.event.parsedTags.e.length === 0; // todo: make a isReply(event) function
             return sameAuthor && _66sec && is_not_reply;
         });
         const messageBoxGroups = [];
