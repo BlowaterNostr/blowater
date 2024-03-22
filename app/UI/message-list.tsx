@@ -31,8 +31,6 @@ import { BackgroundColor_MessagePanel, PrimaryTextColor } from "./style/colors.t
 import { Parsed_Event } from "../nostr.ts";
 import { NoteID } from "../../libs/nostr.ts/nip19.ts";
 import { robohash } from "./relay-detail.tsx";
-import { DirectedMessage_Event } from "../nostr.ts";
-import { NostrKind } from "../../libs/nostr.ts/nostr.ts";
 
 interface Props {
     myPublicKey: PublicKey;
