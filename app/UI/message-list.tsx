@@ -31,6 +31,8 @@ import { BackgroundColor_MessagePanel, PrimaryTextColor } from "./style/colors.t
 import { Parsed_Event } from "../nostr.ts";
 import { NoteID } from "../../libs/nostr.ts/nip19.ts";
 import { robohash } from "./relay-detail.tsx";
+import { DirectedMessage_Event } from "../nostr.ts";
+import { NostrKind } from "../../libs/nostr.ts/nostr.ts";
 
 interface Props {
     myPublicKey: PublicKey;
@@ -81,8 +83,7 @@ export class MessageList extends Component<Props, MessageListState> {
             const sameAuthor = pre.event.pubkey == cur.event.pubkey;
             const _66sec = Math.abs(cur.created_at.getTime() - pre.created_at.getTime()) <
                 1000 * 60;
-            const is_not_reply = cur.event.parsedTags.e.length === 0; // todo: make a isReply(event) function
-            return sameAuthor && _66sec && is_not_reply;
+            return sameAuthor && _66sec && !isReply(cur.event);
         });
         const messageBoxGroups = [];
         for (const messages of groups) {
@@ -285,28 +286,6 @@ function MessageBoxGroup(props: {
     const first_message = props.messages[0];
     const rows = [];
 
-    // check if the first message is a reply message
-    function isReply(event: Parsed_Event) {
-        if (event.parsedTags.e.length == 0) {
-            return;
-        }
-        const reply_to_event = props.getters.getEventByID(event.parsedTags.e[0]);
-        if (!reply_to_event) {
-            return <ReplyTo unknown noteId={NoteID.FromString(event.parsedTags.e[0])} />;
-        }
-        let author = reply_to_event.publicKey.bech32();
-        let picture = robohash(reply_to_event.publicKey.hex);
-        if (reply_to_event.pubkey) {
-            const profile = props.getters.profileGetter.getProfilesByPublicKey(reply_to_event.publicKey);
-            if (profile) {
-                author = profile.profile.name || profile.profile.display_name ||
-                    reply_to_event?.publicKey.bech32();
-                picture = profile.profile.picture || robohash(reply_to_event.publicKey.hex);
-            }
-        }
-        return <ReplyTo content={reply_to_event.content} replyName={author} replayPic={picture} />;
-    }
-
     rows.push(
         <li
             class={`px-4 hover:bg-[#32353B] w-full max-w-full flex flex-col pr-8 mobile:pr-4 group relative ${
@@ -314,7 +293,7 @@ function MessageBoxGroup(props: {
             }`}
         >
             {MessageActions(first_message, props.emit)}
-            {isReply(first_message.event)}
+            {renderRelply(first_message.event, props.getters)}
             <div class="flex items-start">
                 <Avatar
                     class={`h-8 w-8 mt-[0.45rem] mr-2`}
@@ -426,6 +405,33 @@ function last<T>(array: Array<T>): T | undefined {
     } else {
         return array[array.length - 1];
     }
+}
+
+function isReply(event: Parsed_Event) {
+    return event.parsedTags.reply || event.parsedTags.root || event.parsedTags.e.length != 0;
+}
+
+function renderRelply(event: Parsed_Event, getters: {
+    getEventByID: func_GetEventByID;
+    profileGetter: ProfileGetter;
+}) {
+    if (!isReply(event)) return;
+    const replyEventId = event.parsedTags.reply?.[0] || event.parsedTags.root?.[0] || event.parsedTags.e[0];
+    const reply_to_event = getters.getEventByID(replyEventId);
+    if (!reply_to_event) {
+        return <ReplyTo unknown noteId={NoteID.FromString(replyEventId)} />;
+    }
+    let author = reply_to_event.publicKey.bech32();
+    let picture = robohash(reply_to_event.publicKey.hex);
+    if (reply_to_event.pubkey) {
+        const profile = getters.profileGetter.getProfilesByPublicKey(reply_to_event.publicKey);
+        if (profile) {
+            author = profile.profile.name || profile.profile.display_name ||
+                reply_to_event?.publicKey.bech32();
+            picture = profile.profile.picture || robohash(reply_to_event.publicKey.hex);
+        }
+    }
+    return <ReplyTo content={reply_to_event.content} replyName={author} replayPic={picture} />;
 }
 
 function ReplyTo(
