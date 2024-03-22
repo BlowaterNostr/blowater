@@ -228,7 +228,7 @@ function TextField(props: {
 export async function getRelayInformation(url: string) {
     try {
         const httpURL = new URL(url);
-        httpURL.protocol = "https";
+        httpURL.protocol = httpURL.protocol == "wss:" ? "https" : "http";
         const res = await fetch(httpURL, {
             headers: {
                 "accept": "application/nostr+json",
