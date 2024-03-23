@@ -46,7 +46,7 @@ type EditorProps = {
         getEventByID: func_GetEventByID;
         profileGetter: ProfileGetter;
     };
-}
+};
 
 export type EditorState = {
     text: string;
