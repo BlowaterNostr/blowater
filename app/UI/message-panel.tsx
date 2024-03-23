@@ -83,7 +83,6 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
                     />
 
                     <Editor
-                        replyToEventID={undefined}
                         maxHeight="30vh"
                         emit={props.emit}
                         placeholder=""
@@ -114,7 +113,6 @@ export class MessagePanel_V0 extends Component<DirectMessagePanelProps> {
                     />
 
                     <Editor
-                        replyToEventID={undefined}
                         maxHeight="30vh"
                         emit={props.emit}
                         placeholder=""

@@ -24,14 +24,6 @@ export type SendMessage = {
     readonly files: Blob[];
 };
 
-type EditorID = {
-    type: "Pubkey";
-    pubkey: PublicKey;
-} | {
-    type: "relay";
-    relay: string;
-};
-
 export type UpdateEditorText = {
     readonly type: "UpdateEditorText";
     readonly pubkey: PublicKey;
@@ -45,7 +37,8 @@ export type UpdateMessageFiles = {
     readonly files: Blob[];
 };
 
-type EditorCommonProps = {
+type EditorProps = {
+    readonly replyToEventID?: string | NoteID;
     readonly placeholder: string;
     readonly maxHeight: string;
     readonly emit: emitFunc<EditorEvent>;
@@ -53,15 +46,7 @@ type EditorCommonProps = {
         getEventByID: func_GetEventByID;
         profileGetter: ProfileGetter;
     };
-};
-
-type EditorProps =
-    | {
-        readonly replyToEventID: undefined;
-    } & EditorCommonProps
-    | {
-        readonly replyToEventID: string | NoteID;
-    } & EditorCommonProps;
+}
 
 export type EditorState = {
     text: string;
