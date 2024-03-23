@@ -266,20 +266,23 @@ function ReplyIndicator(props: {
         return undefined;
     }
     const profile = props.getters.profileGetter.getProfilesByPublicKey(ctx)?.profile;
-    const replyToAuthor = profile?.name || profile?.display_name || ctx.bech32();
+    let replyToAuthor = profile?.name || profile?.display_name;
+    if (!replyToAuthor) {
+        replyToAuthor = ctx.bech32();
+    } else {
+        replyToAuthor = `@${replyToAuthor}`;
+    }
     return (
-        <div
-            class={`h-10 w-full flex flex-row justify-between items-center
-        text-[#B6BAC0] bg-[#2B2D31] px-4 rounded-t-lg`}
-        >
-            <button>
-                <div>
-                    Replying to <span class="font-bold">{replyToAuthor}</span>
+        <div class="h-10 w-full flex flex-row justify-between items-center text-[#B6BAC0] bg-[#2B2D31] px-4 rounded-t-lg">
+            <button class="w-3/4">
+                <div class="overflow-hidden whitespace-nowrap truncate">
+                    {`Replying to `}
+                    <span class="font-bold">
+                        {replyToAuthor}
+                    </span>
                 </div>
             </button>
-            <button
-                class={`h-6 w-6 flex justify-center items-center`}
-            >
+            <button class="h-6 w-6 flex justify-center items-center shrink-0">
                 <XCircleIcon class="h-4 w-4" />
             </button>
         </div>
