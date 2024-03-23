@@ -261,7 +261,7 @@ function ReplyIndicator(props: {
     return (
         <div class="h-10 w-full flex flex-row justify-between items-center text-[#B6BAC0] bg-[#2B2D31] px-4 rounded-t-lg">
             <button class="w-3/4">
-                <div class="overflow-hidden whitespace-nowrap truncate">
+                <div class="text-left overflow-hidden whitespace-nowrap truncate">
                     {`Replying to `}
                     <span class="font-bold">
                         {replyToAuthor}
