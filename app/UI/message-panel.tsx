@@ -86,6 +86,10 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
                         maxHeight="30vh"
                         emit={props.emit}
                         placeholder=""
+                        getters={{
+                            profileGetter: props.getters.profileGetter,
+                            getEventByID: props.getters.getEventByID,
+                        }}
                     />
                 </div>
             </div>
@@ -112,6 +116,10 @@ export class MessagePanel_V0 extends Component<DirectMessagePanelProps> {
                         maxHeight="30vh"
                         emit={props.emit}
                         placeholder=""
+                        getters={{
+                            profileGetter: props.getters.profileGetter,
+                            getEventByID: props.getters.getEventByID,
+                        }}
                     />
                 </div>
             </div>
