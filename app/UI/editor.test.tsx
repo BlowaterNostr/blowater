@@ -6,6 +6,7 @@ import { testEventBus } from "./_setup.test.ts";
 let vdom = (
     <div class="border">
         <Editor
+            reply
             placeholder="Message @xxx"
             maxHeight="50vh"
             emit={testEventBus.emit}
