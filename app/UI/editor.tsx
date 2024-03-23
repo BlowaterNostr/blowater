@@ -12,6 +12,9 @@ import { Component } from "https://esm.sh/preact@10.17.1";
 import { RemoveIcon } from "./icons/remove-icon.tsx";
 import { isMobile, setState } from "./_helper.ts";
 import { XCircleIcon } from "./icons/x-circle-icon.tsx";
+import { func_GetEventByID } from "./message-list.tsx";
+import { ProfileGetter } from "./search.tsx";
+import { NoteID } from "../../libs/nostr.ts/nip19.ts";
 
 export type EditorEvent = SendMessage | UpdateEditorText | UpdateMessageFiles;
 
@@ -46,14 +49,18 @@ type EditorCommonProps = {
     readonly placeholder: string;
     readonly maxHeight: string;
     readonly emit: emitFunc<EditorEvent>;
+    readonly getters: {
+        getEventByID: func_GetEventByID;
+        profileGetter: ProfileGetter;
+    };
 };
 
 type EditorProps =
     | {
-        readonly reply?: false;
+        readonly replyToEventID: undefined;
     } & EditorCommonProps
     | {
-        readonly reply: true;
+        readonly replyToEventID: string | NoteID;
     } & EditorCommonProps;
 
 export type EditorState = {
@@ -96,7 +103,9 @@ export class Editor extends Component<EditorProps, EditorState> {
 
         return (
             <div class={`flex flex-col mb-4 mx-4 justify-center bg-[${DividerBackgroundColor}] rounded-lg`}>
-                {props.reply? (ReplyIndicator({ text: "Replying to @xxx" })): undefined}
+                {props.replyToEventID
+                    ? (ReplyIndicator({ replyToEventID: props.replyToEventID, getters: props.getters }))
+                    : undefined}
                 <div class={`w-full flex items-center`}>
                     <button
                         class={`min-w-[3rem] w-[3rem] h-[3rem] hover:bg-[${DividerBackgroundColor}] group ${CenterClass} rounded-[50%] ${NoOutlineClass}`}
@@ -245,7 +254,19 @@ export class Editor extends Component<EditorProps, EditorState> {
     }
 }
 
-function ReplyIndicator(props: {}) {
+function ReplyIndicator(props: {
+    replyToEventID: string | NoteID;
+    getters: {
+        getEventByID: func_GetEventByID;
+        profileGetter: ProfileGetter;
+    };
+}) {
+    const ctx = props.getters.getEventByID(props.replyToEventID)?.publicKey;
+    if (!ctx) {
+        return undefined;
+    }
+    const profile = props.getters.profileGetter.getProfilesByPublicKey(ctx)?.profile;
+    const replyToAuthor = profile?.name || profile?.display_name || ctx.bech32();
     return (
         <div
             class={`h-10 w-full flex flex-row justify-between items-center
@@ -253,7 +274,7 @@ function ReplyIndicator(props: {}) {
         >
             <button>
                 <div>
-                    Replying to <span class="font-bold">Bob</span>
+                    Replying to <span class="font-bold">{replyToAuthor}</span>
                 </div>
             </button>
             <button
