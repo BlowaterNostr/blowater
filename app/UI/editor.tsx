@@ -88,9 +88,7 @@ export class Editor extends Component<EditorProps, EditorState> {
 
         return (
             <div class={`flex flex-col mb-4 mx-4 justify-center bg-[${DividerBackgroundColor}] rounded-lg`}>
-                {props.replyToEventID
-                    ? (ReplyIndicator({ replyToEventID: props.replyToEventID, getters: props.getters }))
-                    : undefined}
+                {ReplyIndicator({ replyToEventID: props.replyToEventID, getters: props.getters })}
                 <div class={`w-full flex items-center`}>
                     <button
                         class={`min-w-[3rem] w-[3rem] h-[3rem] hover:bg-[${DividerBackgroundColor}] group ${CenterClass} rounded-[50%] ${NoOutlineClass}`}
@@ -240,12 +238,15 @@ export class Editor extends Component<EditorProps, EditorState> {
 }
 
 function ReplyIndicator(props: {
-    replyToEventID: string | NoteID;
+    replyToEventID?: string | NoteID;
     getters: {
         getEventByID: func_GetEventByID;
         profileGetter: ProfileGetter;
     };
 }) {
+    if (!props.replyToEventID) {
+        return undefined;
+    }
     const ctx = props.getters.getEventByID(props.replyToEventID)?.publicKey;
     if (!ctx) {
         return undefined;
