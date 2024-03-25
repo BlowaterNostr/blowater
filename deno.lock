@@ -1,5 +1,8 @@
 {
   "version": "3",
+  "redirects": {
+    "https://esm.sh/v135/@types/bloomfilter@~0.0/index.d.ts": "https://esm.sh/v135/@types/bloomfilter@0.0.2/index.d.ts"
+  },
   "remote": {
     "https://deno.land/std@0.140.0/_util/assert.ts": "e94f2eb37cebd7f199952e242c77654e43333c1ac4c5c700e929ea3aa5489f74",
     "https://deno.land/std@0.140.0/_util/os.ts": "3b4c6e27febd119d36a416d7a97bd3b0251b77c88942c8f16ee5953ea13e2e49",
@@ -140,6 +143,7 @@
     "https://esm.sh/@scure/bip32@1.3.2": "8f8111ae2b0865644daf69d6b0d8ea76bb15112453f5dc697ba29b44b527b26c",
     "https://esm.sh/@scure/bip39@1.2.1": "7d6cdfce191281c81406e55de5216714dd22b19790123b652421bbf9718e5057",
     "https://esm.sh/@scure/bip39@1.2.1/wordlists/english": "c35eb105736c233557d56607751a855ee4685e8097ff0784106d01cf9c81e6b1",
+    "https://esm.sh/bloomfilter@0.0.18": "06d402a045107e35b6fa7f50ffb30df9e199b705393a4955afa8ef3da82136ac",
     "https://esm.sh/preact@10.11.3": "ad3c24796c4132c84b4b392f812228d53a0fd600fa64648f27aebd05ec09b24e",
     "https://esm.sh/preact@10.17.1": "d9d10d95cd047fd2c26bb68e760a87d3747fafc64a1e54049095682c69c7491a",
     "https://esm.sh/stable/preact@10.11.3/denonext/preact.mjs": "c828d9020ea26f07ba07b2f0a3ef97fd7ceb1c2a772c380ca05e2647ac8d3923",
@@ -177,6 +181,7 @@
     "https://esm.sh/v135/@noble/hashes@1.3.3/denonext/sha256.js": "762e0b0cbde1990fc905eb816d30cdc0cf7dd4c23d123408c6963294f124f97d",
     "https://esm.sh/v135/@noble/hashes@1.3.3/denonext/utils.js": "701831e12a7e656df467b62f929ac9536ababef1b9b7445c7f87512366ae3933",
     "https://esm.sh/v135/@scure/base@1.1.5/denonext/base.mjs": "442a66c701330f27adff8b2fa6067308ff9a82b8e178c8482882ff4aa7dfee82",
+    "https://esm.sh/v135/bloomfilter@0.0.18/denonext/bloomfilter.mjs": "56ce20cefcd1a3c46d388b2c9dd7209564f85b5d98ee166b9b295cad2386bd43",
     "https://esm.sh/v135/dexie@3.2.4/denonext/dist/dexie.js": "20d7fea3aad3a1b5d91b7d43590df26f3132c429b731d2dd77697d2a60f67a79",
     "https://esm.sh/v135/dexie@3.2.4/dist/dexie.js": "09d2f84b77cc12ac170004634c8560bc7d40a43920ff99166a269a034c48704b",
     "https://esm.sh/v135/style-vendorizer@2.2.3/denonext/style-vendorizer.mjs": "121455e7b04b631ef6463ce63cdcd29febd74d88c37713c774ceca8a1561c83d",
