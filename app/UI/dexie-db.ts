@@ -17,9 +17,9 @@ export class DexieDatabase extends Dexie implements EventsAdapter, RelayRecorder
 
     constructor() {
         super("Events");
-        this.version(20).stores({
+        this.version(21).stores({
             events: "&id, created_at, kind, tags, pubkey", // indices
-            relayRecords: "[url+event_id]", // RelayRecord
+            relayRecords: "[url+event_id], event_id", // RelayRecord
             eventMarks: "&event_id, reason", // RemoveRecords
         });
     }
@@ -43,6 +43,11 @@ export class DexieDatabase extends Dexie implements EventsAdapter, RelayRecorder
             url: url,
             event_id: eventID,
         });
+    }
+
+    async getRelayRecord(eventID: string): Promise<Set<string>> {
+        const records = await this.relayRecords.where("event_id").equals(eventID).toArray();
+        return new Set(records.map((r) => r.url));
     }
 
     getAllRelayRecords = async () => {

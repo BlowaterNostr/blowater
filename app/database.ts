@@ -33,6 +33,7 @@ export interface EventPutter {
 
 export interface RelayRecordSetter {
     setRelayRecord: (eventID: string, url: string) => Promise<void>;
+    getRelayRecord: (eventID: string) => Promise<Set<string>>;
 }
 
 export interface AllRelayRecordGetter {
@@ -58,7 +59,7 @@ export type EventsAdapter =
     & EventPutter;
 
 export interface RelayRecordGetter {
-    getRelayRecord: (eventID: string) => Set<string>;
+    getRelayRecord: (eventID: string) => Promise<Set<string>>;
 }
 
 export class Database_View implements ProfileSetter, ProfileGetter, EventRemover, RelayRecordGetter {
@@ -72,7 +73,6 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
         private readonly eventMarker: EventMarker,
         private readonly events: Map<string, Parsed_Event>,
         private readonly removedEvents: Set<string>,
-        private readonly relayRecords: Map<string, Set<string>>,
     ) {}
 
     static async New(
@@ -103,7 +103,7 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
         console.log("Datebase_View:parsed", Date.now() - t);
 
         const all_removed_events = await eventMarker.getAllMarks();
-        const all_relay_records = await relayAdapter.getAllRelayRecords();
+        // const all_relay_records = await relayAdapter.getAllRelayRecords();
         // Construct the View
         const db = new Database_View(
             eventsAdapter,
@@ -111,7 +111,6 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
             eventMarker,
             initialEvents,
             new Set(all_removed_events.map((mark) => mark.event_id)),
-            all_relay_records,
         );
         console.log("Datebase_View:New time spent", Date.now() - t);
         for (const e of db.events.values()) {
@@ -153,8 +152,8 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
         await this.eventMarker.markEvent(id, "removed");
     }
 
-    getRelayRecord(eventID: string) {
-        const relays = this.relayRecords.get(eventID);
+    async getRelayRecord(eventID: string) {
+        const relays = await this.relayRecorder.getRelayRecord(eventID);
         if (relays == undefined) {
             return new Set<string>();
         }
@@ -277,16 +276,12 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
     }
 
     private async recordRelay(eventID: string, url: string) {
-        await this.relayRecorder.setRelayRecord(eventID, url);
-        const records = this.relayRecords.get(eventID);
-        if (records) {
-            const size = records.size;
-            records.add(url);
-            return records.size > size;
-        } else {
-            this.relayRecords.set(eventID, new Set([url]));
-            return true;
+        const relayRecordSet = await this.relayRecorder.getRelayRecord(eventID);
+        if (relayRecordSet.has(url)) {
+            return false;
         }
+        await this.relayRecorder.setRelayRecord(eventID, url);
+        return true;
     }
 }
 

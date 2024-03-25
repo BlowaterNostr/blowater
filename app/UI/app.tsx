@@ -193,12 +193,15 @@ export class App {
 
         (async () => {
             // load DMs
+            let t = Date.now();
+            let i = 0;
             for (const e of all_events) {
                 if (e.kind == NostrKind.DIRECT_MESSAGE) {
                     const error = await dmController.addEvent({
                         ...e,
                         kind: e.kind,
                     });
+                    i++;
                     if (error instanceof Error) {
                         console.error(error.message);
                         if (error instanceof InvalidKey) {
@@ -209,6 +212,7 @@ export class App {
                     continue;
                 }
             }
+            console.log(`load DMs: ${i} events, ${Date.now() - t} ms`);
         })();
 
         const app = new App(
@@ -292,11 +296,47 @@ type AppProps = {
     installPrompt: InstallPrompt;
 };
 
-export class AppComponent extends Component<AppProps> {
+type AppState = {
+    publicMessages: ChatMessage[];
+};
+
+export class AppComponent extends Component<AppProps, AppState> {
+    state = {
+        publicMessages: [],
+    };
     events = this.props.eventBus.onChange();
 
     componentWillUnmount() {
         this.events.close();
+    }
+
+    async componentDidMount() {
+        for await (const UI_Interaction_Event of this.events) {
+            if (UI_Interaction_Event.type !== "SelectRelay" || !this.props.model.app) continue;
+
+            const { app } = this.props.model;
+            const allEvents = Array.from(app.database.getAllEvents());
+
+            const filteredEvents = await Promise.all(allEvents.map(async (e) => {
+                if (e.kind !== NostrKind.TEXT_NOTE) return null;
+                const relays = await app.database.getRelayRecord(e.id);
+                return relays.has(this.props.model.currentRelay) ? e : null;
+            }));
+
+            const publicMessages = filteredEvents.map((e) => {
+                if (e === null) return null;
+                return {
+                    author: e.publicKey,
+                    content: e.content,
+                    created_at: new Date(e.created_at * 1000),
+                    event: e,
+                    lamport: getTags(e).lamport_timestamp,
+                    type: "text",
+                };
+            }).filter(Boolean) as ChatMessage[];
+
+            this.setState({ publicMessages });
+        }
     }
 
     render(props: AppProps) {
@@ -365,8 +405,9 @@ export class AppComponent extends Component<AppProps> {
                                     if (e.kind != NostrKind.TEXT_NOTE) {
                                         return false;
                                     }
-                                    const relays = app.database.getRelayRecord(e.id);
-                                    return relays.has(model.currentRelay);
+                                    // const relays = app.database.getRelayRecord(e.id);
+                                    // return relays.has(model.currentRelay);
+                                    return true;
                                 },
                             ),
                             (e) => {

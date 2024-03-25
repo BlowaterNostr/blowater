@@ -392,7 +392,7 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                 },
                 {
                     title: "Relays",
-                    fields: Array.from(app.database.getRelayRecord(nostrEvent.id)),
+                    fields: Array.from(await app.database.getRelayRecord(nostrEvent.id)),
                 },
             ];
             if (nostrEvent.kind == NostrKind.DIRECT_MESSAGE) {
