@@ -98,7 +98,7 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
         console.log("Database_View:parsed", Date.now() - t);
 
         const all_removed_events = await eventMarker.getAllMarks();
-        // const all_relay_records = await relayAdapter.getAllRelayRecords();
+
         // Construct the View
         const db = new Database_View(
             eventsAdapter,
@@ -106,7 +106,6 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
             eventMarker,
             initialEvents,
             new Set(all_removed_events.map((mark) => mark.event_id)),
-            // all_relay_records,
         );
         console.log("Database_View:New time spent", Date.now() - t);
         for (const e of db.events.values()) {
