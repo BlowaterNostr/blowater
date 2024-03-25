@@ -4,12 +4,9 @@ import { emitFunc, EventBus } from "../event-bus.ts";
 import { UI_Interaction_Event } from "./app_update.tsx";
 import { setState } from "./_helper.ts";
 import { ProfileGetter } from "./search.tsx";
-
-import { RelayRecordGetter } from "../database.ts";
 import { NewMessageChecker } from "./conversation-list.tsx";
 import { ConversationListRetriever } from "./conversation-list.tsx";
 import { NostrAccountContext } from "../../libs/nostr.ts/nostr.ts";
-
 import { MessagePanel } from "./message-panel.tsx";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { ChatMessage } from "./message.ts";
@@ -32,7 +29,6 @@ type Props = {
         profileGetter: ProfileGetter;
         convoListRetriever: ConversationListRetriever;
         newMessageChecker: NewMessageChecker;
-        relayRecordGetter: RelayRecordGetter;
         isUserBlocked: func_IsUserBlocked;
         getEventByID: func_GetEventByID;
     };

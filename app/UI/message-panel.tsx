@@ -3,7 +3,6 @@ import { Component, h } from "https://esm.sh/preact@10.17.1";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { NoteID } from "../../libs/nostr.ts/nip19.ts";
 import { NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
-import { RelayRecordGetter } from "../database.ts";
 import { emitFunc, EventSubscriber } from "../event-bus.ts";
 import { ProfileData } from "../features/profile.ts";
 import { Parsed_Event, PinConversation, UnpinConversation } from "../nostr.ts";
@@ -61,7 +60,6 @@ interface DirectMessagePanelProps {
     messages: ChatMessage[];
     getters: {
         profileGetter: ProfileGetter;
-        relayRecordGetter: RelayRecordGetter;
         isUserBlocked: (pubkey: PublicKey) => boolean;
         getEventByID: func_GetEventByID;
     };

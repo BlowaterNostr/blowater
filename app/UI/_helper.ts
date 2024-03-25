@@ -19,11 +19,13 @@ export function* map<X, Y>(iter: Iterable<X>, mapper: (item: X) => Y) {
 }
 
 export function* filter<X>(iter: Iterable<X>, filterer: (item: X) => boolean) {
+    const t = Date.now();
     for (const item of iter) {
         if (filterer(item)) {
             yield item;
         }
     }
+    console.log("filter", Date.now() - t);
 }
 
 // f should not resolve, if it does resolve, it should only throw an error

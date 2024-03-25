@@ -4,7 +4,7 @@ import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/mas
 import { InvalidKey, PublicKey } from "../../libs/nostr.ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
-import { Database_View } from "../database.ts";
+import { Database_View, RelayRecorderBloomFilter } from "../database.ts";
 import { EventBus } from "../event-bus.ts";
 import { DirectedMessageController, getAllEncryptedMessagesOf, InvalidEvent } from "../features/dm.ts";
 import { About } from "./about.tsx";
@@ -29,7 +29,6 @@ import { PublicMessageContainer } from "./public-message-container.tsx";
 import { ChatMessage } from "./message.ts";
 import { filter, forever, map } from "./_helper.ts";
 import { RightPanel } from "./components/right-panel.tsx";
-import { ComponentChildren } from "https://esm.sh/preact@10.17.1";
 import { SignIn } from "./sign-in.tsx";
 import { getTags, Parsed_Event } from "../nostr.ts";
 import { Toast } from "./components/toast.tsx";
@@ -54,7 +53,7 @@ export async function Start(database: DexieDatabase) {
     const popOverInputChan: PopOverInputChannel = new Channel();
     const rightPanelInputChan: RightPanelChannel = new Channel();
     const toastInputChan: ToastChannel = new Channel();
-    const dbView = await Database_View.New(database, database, database);
+    const dbView = await Database_View.New(database, RelayRecorderBloomFilter.FromLocalStorage(), database);
     const newNostrEventChannel = new Channel<NostrEvent>();
     (async () => {
         for await (const event of newNostrEventChannel) {
@@ -327,7 +326,6 @@ export class AppComponent extends Component<AppProps> {
                             convoListRetriever: app.conversationLists,
                             messageGetter: app.dmController,
                             newMessageChecker: app.conversationLists,
-                            relayRecordGetter: app.database,
                             pinListGetter: app.otherConfig,
                             profileGetter: app.database,
                             isUserBlocked: app.conversationLists.isUserBlocked,
@@ -352,7 +350,6 @@ export class AppComponent extends Component<AppProps> {
                     getters={{
                         convoListRetriever: app.conversationLists,
                         newMessageChecker: app.conversationLists,
-                        relayRecordGetter: app.database,
                         profileGetter: app.database,
                         isUserBlocked: app.conversationLists.isUserBlocked,
                         getEventByID: app.database.getEventByID,
@@ -366,7 +363,11 @@ export class AppComponent extends Component<AppProps> {
                                         return false;
                                     }
                                     const relays = app.database.getRelayRecord(e.id);
+                                    if (relays instanceof Promise) {
+                                        return false;
+                                    }
                                     return relays.has(model.currentRelay);
+                                    return false;
                                 },
                             ),
                             (e) => {

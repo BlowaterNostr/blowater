@@ -7,7 +7,6 @@ import {
     RefObject,
 } from "https://esm.sh/preact@10.17.1";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
-import { RelayRecordGetter } from "../database.ts";
 import { emitFunc } from "../event-bus.ts";
 import { IconButtonClass } from "./components/tw.ts";
 import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
@@ -38,7 +37,6 @@ interface Props {
     emit: emitFunc<DirectMessagePanelUpdate | SelectConversation | SyncEvent>;
     getters: {
         profileGetter: ProfileGetter;
-        relayRecordGetter: RelayRecordGetter;
         getEventByID: func_GetEventByID;
     };
 }
@@ -277,7 +275,6 @@ function MessageBoxGroup(props: {
     >;
     getters: {
         profileGetter: ProfileGetter;
-        relayRecordGetter: RelayRecordGetter;
         getEventByID: func_GetEventByID;
     };
 }) {

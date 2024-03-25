@@ -6,6 +6,8 @@ import { PublicKey } from "../libs/nostr.ts/key.ts";
 import { ProfileGetter, ProfileSetter } from "./UI/search.tsx";
 import { NoteID } from "../libs/nostr.ts/nip19.ts";
 
+import { BloomFilter } from "https://esm.sh/bloomfilter@0.0.18";
+
 const buffer_size = 2000;
 export interface Indices {
     readonly id: string;
@@ -32,7 +34,7 @@ export interface EventPutter {
 }
 
 export interface RelayRecordSetter {
-    setRelayRecord: (eventID: string, url: string) => Promise<void>;
+    setRelayRecord: (eventID: string, url: string) => Promise<boolean>;
 }
 
 export interface AllRelayRecordGetter {
@@ -50,7 +52,7 @@ export interface EventMarker {
     getAllMarks(): Promise<EventMark[]>;
 }
 
-export type RelayRecorder = RelayRecordSetter & AllRelayRecordGetter;
+export type RelayRecorder = RelayRecordSetter & RelayRecordGetter;
 
 export type EventsAdapter =
     & EventsFilter
@@ -72,7 +74,7 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
         private readonly eventMarker: EventMarker,
         private readonly events: Map<string, Parsed_Event>,
         private readonly removedEvents: Set<string>,
-        private readonly relayRecords: Map<string, Set<string>>,
+        // private readonly relayRecords: Map<string, Set<string>>,
     ) {}
 
     static async New(
@@ -82,7 +84,7 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
     ) {
         const t = Date.now();
         const allEvents = await eventsAdapter.filter();
-        console.log("Datebase_View:onload", Date.now() - t, allEvents.length);
+        console.log("Database_View:onload", Date.now() - t, allEvents.length);
 
         const initialEvents = new Map<string, Parsed_Event>();
         for (const e of allEvents) {
@@ -100,10 +102,10 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
             initialEvents.set(p.id, p);
         }
 
-        console.log("Datebase_View:parsed", Date.now() - t);
+        console.log("Database_View:parsed", Date.now() - t);
 
         const all_removed_events = await eventMarker.getAllMarks();
-        const all_relay_records = await relayAdapter.getAllRelayRecords();
+        // const all_relay_records = await relayAdapter.getAllRelayRecords();
         // Construct the View
         const db = new Database_View(
             eventsAdapter,
@@ -111,9 +113,9 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
             eventMarker,
             initialEvents,
             new Set(all_removed_events.map((mark) => mark.event_id)),
-            all_relay_records,
+            // all_relay_records,
         );
-        console.log("Datebase_View:New time spent", Date.now() - t);
+        console.log("Database_View:New time spent", Date.now() - t);
         for (const e of db.events.values()) {
             if (e.kind == NostrKind.META_DATA) {
                 // @ts-ignore
@@ -154,11 +156,7 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
     }
 
     getRelayRecord(eventID: string) {
-        const relays = this.relayRecords.get(eventID);
-        if (relays == undefined) {
-            return new Set<string>();
-        }
-        return relays;
+        return this.relayRecorder.getRelayRecord(eventID);
     }
 
     getProfilesByText(name: string): Profile_Nostr_Event[] {
@@ -277,16 +275,12 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
     }
 
     private async recordRelay(eventID: string, url: string) {
-        await this.relayRecorder.setRelayRecord(eventID, url);
-        const records = this.relayRecords.get(eventID);
-        if (records) {
-            const size = records.size;
-            records.add(url);
-            return records.size > size;
-        } else {
-            this.relayRecords.set(eventID, new Set([url]));
-            return true;
+        const records = this.relayRecorder.getRelayRecord(eventID);
+        if (records.has(url)) {
+            return false;
         }
+        await this.relayRecorder.setRelayRecord(eventID, url);
+        return true;
     }
 }
 
@@ -308,4 +302,76 @@ export function parseProfileEvent(
         parsedTags,
         publicKey,
     };
+}
+
+export class RelayRecorderBloomFilter implements RelayRecorder {
+    static FromLocalStorage() {
+        const str = localStorage.getItem(RelayRecorderBloomFilter.name);
+        let filters: { [key: string]: BloomFilter } = {};
+        if (str) {
+            const filters_encoded = JSON.parse(str);
+            for (let key in filters_encoded) {
+                filters[key] = new BloomFilter(hexStringToInt32Array(filters_encoded[key]), 4);
+            }
+        }
+        return new RelayRecorderBloomFilter(filters);
+    }
+
+    private constructor(
+        private filters: { [key: string]: BloomFilter },
+    ) {}
+
+    setRelayRecord = async (eventID: string, url: string): Promise<boolean> => {
+        const t = Date.now();
+        let filter = this.filters[url];
+        if (filter == undefined) {
+            filter = new BloomFilter(32 * 256, 4);
+            this.filters[url] = filter;
+        }
+
+        filter.add(eventID);
+        const filter_encoded: { [key: string]: string } = {};
+        for (let key in this.filters) {
+            filter_encoded[key] = int32ArrayToHexString(this.filters[key]?.buckets);
+        }
+        localStorage.setItem(RelayRecorderBloomFilter.name, JSON.stringify(filter_encoded));
+        console.log("setRelayRecord", Date.now() - t);
+        return true;
+    };
+
+    getRelayRecord(eventID: string): Set<string> {
+        const set = new Set<string>();
+        for (let relay in this.filters) {
+            const yes = this.filters[relay].test(eventID);
+            if (yes) {
+                set.add(relay);
+            }
+        }
+        return set;
+    }
+}
+
+function int32ArrayToHexString(arr: Int32Array) {
+    return Array.from(arr).map(function (i) {
+        // Convert each integer to a hex string, pad with zeros to ensure 8 characters
+        return ("00000000" + (i >>> 0).toString(16)).slice(-8);
+    }).join("");
+}
+
+function hexStringToInt32Array(hexStr: string) {
+    // Ensure the hex string's length is a multiple of 8
+    if (hexStr.length % 8 !== 0) {
+        throw new Error("Invalid hex string length.");
+    }
+
+    const numInts = hexStr.length / 8;
+    const arr = new Int32Array(numInts);
+
+    for (let i = 0; i < numInts; i++) {
+        // Extract 8-character chunk, convert to a 32-bit integer, and store in the array
+        const hexChunk = hexStr.substring(i * 8, i * 8 + 8);
+        arr[i] = parseInt(hexChunk, 16) | 0; // Using | 0 to ensure it's treated as a signed 32-bit integer
+    }
+
+    return arr;
 }

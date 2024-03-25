@@ -2,7 +2,6 @@
 import { Component, h, VNode } from "https://esm.sh/preact@10.17.1";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { NostrAccountContext } from "../../libs/nostr.ts/nostr.ts";
-import { RelayRecordGetter } from "../database.ts";
 import { EventBus } from "../event-bus.ts";
 import { ChatMessagesGetter, UI_Interaction_Event, UserBlocker } from "./app_update.tsx";
 import { IconButtonClass } from "./components/tw.ts";
@@ -33,7 +32,6 @@ type DirectMessageContainerProps = {
         pinListGetter: PinListGetter;
         convoListRetriever: ConversationListRetriever;
         newMessageChecker: NewMessageChecker;
-        relayRecordGetter: RelayRecordGetter;
         isUserBlocked: (pubkey: PublicKey) => boolean;
         getEventByID: func_GetEventByID;
     };
