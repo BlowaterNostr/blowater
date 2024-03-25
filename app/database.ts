@@ -33,12 +33,12 @@ export interface EventPutter {
     put(e: NostrEvent): Promise<void>;
 }
 
-export interface RelayRecordSetter {
+export type RelayRecorder = {
     setRelayRecord: (eventID: string, url: string) => Promise<boolean>;
-}
+} & RelayRecordGetter;
 
-export interface AllRelayRecordGetter {
-    getAllRelayRecords: () => Promise<Map<string, Set<string>>>;
+export interface RelayRecordGetter {
+    getRelayRecord: (eventID: string) => Set<string>;
 }
 
 export type EventMark = {
@@ -52,16 +52,10 @@ export interface EventMarker {
     getAllMarks(): Promise<EventMark[]>;
 }
 
-export type RelayRecorder = RelayRecordSetter & RelayRecordGetter;
-
 export type EventsAdapter =
     & EventsFilter
     & EventGetter
     & EventPutter;
-
-export interface RelayRecordGetter {
-    getRelayRecord: (eventID: string) => Set<string>;
-}
 
 export class Database_View implements ProfileSetter, ProfileGetter, EventRemover, RelayRecordGetter {
     private readonly sourceOfChange = csp.chan<{ event: Parsed_Event; relay?: string }>(buffer_size);
@@ -74,7 +68,6 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
         private readonly eventMarker: EventMarker,
         private readonly events: Map<string, Parsed_Event>,
         private readonly removedEvents: Set<string>,
-        // private readonly relayRecords: Map<string, Set<string>>,
     ) {}
 
     static async New(
