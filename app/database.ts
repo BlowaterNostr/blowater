@@ -155,10 +155,6 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
         await this.eventMarker.markEvent(id, "removed");
     }
 
-    getRelayRecord(eventID: string) {
-        return this.relayRecorder.getRelayRecord(eventID);
-    }
-
     getProfilesByText(name: string): Profile_Nostr_Event[] {
         const result = [];
         for (const event of this.profiles.values()) {
@@ -274,6 +270,10 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
         return res;
     }
 
+    getRelayRecord(eventID: string) {
+        return this.relayRecorder.getRelayRecord(eventID);
+    }
+
     private async recordRelay(eventID: string, url: string) {
         const records = this.relayRecorder.getRelayRecord(eventID);
         if (records.has(url)) {
@@ -304,6 +304,8 @@ export function parseProfileEvent(
     };
 }
 
+const hash_func = 16;
+const byte_size = 8 * 1024 * 16;
 export class RelayRecorderBloomFilter implements RelayRecorder {
     static FromLocalStorage() {
         const str = localStorage.getItem(RelayRecorderBloomFilter.name);
@@ -311,7 +313,7 @@ export class RelayRecorderBloomFilter implements RelayRecorder {
         if (str) {
             const filters_encoded = JSON.parse(str);
             for (let key in filters_encoded) {
-                filters[key] = new BloomFilter(hexStringToInt32Array(filters_encoded[key]), 4);
+                filters[key] = new BloomFilter(hexStringToInt32Array(filters_encoded[key]), hash_func);
             }
         }
         return new RelayRecorderBloomFilter(filters);
@@ -325,7 +327,7 @@ export class RelayRecorderBloomFilter implements RelayRecorder {
         const t = Date.now();
         let filter = this.filters[url];
         if (filter == undefined) {
-            filter = new BloomFilter(32 * 256, 4);
+            filter = new BloomFilter(byte_size, hash_func);
             this.filters[url] = filter;
         }
 

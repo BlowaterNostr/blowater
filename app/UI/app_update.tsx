@@ -665,7 +665,7 @@ async function sync_user_detail_data(
         if (msg.res.type == "EOSE") {
             break;
         } else if (msg.res.type == "EVENT") {
-            await args.database.addEvent(msg.res.event);
+            await args.database.addEvent(msg.res.event, msg.url);
         }
     }
     await args.pool.closeSub(args.pubkey.bech32());

@@ -178,7 +178,6 @@ export class App {
             ctx: args.ctx,
             relayPool: args.pool,
         });
-        console.log(relayConfig.getRelayURLs());
 
         // init conversation list
         const conversationLists = new DM_List(args.ctx);
@@ -363,11 +362,7 @@ export class AppComponent extends Component<AppProps> {
                                         return false;
                                     }
                                     const relays = app.database.getRelayRecord(e.id);
-                                    if (relays instanceof Promise) {
-                                        return false;
-                                    }
                                     return relays.has(model.currentRelay);
-                                    return false;
                                 },
                             ),
                             (e) => {
