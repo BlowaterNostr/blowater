@@ -1,4 +1,11 @@
-import { Database_View, EventMark, EventMarker, EventsAdapter, Indices, RelayRecorder } from "../database.ts";
+import {
+    Database_View,
+    EventMark,
+    EventMarker,
+    EventsAdapter,
+    Indices,
+    RelayRecorderBloomFilter,
+} from "../database.ts";
 import { EventBus } from "../event-bus.ts";
 import { NostrEvent } from "../../libs/nostr.ts/nostr.ts";
 import { UI_Interaction_Event } from "./app_update.tsx";
@@ -23,21 +30,6 @@ export async function test_db_view() {
         },
     };
 
-    const relays = new Map<string, Set<string>>();
-    const testRelayRecorder: RelayRecorder = {
-        setRelayRecord: async (eventID: string, url: string) => {
-            const records = relays.get(eventID);
-            if (records) {
-                records.add(url);
-            } else {
-                relays.set(eventID, new Set([url]));
-            }
-        },
-        getAllRelayRecords: async () => {
-            return relays;
-        },
-    };
-
     const marks = new Map<string, EventMark>();
     const testEventMarker: EventMarker = {
         getMark: async (eventID: string) => {
@@ -53,5 +45,9 @@ export async function test_db_view() {
             return Array.from(marks.values());
         },
     };
-    return await Database_View.New(testEventsAdapter, testRelayRecorder, testEventMarker);
+    return await Database_View.New(
+        testEventsAdapter,
+        RelayRecorderBloomFilter.FromLocalStorage(),
+        testEventMarker,
+    );
 }
