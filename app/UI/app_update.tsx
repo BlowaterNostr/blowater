@@ -601,12 +601,12 @@ export async function handle_SendMessage(
         const nostr_event = await prepareNormalNostrEvent(ctx, {
             content: event.text,
             kind: NostrKind.TEXT_NOTE,
-            tags: generateTags(
-                event.text,
-                args.getEventByID,
-                args.current_relay.url,
-                event.reply_to_event_id,
-            ),
+            tags: generateTags({
+                content: event.text,
+                getEventByID: args.getEventByID,
+                current_relay: args.current_relay.url,
+                reply_to_event_id: event.reply_to_event_id,
+            }),
         });
         const err = await args.current_relay.sendEvent(nostr_event);
         if (err instanceof Error) {
@@ -626,14 +626,16 @@ export async function handle_SendMessage(
 }
 
 export function generateTags(
-    content: string,
-    getEventByID: func_GetEventByID,
-    current_relay: string,
-    reply_to_event_id?: NoteID | string,
+    args: {
+        content: string;
+        getEventByID: func_GetEventByID;
+        current_relay: string;
+        reply_to_event_id?: NoteID | string;
+    },
 ) {
     const eTags = new Map<string, [string, string]>();
     const pTags = new Set<string>();
-    const parsedTextItems = parseContent(content);
+    const parsedTextItems = parseContent(args.content);
     for (const item of parsedTextItems) {
         if (item.type === "nevent") {
             eTags.set(item.event.pointer.id, [item.event.pointer.relays?.[0] || "", "mention"]);
@@ -643,52 +645,18 @@ export function generateTags(
         } else if (item.type === "npub") {
             pTags.add(item.pubkey.hex);
         } else if (item.type === "note") {
-            eTags.set(item.noteID.hex, [current_relay, "mention"]);
-            const event = getEventByID(item.noteID);
+            eTags.set(item.noteID.hex, [args.current_relay, "mention"]);
+            const event = args.getEventByID(item.noteID);
             if (event) {
                 pTags.add(event.pubkey);
             }
         }
     }
-    if (reply_to_event_id) {
-        const replyToEvent = getEventByID(reply_to_event_id);
+    if (args.reply_to_event_id) {
+        const replyToEvent = args.getEventByID(args.reply_to_event_id);
         if (replyToEvent) {
-            const parsedTags = replyToEvent.parsedTags;
-            if (parsedTags.root) {
-                const replyToEventRoot = getEventByID(parsedTags.root[0]);
-                if (replyToEventRoot) {
-                    eTags.set(replyToEventRoot.id, [parsedTags.root[0][1], "root"]);
-                    eTags.set(replyToEvent.id, [current_relay, "reply"]);
-                    pTags.add(replyToEventRoot.pubkey);
-                    pTags.add(replyToEvent.pubkey);
-                }
-            } else if (parsedTags.reply) {
-                const replyToEventRoot = getEventByID(parsedTags.reply[0]);
-                if (replyToEventRoot) {
-                    eTags.set(replyToEventRoot.id, [parsedTags.reply[0][1], "root"]);
-                    eTags.set(replyToEvent.id, [current_relay, "reply"]);
-                    pTags.add(replyToEventRoot.pubkey);
-                    pTags.add(replyToEvent.pubkey);
-                }
-            } else if (parsedTags.e) {
-                const replyToEventRoot = getEventByID(parsedTags.e[0]);
-                if (replyToEventRoot) {
-                    eTags.set(replyToEventRoot.id, [parsedTags.e[0][1], "root"]);
-                    if (parsedTags.e.length > 1) {
-                        const replyToEventReply = getEventByID(parsedTags.e[parsedTags.e.length - 1]);
-                        if (replyToEventReply) {
-                            eTags.set(replyToEventReply.id, [current_relay, "reply"]);
-                        }
-                    } else {
-                        eTags.set(replyToEvent.id, [current_relay, "reply"]);
-                    }
-                    pTags.add(replyToEventRoot.pubkey);
-                    pTags.add(replyToEvent.pubkey);
-                }
-            } else {
-                eTags.set(replyToEvent.id, [current_relay, "root"]);
-                pTags.add(replyToEvent.pubkey);
-            }
+            eTags.set(replyToEvent.id, [args.current_relay, "reply"]);
+            pTags.add(replyToEvent.pubkey);
         }
     }
     let tags: Tag[] = [];
