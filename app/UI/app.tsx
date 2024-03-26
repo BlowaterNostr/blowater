@@ -241,7 +241,8 @@ export class App {
             forever(sync_kind_1(this.pool, this.database));
         }
 
-        this.database.waitRelayRecordToLoad().then((_) => {
+        (async () => {
+            await this.database.waitRelayRecordToLoad();
             render(
                 <AppComponent
                     eventBus={this.eventBus}
@@ -254,7 +255,7 @@ export class App {
                 />,
                 document.body,
             );
-        });
+        })();
 
         // Database
         (async () => {
