@@ -7,6 +7,7 @@ import {
     sleep,
 } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { prepareNormalNostrEvent } from "../../libs/nostr.ts/event.ts";
+import { prepareReplyEvent } from "../nostr.ts";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { NoteID } from "../../libs/nostr.ts/nip19.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
@@ -598,16 +599,33 @@ export async function handle_SendMessage(
         }
         events = events_send;
     } else if (args.navigationModel.activeNav == "Public") {
-        const nostr_event = await prepareNormalNostrEvent(ctx, {
-            content: event.text,
-            kind: NostrKind.TEXT_NOTE,
-            tags: generateTags({
+        let replyToEvent: NostrEvent | undefined;
+        if (event.reply_to_event_id) {
+            replyToEvent = args.getEventByID(event.reply_to_event_id);
+        }
+        const nostr_event = replyToEvent
+            ? await prepareReplyEvent(
+                ctx,
+                replyToEvent,
+                generateTags({
+                    content: event.text,
+                    getEventByID: args.getEventByID,
+                    current_relay: args.current_relay.url,
+                }),
+                event.text,
+            )
+            : await prepareNormalNostrEvent(ctx, {
                 content: event.text,
-                getEventByID: args.getEventByID,
-                current_relay: args.current_relay.url,
-                reply_to_event_id: event.reply_to_event_id,
-            }),
-        });
+                kind: NostrKind.TEXT_NOTE,
+                tags: generateTags({
+                    content: event.text,
+                    getEventByID: args.getEventByID,
+                    current_relay: args.current_relay.url,
+                }),
+            });
+        if (nostr_event instanceof Error) {
+            return nostr_event;
+        }
         const err = await args.current_relay.sendEvent(nostr_event);
         if (err instanceof Error) {
             return err;
@@ -630,7 +648,6 @@ export function generateTags(
         content: string;
         getEventByID: func_GetEventByID;
         current_relay: string;
-        reply_to_event_id?: NoteID | string;
     },
 ) {
     const eTags = new Map<string, [string, string]>();
@@ -650,13 +667,6 @@ export function generateTags(
             if (event) {
                 pTags.add(event.pubkey);
             }
-        }
-    }
-    if (args.reply_to_event_id) {
-        const replyToEvent = args.getEventByID(args.reply_to_event_id);
-        if (replyToEvent) {
-            eTags.set(replyToEvent.id, [args.current_relay, "reply"]);
-            pTags.add(replyToEvent.pubkey);
         }
     }
     let tags: Tag[] = [];
