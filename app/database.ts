@@ -73,8 +73,17 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
         private readonly events: Map<string, Parsed_Event>,
         private readonly removedEvents: Set<string>,
     ) {
-        relayRecorder.getAllRelayRecords().then((all_records) => {
-            this.relayRecords = all_records;
+        relayRecorder.getAllRelayRecords().then(async (all_records) => {
+            for (const [event_id, relays] of all_records.entries()) {
+                const set = this.relayRecords.get(event_id);
+                if (set) {
+                    for (const relay of relays) {
+                        set.add(relay);
+                    }
+                } else {
+                    this.relayRecords.set(event_id, relays);
+                }
+            }
         });
     }
 
@@ -160,6 +169,19 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
             return new Set<string>();
         }
         return relays;
+    }
+
+    private async recordRelay(eventID: string, url: string) {
+        await this.relayRecorder.setRelayRecord(eventID, url);
+        const records = this.relayRecords.get(eventID);
+        if (records) {
+            const size = records.size;
+            records.add(url);
+            return records.size > size;
+        } else {
+            this.relayRecords.set(eventID, new Set([url]));
+            return true;
+        }
     }
 
     getProfilesByText(name: string): Profile_Nostr_Event[] {
@@ -275,19 +297,6 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
             );
         })();
         return res;
-    }
-
-    private async recordRelay(eventID: string, url: string) {
-        await this.relayRecorder.setRelayRecord(eventID, url);
-        const records = this.relayRecords.get(eventID);
-        if (records) {
-            const size = records.size;
-            records.add(url);
-            return records.size > size;
-        } else {
-            this.relayRecords.set(eventID, new Set([url]));
-            return true;
-        }
     }
 }
 
