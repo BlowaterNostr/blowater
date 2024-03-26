@@ -73,20 +73,19 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
         private readonly events: Map<string, Parsed_Event>,
         private readonly removedEvents: Set<string>,
     ) {
-        this.relay_record_loaded = new Promise((resolve) => {
-            relayRecorder.getAllRelayRecords().then((all_records) => {
-                for (const [event_id, relays] of all_records.entries()) {
-                    const set = this.relayRecords.get(event_id);
-                    if (set) {
-                        for (const relay of relays) {
-                            set.add(relay);
-                        }
-                    } else {
-                        this.relayRecords.set(event_id, relays);
+        this.relay_record_loaded = new Promise(async (resolve) => {
+            const all_records = await relayRecorder.getAllRelayRecords();
+            for (const [event_id, relays] of all_records.entries()) {
+                const set = this.relayRecords.get(event_id);
+                if (set) {
+                    for (const relay of relays) {
+                        set.add(relay);
                     }
+                } else {
+                    this.relayRecords.set(event_id, relays);
                 }
-                resolve(undefined);
-            });
+            }
+            resolve(undefined);
         });
     }
 
