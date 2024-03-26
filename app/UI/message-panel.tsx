@@ -44,7 +44,7 @@ export type ViewUserDetail = {
     pubkey: PublicKey;
 };
 
-interface DirectMessagePanelProps {
+interface MessagePanelProps {
     myPublicKey: PublicKey;
 
     emit: emitFunc<
@@ -67,8 +67,20 @@ interface DirectMessagePanelProps {
     };
 }
 
-export class MessagePanel extends Component<DirectMessagePanelProps> {
-    render(props: DirectMessagePanelProps) {
+type MessagePanelState = {
+    replayToEventID?: NoteID | string;
+};
+
+export class MessagePanel extends Component<MessagePanelProps, MessagePanelState> {
+    state = {
+        replayToEventID: undefined,
+    };
+
+    handleReplyToEventIDChange = (eventID?: NoteID | string) => {
+        this.setState({ replayToEventID: eventID });
+    };
+
+    render(props: MessagePanelProps) {
         let vnode = (
             <div class={`flex h-full w-full relative ${BackgroundColor_MessagePanel}`}>
                 <div class={`flex flex-col h-full flex-1 overflow-hidden`}>
@@ -83,6 +95,10 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
                     />
 
                     <Editor
+                        replyTo={{
+                            eventID: this.state.replayToEventID,
+                            onEventIDChange: this.handleReplyToEventIDChange,
+                        }}
                         maxHeight="30vh"
                         emit={props.emit}
                         placeholder=""
@@ -98,8 +114,8 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
     }
 }
 
-export class MessagePanel_V0 extends Component<DirectMessagePanelProps> {
-    render(props: DirectMessagePanelProps) {
+export class MessagePanel_V0 extends Component<MessagePanelProps> {
+    render(props: MessagePanelProps) {
         let vnode = (
             <div class={`flex h-full w-full relative ${BackgroundColor_MessagePanel}`}>
                 <div class={`flex flex-col h-full flex-1 overflow-hidden`}>

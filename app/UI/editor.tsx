@@ -39,7 +39,10 @@ export type UpdateMessageFiles = {
 };
 
 type EditorProps = {
-    readonly replyToEventID?: string | NoteID;
+    readonly replyTo?: {
+        eventID?: string | NoteID;
+        onEventIDChange: (eventID?: string | NoteID) => void;
+    };
     readonly placeholder: string;
     readonly maxHeight: string;
     readonly emit: emitFunc<EditorEvent>;
@@ -68,7 +71,7 @@ export class Editor extends Component<EditorProps, EditorState> {
             type: "SendMessage",
             files: this.state.files,
             text: this.state.text,
-            reply_to_event_id: this.props.replyToEventID,
+            reply_to_event_id: this.props.replyTo?.eventID,
         });
         this.textareaElement.current?.setAttribute(
             "rows",
@@ -90,7 +93,10 @@ export class Editor extends Component<EditorProps, EditorState> {
 
         return (
             <div class={`flex flex-col mb-4 mx-4 justify-center bg-[${DividerBackgroundColor}] rounded-lg`}>
-                {ReplyIndicator({ replyToEventID: props.replyToEventID, getters: props.getters })}
+                {ReplyIndicator({
+                    getters: props.getters,
+                    replyTo: props.replyTo,
+                })}
                 <div class={`w-full flex items-center`}>
                     <button
                         class={`min-w-[3rem] w-[3rem] h-[3rem] hover:bg-[${DividerBackgroundColor}] group ${CenterClass} rounded-[50%] ${NoOutlineClass}`}
@@ -240,16 +246,19 @@ export class Editor extends Component<EditorProps, EditorState> {
 }
 
 function ReplyIndicator(props: {
-    replyToEventID?: string | NoteID;
+    readonly replyTo?: {
+        eventID?: string | NoteID;
+        onEventIDChange: (eventID?: string | NoteID) => void;
+    };
     getters: {
         getEventByID: func_GetEventByID;
         profileGetter: ProfileGetter;
     };
 }) {
-    if (!props.replyToEventID) {
+    if (!props.replyTo || !props.replyTo.eventID) {
         return undefined;
     }
-    const ctx = props.getters.getEventByID(props.replyToEventID)?.publicKey;
+    const ctx = props.getters.getEventByID(props.replyTo.eventID)?.publicKey;
     if (!ctx) {
         return undefined;
     }
@@ -270,7 +279,12 @@ function ReplyIndicator(props: {
                     </span>
                 </div>
             </button>
-            <button class="h-6 w-6 flex justify-center items-center shrink-0">
+            <button
+                class="h-6 w-6 flex justify-center items-center shrink-0"
+                onClick={() => {
+                    props.replyTo?.onEventIDChange(undefined);
+                }}
+            >
                 <XCircleIcon class="h-4 w-4" />
             </button>
         </div>
