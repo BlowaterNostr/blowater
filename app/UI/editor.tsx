@@ -22,6 +22,7 @@ export type SendMessage = {
     readonly type: "SendMessage";
     readonly text: string;
     readonly files: Blob[];
+    readonly reply_to_event_id?: string | NoteID;
 };
 
 export type UpdateEditorText = {
@@ -67,6 +68,7 @@ export class Editor extends Component<EditorProps, EditorState> {
             type: "SendMessage",
             files: this.state.files,
             text: this.state.text,
+            reply_to_event_id: this.props.replyToEventID,
         });
         this.textareaElement.current?.setAttribute(
             "rows",

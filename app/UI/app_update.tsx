@@ -601,7 +601,7 @@ export async function handle_SendMessage(
         const nostr_event = await prepareNormalNostrEvent(ctx, {
             content: event.text,
             kind: NostrKind.TEXT_NOTE,
-            tags: generateTags(event.text, args.getEventByID, args.current_relay.url),
+            tags: generateTags(event.text, args.getEventByID, args.current_relay.url, event.reply_to_event_id),
         });
         const err = await args.current_relay.sendEvent(nostr_event);
         if (err instanceof Error) {
@@ -620,7 +620,7 @@ export async function handle_SendMessage(
     }
 }
 
-export function generateTags(content: string, getEventByID: func_GetEventByID, current_relay: string) {
+export function generateTags(content: string,getEventByID: func_GetEventByID, current_relay: string, reply_to_event_id?:  NoteID | string) {
     const eTags = new Map<string, [string, string]>();
     const pTags = new Set<string>();
     const parsedTextItems = parseContent(content);
@@ -637,6 +637,48 @@ export function generateTags(content: string, getEventByID: func_GetEventByID, c
             const event = getEventByID(item.noteID);
             if (event) {
                 pTags.add(event.pubkey);
+            }
+        }
+    }
+    if (reply_to_event_id) {
+        const replyToEvent = getEventByID(reply_to_event_id);
+        if (replyToEvent) {
+            if (replyToEvent.tags && replyToEvent.tags.length > 0) {
+                if(replyToEvent.parsedTags.root) {
+                    const replyToEventRoot = getEventByID(replyToEvent.parsedTags.root[0]);
+                    if (replyToEventRoot) {
+                        eTags.set(replyToEventRoot.id, [replyToEvent.parsedTags.root[0][1], "root"]);
+                        eTags.set(replyToEvent.id, [current_relay, "reply"]);
+                        pTags.add(replyToEventRoot.pubkey);
+                        pTags.add(replyToEvent.pubkey);
+                    }
+                } else if(replyToEvent.parsedTags.reply) {
+                    const replyToEventRoot = getEventByID(replyToEvent.parsedTags.reply[0]);
+                    if (replyToEventRoot) {
+                        eTags.set(replyToEventRoot.id, [replyToEvent.parsedTags.reply[0][1], "root"]);
+                        eTags.set(replyToEvent.id, [current_relay, "reply"]);
+                        pTags.add(replyToEventRoot.pubkey);
+                        pTags.add(replyToEvent.pubkey);
+                    }
+                } else if(replyToEvent.parsedTags.e) {
+                    const replyToEventRoot = getEventByID(replyToEvent.parsedTags.e[0]);
+                    if (replyToEventRoot) {
+                        eTags.set(replyToEventRoot.id, [replyToEvent.parsedTags.e[0][1], "root"]);
+                        if(replyToEvent.parsedTags.e.length > 1) {
+                            const replyToEventReply = getEventByID(replyToEvent.parsedTags.e[replyToEvent.parsedTags.e.length - 1]);
+                            if (replyToEventReply) {
+                                eTags.set(replyToEventReply.id, [current_relay, "reply"]);
+                            }
+                        } else{
+                            eTags.set(replyToEvent.id, [current_relay, "reply"]);
+                        }
+                        pTags.add(replyToEventRoot.pubkey);
+                        pTags.add(replyToEvent.pubkey);
+                    }
+                }
+            } else {
+                eTags.set(replyToEvent.id, [current_relay, "root"]);
+                pTags.add(replyToEvent.pubkey);
             }
         }
     }
