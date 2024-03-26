@@ -72,8 +72,11 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
         private readonly eventMarker: EventMarker,
         private readonly events: Map<string, Parsed_Event>,
         private readonly removedEvents: Set<string>,
-        private readonly relayRecords: Map<string, Set<string>>,
-    ) {}
+    ) {
+        relayRecorder.getAllRelayRecords().then((all_records) => {
+            this.relayRecords = all_records;
+        });
+    }
 
     static async New(
         eventsAdapter: EventsAdapter,
@@ -101,9 +104,7 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
         }
 
         console.log("Datebase_View:parsed", Date.now() - t);
-
         const all_removed_events = await eventMarker.getAllMarks();
-        const all_relay_records = await relayAdapter.getAllRelayRecords();
         // Construct the View
         const db = new Database_View(
             eventsAdapter,
@@ -111,7 +112,6 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
             eventMarker,
             initialEvents,
             new Set(all_removed_events.map((mark) => mark.event_id)),
-            all_relay_records,
         );
         console.log("Datebase_View:New time spent", Date.now() - t);
         for (const e of db.events.values()) {
@@ -153,6 +153,7 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
         await this.eventMarker.markEvent(id, "removed");
     }
 
+    private relayRecords = new Map<string, Set<string>>();
     getRelayRecord(eventID: string) {
         const relays = this.relayRecords.get(eventID);
         if (relays == undefined) {
