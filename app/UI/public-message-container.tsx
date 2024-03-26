@@ -131,9 +131,6 @@ function filter_messages(msgs: ChatMessage[], filter: FilterContent) {
     const noteID = NoteID.FromBech32(filter_string);
     const is_note = noteID instanceof NoteID;
     msgs = msgs.filter((msg) => {
-        if (msg.content.toLocaleLowerCase().indexOf(filter_string) != -1) {
-            return true;
-        }
         if (is_pubkey) {
             if (msg.author.hex == pubkey.hex) {
                 return true;
@@ -143,6 +140,9 @@ function filter_messages(msgs: ChatMessage[], filter: FilterContent) {
             if (msg.event.id == noteID.hex) {
                 return true;
             }
+        }
+        if (msg.content.toLocaleLowerCase().indexOf(filter_string) != -1) {
+            return true;
         }
         return false;
     });

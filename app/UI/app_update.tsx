@@ -438,9 +438,14 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
             }
             continue;
         } else if (event.type == "FilterContent") {
-            const pubkey = PublicKey.FromBech32(event.content.trim());
-            if (pubkey instanceof PublicKey) {
-                sync_user_detail_data({ pool, pubkey, database: app.database });
+            const trimmed = event.content.trim();
+            if (trimmed.length == 63) {
+                const pubkey = PublicKey.FromBech32(trimmed);
+                if (pubkey instanceof PublicKey) {
+                    sync_user_detail_data({ pool, pubkey, database: app.database });
+                }
+            } else {
+                continue;
             }
         } else {
             console.log(event, "is not handled");
@@ -665,7 +670,7 @@ async function sync_user_detail_data(
         if (msg.res.type == "EOSE") {
             break;
         } else if (msg.res.type == "EVENT") {
-            await args.database.addEvent(msg.res.event);
+            await args.database.addEvent(msg.res.event, msg.url);
         }
     }
     await args.pool.closeSub(args.pubkey.bech32());

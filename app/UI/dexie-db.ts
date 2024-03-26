@@ -17,7 +17,7 @@ export class DexieDatabase extends Dexie implements EventsAdapter, RelayRecorder
 
     constructor() {
         super("Events");
-        this.version(20).stores({
+        this.version(22).stores({
             events: "&id, created_at, kind, tags, pubkey", // indices
             relayRecords: "[url+event_id]", // RelayRecord
             eventMarks: "&event_id, reason", // RemoveRecords
