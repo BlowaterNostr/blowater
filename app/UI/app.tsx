@@ -241,6 +241,21 @@ export class App {
             forever(sync_kind_1(this.pool, this.database));
         }
 
+        this.database.waitRelayRecordToLoad().then((_) => {
+            render(
+                <AppComponent
+                    eventBus={this.eventBus}
+                    model={this.model}
+                    pool={this.pool}
+                    popOverInputChan={this.popOverInputChan}
+                    rightPanelInputChan={this.rightPanelInputChan}
+                    installPrompt={installPrompt}
+                    toastInputChan={this.toastInputChan}
+                />,
+                document.body,
+            );
+        });
+
         // Database
         (async () => {
             let i = 0;

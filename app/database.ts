@@ -73,17 +73,20 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
         private readonly events: Map<string, Parsed_Event>,
         private readonly removedEvents: Set<string>,
     ) {
-        relayRecorder.getAllRelayRecords().then(async (all_records) => {
-            for (const [event_id, relays] of all_records.entries()) {
-                const set = this.relayRecords.get(event_id);
-                if (set) {
-                    for (const relay of relays) {
-                        set.add(relay);
+        this.relay_record_loaded = new Promise((resolve) => {
+            relayRecorder.getAllRelayRecords().then((all_records) => {
+                for (const [event_id, relays] of all_records.entries()) {
+                    const set = this.relayRecords.get(event_id);
+                    if (set) {
+                        for (const relay of relays) {
+                            set.add(relay);
+                        }
+                    } else {
+                        this.relayRecords.set(event_id, relays);
                     }
-                } else {
-                    this.relayRecords.set(event_id, relays);
                 }
-            }
+                resolve(undefined);
+            });
         });
     }
 
@@ -163,6 +166,7 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
     }
 
     private relayRecords = new Map<string, Set<string>>();
+    private relay_record_loaded: Promise<void>;
     getRelayRecord(eventID: string) {
         const relays = this.relayRecords.get(eventID);
         if (relays == undefined) {
@@ -297,6 +301,10 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
             );
         })();
         return res;
+    }
+
+    async waitRelayRecordToLoad(): Promise<void> {
+        return this.relay_record_loaded;
     }
 }
 
