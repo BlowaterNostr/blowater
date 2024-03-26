@@ -68,16 +68,16 @@ interface MessagePanelProps {
 }
 
 type MessagePanelState = {
-    replayToEventID?: NoteID | string;
+    replyToEventID?: NoteID | string;
 };
 
 export class MessagePanel extends Component<MessagePanelProps, MessagePanelState> {
     state = {
-        replayToEventID: undefined,
+        replyToEventID: undefined,
     };
 
     handleReplyToEventIDChange = (eventID?: NoteID | string) => {
-        this.setState({ replayToEventID: eventID });
+        this.setState({ replyToEventID: eventID });
     };
 
     render(props: MessagePanelProps) {
@@ -96,7 +96,7 @@ export class MessagePanel extends Component<MessagePanelProps, MessagePanelState
 
                     <Editor
                         replyTo={{
-                            eventID: this.state.replayToEventID,
+                            eventID: this.state.replyToEventID,
                             onEventIDChange: this.handleReplyToEventIDChange,
                         }}
                         maxHeight="30vh"
