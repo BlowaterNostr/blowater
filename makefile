@@ -48,6 +48,7 @@ stats:
 build: fmt
 	cp -rv app/UI/assets/ build-pwa/
 	deno bundle app/UI/_main.tsx build-pwa/main.mjs
+	cp file_server.ts build-pwa/file_server.ts
 
 test-ui: fmt
 	deno bundle --config=./deno.json app/UI/$(page).test.tsx build-pwa/main.mjs
