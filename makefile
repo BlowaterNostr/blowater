@@ -54,7 +54,7 @@ test-ui: fmt
 	file_server -p $(port) build-pwa
 
 dev: build
-	file_server -p $(port) build-pwa
+	deno run --allow-net --allow-read file_server.ts -p $(port) build-pwa
 
 compile-all-ui-tests:
 	deno run --allow-read --allow-env --allow-write --allow-net app/UI/_compile-ui-tests.ts
