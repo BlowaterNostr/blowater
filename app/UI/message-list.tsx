@@ -31,6 +31,7 @@ import { BackgroundColor_MessagePanel, PrimaryTextColor } from "./style/colors.t
 import { Parsed_Event } from "../nostr.ts";
 import { NoteID } from "../../libs/nostr.ts/nip19.ts";
 import { robohash } from "./relay-detail.tsx";
+import { ReplyIcon } from "./icons/reply-icon.tsx";
 
 interface Props {
     myPublicKey: PublicKey;
@@ -41,6 +42,7 @@ interface Props {
         relayRecordGetter: RelayRecordGetter;
         getEventByID: func_GetEventByID;
     };
+    onReplyToEventIDChange?: (eventID?: string | NoteID) => void;
 }
 
 interface MessageListState {
@@ -93,6 +95,7 @@ export class MessageList extends Component<Props, MessageListState> {
                     emit: this.props.emit,
                     authorProfile: profileEvent ? profileEvent.profile : undefined,
                     getters: this.props.getters,
+                    onReplyToEventIDChange: this.props.onReplyToEventIDChange,
                 }),
             );
         }
@@ -269,6 +272,7 @@ export type func_GetEventByID = (
 ) => Parsed_Event | undefined;
 
 function MessageBoxGroup(props: {
+    onReplyToEventIDChange?: (eventID?: string | NoteID) => void;
     authorProfile: ProfileData | undefined;
     messages: ChatMessage[];
     myPublicKey: PublicKey;
@@ -290,7 +294,7 @@ function MessageBoxGroup(props: {
                 isMobile() ? "select-none" : ""
             }`}
         >
-            {MessageActions(first_message, props.emit)}
+            {MessageActions(first_message, props.emit, props.onReplyToEventIDChange)}
             {renderRelply(first_message.event, props.getters)}
             <div class="flex items-start">
                 <Avatar
@@ -339,7 +343,7 @@ function MessageBoxGroup(props: {
                     isMobile() ? "select-none" : ""
                 }`}
             >
-                {MessageActions(msg, props.emit)}
+                {MessageActions(msg, props.emit, props.onReplyToEventIDChange)}
                 {Time(msg.created_at)}
                 <div
                     class={`flex-1`}
@@ -369,16 +373,37 @@ function MessageBoxGroup(props: {
 function MessageActions(
     message: ChatMessage,
     emit: emitFunc<DirectMessagePanelUpdate>,
+    onReplyToEventIDChange?: (eventID?: string | NoteID) => void,
 ) {
     return (
         <div
-            class={`hidden group-hover:flex absolute top-[-0.75rem] right-[3rem]`}
-            style={{
-                boxShadow: "2px 2px 5px 0 black",
-            }}
+            class={`hidden
+            group-hover:flex
+            h-8
+            bg-[#313338] border-[#27292D] border border-solid rounded
+            hover:drop-shadow-lg
+            absolute top-[-1rem] right-[3rem]  `}
         >
+            {onReplyToEventIDChange
+                ? (
+                    <button
+                        class={`flex items-center justify-center
+                rounded-l
+                p-1
+                bg-[#313338] hover:bg-[#3A3C41]`}
+                        onClick={() => {
+                            onReplyToEventIDChange(message.event.id);
+                        }}
+                    >
+                        <ReplyIcon class={`w-5 h-5 text-[#B6BAC0] hover:text-[#D9DBDE]`} />
+                    </button>
+                )
+                : null}
+
             <button
-                class={`w-6 h-6 flex items-center justify-center`}
+                class={`flex items-center justify-center
+                p-1
+                bg-[#313338] hover:bg-[#3A3C41] ${onReplyToEventIDChange ? "rounded-r" : "rounded"}`}
                 onClick={async () => {
                     emit({
                         type: "ViewEventDetail",
@@ -386,12 +411,7 @@ function MessageActions(
                     });
                 }}
             >
-                <AboutIcon
-                    class={`w-4 h-4 scale-150`}
-                    style={{
-                        fill: PrimaryTextColor,
-                    }}
-                />
+                <AboutIcon class={`w-5 h-5 text-[#B6BAC0] hover:text-[#D9DBDE]`} />
             </button>
         </div>
     );

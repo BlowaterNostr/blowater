@@ -44,7 +44,7 @@ export type ViewUserDetail = {
     pubkey: PublicKey;
 };
 
-interface DirectMessagePanelProps {
+interface MessagePanelProps {
     myPublicKey: PublicKey;
 
     emit: emitFunc<
@@ -67,14 +67,27 @@ interface DirectMessagePanelProps {
     };
 }
 
-export class MessagePanel extends Component<DirectMessagePanelProps> {
-    render(props: DirectMessagePanelProps) {
+type MessagePanelState = {
+    replyToEventID?: NoteID | string;
+};
+
+export class MessagePanel extends Component<MessagePanelProps, MessagePanelState> {
+    state = {
+        replyToEventID: undefined,
+    };
+
+    handleReplyToEventIDChange = (eventID?: NoteID | string) => {
+        this.setState({ replyToEventID: eventID });
+    };
+
+    render(props: MessagePanelProps) {
         let vnode = (
             <div class={`flex h-full w-full relative ${BackgroundColor_MessagePanel}`}>
                 <div class={`flex flex-col h-full flex-1 overflow-hidden`}>
                     <div class={`flex-1`}></div>
 
                     <MessageList
+                        onReplyToEventIDChange={this.handleReplyToEventIDChange}
                         key={props.messages[0]?.event.id} // this is not a 100% correct key which should be a stable hash of the whole array
                         myPublicKey={props.myPublicKey}
                         messages={props.messages}
@@ -83,6 +96,10 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
                     />
 
                     <Editor
+                        replyTo={{
+                            eventID: this.state.replyToEventID,
+                            onEventIDChange: this.handleReplyToEventIDChange,
+                        }}
                         maxHeight="30vh"
                         emit={props.emit}
                         placeholder=""
@@ -98,8 +115,8 @@ export class MessagePanel extends Component<DirectMessagePanelProps> {
     }
 }
 
-export class MessagePanel_V0 extends Component<DirectMessagePanelProps> {
-    render(props: DirectMessagePanelProps) {
+export class MessagePanel_V0 extends Component<MessagePanelProps> {
+    render(props: MessagePanelProps) {
         let vnode = (
             <div class={`flex h-full w-full relative ${BackgroundColor_MessagePanel}`}>
                 <div class={`flex flex-col h-full flex-1 overflow-hidden`}>

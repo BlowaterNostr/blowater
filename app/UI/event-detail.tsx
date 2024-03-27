@@ -20,7 +20,7 @@ export class EventDetail extends Component<Props> {
         container: `py-6 px-4 bg-[${SecondaryBackgroundColor}]`,
         header: {
             container: `text-[${PrimaryTextColor}] text-xl flex`,
-            icon: `w-8 h-8 mr-4 text-[${TitleIconColor}] fill-current`,
+            icon: `w-8 h-8 mr-4 text-[${TitleIconColor}]`,
         },
         title: `mt-7 text-[${PrimaryTextColor}]`,
         field: {

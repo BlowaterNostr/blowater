@@ -7,6 +7,7 @@ import {
     sleep,
 } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { prepareNormalNostrEvent } from "../../libs/nostr.ts/event.ts";
+import { prepareReplyEvent } from "../nostr.ts";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { NoteID } from "../../libs/nostr.ts/nip19.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
@@ -558,7 +559,7 @@ export async function* Database_Update(
 }
 
 export async function handle_SendMessage(
-    event: SendMessage,
+    ui_event: SendMessage,
     ctx: NostrAccountContext,
     lamport: LamportTime,
     db: Database_View,
@@ -573,7 +574,7 @@ export async function handle_SendMessage(
         getEventByID: func_GetEventByID;
     },
 ) {
-    if (event.text.length == 0) {
+    if (ui_event.text.length == 0) {
         return new Error("can't send empty message");
     }
 
@@ -582,8 +583,8 @@ export async function handle_SendMessage(
         const events_send = await sendDirectMessages({
             sender: ctx,
             receiverPublicKey: args.dm.currentConversation as PublicKey,
-            message: event.text,
-            files: event.files,
+            message: ui_event.text,
+            files: ui_event.files,
             lamport_timestamp: lamport.now(),
             eventSender: args.blowater_relay,
         });
@@ -598,11 +599,36 @@ export async function handle_SendMessage(
         }
         events = events_send;
     } else if (args.navigationModel.activeNav == "Public") {
-        const nostr_event = await prepareNormalNostrEvent(ctx, {
-            content: event.text,
-            kind: NostrKind.TEXT_NOTE,
-            tags: generateTags(event.text, args.getEventByID, args.current_relay.url),
-        });
+        let replyToEvent: NostrEvent | undefined;
+        if (ui_event.reply_to_event_id) {
+            replyToEvent = args.getEventByID(ui_event.reply_to_event_id);
+        }
+        const nostr_event = replyToEvent
+            ? await prepareReplyEvent(
+                ctx,
+                {
+                    targetEvent: replyToEvent,
+                    tags: generateTags({
+                        content: ui_event.text,
+                        getEventByID: args.getEventByID,
+                        current_relay: args.current_relay.url,
+                    }),
+                    content: ui_event.text,
+                    currentRelay: args.current_relay.url,
+                },
+            )
+            : await prepareNormalNostrEvent(ctx, {
+                content: ui_event.text,
+                kind: NostrKind.TEXT_NOTE,
+                tags: generateTags({
+                    content: ui_event.text,
+                    getEventByID: args.getEventByID,
+                    current_relay: args.current_relay.url,
+                }),
+            });
+        if (nostr_event instanceof Error) {
+            return nostr_event;
+        }
         const err = await args.current_relay.sendEvent(nostr_event);
         if (err instanceof Error) {
             return err;
@@ -620,10 +646,16 @@ export async function handle_SendMessage(
     }
 }
 
-export function generateTags(content: string, getEventByID: func_GetEventByID, current_relay: string) {
+export function generateTags(
+    args: {
+        content: string;
+        getEventByID: func_GetEventByID;
+        current_relay: string;
+    },
+) {
     const eTags = new Map<string, [string, string]>();
     const pTags = new Set<string>();
-    const parsedTextItems = parseContent(content);
+    const parsedTextItems = parseContent(args.content);
     for (const item of parsedTextItems) {
         if (item.type === "nevent") {
             eTags.set(item.event.pointer.id, [item.event.pointer.relays?.[0] || "", "mention"]);
@@ -633,8 +665,8 @@ export function generateTags(content: string, getEventByID: func_GetEventByID, c
         } else if (item.type === "npub") {
             pTags.add(item.pubkey.hex);
         } else if (item.type === "note") {
-            eTags.set(item.noteID.hex, [current_relay, "mention"]);
-            const event = getEventByID(item.noteID);
+            eTags.set(item.noteID.hex, [args.current_relay, "mention"]);
+            const event = args.getEventByID(item.noteID);
             if (event) {
                 pTags.add(event.pubkey);
             }

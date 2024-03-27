@@ -31,7 +31,12 @@ if (!e || e instanceof Error) {
 let vdom = (
     <div class="border">
         <Editor
-            replyToEventID={e.id}
+            replyTo={{
+                eventID: e.id,
+                onEventIDChange: (id) => {
+                    console.log(`onReplyToEventIDChange: ${id}`);
+                },
+            }}
             placeholder="Message @xxx"
             maxHeight="50vh"
             emit={testEventBus.emit}

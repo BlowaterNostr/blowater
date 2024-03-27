@@ -1,6 +1,7 @@
 /** @jsx h */
 import { h } from "https://esm.sh/preact@10.17.1";
-export function AboutIcon(props: {
+
+export function ReplyIcon(props: {
     class?: string | h.JSX.SignalLike<string | undefined> | undefined;
     style?:
         | string
@@ -17,7 +18,7 @@ export function AboutIcon(props: {
             xmlns="http://www.w3.org/2000/svg"
         >
             <path
-                d="M12 16V12M12 8H12.01M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z"
+                d="M9 14L4 9M4 9L9 4M4 9H10.4C13.7603 9 15.4405 9 16.7239 9.65396C17.8529 10.2292 18.7708 11.1471 19.346 12.2761C20 13.5595 20 15.2397 20 18.6V20"
                 stroke="currentColor"
                 stroke-width="2"
                 stroke-linecap="round"
