@@ -606,13 +606,16 @@ export async function handle_SendMessage(
         const nostr_event = replyToEvent
             ? await prepareReplyEvent(
                 ctx,
-                replyToEvent,
-                generateTags({
+                {
+                    targetEvent: replyToEvent,
+                    tags: generateTags({
+                        content: ui_event.text,
+                        getEventByID: args.getEventByID,
+                        current_relay: args.current_relay.url,
+                    }),
                     content: ui_event.text,
-                    getEventByID: args.getEventByID,
-                    current_relay: args.current_relay.url,
-                }),
-                ui_event.text,
+                    currentRelay: args.current_relay.url,
+                },
             )
             : await prepareNormalNostrEvent(ctx, {
                 content: ui_event.text,

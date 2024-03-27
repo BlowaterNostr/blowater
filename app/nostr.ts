@@ -143,13 +143,16 @@ export async function prepareNostrImageEvent(
 
 export async function prepareReplyEvent(
     sender: nostr.NostrAccountContext,
-    targetEvent: nostr.NostrEvent,
-    tags: Tag[],
-    content: string,
+    args: {
+        targetEvent: nostr.NostrEvent;
+        tags: Tag[];
+        content: string;
+        currentRelay: string;
+    },
 ): Promise<nostr.NostrEvent | Error> {
-    const ps = getTags(targetEvent).p;
-    if (targetEvent.kind == NostrKind.DIRECT_MESSAGE) {
-        const replyTo = PublicKey.FromHex(targetEvent.pubkey);
+    const ps = getTags(args.targetEvent).p;
+    if (args.targetEvent.kind == NostrKind.DIRECT_MESSAGE) {
+        const replyTo = PublicKey.FromHex(args.targetEvent.pubkey);
         if (replyTo instanceof Error) {
             return replyTo;
         }
@@ -157,12 +160,12 @@ export async function prepareReplyEvent(
             sender,
             {
                 encryptKey: replyTo,
-                kind: targetEvent.kind,
+                kind: args.targetEvent.kind,
                 tags: [
                     [
                         "e",
-                        targetEvent.id,
-                        "",
+                        args.targetEvent.id,
+                        args.currentRelay,
                         "reply",
                     ],
                     ...ps.map((p) =>
@@ -171,9 +174,9 @@ export async function prepareReplyEvent(
                             p,
                         ] as TagPubKey
                     ),
-                    ...tags,
+                    ...args.tags,
                 ],
-                content,
+                content: args.content,
             },
         );
     }
@@ -181,12 +184,12 @@ export async function prepareReplyEvent(
     return prepareNormalNostrEvent(
         sender,
         {
-            kind: targetEvent.kind,
+            kind: args.targetEvent.kind,
             tags: [
                 [
                     "e",
-                    targetEvent.id,
-                    "",
+                    args.targetEvent.id,
+                    args.currentRelay,
                     "reply",
                 ],
                 ...ps.map((p) =>
@@ -195,9 +198,9 @@ export async function prepareReplyEvent(
                         p,
                     ] as TagPubKey
                 ),
-                ...tags,
+                ...args.tags,
             ],
-            content,
+            content: args.content,
         },
     );
 }
