@@ -559,7 +559,7 @@ export async function* Database_Update(
 }
 
 export async function handle_SendMessage(
-    event: SendMessage,
+    ui_event: SendMessage,
     ctx: NostrAccountContext,
     lamport: LamportTime,
     db: Database_View,
@@ -574,7 +574,7 @@ export async function handle_SendMessage(
         getEventByID: func_GetEventByID;
     },
 ) {
-    if (event.text.length == 0) {
+    if (ui_event.text.length == 0) {
         return new Error("can't send empty message");
     }
 
@@ -583,8 +583,8 @@ export async function handle_SendMessage(
         const events_send = await sendDirectMessages({
             sender: ctx,
             receiverPublicKey: args.dm.currentConversation as PublicKey,
-            message: event.text,
-            files: event.files,
+            message: ui_event.text,
+            files: ui_event.files,
             lamport_timestamp: lamport.now(),
             eventSender: args.blowater_relay,
         });
@@ -600,25 +600,25 @@ export async function handle_SendMessage(
         events = events_send;
     } else if (args.navigationModel.activeNav == "Public") {
         let replyToEvent: NostrEvent | undefined;
-        if (event.reply_to_event_id) {
-            replyToEvent = args.getEventByID(event.reply_to_event_id);
+        if (ui_event.reply_to_event_id) {
+            replyToEvent = args.getEventByID(ui_event.reply_to_event_id);
         }
         const nostr_event = replyToEvent
             ? await prepareReplyEvent(
                 ctx,
                 replyToEvent,
                 generateTags({
-                    content: event.text,
+                    content: ui_event.text,
                     getEventByID: args.getEventByID,
                     current_relay: args.current_relay.url,
                 }),
-                event.text,
+                ui_event.text,
             )
             : await prepareNormalNostrEvent(ctx, {
-                content: event.text,
+                content: ui_event.text,
                 kind: NostrKind.TEXT_NOTE,
                 tags: generateTags({
-                    content: event.text,
+                    content: ui_event.text,
                     getEventByID: args.getEventByID,
                     current_relay: args.current_relay.url,
                 }),
