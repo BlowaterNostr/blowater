@@ -5,7 +5,7 @@ test.ts
 # Bundle
 *.mjs
 main.js
-cov_profile*
+*cov_profile*
 Elm
 DevOps/stats.sqlite
 *.DS_Store
