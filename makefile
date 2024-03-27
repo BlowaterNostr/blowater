@@ -48,13 +48,14 @@ stats:
 build: fmt
 	cp -rv app/UI/assets/ build-pwa/
 	deno bundle app/UI/_main.tsx build-pwa/main.mjs
+	cp file_server.ts build-pwa/file_server.ts
 
 test-ui: fmt
 	deno bundle --config=./deno.json app/UI/$(page).test.tsx build-pwa/main.mjs
 	file_server -p $(port) build-pwa
 
 dev: build
-	file_server -p $(port) build-pwa
+	deno run --allow-net --allow-read file_server.ts -p $(port) build-pwa
 
 compile-all-ui-tests:
 	deno run --allow-read --allow-env --allow-write --allow-net app/UI/_compile-ui-tests.ts
