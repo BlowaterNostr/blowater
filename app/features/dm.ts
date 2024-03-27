@@ -21,6 +21,7 @@ import {
     Multicaster,
     PutToClosedChannelError,
 } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { hours_ago } from "../UI/app.tsx";
 
 export async function sendDirectMessages(args: {
     sender: NostrAccountContext;
@@ -98,6 +99,7 @@ async function* getAllEncryptedMessagesSendBy(
         {
             authors: [publicKey.hex],
             kinds: [4],
+            since: hours_ago(18),
         },
     );
     if (resp instanceof Error) {
@@ -117,6 +119,7 @@ async function* getAllEncryptedMessagesReceivedBy(
         {
             kinds: [4],
             "#p": [publicKey.hex],
+            since: hours_ago(24),
         },
     );
     if (resp instanceof Error) {
