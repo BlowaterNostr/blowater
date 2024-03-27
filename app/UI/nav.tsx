@@ -67,10 +67,8 @@ export class NavBar extends Component<Props, State> {
     styles = {
         container:
             `h-screen w-16 flex flex-col gap-y-4 overflow-y-auto bg-[${PrimaryBackgroundColor}] py-8 items-center`,
-        icons: (active: boolean, fill?: boolean) => (
-            `w-6 h-6 ${fill ? "fill-current" : "stroke-current"} text-[${
-                active ? PrimaryTextColor : SecondaryTextColor
-            }]`
+        icons: (active: boolean) => (
+            `w-6 h-6 stroke-current text-[${active ? PrimaryTextColor : SecondaryTextColor}]`
         ),
         avatar: `w-12 h-12`,
         tabsContainer:
@@ -104,7 +102,7 @@ export class NavBar extends Component<Props, State> {
             id: "Profile",
         },
         {
-            icon: (active: boolean) => <AboutIcon class={this.styles.icons(active, true)} />,
+            icon: (active: boolean) => <AboutIcon class={this.styles.icons(active)} />,
             id: "About",
         },
         {

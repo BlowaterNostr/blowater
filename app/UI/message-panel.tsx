@@ -87,6 +87,7 @@ export class MessagePanel extends Component<MessagePanelProps, MessagePanelState
                     <div class={`flex-1`}></div>
 
                     <MessageList
+                        onReplyToEventIDChange={this.handleReplyToEventIDChange}
                         key={props.messages[0]?.event.id} // this is not a 100% correct key which should be a stable hash of the whole array
                         myPublicKey={props.myPublicKey}
                         messages={props.messages}
