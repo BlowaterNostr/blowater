@@ -402,9 +402,8 @@ function MessageActions(
 
             <button
                 class={`flex items-center justify-center
-                rounded-r
                 p-1
-                bg-[#313338] hover:bg-[#3A3C41]`}
+                bg-[#313338] hover:bg-[#3A3C41] ${onReplyToEventIDChange ? "rounded-r" : "rounded"}`}
                 onClick={async () => {
                     emit({
                         type: "ViewEventDetail",

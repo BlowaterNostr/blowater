@@ -77,6 +77,7 @@ export class Editor extends Component<EditorProps, EditorState> {
             "rows",
             "1",
         );
+        this.props.replyTo?.onEventIDChange(undefined);
         await setState(this, { text: "", files: [] });
     };
 
