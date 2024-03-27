@@ -426,7 +426,8 @@ export class AppComponent extends Component<AppProps> {
                     >
                         <EditProfile
                             ctx={model.app.ctx}
-                            profile={app.database.getProfilesByPublicKey(myAccountCtx.publicKey)?.profile}
+                            profile={app.database.getProfilesByPublicKey(myAccountCtx.publicKey)?.profile ||
+                                {}}
                             emit={props.eventBus.emit}
                         />
                     </div>
@@ -500,6 +501,7 @@ async function sync_profile_events(
 ) {
     const messageStream = await pool.newSub("sync_profile_events", {
         kinds: [NostrKind.META_DATA],
+        since: hours_ago(12),
     });
     if (messageStream instanceof Error) {
         return messageStream;
@@ -517,7 +519,7 @@ async function sync_profile_events(
 const sync_kind_1 = async (pool: ConnectionPool, database: Database_View) => {
     const stream = await pool.newSub("sync_kind_1", {
         kinds: [NostrKind.TEXT_NOTE],
-        since: Math.floor(Date.now() / 1000) - 6 * 60 * 60, // 6 hours
+        since: hours_ago(6),
     });
     if (stream instanceof Error) {
         return stream;
@@ -542,6 +544,7 @@ const sync_client_specific_data = async (
     const stream = await pool.newSub(OtherConfig.name, {
         authors: [ctx.publicKey.hex],
         kinds: [NostrKind.Encrypted_Custom_App_Data],
+        limit: 1,
     });
     if (stream instanceof Error) {
         throw stream; // crash the app
@@ -557,3 +560,7 @@ const sync_client_specific_data = async (
         }
     }
 };
+
+export function hours_ago(hours: number) {
+    return Math.floor(Date.now() / 1000) - hours * 60 * 60;
+}
