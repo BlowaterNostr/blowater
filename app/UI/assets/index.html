@@ -27,6 +27,31 @@
     <link rel="manifest" href="/manifest.json">
 
     <script src="/tailwind.js"></script>
+    <script>
+        tailwind.config = {
+          theme: {
+            extend: {
+              colors: {
+                'primary-background': '#18181B',
+                'secondary-background': '#27272A',
+                'divider-background': '#3F3F46',
+                'card-background': '#202225',
+                'hover-button-background': '#52525B',
+                'primary-text': '#FFFFFF',
+                'secondary-text': '#8B8B8D',
+                'hint-text': '#A9A9AA',
+                'placeholder-text': '#7D7D7F',
+                'hint-link': '#C039E0',
+                'title-icon': '#FF772B',
+                'link': '#24ADEB',
+                'success': '#22C55E',
+                'warning': '#EAB308',
+                'error': '#EF4444',
+              }
+            }
+          }
+        }
+    </script>
     <style>
         html {
             font-size: 1.618em;
