@@ -1,12 +1,10 @@
 /** @jsx h */
 import { createRef, h } from "https://esm.sh/preact@10.17.1";
-import { CenterClass, LinearGradientsClass, NoOutlineClass } from "./components/tw.ts";
 import { emitFunc } from "../event-bus.ts";
 
 import { NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { ImageIcon } from "./icons/image-icon.tsx";
-import { DividerBackgroundColor, PrimaryBackgroundColor, PrimaryTextColor } from "./style/colors.ts";
 import { SendIcon } from "./icons/send-icon.tsx";
 import { Component } from "https://esm.sh/preact@10.17.1";
 import { RemoveIcon } from "./icons/remove-icon.tsx";
@@ -93,14 +91,16 @@ export class Editor extends Component<EditorProps, EditorState> {
         const uploadFileInput = createRef();
 
         return (
-            <div class={`flex flex-col mb-4 mx-4 justify-center bg-[${DividerBackgroundColor}] rounded-lg`}>
+            <div class="flex flex-col mb-4 mx-4 justify-center bg-divider-background rounded-lg">
                 {ReplyIndicator({
                     getters: props.getters,
                     replyTo: props.replyTo,
                 })}
-                <div class={`w-full flex items-center`}>
+                <div class="w-full flex items-center">
                     <button
-                        class={`min-w-[3rem] w-[3rem] h-[3rem] hover:bg-[${DividerBackgroundColor}] group ${CenterClass} rounded-[50%] ${NoOutlineClass}`}
+                        class="flex items-center justify-center group
+                        min-w-[3rem] w-[3rem] h-[3rem] rounded-[50%]
+                        hover:bg-divider-background focus:outline-none focus-visible:outline-none"
                         onClick={() => {
                             if (uploadFileInput.current) {
                                 uploadFileInput.current.click();
@@ -108,7 +108,7 @@ export class Editor extends Component<EditorProps, EditorState> {
                         }}
                     >
                         <ImageIcon
-                            class={`h-[2rem] w-[2rem] stroke-current text-[${PrimaryTextColor}4D] group-hover:text-[${PrimaryTextColor}]`}
+                            class="h-[2rem] w-[2rem] stroke-current text-primary-text-4d group-hover:text-primary-text"
                             style={{
                                 fill: "none",
                             }}
@@ -136,37 +136,33 @@ export class Editor extends Component<EditorProps, EditorState> {
                                 files: propsfiles,
                             });
                         }}
-                        class={`hidden`}
+                        class="hidden"
                     />
-                    <div
-                        class={`py-[0.75rem] flex flex-col flex-1 overflow-hidden`}
-                    >
+                    <div class="py-[0.75rem] flex flex-col flex-1 overflow-hidden">
                         {this.state.files.length > 0
                             ? (
-                                <ul
-                                    class={`flex overflow-auto list-none py-2 w-full border-b border-[#52525B] mb-[1rem]`}
-                                >
+                                <ul class="flex overflow-auto list-none py-2 w-full border-b border-[#52525B] mb-[1rem]">
                                     {this.state.files.map((file, index) => {
                                         return (
-                                            <li
-                                                class={`relative mx-2 min-w-[10rem] w-[10rem]  h-[10rem] p-2 bg-[${PrimaryBackgroundColor}] rounded ${CenterClass}`}
-                                            >
+                                            <li class="flex items-center justify-center relative mx-2 min-w-[10rem] w-[10rem]  h-[10rem] p-2 bg-primary-background rounded">
                                                 <button
-                                                    class={`w-[2rem] h-[2rem] absolute top-1 right-1 rounded-[50%] hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
+                                                    class="flex items-center justify-center
+                                                    w-[2rem] h-[2rem] absolute top-1 right-1 rounded-[50%]
+                                                    hover:bg-divider-background focus:outline-none focus-visible:outline-none"
                                                     onClick={() => {
                                                         this.removeFile(index);
                                                     }}
                                                 >
                                                     <RemoveIcon
-                                                        class={`w-[1.3rem] h-[1.3rem]`}
+                                                        class="w-[1.3rem] h-[1.3rem]"
                                                         style={{
                                                             fill: "none",
-                                                            stroke: PrimaryTextColor,
+                                                            stroke: "#FFF",
                                                         }}
                                                     />
                                                 </button>
                                                 <img
-                                                    class={`max-w-full max-h-full`}
+                                                    class="max-w-full max-h-full"
                                                     src={URL.createObjectURL(file)}
                                                     alt=""
                                                 />
@@ -184,7 +180,7 @@ export class Editor extends Component<EditorProps, EditorState> {
                             }}
                             value={this.state.text}
                             rows={1}
-                            class={`flex-1 bg-transparent focus-visible:outline-none placeholder-[${PrimaryTextColor}4D] text-[0.8rem] text-[#D2D3D5] whitespace-nowrap resize-none overflow-x-hidden overflow-y-auto`}
+                            class="flex-1 bg-transparent focus-visible:outline-none placeholder-primary-text-4d text-[0.8rem] text-[#D2D3D5] whitespace-nowrap resize-none overflow-x-hidden overflow-y-auto"
                             placeholder={this.props.placeholder}
                             onInput={(e) => {
                                 const lines = e.currentTarget.value.split("\n");
@@ -226,16 +222,17 @@ export class Editor extends Component<EditorProps, EditorState> {
                     </div>
 
                     <button
-                        class={`m-2 w-12 h-8 ${CenterClass} ${LinearGradientsClass} rounded`}
+                        class="flex items-center justify-center
+                        m-2 w-12 h-8 bg-gradient-to-r from-[#FF762C] via-[#FF3A5E] to-[#FF01A9] rounded"
                         onClick={async () => {
                             await this.sendMessage();
                             this.textareaElement.current?.focus();
                         }}
                     >
                         <SendIcon
-                            class={`h-4 w-4`}
+                            class="h-4 w-4"
                             style={{
-                                stroke: PrimaryTextColor,
+                                stroke: "#FFF",
                                 fill: "none",
                             }}
                         />
