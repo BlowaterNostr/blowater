@@ -165,7 +165,7 @@ function MessageListView(
 ) {
     return (
         <div
-            class={`w-full overflow-hidden ${BackgroundColor_MessagePanel}`}
+            class={`w-full overflow-hidden bg-secondary-background`}
             style={{
                 transform: "perspective(none)",
             }}

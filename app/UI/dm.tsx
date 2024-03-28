@@ -51,7 +51,7 @@ export class DirectMessageContainer extends Component<DirectMessageContainerProp
         console.log(DirectMessageContainer.name, "?");
         const vDom = (
             <div
-                class={`h-full w-full flex bg-[#36393F] overflow-hidden`}
+                class={`h-full w-full flex bg-secondary-background overflow-hidden`}
             >
                 <div
                     class={`w-fit max-sm:w-full
@@ -110,8 +110,8 @@ function TopBar(props: {
         props.currentConversation.bech32();
     return (
         <div
-            class={`h-14 border-l border-b border-[#36393F] flex
-                items-center justify-between bg-[#2F3136]`}
+            class={`h-14 flex
+                items-center justify-between bg-secondary-background`}
         >
             <div class={`flex items-center overflow-hidden`}>
                 <button

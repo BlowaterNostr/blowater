@@ -116,14 +116,11 @@ export class ConversationList extends Component<Props, State> {
         }
 
         return (
-            <div
-                // https://tailwindcss.com/docs/hover-focus-and-other-states#quick-reference
-                class={`
-                h-screen w-60 max-sm:w-full
-                flex flex-col bg-[${SecondaryBackgroundColor}]`}
-            >
+            <div // https://tailwindcss.com/docs/hover-focus-and-other-states#quick-reference
+             class="h-screen w-60 max-sm:w-full
+                flex flex-col bg-secondary-background">
                 <div
-                    class={`gap-2 py-2.5 px-4 border-b border-[#36393F]`}
+                    class={`gap-2 py-2.5 px-4`}
                 >
                     <div class={`${LinearGradientsClass} flex items-center justify-center rounded-lg`}>
                         <button
@@ -145,7 +142,7 @@ export class ConversationList extends Component<Props, State> {
                     </div>
                 </div>
 
-                <div class="py-1 border-b border-[#36393F]">
+                <div class="py-1">
                     <ContactTags tags={["contacts", "strangers", "blocked"]} emit={this.props.emit}>
                     </ContactTags>
                 </div>

@@ -91,7 +91,7 @@ export class Editor extends Component<EditorProps, EditorState> {
         const uploadFileInput = createRef();
 
         return (
-            <div class="flex flex-col mb-4 mx-4 justify-center bg-divider-background rounded-lg">
+            <div class="flex flex-col mb-4 mx-4 justify-center bg-secondary-background rounded-lg">
                 {ReplyIndicator({
                     getters: props.getters,
                     replyTo: props.replyTo,

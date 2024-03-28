@@ -72,7 +72,7 @@ export class PublicMessageContainer extends Component<Props, State> {
             msgs = filter_messages(this.props.messages, filter);
         }
         return (
-            <div class="flex flex-row h-full w-full flex bg-[#36393F] overflow-hidden">
+            <div class="flex flex-row h-full w-full flex bg-secondary-background overflow-hidden">
                 {this.state.currentSelectedChannel
                     ? (
                         <div class={`flex flex-col flex-1 overflow-hidden`}>
@@ -106,8 +106,8 @@ function TopBar(props: {
 }) {
     return (
         <div
-            class={`h-14 border-l border-b border-[#36393F] flex
-                items-center justify-between bg-[#2F3136]`}
+            class={`h-14 flex
+                items-center justify-between bg-secondary-background`}
         >
             <div class={`flex items-center overflow-hidden`}>
                 <span

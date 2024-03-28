@@ -82,7 +82,7 @@ export class MessagePanel extends Component<MessagePanelProps, MessagePanelState
 
     render(props: MessagePanelProps) {
         let vnode = (
-            <div class={`flex h-full w-full relative ${BackgroundColor_MessagePanel}`}>
+            <div class={`flex h-full w-full relative bg-secondary-background`}>
                 <div class={`flex flex-col h-full flex-1 overflow-hidden`}>
                     <div class={`flex-1`}></div>
 
@@ -118,7 +118,7 @@ export class MessagePanel extends Component<MessagePanelProps, MessagePanelState
 export class MessagePanel_V0 extends Component<MessagePanelProps> {
     render(props: MessagePanelProps) {
         let vnode = (
-            <div class={`flex h-full w-full relative ${BackgroundColor_MessagePanel}`}>
+            <div class={`flex h-full w-full relative bg-secondary-background`}>
                 <div class={`flex flex-col h-full flex-1 overflow-hidden`}>
                     <div class={`flex-1`}></div>
 
