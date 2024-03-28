@@ -99,7 +99,7 @@ export class Editor extends Component<EditorProps, EditorState> {
                 <div class="w-full flex items-start gap-2">
                     <button
                         class="flex items-center justify-center group
-                        min-w-12 w-12 h-12 rounded-[50%]
+                        w-10 h-10 rounded-[50%]
                         hover:bg-divider-background focus:outline-none focus-visible:outline-none"
                         onClick={() => {
                             if (uploadFileInput.current) {
@@ -173,56 +173,63 @@ export class Editor extends Component<EditorProps, EditorState> {
                             )
                             : undefined}
 
-                        <textarea
-                            ref={this.textareaElement}
-                            style={{
-                                maxHeight: this.props.maxHeight,
-                            }}
-                            value={this.state.text}
-                            rows={1}
-                            class="flex-1 px-4 py-[0.5rem] bg-transparent focus-visible:outline-none placeholder-primary-text-4d text-input-text whitespace-nowrap resize-none overflow-x-hidden overflow-y-auto"
-                            placeholder={this.props.placeholder}
-                            onInput={(e) => {
-                                const lines = e.currentTarget.value.split("\n");
-                                e.currentTarget.setAttribute(
-                                    "rows",
-                                    `${lines.length}`,
-                                );
-                                this.setState({ text: e.currentTarget.value });
-                            }}
-                            onKeyDown={async (e) => {
-                                // https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/metaKey
-                                if (e.code === "Enter" && (e.ctrlKey || e.metaKey)) {
-                                    await this.sendMessage();
-                                }
-                            }}
-                            onPaste={async (_) => {
-                                let clipboardData: ClipboardItems = [];
-                                try {
-                                    clipboardData = await window.navigator.clipboard.read();
-                                } catch (e) {
-                                    console.error(e.message);
-                                    return;
-                                }
-                                for (const item of clipboardData) {
-                                    try {
-                                        const image = await item.getType(
-                                            "image/png",
-                                        );
-                                        await setState(this, {
-                                            files: this.state.files.concat([image]),
-                                        });
-                                    } catch (e) {
-                                        console.error(e);
+                        <div class="flex flex-1">
+                            <textarea
+                                ref={this.textareaElement}
+                                style={{
+                                    maxHeight: this.props.maxHeight,
+                                }}
+                                value={this.state.text}
+                                rows={1}
+                                class="flex-1 px-4 py-[0.5rem] bg-transparent focus-visible:outline-none placeholder-primary-text-4d text-input-text whitespace-nowrap resize-none overflow-x-hidden overflow-y-auto"
+                                placeholder={this.props.placeholder}
+                                onInput={(e) => {
+                                    const lines = e.currentTarget.value.split("\n");
+                                    e.currentTarget.setAttribute(
+                                        "rows",
+                                        `${lines.length}`,
+                                    );
+                                    this.setState({ text: e.currentTarget.value });
+                                }}
+                                onKeyDown={async (e) => {
+                                    // https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/metaKey
+                                    if (e.code === "Enter" && (e.ctrlKey || e.metaKey)) {
+                                        await this.sendMessage();
                                     }
-                                }
-                            }}
-                        >
-                        </textarea>
+                                }}
+                                onPaste={async (_) => {
+                                    let clipboardData: ClipboardItems = [];
+                                    try {
+                                        clipboardData = await window.navigator.clipboard.read();
+                                    } catch (e) {
+                                        console.error(e.message);
+                                        return;
+                                    }
+                                    for (const item of clipboardData) {
+                                        try {
+                                            const image = await item.getType(
+                                                "image/png",
+                                            );
+                                            await setState(this, {
+                                                files: this.state.files.concat([image]),
+                                            });
+                                        } catch (e) {
+                                            console.error(e);
+                                        }
+                                    }
+                                }}
+                            >
+                            </textarea>
+                            <div class="flex justify-cente items-start hidden md:block">
+                                <div class="flex justify-center items-center text-input-text text-sm p-1 m-1 mt-[0.325rem] rounded-[0.625rem] hover:bg-[#52525B] hover:shadow-[0px_1px_0px_0px_rgba(255,255,255,0.09)_inset,0px_1px_0px_0px_rgba(0,0,0,0.14)]">
+                                    Ctrl + Enter
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <button
-                        class="inline-flex h-[2.5rem] w-20 p-2 justify-center items-center gap-[0.5rem] shrink-0 rounded-[1rem] border-[0.125rem] border-solid border-[#FF762C]
+                        class="inline-flex h-10 w-20 p-2 justify-center items-center gap-[0.5rem] shrink-0 rounded-[1rem] border-[0.125rem] border-solid border-[#FF762C]
                         hover:bg-gradient-to-r hover:from-[#FF762C] hover:via-[#FF3A5E] hover:to-[#FF01A9]"
                         onClick={async () => {
                             await this.sendMessage();
