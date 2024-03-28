@@ -1,7 +1,6 @@
-import { createRef, Fragment, h } from "https://esm.sh/preact@10.17.1";
+import { createRef, h } from "https://esm.sh/preact@10.17.1";
 import {
     CenterClass,
-    DividerClass,
     inputBorderClass,
     InputClass,
     LinearGradientsClass,
@@ -17,7 +16,7 @@ import {
     PrimaryTextColor,
     SecondaryBackgroundColor,
 } from "./style/colors.ts";
-import { Component, ComponentChildren } from "https://esm.sh/preact@10.11.3";
+import { Component } from "https://esm.sh/preact@10.11.3";
 import { emitFunc } from "../event-bus.ts";
 import { NostrAccountContext } from "../../libs/nostr.ts/nostr.ts";
 import { UserIcon } from "./icons/user-icon.tsx";
@@ -156,7 +155,6 @@ export class EditProfile extends Component<Props, State> {
                         Field name
                     </h3>
                     <input
-                        ref={this.newFieldKey}
                         placeholder="e.g. hobbies"
                         type="text"
                         class={`${InputClass}`}
@@ -167,9 +165,7 @@ export class EditProfile extends Component<Props, State> {
                         Field value
                     </h3>
                     <input
-                        ref={this.newFieldValue}
                         placeholder="e.g. Sports, Reading, Design"
-                        onInput={() => console.log("input")}
                         type="text"
                         class={`${InputClass}`}
                     >
