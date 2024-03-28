@@ -20,6 +20,8 @@ import {
 import { Component, ComponentChildren } from "https://esm.sh/preact@10.11.3";
 import { emitFunc } from "../event-bus.ts";
 import { NostrAccountContext } from "../../libs/nostr.ts/nostr.ts";
+import { UserIcon } from "./icons/user-icon.tsx";
+import { PlusCircleIcon } from "./icons/plus-circle-icon.tsx";
 
 export type SaveProfile = {
     type: "SaveProfile";
@@ -35,14 +37,12 @@ type Props = {
 
 type State = {
     profileData: ProfileData | undefined;
-    cutomFields: ProfileData | undefined;
     newFieldKeyError: string;
 };
 
 export class EditProfile extends Component<Props, State> {
     state: Readonly<State> = {
         newFieldKeyError: "",
-        cutomFields: undefined,
         profileData: undefined,
     };
 
@@ -50,25 +50,9 @@ export class EditProfile extends Component<Props, State> {
     newFieldValue = createRef<HTMLInputElement>();
 
     componentDidMount(): void {
-        console.log("EditProfile - componentDidMount");
-        const filterObject = (obj: ProfileData, keysToKeep: string[]) => {
-            return Object.keys(obj)
-                .filter((key) => !keysToKeep.includes(key))
-                .reduce((newObj: ProfileData, key) => {
-                    newObj[key] = obj[key];
-                    return newObj;
-                }, {});
-        };
-        const keysToFilter = ["name", "picture", "banner", "about", "website"];
-
         this.setState({
             profileData: this.props.profile,
-            cutomFields: filterObject(this.props.profile, keysToFilter),
         });
-    }
-
-    componentDidUpdate(previousProps: Readonly<Props>, previousState: Readonly<State>, snapshot: any): void {
-        console.log("EditProfile - componentDidUpdate", previousProps, previousState, snapshot);
     }
 
     render(props: Props, state: State) {
@@ -82,18 +66,28 @@ export class EditProfile extends Component<Props, State> {
                     class="w-full h-[300px] object-cover rounded-lg"
                 />
                 <img
-                    src={`${this.state.profileData?.picture}`}
+                    src={`${this.state.profileData?.picture || "/logo.webp"}`}
                     class="w-20 h-20 rounded-full mx-auto border-[3px] border-white
-                    transform -translate-y-10"
+                    object-cover
+                    transform -translate-y-10 bg-white"
                 />
                 <div class={`my-4 p-4 rounded-lg  ${NoOutlineClass} ${inputBorderClass} `}>
+                    <div class={`flex justify-start items-center gap-2`}>
+                        <UserIcon class="w-8 h-8 text-[#FF772B]" />
+                        <div
+                            class={`text-[${PrimaryTextColor}] text-[1.3125rem] font-not-italic font-700 leading-[1.5rem] tracking--0.21px`}
+                        >
+                            Profile
+                        </div>
+                    </div>
                     <h3 class={`text-[${PrimaryTextColor}] mt-8`}>
-                        name
+                        Name
                     </h3>
                     <input
                         placeholder="Please input your name"
                         value={state.profileData?.name}
                         name="name"
+                        onInput={(e) => this.onInput(e, "name")}
                         type="text"
                         class={`${InputClass}`}
                     />
@@ -104,6 +98,7 @@ export class EditProfile extends Component<Props, State> {
                         placeholder="Please input your picture url"
                         value={state.profileData?.picture}
                         name="picture"
+                        onInput={(e) => this.onInput(e, "picture")}
                         type="text"
                         class={`${InputClass}`}
                     />
@@ -120,6 +115,7 @@ export class EditProfile extends Component<Props, State> {
                         placeholder="Please input your banner url"
                         value={state.profileData?.banner}
                         name="banner"
+                        onInput={(e) => this.onInput(e, "banner")}
                         type="text"
                         class={`${InputClass}`}
                     />
@@ -130,42 +126,32 @@ export class EditProfile extends Component<Props, State> {
                         placeholder="Please input your about"
                         value={state.profileData?.about}
                         name="about"
+                        onInput={(e) => this.onInput(e, "about")}
                         type="text"
                         class={`${InputClass}`}
                     />
                     <h3 class={`text-[${PrimaryTextColor}] mt-8`}>
-                        website
+                        Website
                     </h3>
                     <input
                         placeholder="Please input your website"
                         value={state.profileData?.website}
                         name="website"
+                        onAbort={(e) => this.onInput(e, "website")}
                         type="text"
                         class={`${InputClass}`}
                     />
                 </div>
 
                 <div class={`my-4 p-4 rounded-lg  ${NoOutlineClass} ${inputBorderClass} `}>
-                    <p class={`text-[${PrimaryTextColor}] font-bold text-sm`}>Custom Fields</p>
-                    {Object.entries(state.cutomFields || {}).map(([key, value]) => (
-                        <Fragment>
-                            <h3 class={`text-[${PrimaryTextColor}] mt-8`}>
-                                {key}
-                            </h3>
-                            <textarea
-                                placeholder="Please input your value"
-                                value={value}
-                                name={key}
-                                onInput={(e) => this.onInput(e, key)}
-                                type="text"
-                                class={`${InputClass}`}
-                            />
-                        </Fragment>
-                    ))}
-                    <p class={`text-[${PrimaryTextColor}] font-bold text-sm`}>Custom Fields</p>
-                    <span class={`text-[${HintTextColor}] text-sm`}>
-                        Create your own custom fields, anything goes!
-                    </span>
+                    <div class={`flex justify-start items-center gap-2`}>
+                        <PlusCircleIcon class="w-8 h-8 text-[#FF772B]" />
+                        <div
+                            class={`text-[${PrimaryTextColor}] text-[1.3125rem] font-not-italic font-700 leading-[1.5rem] tracking--0.21px`}
+                        >
+                            Custom Fields
+                        </div>
+                    </div>
                     <h3 class={`text-[${PrimaryTextColor}] mt-8`}>
                         Field name
                     </h3>
@@ -207,7 +193,7 @@ export class EditProfile extends Component<Props, State> {
         );
     }
 
-    onInput = (e: h.JSX.TargetedEvent<HTMLTextAreaElement, Event>, key?: string) => {
+    onInput = (e: h.JSX.TargetedEvent<HTMLTextAreaElement | HTMLInputElement, Event>, key?: string) => {
         const lines = e.currentTarget.value.split("\n");
         e.currentTarget.setAttribute(
             "rows",
@@ -248,7 +234,8 @@ export class EditProfile extends Component<Props, State> {
         this.newFieldValue.current.value = "";
     };
 
-    onSubmit = () => {
+    onSubmit = (e: h.JSX.TargetedEvent) => {
+        e.preventDefault();
         this.props.emit({
             type: "SaveProfile",
             ctx: this.props.ctx,
