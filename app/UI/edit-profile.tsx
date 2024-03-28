@@ -1,11 +1,4 @@
 import { createRef, h } from "https://esm.sh/preact@10.17.1";
-import {
-    CenterClass,
-    inputBorderClass,
-    InputClass,
-    LinearGradientsClass,
-    NoOutlineClass,
-} from "./components/tw.ts";
 import { ProfileData } from "../features/profile.ts";
 import {
     DividerBackgroundColor,
@@ -13,6 +6,7 @@ import {
     HintLinkColor,
     HintTextColor,
     HoverButtonBackgroundColor,
+    PlaceholderColor,
     PrimaryTextColor,
     SecondaryBackgroundColor,
 } from "./style/colors.ts";
@@ -70,7 +64,9 @@ export class EditProfile extends Component<Props, State> {
                     object-cover
                     transform -translate-y-10 bg-white"
                 />
-                <div class={`my-4 p-4 rounded-lg  ${NoOutlineClass} ${inputBorderClass} `}>
+                <div
+                    class={`my-4 p-4 rounded-lg   border-[2px] border-[${DividerBackgroundColor}] `}
+                >
                     <div class={`flex justify-start items-center gap-2`}>
                         <UserIcon class="w-8 h-8 text-[#FF772B]" />
                         <div
@@ -88,7 +84,7 @@ export class EditProfile extends Component<Props, State> {
                         name="name"
                         onInput={(e) => this.onInput(e, "name")}
                         type="text"
-                        class={`${InputClass}`}
+                        class={`w-full px-4 py-3 rounded-lg resize-y bg-transparent  border-[2px] border-[${DividerBackgroundColor}] placeholder-[${PlaceholderColor}] text-[${PrimaryTextColor}] focus:ring-0 focus:ring-[${PrimaryTextColor}] focus:border-[${PrimaryTextColor}] focus:border-[2px] focus:border-solid focus:border-opacity-100`}
                     />
                     <h3 class={`text-[${PrimaryTextColor}] mt-8`}>
                         Profile Image URL
@@ -99,7 +95,7 @@ export class EditProfile extends Component<Props, State> {
                         name="picture"
                         onInput={(e) => this.onInput(e, "picture")}
                         type="text"
-                        class={`${InputClass}`}
+                        class={`w-full px-4 py-3 rounded-lg resize-y bg-transparent  border-[2px] border-[${DividerBackgroundColor}] placeholder-[${PlaceholderColor}] text-[${PrimaryTextColor}] focus:ring-0 focus:ring-[${PrimaryTextColor}] focus:border-[${PrimaryTextColor}] focus:border-[2px] focus:border-solid focus:border-opacity-100`}
                     />
                     <span class={`text-sm text-[${HintTextColor}]`}>
                         You can upload your images on websites like{" "}
@@ -116,7 +112,7 @@ export class EditProfile extends Component<Props, State> {
                         name="banner"
                         onInput={(e) => this.onInput(e, "banner")}
                         type="text"
-                        class={`${InputClass}`}
+                        class={`w-full px-4 py-3 rounded-lg resize-y bg-transparent  border-[2px] border-[${DividerBackgroundColor}] placeholder-[${PlaceholderColor}] text-[${PrimaryTextColor}] focus:ring-0 focus:ring-[${PrimaryTextColor}] focus:border-[${PrimaryTextColor}] focus:border-[2px] focus:border-solid focus:border-opacity-100`}
                     />
                     <h3 class={`text-[${PrimaryTextColor}] mt-8`}>
                         About
@@ -127,7 +123,7 @@ export class EditProfile extends Component<Props, State> {
                         name="about"
                         onInput={(e) => this.onInput(e, "about")}
                         type="text"
-                        class={`${InputClass}`}
+                        class={`w-full px-4 py-3 rounded-lg resize-y bg-transparent  border-[2px] border-[${DividerBackgroundColor}] placeholder-[${PlaceholderColor}] text-[${PrimaryTextColor}] focus:ring-0 focus:ring-[${PrimaryTextColor}] focus:border-[${PrimaryTextColor}] focus:border-[2px] focus:border-solid focus:border-opacity-100`}
                     />
                     <h3 class={`text-[${PrimaryTextColor}] mt-8`}>
                         Website
@@ -138,11 +134,13 @@ export class EditProfile extends Component<Props, State> {
                         name="website"
                         onAbort={(e) => this.onInput(e, "website")}
                         type="text"
-                        class={`${InputClass}`}
+                        class={`w-full px-4 py-3 rounded-lg resize-y bg-transparent  border-[2px] border-[${DividerBackgroundColor}] placeholder-[${PlaceholderColor}] text-[${PrimaryTextColor}] focus:ring-0 focus:ring-[${PrimaryTextColor}] focus:border-[${PrimaryTextColor}] focus:border-[2px] focus:border-solid focus:border-opacity-100`}
                     />
                 </div>
 
-                <div class={`my-4 p-4 rounded-lg  ${NoOutlineClass} ${inputBorderClass} `}>
+                <div
+                    class={`my-4 p-4 rounded-lg   border-[2px] border-[${DividerBackgroundColor}] `}
+                >
                     <div class={`flex justify-start items-center gap-2`}>
                         <PlusCircleIcon class="w-8 h-8 text-[#FF772B]" />
                         <div
@@ -157,7 +155,7 @@ export class EditProfile extends Component<Props, State> {
                     <input
                         placeholder="e.g. hobbies"
                         type="text"
-                        class={`${InputClass}`}
+                        class={`w-full px-4 py-3 rounded-lg resize-y bg-transparent  border-[2px] border-[${DividerBackgroundColor}] placeholder-[${PlaceholderColor}] text-[${PrimaryTextColor}] focus:ring-0 focus:ring-[${PrimaryTextColor}] focus:border-[${PrimaryTextColor}] focus:border-[2px] focus:border-solid focus:border-opacity-100`}
                     />
                     <span class={`text-sm text-[${ErrorColor}]`}>{this.state.newFieldKeyError}</span>
 
@@ -167,12 +165,12 @@ export class EditProfile extends Component<Props, State> {
                     <input
                         placeholder="e.g. Sports, Reading, Design"
                         type="text"
-                        class={`${InputClass}`}
+                        class={`w-full px-4 py-3 rounded-lg resize-y bg-transparent  border-[2px] border-[${DividerBackgroundColor}] placeholder-[${PlaceholderColor}] text-[${PrimaryTextColor}] focus:ring-0 focus:ring-[${PrimaryTextColor}] focus:border-[${PrimaryTextColor}] focus:border-[2px] focus:border-solid focus:border-opacity-100`}
                     >
                     </input>
 
                     <button
-                        class={`w-full mt-6 p-3 rounded-lg ${NoOutlineClass} text-[${PrimaryTextColor}] bg-[${DividerBackgroundColor}] hover:bg-[${HoverButtonBackgroundColor}] ${CenterClass}`}
+                        class={`w-full mt-6 p-3 rounded-lg  text-[${PrimaryTextColor}] bg-[${DividerBackgroundColor}] hover:bg-[${HoverButtonBackgroundColor}] flex items-center justify-center`}
                         onClick={this.addField}
                     >
                         Add Field
@@ -180,7 +178,7 @@ export class EditProfile extends Component<Props, State> {
                 </div>
 
                 <button
-                    class={`w-full p-3 rounded-lg ${NoOutlineClass} text-[${PrimaryTextColor}] ${CenterClass} ${LinearGradientsClass}  hover:bg-gradient-to-l`}
+                    class={`w-full p-3 rounded-lg  text-[${PrimaryTextColor}] flex items-center justify-center bg-gradient-to-r from-[#FF762C] via-[#FF3A5E] to-[#FF01A9]  hover:bg-gradient-to-l`}
                     type="submit"
                 >
                     Update Profile
