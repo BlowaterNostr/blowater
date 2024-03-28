@@ -176,7 +176,7 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
 
         const addRelay = async () => {
             console.log("add", addRelayInput);
-            if (addRelayInput || addRelayInput.length < 0) {
+            if (!addRelayInput || addRelayInput.length < 0) {
                 return;
             }
             this.setState({
