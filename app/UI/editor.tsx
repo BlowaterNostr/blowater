@@ -96,10 +96,10 @@ export class Editor extends Component<EditorProps, EditorState> {
                     getters: props.getters,
                     replyTo: props.replyTo,
                 })}
-                <div class="w-full flex items-center">
+                <div class="w-full flex items-start gap-2">
                     <button
                         class="flex items-center justify-center group
-                        min-w-[3rem] w-[3rem] h-[3rem] rounded-[50%]
+                        min-w-12 w-12 h-12 rounded-[50%]
                         hover:bg-divider-background focus:outline-none focus-visible:outline-none"
                         onClick={() => {
                             if (uploadFileInput.current) {
@@ -108,7 +108,7 @@ export class Editor extends Component<EditorProps, EditorState> {
                         }}
                     >
                         <ImageIcon
-                            class="h-[2rem] w-[2rem] stroke-current text-primary-text-4d group-hover:text-primary-text"
+                            class="h-8 w-8 stroke-current text-primary-text-4d group-hover:text-primary-text"
                             style={{
                                 fill: "none",
                             }}
@@ -136,15 +136,15 @@ export class Editor extends Component<EditorProps, EditorState> {
                                 files: propsfiles,
                             });
                         }}
-                        class="hidden"
+                        class="hidden bg-input-background"
                     />
-                    <div class="py-[0.75rem] flex flex-col flex-1 overflow-hidden">
+                    <div class="flex flex-col flex-1 overflow-hidden bg-input-background rounded-xl">
                         {this.state.files.length > 0
                             ? (
-                                <ul class="flex overflow-auto list-none py-2 w-full border-b border-[#52525B] mb-[1rem]">
+                                <ul class="flex overflow-auto list-none py-2 w-full border-b border-input-text">
                                     {this.state.files.map((file, index) => {
                                         return (
-                                            <li class="flex items-center justify-center relative mx-2 min-w-[10rem] w-[10rem]  h-[10rem] p-2 bg-primary-background rounded">
+                                            <li class="flex items-center justify-center relative mx-2 min-w-[10rem] w-[10rem]  h-[10rem] p-2">
                                                 <button
                                                     class="flex items-center justify-center
                                                     w-[2rem] h-[2rem] absolute top-1 right-1 rounded-[50%]
@@ -180,7 +180,7 @@ export class Editor extends Component<EditorProps, EditorState> {
                             }}
                             value={this.state.text}
                             rows={1}
-                            class="flex-1 bg-transparent focus-visible:outline-none placeholder-primary-text-4d text-[0.8rem] text-[#D2D3D5] whitespace-nowrap resize-none overflow-x-hidden overflow-y-auto"
+                            class="flex-1 px-4 py-[0.5rem] bg-transparent focus-visible:outline-none placeholder-primary-text-4d text-input-text whitespace-nowrap resize-none overflow-x-hidden overflow-y-auto"
                             placeholder={this.props.placeholder}
                             onInput={(e) => {
                                 const lines = e.currentTarget.value.split("\n");
@@ -222,8 +222,8 @@ export class Editor extends Component<EditorProps, EditorState> {
                     </div>
 
                     <button
-                        class="flex items-center justify-center
-                        m-2 w-12 h-8 bg-gradient-to-r from-[#FF762C] via-[#FF3A5E] to-[#FF01A9] rounded"
+                        class="inline-flex h-[2.5rem] w-20 p-2 justify-center items-center gap-[0.5rem] shrink-0 rounded-[1rem] border-[0.125rem] border-solid border-[#FF762C]
+                        hover:bg-gradient-to-r hover:from-[#FF762C] hover:via-[#FF3A5E] hover:to-[#FF01A9]"
                         onClick={async () => {
                             await this.sendMessage();
                             this.textareaElement.current?.focus();
@@ -236,6 +236,7 @@ export class Editor extends Component<EditorProps, EditorState> {
                                 fill: "none",
                             }}
                         />
+                        <span class="text-primary-text font-700 leading-[1.25rem]">Send</span>
                     </button>
                 </div>
             </div>
