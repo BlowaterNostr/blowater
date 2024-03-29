@@ -48,20 +48,6 @@ export class EditProfile extends Component<Props, State> {
         });
     }
 
-    shouldComponentUpdate(nextProps: Props, nextState: State): boolean {
-        // This resolves the problem of the profile data not being accessible for the new user.
-        if (
-            nextState.profileData?.name === undefined && nextProps.profile.name &&
-            nextProps.profile.name.length > 0
-        ) {
-            this.setState({
-                profileData: nextProps.profile,
-            });
-            return false;
-        }
-        return true;
-    }
-
     render(props: Props, state: State) {
         return (
             <form class={`py-4 bg-[${SecondaryBackgroundColor}]`} onSubmit={this.onSubmit}>
