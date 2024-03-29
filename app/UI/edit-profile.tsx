@@ -167,6 +167,7 @@ export class EditProfile extends Component<Props, State> {
                         Field name
                     </h3>
                     <input
+                        ref={this.newFieldKey}
                         placeholder="e.g. hobbies"
                         type="text"
                         class={`w-full px-4 py-3 rounded-lg resize-y bg-transparent  border-[2px] border-[${DividerBackgroundColor}] placeholder-[${PlaceholderColor}] text-[${PrimaryTextColor}] focus:ring-0 focus:ring-[${PrimaryTextColor}] focus:border-[${PrimaryTextColor}] focus:border-[2px] focus:border-solid focus:border-opacity-100`}
@@ -177,6 +178,7 @@ export class EditProfile extends Component<Props, State> {
                         Field value
                     </h3>
                     <input
+                        ref={this.newFieldValue}
                         placeholder="e.g. Sports, Reading, Design"
                         type="text"
                         class={`w-full px-4 py-3 rounded-lg resize-y bg-transparent  border-[2px] border-[${DividerBackgroundColor}] placeholder-[${PlaceholderColor}] text-[${PrimaryTextColor}] focus:ring-0 focus:ring-[${PrimaryTextColor}] focus:border-[${PrimaryTextColor}] focus:border-[2px] focus:border-solid focus:border-opacity-100`}
@@ -185,6 +187,7 @@ export class EditProfile extends Component<Props, State> {
 
                     <button
                         class={`w-full mt-6 p-3 rounded-lg  text-[${PrimaryTextColor}] bg-[${DividerBackgroundColor}] hover:bg-[${HoverButtonBackgroundColor}] flex items-center justify-center`}
+                        type="button"
                         onClick={this.addField}
                     >
                         Add Field
@@ -219,6 +222,8 @@ export class EditProfile extends Component<Props, State> {
     };
 
     addField = () => {
+        console.log(`Adding field`);
+
         if (!this.newFieldKey.current || !this.newFieldValue.current) {
             return;
         }
@@ -229,6 +234,9 @@ export class EditProfile extends Component<Props, State> {
             });
             return;
         }
+
+        console.log(`Adding field ${this.newFieldKey.current.value}`);
+        console.log(`Adding field ${this.newFieldValue.current.value}`);
 
         this.setState({
             profileData: {
