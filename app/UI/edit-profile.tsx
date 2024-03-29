@@ -208,8 +208,6 @@ export class EditProfile extends Component<Props, State> {
     };
 
     addField = () => {
-        console.log(`Adding field`);
-
         if (!this.newFieldKey.current || !this.newFieldValue.current) {
             return;
         }
