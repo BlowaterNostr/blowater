@@ -83,7 +83,7 @@ export class EditProfile extends Component<Props, State> {
                         name="name"
                         onInput={(e) => this.onInput(e, "name")}
                         type="text"
-                        class={`w-full px-4 py-3 rounded-lg resize-y bg-transparent  border-[2px] border-[${DividerBackgroundColor}] placeholder-[${PlaceholderColor}] text-[${PrimaryTextColor}] focus:ring-0 focus:ring-[${PrimaryTextColor}] focus:border-[${PrimaryTextColor}] focus:border-[2px] focus:border-solid focus:border-opacity-100`}
+                        class={`focus:outline-none focus:border-white w-full px-4 py-3 rounded-lg resize-y bg-transparent  border-[2px] border-[${DividerBackgroundColor}] placeholder-[${PlaceholderColor}] text-[${PrimaryTextColor}] `}
                     />
                     <h3 class={`text-[${PrimaryTextColor}] mt-8`}>
                         Profile Image URL
@@ -93,7 +93,7 @@ export class EditProfile extends Component<Props, State> {
                         name="picture"
                         onInput={(e) => this.onInput(e, "picture")}
                         type="text"
-                        class={`w-full px-4 py-3 rounded-lg resize-y bg-transparent  border-[2px] border-[${DividerBackgroundColor}] placeholder-[${PlaceholderColor}] text-[${PrimaryTextColor}] focus:ring-0 focus:ring-[${PrimaryTextColor}] focus:border-[${PrimaryTextColor}] focus:border-[2px] focus:border-solid focus:border-opacity-100`}
+                        class={`focus:outline-none focus:border-white w-full px-4 py-3 rounded-lg resize-y bg-transparent  border-[2px] border-[${DividerBackgroundColor}] placeholder-[${PlaceholderColor}] text-[${PrimaryTextColor}] `}
                     />
                     <span class={`text-sm text-[${HintTextColor}]`}>
                         You can upload your images on websites like{" "}
@@ -109,7 +109,7 @@ export class EditProfile extends Component<Props, State> {
                         name="banner"
                         onInput={(e) => this.onInput(e, "banner")}
                         type="text"
-                        class={`w-full px-4 py-3 rounded-lg resize-y bg-transparent  border-[2px] border-[${DividerBackgroundColor}] placeholder-[${PlaceholderColor}] text-[${PrimaryTextColor}] focus:ring-0 focus:ring-[${PrimaryTextColor}] focus:border-[${PrimaryTextColor}] focus:border-[2px] focus:border-solid focus:border-opacity-100`}
+                        class={`focus:outline-none focus:border-white w-full px-4 py-3 rounded-lg resize-y bg-transparent  border-[2px] border-[${DividerBackgroundColor}] placeholder-[${PlaceholderColor}] text-[${PrimaryTextColor}]`}
                     />
                     <h3 class={`text-[${PrimaryTextColor}] mt-8`}>
                         About
@@ -120,7 +120,7 @@ export class EditProfile extends Component<Props, State> {
                         name="about"
                         onInput={(e) => this.onInput(e, "about")}
                         type="text"
-                        class={`w-full px-4 py-3 rounded-lg resize-y bg-transparent  border-[2px] border-[${DividerBackgroundColor}] placeholder-[${PlaceholderColor}] text-[${PrimaryTextColor}] focus:ring-0 focus:ring-[${PrimaryTextColor}] focus:border-[${PrimaryTextColor}] focus:border-[2px] focus:border-solid focus:border-opacity-100`}
+                        class={`focus:outline-none focus:border-white w-full px-4 py-3 rounded-lg resize-y bg-transparent  border-[2px] border-[${DividerBackgroundColor}] placeholder-[${PlaceholderColor}] text-[${PrimaryTextColor}] `}
                     />
                     <h3 class={`text-[${PrimaryTextColor}] mt-8`}>
                         Website
@@ -130,7 +130,7 @@ export class EditProfile extends Component<Props, State> {
                         name="website"
                         onInput={(e) => this.onInput(e, "website")}
                         type="text"
-                        class={`w-full px-4 py-3 rounded-lg resize-y bg-transparent  border-[2px] border-[${DividerBackgroundColor}] placeholder-[${PlaceholderColor}] text-[${PrimaryTextColor}] focus:ring-0 focus:ring-[${PrimaryTextColor}] focus:border-[${PrimaryTextColor}] focus:border-[2px] focus:border-solid focus:border-opacity-100`}
+                        class={`focus:outline-none focus:border-white w-full px-4 py-3 rounded-lg resize-y bg-transparent  border-[2px] border-[${DividerBackgroundColor}] placeholder-[${PlaceholderColor}] text-[${PrimaryTextColor}]`}
                     />
                 </div>
 
