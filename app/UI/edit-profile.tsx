@@ -65,7 +65,7 @@ export class EditProfile extends Component<Props, State> {
                     transform -translate-y-10 bg-white"
                 />
                 <div
-                    class={`my-4 p-4 rounded-lg   border-[2px] border-[${DividerBackgroundColor}] `}
+                    class={`my-4 p-4 rounded-2xl border-[2px] border-[${DividerBackgroundColor}] `}
                 >
                     <div class={`flex justify-start items-center gap-2`}>
                         <UserIcon class="w-8 h-8 text-[#FF772B]" />
@@ -132,48 +132,6 @@ export class EditProfile extends Component<Props, State> {
                         type="text"
                         class={`w-full px-4 py-3 rounded-lg resize-y bg-transparent  border-[2px] border-[${DividerBackgroundColor}] placeholder-[${PlaceholderColor}] text-[${PrimaryTextColor}] focus:ring-0 focus:ring-[${PrimaryTextColor}] focus:border-[${PrimaryTextColor}] focus:border-[2px] focus:border-solid focus:border-opacity-100`}
                     />
-                </div>
-
-                <div
-                    class={`my-4 p-4 rounded-lg   border-[2px] border-[${DividerBackgroundColor}] `}
-                >
-                    <div class={`flex justify-start items-center gap-2`}>
-                        <PlusCircleIcon class="w-8 h-8 text-[#FF772B]" />
-                        <div
-                            class={`text-[${PrimaryTextColor}] text-[1.3125rem] font-not-italic font-700 leading-[1.5rem] tracking--0.21px`}
-                        >
-                            Custom Fields
-                        </div>
-                    </div>
-                    <h3 class={`text-[${PrimaryTextColor}] mt-8`}>
-                        Field name
-                    </h3>
-                    <input
-                        ref={this.newFieldKey}
-                        placeholder="e.g. hobbies"
-                        type="text"
-                        class={`w-full px-4 py-3 rounded-lg resize-y bg-transparent  border-[2px] border-[${DividerBackgroundColor}] placeholder-[${PlaceholderColor}] text-[${PrimaryTextColor}] focus:ring-0 focus:ring-[${PrimaryTextColor}] focus:border-[${PrimaryTextColor}] focus:border-[2px] focus:border-solid focus:border-opacity-100`}
-                    />
-                    <span class={`text-sm text-[${ErrorColor}]`}>{this.state.newFieldKeyError}</span>
-
-                    <h3 class={`text-[${PrimaryTextColor}] mt-8`}>
-                        Field value
-                    </h3>
-                    <input
-                        ref={this.newFieldValue}
-                        placeholder="e.g. Sports, Reading, Design"
-                        type="text"
-                        class={`w-full px-4 py-3 rounded-lg resize-y bg-transparent  border-[2px] border-[${DividerBackgroundColor}] placeholder-[${PlaceholderColor}] text-[${PrimaryTextColor}] focus:ring-0 focus:ring-[${PrimaryTextColor}] focus:border-[${PrimaryTextColor}] focus:border-[2px] focus:border-solid focus:border-opacity-100`}
-                    >
-                    </input>
-
-                    <button
-                        class={`w-full mt-6 p-3 rounded-lg  text-[${PrimaryTextColor}] bg-[${DividerBackgroundColor}] hover:bg-[${HoverButtonBackgroundColor}] flex items-center justify-center`}
-                        type="button"
-                        onClick={this.addField}
-                    >
-                        Add Field
-                    </button>
                 </div>
 
                 <button
