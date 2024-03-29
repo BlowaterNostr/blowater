@@ -79,7 +79,6 @@ export class EditProfile extends Component<Props, State> {
                         Name
                     </h3>
                     <input
-                        placeholder="Please input your name"
                         value={state.profileData?.name}
                         name="name"
                         onInput={(e) => this.onInput(e, "name")}
@@ -90,7 +89,6 @@ export class EditProfile extends Component<Props, State> {
                         Profile Image URL
                     </h3>
                     <input
-                        placeholder="Please input your picture url"
                         value={state.profileData?.picture}
                         name="picture"
                         onInput={(e) => this.onInput(e, "picture")}
@@ -107,7 +105,6 @@ export class EditProfile extends Component<Props, State> {
                         Banner Image URL
                     </h3>
                     <input
-                        placeholder="Please input your banner url"
                         value={state.profileData?.banner}
                         name="banner"
                         onInput={(e) => this.onInput(e, "banner")}
@@ -118,7 +115,7 @@ export class EditProfile extends Component<Props, State> {
                         About
                     </h3>
                     <input
-                        placeholder="Please input your about"
+                        placeholder={"tell us about yourself"}
                         value={state.profileData?.about}
                         name="about"
                         onInput={(e) => this.onInput(e, "about")}
@@ -129,7 +126,6 @@ export class EditProfile extends Component<Props, State> {
                         Website
                     </h3>
                     <input
-                        placeholder="Please input your website"
                         value={state.profileData?.website}
                         name="website"
                         onInput={(e) => this.onInput(e, "website")}
