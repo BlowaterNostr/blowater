@@ -2,10 +2,8 @@ import { createRef, h } from "https://esm.sh/preact@10.17.1";
 import { ProfileData } from "../features/profile.ts";
 import {
     DividerBackgroundColor,
-    ErrorColor,
     HintLinkColor,
     HintTextColor,
-    HoverButtonBackgroundColor,
     PlaceholderColor,
     PrimaryTextColor,
     SecondaryBackgroundColor,
@@ -14,7 +12,6 @@ import { Component } from "https://esm.sh/preact@10.11.3";
 import { emitFunc } from "../event-bus.ts";
 import { NostrAccountContext } from "../../libs/nostr.ts/nostr.ts";
 import { UserIcon } from "./icons/user-icon.tsx";
-import { PlusCircleIcon } from "./icons/plus-circle-icon.tsx";
 
 export type SaveProfile = {
     type: "SaveProfile";
