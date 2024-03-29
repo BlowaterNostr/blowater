@@ -146,7 +146,7 @@ export class EditProfile extends Component<Props, State> {
                         placeholder="Please input your website"
                         value={state.profileData?.website}
                         name="website"
-                        onAbort={(e) => this.onInput(e, "website")}
+                        onInput={(e) => this.onInput(e, "website")}
                         type="text"
                         class={`w-full px-4 py-3 rounded-lg resize-y bg-transparent  border-[2px] border-[${DividerBackgroundColor}] placeholder-[${PlaceholderColor}] text-[${PrimaryTextColor}] focus:ring-0 focus:ring-[${PrimaryTextColor}] focus:border-[${PrimaryTextColor}] focus:border-[2px] focus:border-solid focus:border-opacity-100`}
                     />
