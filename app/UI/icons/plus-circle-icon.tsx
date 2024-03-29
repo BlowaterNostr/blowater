@@ -1,7 +1,7 @@
 /** @jsx h */
 import { h } from "https://esm.sh/preact@10.17.1";
 
-export function UserIcon(props: {
+export function PlusCircleIcon(props: {
     class?: string | h.JSX.SignalLike<string | undefined> | undefined;
     style?:
         | string
@@ -18,7 +18,7 @@ export function UserIcon(props: {
             xmlns="http://www.w3.org/2000/svg"
         >
             <path
-                d="M3 20C5.33579 17.5226 8.50702 16 12 16C15.493 16 18.6642 17.5226 21 20M16.5 7.5C16.5 9.98528 14.4853 12 12 12C9.51472 12 7.5 9.98528 7.5 7.5C7.5 5.01472 9.51472 3 12 3C14.4853 3 16.5 5.01472 16.5 7.5Z"
+                d="M12 8V16M8 12H16M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z"
                 stroke="currentColor"
                 stroke-width="2.67"
                 stroke-linecap="round"

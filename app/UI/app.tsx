@@ -309,12 +309,6 @@ type AppProps = {
 };
 
 export class AppComponent extends Component<AppProps> {
-    events = this.props.eventBus.onChange();
-
-    componentWillUnmount() {
-        this.events.close();
-    }
-
     render(props: AppProps) {
         const t = Date.now();
         const model = props.model;
@@ -404,22 +398,11 @@ export class AppComponent extends Component<AppProps> {
             );
         }
 
-        const final = (
-            <div class={`h-screen w-full flex`}>
-                <NavBar
-                    publicKey={app.ctx.publicKey}
-                    profile={app.database.getProfilesByPublicKey(myAccountCtx.publicKey)}
-                    emit={app.eventBus.emit}
-                    installPrompt={props.installPrompt}
-                    currentRelay={model.currentRelay}
-                    activeNav={model.navigationModel.activeNav}
-                    pool={app.pool}
-                />
-
+        let profileEditorNode: VNode | undefined;
+        if (model.navigationModel.activeNav == "Profile") {
+            profileEditorNode = (
                 <div
-                    class={`h-full px-[3rem] sm:px-4 bg-[${SecondaryBackgroundColor}] flex-1 overflow-auto${
-                        model.navigationModel.activeNav == "Profile" ? " block" : " hidden"
-                    }`}
+                    class={`h-full px-[3rem] sm:px-4 bg-[${SecondaryBackgroundColor}] flex-1 overflow-auto block`}
                 >
                     <div
                         class={`max-w-[35rem] h-full m-auto`}
@@ -432,6 +415,21 @@ export class AppComponent extends Component<AppProps> {
                         />
                     </div>
                 </div>
+            );
+        }
+
+        const final = (
+            <div class={`h-screen w-full flex`}>
+                <NavBar
+                    publicKey={app.ctx.publicKey}
+                    profile={app.database.getProfilesByPublicKey(myAccountCtx.publicKey)}
+                    emit={app.eventBus.emit}
+                    installPrompt={props.installPrompt}
+                    currentRelay={model.currentRelay}
+                    activeNav={model.navigationModel.activeNav}
+                    pool={app.pool}
+                />
+                {profileEditorNode}
                 {publicNode}
                 {dmVNode}
                 {aboutNode}
