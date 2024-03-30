@@ -99,7 +99,7 @@ async function* getAllEncryptedMessagesSendBy(
         {
             authors: [publicKey.hex],
             kinds: [4],
-            since: hours_ago(18),
+            since: hours_ago(7.5),
         },
     );
     if (resp instanceof Error) {
@@ -119,7 +119,7 @@ async function* getAllEncryptedMessagesReceivedBy(
         {
             kinds: [4],
             "#p": [publicKey.hex],
-            since: hours_ago(24),
+            since: hours_ago(15),
         },
     );
     if (resp instanceof Error) {

@@ -166,7 +166,7 @@ export type ContentItem = {
 // Think of ChatMessage as an materialized view of NostrEvent
 export type ChatMessage = {
     readonly type: "image" | "text";
-    readonly event: DirectedMessage_Event | Parsed_Event<NostrKind.TEXT_NOTE>;
+    readonly event: DirectedMessage_Event | Parsed_Event<NostrKind.TEXT_NOTE | NostrKind.Long_Form>;
     readonly author: PublicKey;
     readonly created_at: Date;
     readonly lamport: number | undefined;
