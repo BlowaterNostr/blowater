@@ -238,7 +238,7 @@ export class App {
             forever(sync_client_specific_data(this.pool, this.ctx, this.database));
             forever(sync_dm_events(this.database, this.ctx, this.pool));
             forever(sync_profile_events(this.database, this.pool));
-            forever(sync_kind_1(this.pool, this.database));
+            forever(sync_public_notes(this.pool, this.database));
         }
 
         (async () => {
@@ -372,7 +372,7 @@ export class AppComponent extends Component<AppProps> {
                             filter(
                                 app.database.getAllEvents(),
                                 (e) => {
-                                    if (e.kind != NostrKind.TEXT_NOTE) {
+                                    if (e.kind != NostrKind.TEXT_NOTE && e.kind != NostrKind.Long_Form) {
                                         return false;
                                     }
                                     const relays = app.database.getRelayRecord(e.id);
@@ -384,7 +384,7 @@ export class AppComponent extends Component<AppProps> {
                                     author: e.publicKey,
                                     content: e.content,
                                     created_at: new Date(e.created_at * 1000),
-                                    event: e as Parsed_Event<NostrKind.TEXT_NOTE>,
+                                    event: e as Parsed_Event<NostrKind.TEXT_NOTE | NostrKind.Long_Form>,
                                     lamport: getTags(e).lamport_timestamp,
                                     type: "text",
                                 };
@@ -514,10 +514,10 @@ async function sync_profile_events(
     }
 }
 
-const sync_kind_1 = async (pool: ConnectionPool, database: Database_View) => {
-    const stream = await pool.newSub("sync_kind_1", {
-        kinds: [NostrKind.TEXT_NOTE],
-        since: hours_ago(6),
+const sync_public_notes = async (pool: ConnectionPool, database: Database_View) => {
+    const stream = await pool.newSub("sync_public_notes", {
+        kinds: [NostrKind.TEXT_NOTE, NostrKind.Long_Form],
+        since: hours_ago(3),
     });
     if (stream instanceof Error) {
         return stream;

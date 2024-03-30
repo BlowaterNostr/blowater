@@ -1,5 +1,4 @@
-/** @jsx h */
-import { ComponentChildren, h } from "https://esm.sh/preact@10.17.1";
+import { h } from "https://esm.sh/preact@10.17.1";
 import {
     Channel,
     closed,
@@ -687,7 +686,7 @@ async function sync_user_detail_data(
 ) {
     const kinds = [NostrKind.META_DATA];
     if (!args.profile_only) {
-        kinds.push(NostrKind.TEXT_NOTE);
+        kinds.push(NostrKind.TEXT_NOTE, NostrKind.Long_Form);
     }
     const sub = await args.pool.newSub(args.pubkey.bech32(), {
         kinds,
