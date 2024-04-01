@@ -195,20 +195,20 @@ export class DirectedMessageController implements DirectMessageGetter {
     }
 
     public getLastestMessage(filter: "send_by_me" | "received_by_me"): ChatMessage | undefined {
-        const messages = [];
+        let lastestMessage: ChatMessage | undefined;
         for (const message of this.directed_messages.values()) {
-            if (filter == "send_by_me" && message.author.hex == this.ctx.publicKey.hex) {
-                messages.push(message);
+            if (filter === "send_by_me" && message.author.hex === this.ctx.publicKey.hex) {
+                if (!lastestMessage || message.created_at > lastestMessage.created_at) {
+                    lastestMessage = message;
+                }
             }
-            if (filter == "received_by_me" && message.event.parsedTags.p.includes(this.ctx.publicKey.hex)) {
-                messages.push(message);
+            if (filter === "received_by_me" && message.event.parsedTags.p.includes(this.ctx.publicKey.hex)) {
+                if (!lastestMessage || message.created_at > lastestMessage.created_at) {
+                    lastestMessage = message;
+                }
             }
         }
-        messages.sort((a, b) => compare(a.event, b.event));
-        if (messages.length == 0) {
-            return;
-        }
-        return messages[messages.length - 1];
+        return lastestMessage;
     }
 
     public getDirectMessageStream(pubkey: string): Channel<ChatMessage> {
