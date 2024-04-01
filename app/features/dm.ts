@@ -126,7 +126,7 @@ export class DirectedMessageController implements DirectMessageGetter {
         return messages;
     }
 
-    public getLastestMessage(): ChatMessage | undefined {
+    public getLatestMessage(): ChatMessage | undefined {
         return Array.from(this.directed_messages.values()).reduce(
             (lastestMessage: ChatMessage | undefined, message: ChatMessage) => {
                 if (!lastestMessage || message.created_at > lastestMessage.created_at) {
