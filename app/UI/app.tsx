@@ -209,15 +209,12 @@ export class App {
                     continue;
                 }
             }
-            // Sync events (after loaded DMs)
-            forever(sync_client_specific_data(args.pool, args.ctx, args.database));
+            // Sync DM events after loaded DMs
             forever(sync_dm_events(args.ctx, {
                 database: args.database,
                 pool: args.pool,
                 dmController,
             }));
-            forever(sync_profile_events(args.database, args.pool));
-            forever(sync_public_notes(args.pool, args.database));
         })();
 
         const app = new App(
@@ -241,6 +238,13 @@ export class App {
 
     private initApp = async (installPrompt: InstallPrompt) => {
         console.log("App.initApp");
+
+        // Sync events
+        {
+            forever(sync_client_specific_data(this.pool, this.ctx, this.database));
+            forever(sync_profile_events(this.database, this.pool));
+            forever(sync_public_notes(this.pool, this.database));
+        }
 
         (async () => {
             await this.database.waitRelayRecordToLoad();
