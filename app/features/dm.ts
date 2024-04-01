@@ -78,45 +78,25 @@ export async function sendDirectMessages(args: {
 export function getAllEncryptedMessagesOf(
     publicKey: PublicKey,
     pool: ConnectionPool,
-    dmController: DirectedMessageController,
+    since?: number,
 ) {
-    const lastestDMSendByMe = dmController.getLastestMessage("send_by_me");
-    const lastestDMReceivedByMe = dmController.getLastestMessage("received_by_me");
-    const since = (create_time?: Date) => {
-        if (create_time) {
-            return create_time.getTime() / 1000;
-        }
-        return hours_ago(15);
-    };
-
-    return getAllEncryptedMessagesAbout(publicKey, {
-        pool,
-        sendByMeSince: since(lastestDMSendByMe?.created_at),
-        receivedByMeSince: since(lastestDMReceivedByMe?.created_at),
-    });
+    return getAllEncryptedMessagesAbout(publicKey, pool, since);
 }
 
 async function* getAllEncryptedMessagesAbout(
     publicKey: PublicKey,
-    args: {
-        pool: ConnectionPool;
-        sendByMeSince: number;
-        receivedByMeSince: number;
-    },
+    pool: ConnectionPool,
+    since?: number,
 ) {
-    let resp = await args.pool.newSub(
-        `getAllEncryptedMessagesAbout`,
-        {
-            authors: [publicKey.hex],
-            kinds: [4],
-            since: args.sendByMeSince,
-        },
-        {
-            "#p": [publicKey.hex],
-            kinds: [4],
-            since: args.receivedByMeSince,
-        },
-    );
+    let resp = await pool.newSub(`getAllEncryptedMessagesAbout`, {
+        authors: [publicKey.hex],
+        kinds: [4],
+        since,
+    }, {
+        "#p": [publicKey.hex],
+        kinds: [4],
+        since,
+    });
     if (resp instanceof Error) {
         throw resp;
     }
@@ -146,15 +126,13 @@ export class DirectedMessageController implements DirectMessageGetter {
         return messages;
     }
 
-    public getLastestMessage(filter: "send_by_me" | "received_by_me"): ChatMessage | undefined {
+    public getLastestMessage(): ChatMessage | undefined {
         let lastestMessage: ChatMessage | undefined;
         for (const message of this.directed_messages.values()) {
-            if (filter === "send_by_me" && message.author.hex === this.ctx.publicKey.hex) {
-                if (!lastestMessage || message.created_at > lastestMessage.created_at) {
-                    lastestMessage = message;
-                }
-            }
-            if (filter === "received_by_me" && message.event.parsedTags.p.includes(this.ctx.publicKey.hex)) {
+            if (
+                message.author.hex === this.ctx.publicKey.hex ||
+                message.event.parsedTags.p.includes(this.ctx.publicKey.hex)
+            ) {
                 if (!lastestMessage || message.created_at > lastestMessage.created_at) {
                     lastestMessage = message;
                 }

@@ -210,10 +210,12 @@ export class App {
                 }
             }
             // Sync DM events after loaded DMs
+            const lastestMessage = dmController.getLastestMessage();
+            const since = lastestMessage ? lastestMessage.created_at.getTime() / 1000 : undefined;
             forever(sync_dm_events(args.ctx, {
                 database: args.database,
                 pool: args.pool,
-                dmController,
+                since,
             }));
         })();
 
@@ -484,13 +486,13 @@ async function sync_dm_events(
     args: {
         database: Database_View;
         pool: ConnectionPool;
-        dmController: DirectedMessageController;
+        since?: number;
     },
 ) {
     const messageStream = getAllEncryptedMessagesOf(
         ctx.publicKey,
         args.pool,
-        args.dmController,
+        args.since,
     );
     for await (const msg of messageStream) {
         if (msg.res.type == "EVENT") {
