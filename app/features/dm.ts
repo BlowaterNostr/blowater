@@ -127,18 +127,15 @@ export class DirectedMessageController implements DirectMessageGetter {
     }
 
     public getLastestMessage(): ChatMessage | undefined {
-        let lastestMessage: ChatMessage | undefined;
-        for (const message of this.directed_messages.values()) {
-            if (
-                message.author.hex === this.ctx.publicKey.hex ||
-                message.event.parsedTags.p.includes(this.ctx.publicKey.hex)
-            ) {
+        return Array.from(this.directed_messages.values()).reduce(
+            (lastestMessage: ChatMessage | undefined, message: ChatMessage) => {
                 if (!lastestMessage || message.created_at > lastestMessage.created_at) {
-                    lastestMessage = message;
+                    return message;
                 }
-            }
-        }
-        return lastestMessage;
+                return lastestMessage;
+            },
+            undefined,
+        );
     }
 
     public getDirectMessageStream(pubkey: string): Channel<ChatMessage> {
