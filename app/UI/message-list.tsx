@@ -36,7 +36,7 @@ import { ReplyIcon } from "./icons/reply-icon.tsx";
 interface Props {
     myPublicKey: PublicKey;
     messages: ChatMessage[];
-    emit: emitFunc<DirectMessagePanelUpdate | SelectConversation | SyncEvent>;
+    emit: emitFunc<DirectMessagePanelUpdate | SelectConversation | SyncEvent | ViewUserDetail>;
     getters: {
         profileGetter: ProfileGetter;
         relayRecordGetter: RelayRecordGetter;
@@ -295,7 +295,7 @@ function MessageBoxGroup(props: {
             }`}
         >
             {MessageActions(first_message, props.emit, props.onReplyToEventIDChange)}
-            {renderRelply(first_message.event, props.getters)}
+            {renderRelply(first_message.event, props.getters, props.emit)}
             <div class="flex items-start">
                 <Avatar
                     class={`h-8 w-8 mt-[0.45rem] mr-2`}
@@ -432,7 +432,7 @@ function isReply(event: Parsed_Event) {
 function renderRelply(event: Parsed_Event, getters: {
     getEventByID: func_GetEventByID;
     profileGetter: ProfileGetter;
-}) {
+}, emit: emitFunc<ViewUserDetail>) {
     if (!isReply(event)) return;
     const replyEventId = event.parsedTags.reply?.[0] || event.parsedTags.root?.[0] || event.parsedTags.e[0];
     const reply_to_event = getters.getEventByID(replyEventId);
@@ -449,11 +449,30 @@ function renderRelply(event: Parsed_Event, getters: {
             picture = profile.profile.picture || robohash(reply_to_event.publicKey.hex);
         }
     }
-    return <ReplyTo content={reply_to_event.content} replyName={author} replayPic={picture} />;
+    return (
+        <ReplyTo
+            emit={emit}
+            reply={{
+                pubkey: reply_to_event.publicKey,
+                content: reply_to_event.content,
+                name: author,
+                picture,
+            }}
+        />
+    );
 }
 
 function ReplyTo(
-    props: { unknown?: false; content: string; replyName: string; replayPic: string } | {
+    props: {
+        unknown?: false;
+        reply: {
+            pubkey: PublicKey;
+            content: string;
+            name: string;
+            picture: string;
+        };
+        emit: emitFunc<ViewUserDetail>;
+    } | {
         unknown: true;
         noteId: NoteID;
     },
@@ -472,12 +491,24 @@ function ReplyTo(
                     )
                     : (
                         <>
-                            <Avatar class="h-4 w-4 shrink-0" picture={props.replayPic || ""} />
-                            <div class="whitespace-nowrap md:shrink-0 truncate w-30">
-                                @{props.replyName}
+                            <div
+                                class={`flex items-center gap-1 cursor-pointer`}
+                                onClick={() =>
+                                    props.emit({
+                                        type: "ViewUserDetail",
+                                        pubkey: props.reply.pubkey,
+                                    })}
+                            >
+                                <Avatar
+                                    class="h-4 w-4 shrink-0"
+                                    picture={props.reply.picture || ""}
+                                />
+                                <button class="whitespace-nowrap md:shrink-0 truncate w-30 hover:underline">
+                                    @{props.reply.name}
+                                </button>
                             </div>
                             <div class="overflow-hidden whitespace-nowrap truncate text-overflow-ellipsis w-[90%]">
-                                {props.content}
+                                {props.reply.content}
                             </div>
                         </>
                     )}
