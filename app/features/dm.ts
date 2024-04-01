@@ -77,15 +77,27 @@ export async function sendDirectMessages(args: {
 
 export function getAllEncryptedMessagesOf(
     publicKey: PublicKey,
-    relay: ConnectionPool,
+    pool: ConnectionPool,
+    dmController: DirectedMessageController,
 ) {
+    const lastestDMSendByMe = dmController.getLastestMessage("send_by_me");
+    const lastestDMReceivedByMe = dmController.getLastestMessage("received_by_me");
+    const since = (create_time?: Date) => {
+        if (create_time) {
+            return create_time.getTime() / 1000;
+        }
+        return hours_ago(15);
+    };
+
     const stream1 = getAllEncryptedMessagesSendBy(
         publicKey,
-        relay,
+        pool,
+        since(lastestDMSendByMe?.created_at),
     );
     const stream2 = getAllEncryptedMessagesReceivedBy(
         publicKey,
-        relay,
+        pool,
+        since(lastestDMReceivedByMe?.created_at),
     );
     return merge(stream1, stream2);
 }
@@ -93,13 +105,14 @@ export function getAllEncryptedMessagesOf(
 async function* getAllEncryptedMessagesSendBy(
     publicKey: PublicKey,
     relay: ConnectionPool,
+    since: number,
 ) {
     let resp = await relay.newSub(
         `getAllEncryptedMessagesSendBy`,
         {
             authors: [publicKey.hex],
             kinds: [4],
-            since: hours_ago(7.5),
+            since,
         },
     );
     if (resp instanceof Error) {
@@ -113,13 +126,14 @@ async function* getAllEncryptedMessagesSendBy(
 async function* getAllEncryptedMessagesReceivedBy(
     publicKey: PublicKey,
     relay: ConnectionPool,
+    since: number,
 ) {
     let resp = await relay.newSub(
         `getAllEncryptedMessagesReceivedBy`,
         {
             kinds: [4],
             "#p": [publicKey.hex],
-            since: hours_ago(15),
+            since,
         },
     );
     if (resp instanceof Error) {
@@ -178,6 +192,23 @@ export class DirectedMessageController implements DirectMessageGetter {
         }
         messages.sort((a, b) => compare(a.event, b.event));
         return messages;
+    }
+
+    public getLastestMessage(filter: "send_by_me" | "received_by_me"): ChatMessage | undefined {
+        const messages = [];
+        for (const message of this.directed_messages.values()) {
+            if (filter == "send_by_me" && message.author.hex == this.ctx.publicKey.hex) {
+                messages.push(message);
+            }
+            if (filter == "received_by_me" && message.event.parsedTags.p.includes(this.ctx.publicKey.hex)) {
+                messages.push(message);
+            }
+        }
+        messages.sort((a, b) => compare(a.event, b.event));
+        if (messages.length == 0) {
+            return;
+        }
+        return messages[messages.length - 1];
     }
 
     public getDirectMessageStream(pubkey: string): Channel<ChatMessage> {
