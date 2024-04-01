@@ -491,25 +491,22 @@ function ReplyTo(
                     )
                     : (
                         <>
-                            <Avatar
-                                class="h-4 w-4 shrink-0"
-                                picture={props.reply.picture || ""}
-                                onClick={() =>
-                                    props.emit({
-                                        type: "ViewUserDetail",
-                                        pubkey: props.reply.pubkey,
-                                    })}
-                            />
-                            <button
-                                class="whitespace-nowrap md:shrink-0 truncate w-30 hover:underline"
+                            <div
+                                class={`flex items-center gap-1 cursor-pointer`}
                                 onClick={() =>
                                     props.emit({
                                         type: "ViewUserDetail",
                                         pubkey: props.reply.pubkey,
                                     })}
                             >
-                                @{props.reply.name}
-                            </button>
+                                <Avatar
+                                    class="h-4 w-4 shrink-0"
+                                    picture={props.reply.picture || ""}
+                                />
+                                <button class="whitespace-nowrap md:shrink-0 truncate w-30 hover:underline">
+                                    @{props.reply.name}
+                                </button>
+                            </div>
                             <div class="overflow-hidden whitespace-nowrap truncate text-overflow-ellipsis w-[90%]">
                                 {props.reply.content}
                             </div>
