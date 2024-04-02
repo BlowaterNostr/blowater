@@ -402,7 +402,7 @@ export class AppComponent extends Component<AppProps> {
         if (model.navigationModel.activeNav == "Profile") {
             profileEditorNode = (
                 <div
-                    class={`h-full px-[3rem] sm:px-4 bg-[${SecondaryBackgroundColor}] flex-1 overflow-auto block`}
+                    class={`h-full px-4 bg-[${SecondaryBackgroundColor}] flex-1 overflow-auto block`}
                 >
                     <div
                         class={`max-w-[35rem] h-full m-auto`}
