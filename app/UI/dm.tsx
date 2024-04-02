@@ -51,7 +51,7 @@ export class DirectMessageContainer extends Component<DirectMessageContainerProp
         console.log(DirectMessageContainer.name, "?");
         const vDom = (
             <div
-                class={`h-full w-full flex bg-[#36393F] overflow-hidden`}
+                class={`h-full flex-1 flex bg-[#36393F] overflow-hidden`}
             >
                 <div
                     class={`w-fit max-sm:w-full

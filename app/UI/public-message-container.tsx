@@ -72,7 +72,7 @@ export class PublicMessageContainer extends Component<Props, State> {
             msgs = filter_messages(this.props.messages, filter);
         }
         return (
-            <div class="flex flex-row h-full w-full flex bg-[#36393F] overflow-hidden">
+            <div class="flex flex-row h-full flex-1 flex bg-[#36393F] overflow-hidden">
                 {this.state.currentSelectedChannel
                     ? (
                         <div class={`flex flex-col flex-1 overflow-hidden`}>
