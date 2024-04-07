@@ -1,12 +1,9 @@
 /** @jsx h */
 import { createRef, h } from "https://esm.sh/preact@10.17.1";
-import { CenterClass, LinearGradientsClass, NoOutlineClass } from "./components/tw.ts";
 import { emitFunc } from "../event-bus.ts";
 
-import { NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { ImageIcon } from "./icons/image-icon.tsx";
-import { DividerBackgroundColor, PrimaryBackgroundColor, PrimaryTextColor } from "./style/colors.ts";
 import { SendIcon } from "./icons/send-icon.tsx";
 import { Component } from "https://esm.sh/preact@10.17.1";
 import { RemoveIcon } from "./icons/remove-icon.tsx";
@@ -93,14 +90,16 @@ export class Editor extends Component<EditorProps, EditorState> {
         const uploadFileInput = createRef();
 
         return (
-            <div class={`flex flex-col mb-4 mx-4 justify-center bg-[${DividerBackgroundColor}] rounded-lg`}>
+            <div class="flex flex-col mb-4 mx-4 justify-center rounded-lg">
                 {ReplyIndicator({
                     getters: props.getters,
                     replyTo: props.replyTo,
                 })}
-                <div class={`w-full flex items-center`}>
+                <div class="w-full flex items-start gap-2">
                     <button
-                        class={`min-w-[3rem] w-[3rem] h-[3rem] hover:bg-[${DividerBackgroundColor}] group ${CenterClass} rounded-[50%] ${NoOutlineClass}`}
+                        class="flex items-center justify-center group
+                        w-10 h-10 rounded-[50%]
+                        hover:bg-[#3F3F46] focus:outline-none focus-visible:outline-none"
                         onClick={() => {
                             if (uploadFileInput.current) {
                                 uploadFileInput.current.click();
@@ -108,7 +107,7 @@ export class Editor extends Component<EditorProps, EditorState> {
                         }}
                     >
                         <ImageIcon
-                            class={`h-[2rem] w-[2rem] stroke-current text-[${PrimaryTextColor}4D] group-hover:text-[${PrimaryTextColor}]`}
+                            class="h-8 w-8 stroke-current text-[#FFFFFF4D] group-hover:text-[#FFFFFF]"
                             style={{
                                 fill: "none",
                             }}
@@ -136,37 +135,33 @@ export class Editor extends Component<EditorProps, EditorState> {
                                 files: propsfiles,
                             });
                         }}
-                        class={`hidden`}
+                        class="hidden bg-[#FFFFFF2C]"
                     />
-                    <div
-                        class={`py-[0.75rem] flex flex-col flex-1 overflow-hidden`}
-                    >
+                    <div class="flex flex-col flex-1 overflow-hidden bg-[#FFFFFF2C] rounded-xl">
                         {this.state.files.length > 0
                             ? (
-                                <ul
-                                    class={`flex overflow-auto list-none py-2 w-full border-b border-[#52525B] mb-[1rem]`}
-                                >
+                                <ul class="flex overflow-auto list-none py-2 w-full border-b border-[#FFFFFF99]">
                                     {this.state.files.map((file, index) => {
                                         return (
-                                            <li
-                                                class={`relative mx-2 min-w-[10rem] w-[10rem]  h-[10rem] p-2 bg-[${PrimaryBackgroundColor}] rounded ${CenterClass}`}
-                                            >
+                                            <li class="flex items-center justify-center relative mx-2 min-w-[10rem] w-[10rem]  h-[10rem] p-2">
                                                 <button
-                                                    class={`w-[2rem] h-[2rem] absolute top-1 right-1 rounded-[50%] hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
+                                                    class="flex items-center justify-center
+                                                    w-[2rem] h-[2rem] absolute top-1 right-1 rounded-[50%]
+                                                    hover:bg-[#3F3F46] focus:outline-none focus-visible:outline-none"
                                                     onClick={() => {
                                                         this.removeFile(index);
                                                     }}
                                                 >
                                                     <RemoveIcon
-                                                        class={`w-[1.3rem] h-[1.3rem]`}
+                                                        class="w-[1.3rem] h-[1.3rem]"
                                                         style={{
                                                             fill: "none",
-                                                            stroke: PrimaryTextColor,
+                                                            stroke: "#FFF",
                                                         }}
                                                     />
                                                 </button>
                                                 <img
-                                                    class={`max-w-full max-h-full`}
+                                                    class="max-w-full max-h-full"
                                                     src={URL.createObjectURL(file)}
                                                     alt=""
                                                 />
@@ -177,68 +172,77 @@ export class Editor extends Component<EditorProps, EditorState> {
                             )
                             : undefined}
 
-                        <textarea
-                            ref={this.textareaElement}
-                            style={{
-                                maxHeight: this.props.maxHeight,
-                            }}
-                            value={this.state.text}
-                            rows={1}
-                            class={`flex-1 bg-transparent focus-visible:outline-none placeholder-[${PrimaryTextColor}4D] text-[0.8rem] text-[#D2D3D5] whitespace-nowrap resize-none overflow-x-hidden overflow-y-auto`}
-                            placeholder={this.props.placeholder}
-                            onInput={(e) => {
-                                const lines = e.currentTarget.value.split("\n");
-                                e.currentTarget.setAttribute(
-                                    "rows",
-                                    `${lines.length}`,
-                                );
-                                this.setState({ text: e.currentTarget.value });
-                            }}
-                            onKeyDown={async (e) => {
-                                // https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/metaKey
-                                if (e.code === "Enter" && (e.ctrlKey || e.metaKey)) {
-                                    await this.sendMessage();
-                                }
-                            }}
-                            onPaste={async (_) => {
-                                let clipboardData: ClipboardItems = [];
-                                try {
-                                    clipboardData = await window.navigator.clipboard.read();
-                                } catch (e) {
-                                    console.error(e.message);
-                                    return;
-                                }
-                                for (const item of clipboardData) {
-                                    try {
-                                        const image = await item.getType(
-                                            "image/png",
-                                        );
-                                        await setState(this, {
-                                            files: this.state.files.concat([image]),
-                                        });
-                                    } catch (e) {
-                                        console.error(e);
+                        <div class="flex flex-1">
+                            <textarea
+                                ref={this.textareaElement}
+                                style={{
+                                    maxHeight: this.props.maxHeight,
+                                }}
+                                value={this.state.text}
+                                rows={1}
+                                class="flex-1 px-4 py-[0.5rem] bg-transparent focus-visible:outline-none placeholder-[#FFFFFF4D] text-[#FFFFFF99] whitespace-nowrap resize-none overflow-x-hidden overflow-y-auto"
+                                placeholder={this.props.placeholder}
+                                onInput={(e) => {
+                                    const lines = e.currentTarget.value.split("\n");
+                                    e.currentTarget.setAttribute(
+                                        "rows",
+                                        `${lines.length}`,
+                                    );
+                                    this.setState({ text: e.currentTarget.value });
+                                }}
+                                onKeyDown={async (e) => {
+                                    // https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/metaKey
+                                    if (e.code === "Enter" && (e.ctrlKey || e.metaKey)) {
+                                        await this.sendMessage();
                                     }
-                                }
-                            }}
-                        >
-                        </textarea>
+                                }}
+                                onPaste={async (_) => {
+                                    let clipboardData: ClipboardItems = [];
+                                    try {
+                                        clipboardData = await window.navigator.clipboard.read();
+                                    } catch (e) {
+                                        console.error(e.message);
+                                        return;
+                                    }
+                                    for (const item of clipboardData) {
+                                        try {
+                                            const image = await item.getType(
+                                                "image/png",
+                                            );
+                                            await setState(this, {
+                                                files: this.state.files.concat([image]),
+                                            });
+                                        } catch (e) {
+                                            console.error(e);
+                                        }
+                                    }
+                                }}
+                            >
+                            </textarea>
+                            <div class="flex justify-cente items-start hidden md:block">
+                                <div class="flex justify-center items-center text-[#FFFFFF99] text-sm p-1 m-1 mt-[0.325rem] rounded-[0.625rem] hover:bg-[#52525B] hover:shadow-[0px_1px_0px_0px_rgba(255,255,255,0.09)_inset,0px_1px_0px_0px_rgba(0,0,0,0.14)]">
+                                    Ctrl + Enter
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <button
-                        class={`m-2 w-12 h-8 ${CenterClass} ${LinearGradientsClass} rounded`}
+                        class="inline-flex h-10 w-20 p-2 justify-center items-center gap-[0.5rem] shrink-0 rounded-[1rem] border-[0.125rem] border-solid border-[#FF762C]
+                        hover:bg-gradient-to-r hover:from-[#FF762C] hover:via-[#FF3A5E] hover:to-[#FF01A9]"
                         onClick={async () => {
                             await this.sendMessage();
                             this.textareaElement.current?.focus();
                         }}
                     >
                         <SendIcon
-                            class={`h-4 w-4`}
+                            class="h-4 w-4"
                             style={{
-                                stroke: PrimaryTextColor,
+                                stroke: "#FFF",
                                 fill: "none",
                             }}
                         />
+                        <span class="text-[#FFFFFF] font-700 leading-[1.25rem]">Send</span>
                     </button>
                 </div>
             </div>
