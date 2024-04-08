@@ -209,6 +209,14 @@ export class App {
                     continue;
                 }
             }
+            // Sync DM events after loaded DMs
+            const lastestMessage = dmController.getLatestMessage();
+            const since = lastestMessage ? lastestMessage.created_at.getTime() / 1000 : undefined;
+            forever(sync_dm_events(args.ctx, {
+                database: args.database,
+                pool: args.pool,
+                since,
+            }));
         })();
 
         const app = new App(
@@ -236,7 +244,6 @@ export class App {
         // Sync events
         {
             forever(sync_client_specific_data(this.pool, this.ctx, this.database));
-            forever(sync_dm_events(this.database, this.ctx, this.pool));
             forever(sync_profile_events(this.database, this.pool));
             forever(sync_public_notes(this.pool, this.database));
         }
@@ -475,17 +482,21 @@ export function getFocusedContent(
 }
 
 async function sync_dm_events(
-    database: Database_View,
     ctx: NostrAccountContext,
-    pool: ConnectionPool,
+    args: {
+        database: Database_View;
+        pool: ConnectionPool;
+        since?: number;
+    },
 ) {
     const messageStream = getAllEncryptedMessagesOf(
         ctx.publicKey,
-        pool,
+        args.pool,
+        args.since,
     );
     for await (const msg of messageStream) {
         if (msg.res.type == "EVENT") {
-            const err = await database.addEvent(msg.res.event, msg.url);
+            const err = await args.database.addEvent(msg.res.event, msg.url);
             if (err instanceof Error) {
                 console.log(err);
             }

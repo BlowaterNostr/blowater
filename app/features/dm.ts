@@ -75,88 +75,26 @@ export async function sendDirectMessages(args: {
     return eventsToSend;
 }
 
-export function getAllEncryptedMessagesOf(
+export async function* getAllEncryptedMessagesOf(
     publicKey: PublicKey,
-    relay: ConnectionPool,
+    pool: ConnectionPool,
+    since?: number,
 ) {
-    const stream1 = getAllEncryptedMessagesSendBy(
-        publicKey,
-        relay,
-    );
-    const stream2 = getAllEncryptedMessagesReceivedBy(
-        publicKey,
-        relay,
-    );
-    return merge(stream1, stream2);
-}
-
-async function* getAllEncryptedMessagesSendBy(
-    publicKey: PublicKey,
-    relay: ConnectionPool,
-) {
-    let resp = await relay.newSub(
-        `getAllEncryptedMessagesSendBy`,
-        {
-            authors: [publicKey.hex],
-            kinds: [4],
-            since: hours_ago(7.5),
-        },
-    );
+    let resp = await pool.newSub(`getAllEncryptedMessagesOf`, {
+        authors: [publicKey.hex],
+        kinds: [4],
+        since,
+    }, {
+        "#p": [publicKey.hex],
+        kinds: [4],
+        since,
+    });
     if (resp instanceof Error) {
         throw resp;
     }
     for await (const nostrMessage of resp.chan) {
         yield nostrMessage;
     }
-}
-
-async function* getAllEncryptedMessagesReceivedBy(
-    publicKey: PublicKey,
-    relay: ConnectionPool,
-) {
-    let resp = await relay.newSub(
-        `getAllEncryptedMessagesReceivedBy`,
-        {
-            kinds: [4],
-            "#p": [publicKey.hex],
-            since: hours_ago(15),
-        },
-    );
-    if (resp instanceof Error) {
-        throw resp;
-    }
-    for await (const nostrMessage of resp.chan) {
-        yield nostrMessage;
-    }
-}
-
-function merge<T>(...iters: AsyncIterable<T>[]) {
-    let merged = chan<T>();
-    async function coroutine<T>(
-        source: AsyncIterable<T>,
-        destination: Channel<T>,
-    ) {
-        for await (let ele of source) {
-            if (destination.closed()) {
-                return;
-            }
-            let err = await destination.put(ele);
-            if (err instanceof PutToClosedChannelError) {
-                // this means the merged channel was not closed when
-                // line 319 is called,
-                // but during waiting time of line 319, no consumer pops it and it was closed.
-                // This is normal semantics of channels
-                // so that it's fine to not throw it up to the call stack
-                // but then this ele has already been popped from the iter,
-                // it will be lost.
-                throw new Error("destination channel should not be closed");
-            }
-        }
-    }
-    for (let iter of iters) {
-        coroutine(iter, merged);
-    }
-    return merged;
 }
 
 export class DirectedMessageController implements DirectMessageGetter {
@@ -178,6 +116,19 @@ export class DirectedMessageController implements DirectMessageGetter {
         }
         messages.sort((a, b) => compare(a.event, b.event));
         return messages;
+    }
+
+    public getLatestMessage(): ChatMessage | undefined {
+        if (this.directed_messages.size == 0) {
+            return undefined;
+        }
+        const msgs = Array.from(this.directed_messages.values());
+        return msgs.slice(1).reduce((previous: ChatMessage, current: ChatMessage) => {
+            if (current.created_at > previous.created_at) {
+                return current;
+            }
+            return previous;
+        }, msgs[0]);
     }
 
     public getDirectMessageStream(pubkey: string): Channel<ChatMessage> {
