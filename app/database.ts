@@ -65,6 +65,7 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
     private readonly sourceOfChange = csp.chan<{ event: Parsed_Event; relay?: string }>(buffer_size);
     private readonly caster = csp.multi<{ event: Parsed_Event; relay?: string }>(this.sourceOfChange);
     private readonly profiles = new Map<string, Profile_Nostr_Event>();
+    private readonly deletionEvents = new Set<string>();
 
     private constructor(
         private readonly eventsAdapter: EventsAdapter,
@@ -134,9 +135,12 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
                     continue;
                 }
                 db.setProfile(pEvent);
+            } else if (e.kind == NostrKind.DELETE) {
+                e.parsedTags.e.forEach((event_id) => {
+                    db.deletionEvents.add(event_id);
+                });
             }
         }
-
         return db;
     }
 
@@ -274,6 +278,10 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
                 return pEvent;
             }
             this.setProfile(pEvent);
+        } else if (parsedEvent.kind == NostrKind.DELETE) {
+            parsedEvent.parsedTags.e.forEach((event_id) => {
+                this.deletionEvents.add(event_id);
+            });
         }
 
         await this.eventsAdapter.put(event);
