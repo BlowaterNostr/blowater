@@ -220,7 +220,7 @@ export class Editor extends Component<EditorProps, EditorState> {
                             >
                             </textarea>
                             <div class="flex justify-cente items-start hidden md:block">
-                                <div class="flex justify-center items-center text-[#FFFFFF99] text-sm p-1 m-1 mt-[0.325rem] rounded-[0.625rem] hover:bg-[#52525B] hover:shadow-[0px_1px_0px_0px_rgba(255,255,255,0.09)_inset,0px_1px_0px_0px_rgba(0,0,0,0.14)]">
+                                <div class="flex justify-center items-center text-[#FFFFFF99] text-sm p-1 m-1 mt-[0.325rem] rounded-[0.625rem] ">
                                     Ctrl + Enter
                                 </div>
                             </div>
