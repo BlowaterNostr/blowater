@@ -251,6 +251,10 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
         // Editor
         //
         else if (event.type == "SendMessage") {
+            if (event.text.length == 0) {
+                app.toastInputChan.put(() => "the message is empty");
+                continue;
+            }
             handle_SendMessage(
                 event,
                 app.ctx,
