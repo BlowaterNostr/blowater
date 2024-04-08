@@ -246,6 +246,7 @@ export class App {
             forever(sync_client_specific_data(this.pool, this.ctx, this.database));
             forever(sync_profile_events(this.database, this.pool));
             forever(sync_public_notes(this.pool, this.database));
+            forever(sync_deletion_events(this.pool, this.database));
         }
 
         (async () => {
@@ -568,6 +569,29 @@ const sync_client_specific_data = async (
         const ok = await database.addEvent(msg.res.event, msg.url);
         if (ok instanceof Error) {
             console.error(msg.res.event);
+            console.error(ok);
+        }
+    }
+};
+
+const sync_deletion_events = async (
+    pool: ConnectionPool,
+    database: Database_View,
+) => {
+    const stream = await pool.newSub("sync_deletion_events", {
+        kinds: [NostrKind.DELETE],
+        since: hours_ago(3),
+    });
+    if (stream instanceof Error) {
+        return stream;
+    }
+    for await (const msg of stream.chan) {
+        if (msg.res.type == "EOSE" || msg.res.type == "NOTICE") {
+            continue;
+        }
+        const ok = await database.addEvent(msg.res.event, msg.url);
+        if (ok instanceof Error) {
+            console.error(msg);
             console.error(ok);
         }
     }
