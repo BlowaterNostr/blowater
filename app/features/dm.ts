@@ -75,20 +75,12 @@ export async function sendDirectMessages(args: {
     return eventsToSend;
 }
 
-export function getAllEncryptedMessagesOf(
+export async function* getAllEncryptedMessagesOf(
     publicKey: PublicKey,
     pool: ConnectionPool,
     since?: number,
 ) {
-    return getAllEncryptedMessagesAbout(publicKey, pool, since);
-}
-
-async function* getAllEncryptedMessagesAbout(
-    publicKey: PublicKey,
-    pool: ConnectionPool,
-    since?: number,
-) {
-    let resp = await pool.newSub(`getAllEncryptedMessagesAbout`, {
+    let resp = await pool.newSub(`getAllEncryptedMessagesOf`, {
         authors: [publicKey.hex],
         kinds: [4],
         since,
