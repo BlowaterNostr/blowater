@@ -280,7 +280,9 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
             this.setProfile(pEvent);
         } else if (parsedEvent.kind == NostrKind.DELETE) {
             parsedEvent.parsedTags.e.forEach((event_id) => {
-                this.deletionEvents.add(event_id);
+                if ([NostrKind.TEXT_NOTE, NostrKind.DIRECT_MESSAGE].includes(parsedEvent.kind)) {
+                    this.deletionEvents.add(event_id);
+                }
             });
         }
 
