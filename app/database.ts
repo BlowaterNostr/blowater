@@ -5,6 +5,7 @@ import { NostrEvent, NostrKind, Tag, verifyEvent } from "../libs/nostr.ts/nostr.
 import { PublicKey } from "../libs/nostr.ts/key.ts";
 import { ProfileGetter, ProfileSetter } from "./UI/search.tsx";
 import { NoteID } from "../libs/nostr.ts/nip19.ts";
+import { PubKey } from "https://esm.sh/v135/@noble/curves@1.3.0/abstract/weierstrass.js";
 
 const buffer_size = 2000;
 export interface Indices {
@@ -65,7 +66,7 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
     private readonly sourceOfChange = csp.chan<{ event: Parsed_Event; relay?: string }>(buffer_size);
     private readonly caster = csp.multi<{ event: Parsed_Event; relay?: string }>(this.sourceOfChange);
     private readonly profiles = new Map<string, Profile_Nostr_Event>();
-    private readonly deletionEvents = new Set<string>();
+    private readonly deletionEvents = new Map<string, PublicKey>();
 
     private constructor(
         private readonly eventsAdapter: EventsAdapter,
@@ -137,7 +138,7 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
                 db.setProfile(pEvent);
             } else if (e.kind == NostrKind.DELETE) {
                 e.parsedTags.e.forEach((event_id) => {
-                    db.deletionEvents.add(event_id);
+                    db.deletionEvents.set(event_id, e.publicKey);
                 });
             }
         }
@@ -162,6 +163,14 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
             }
             yield event;
         }
+    }
+
+    isDeleted(id: string) {
+        const deletionEvents = this.deletionEvents.get(id);
+        if (deletionEvents === this.getEventByID(id)?.publicKey) {
+            return true;
+        }
+        return false;
     }
 
     async remove(id: string): Promise<void> {
@@ -281,7 +290,7 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
             this.setProfile(pEvent);
         } else if (parsedEvent.kind == NostrKind.DELETE) {
             parsedEvent.parsedTags.e.forEach((event_id) => {
-                this.deletionEvents.add(event_id);
+                this.deletionEvents.set(event_id, parsedEvent.publicKey);
             });
         }
 

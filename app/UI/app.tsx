@@ -398,6 +398,7 @@ export class AppComponent extends Component<AppProps> {
                                     event: e as Parsed_Event<NostrKind.TEXT_NOTE | NostrKind.Long_Form>,
                                     lamport: getTags(e).lamport_timestamp,
                                     type: "text",
+                                    is_deleted: app.database.isDeleted(e.id),
                                 };
                                 return msg;
                             },
