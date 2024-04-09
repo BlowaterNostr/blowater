@@ -141,6 +141,7 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
                 });
             }
         }
+        console.log(`Datebase_View:Deletion events size: ${db.deletionEvents.size}`);
         return db;
     }
 
@@ -279,11 +280,8 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
             }
             this.setProfile(pEvent);
         } else if (parsedEvent.kind == NostrKind.DELETE) {
-            const validKinds = new Set([NostrKind.TEXT_NOTE, NostrKind.DIRECT_MESSAGE]);
             parsedEvent.parsedTags.e.forEach((event_id) => {
-                if (validKinds.has(parsedEvent.kind)) {
-                    this.deletionEvents.add(event_id);
-                }
+                this.deletionEvents.add(event_id);
             });
         }
 
