@@ -66,7 +66,7 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
     private readonly sourceOfChange = csp.chan<{ event: Parsed_Event; relay?: string }>(buffer_size);
     private readonly caster = csp.multi<{ event: Parsed_Event; relay?: string }>(this.sourceOfChange);
     private readonly profiles = new Map<string, Profile_Nostr_Event>();
-    private readonly deletionEvents = new Map<string, PublicKey>();
+    private readonly deletionEvents = new Map</* event id */ string, /* pubkey hex */ string>();
 
     private constructor(
         private readonly eventsAdapter: EventsAdapter,
@@ -138,7 +138,7 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
                 db.setProfile(pEvent);
             } else if (e.kind == NostrKind.DELETE) {
                 e.parsedTags.e.forEach((event_id) => {
-                    db.deletionEvents.set(event_id, e.publicKey);
+                    db.deletionEvents.set(event_id, e.publicKey.hex);
                 });
             }
         }
@@ -167,7 +167,7 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
 
     isDeleted(id: string) {
         const deletionEvents = this.deletionEvents.get(id);
-        if (deletionEvents === this.getEventByID(id)?.publicKey) {
+        if (deletionEvents == this.getEventByID(id)?.publicKey.hex) {
             return true;
         }
         return false;
@@ -290,7 +290,7 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
             this.setProfile(pEvent);
         } else if (parsedEvent.kind == NostrKind.DELETE) {
             parsedEvent.parsedTags.e.forEach((event_id) => {
-                this.deletionEvents.set(event_id, parsedEvent.publicKey);
+                this.deletionEvents.set(event_id, parsedEvent.publicKey.hex);
             });
         }
 

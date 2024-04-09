@@ -192,6 +192,15 @@ export function ParseMessageContent(
         getEventByID: func_GetEventByID;
     },
 ) {
+    if (message.is_deleted) {
+        return (
+            <div class={`text-[#A3A6AA]`}>
+                <p class={`italic`}>
+                    This message was deleted
+                </p>
+            </div>
+        );
+    }
     if (message.type == "image") {
         return (
             <img
