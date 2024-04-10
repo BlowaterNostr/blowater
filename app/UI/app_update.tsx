@@ -581,6 +581,11 @@ export async function handle_SendMessage(
         return new Error("can't send empty message");
     }
 
+    let replyToEvent: NostrEvent | undefined;
+    if (ui_event.reply_to_event_id) {
+        replyToEvent = args.getEventByID(ui_event.reply_to_event_id);
+    }
+
     let events: NostrEvent[];
     if (args.navigationModel.activeNav == "DM") {
         const events_send = await sendDirectMessages({
@@ -590,6 +595,8 @@ export async function handle_SendMessage(
             files: ui_event.files,
             lamport_timestamp: lamport.now(),
             eventSender: args.blowater_relay,
+            targetEvent: replyToEvent,
+            currentRelay: args.current_relay.url,
         });
         if (events_send instanceof Error) {
             return events_send;
@@ -602,10 +609,6 @@ export async function handle_SendMessage(
         }
         events = events_send;
     } else if (args.navigationModel.activeNav == "Public") {
-        let replyToEvent: NostrEvent | undefined;
-        if (ui_event.reply_to_event_id) {
-            replyToEvent = args.getEventByID(ui_event.reply_to_event_id);
-        }
         const nostr_event = replyToEvent
             ? await prepareReplyEvent(
                 ctx,
