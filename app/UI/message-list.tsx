@@ -215,7 +215,7 @@ export class MessageList_V0 extends Component<Props> {
             const sameAuthor = pre.event.pubkey == cur.event.pubkey;
             const _66sec = Math.abs(cur.created_at.getTime() - pre.created_at.getTime()) <
                 1000 * 60;
-            return sameAuthor && _66sec;
+            return sameAuthor && _66sec && !isReply(cur.event);
         });
         const messageBoxGroups = [];
         for (const messages of groups) {
