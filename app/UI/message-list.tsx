@@ -223,6 +223,7 @@ export class MessageList_V0 extends Component<Props> {
                 .getProfilesByPublicKey(messages[0].author);
             messageBoxGroups.push(
                 MessageBoxGroup({
+                    onReplyToEventIDChange: this.props.onReplyToEventIDChange,
                     messages: messages,
                     myPublicKey: this.props.myPublicKey,
                     emit: this.props.emit,

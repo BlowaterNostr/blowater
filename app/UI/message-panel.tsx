@@ -115,7 +115,15 @@ export class MessagePanel extends Component<MessagePanelProps, MessagePanelState
     }
 }
 
-export class MessagePanel_V0 extends Component<MessagePanelProps> {
+export class MessagePanel_V0 extends Component<MessagePanelProps, MessagePanelState> {
+    state = {
+        replyToEventID: undefined,
+    };
+
+    handleReplyToEventIDChange = (eventID?: NoteID | string) => {
+        this.setState({ replyToEventID: eventID });
+    };
+
     render(props: MessagePanelProps) {
         let vnode = (
             <div class={`flex h-full w-full relative ${BackgroundColor_MessagePanel}`}>
@@ -123,6 +131,7 @@ export class MessagePanel_V0 extends Component<MessagePanelProps> {
                     <div class={`flex-1`}></div>
 
                     <MessageList_V0
+                        onReplyToEventIDChange={this.handleReplyToEventIDChange}
                         myPublicKey={props.myPublicKey}
                         messages={props.messages}
                         emit={props.emit}
@@ -130,6 +139,10 @@ export class MessagePanel_V0 extends Component<MessagePanelProps> {
                     />
 
                     <Editor
+                        replyTo={{
+                            eventID: this.state.replyToEventID,
+                            onEventIDChange: this.handleReplyToEventIDChange,
+                        }}
                         maxHeight="30vh"
                         emit={props.emit}
                         placeholder=""
