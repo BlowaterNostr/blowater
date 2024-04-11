@@ -34,10 +34,10 @@ function EditorText() {
     const [eventID, setEventID] = useState<string | NoteID | undefined>(undefined);
 
     return (
-        <div class="w-screen h-screen flex-col items-center justify-center bg-[#36393F]">
+        <div class="w-screen h-screen flex-col items-center justify-center">
             <div class="w-full h-60 flex items-center justify-center">
                 <button
-                    class="w-20 h-10 rounded px-4 py2 bg-white"
+                    class="w-20 h-10 rounded px-4 py2 bg-[#89BDDE]"
                     onClick={() => setEventID(event.id)}
                 >
                     Reply

@@ -90,7 +90,7 @@ export class Editor extends Component<EditorProps, EditorState> {
         const uploadFileInput = createRef();
 
         return (
-            <div class="flex flex-col mb-4 mx-4 justify-center rounded-lg">
+            <div class="flex flex-col p-2 justify-center bg-[#36393F]">
                 <div class="w-full flex items-end gap-2">
                     <button
                         class="flex items-center justify-center group
@@ -115,7 +115,7 @@ export class Editor extends Component<EditorProps, EditorState> {
                         accept="image/*"
                         multiple
                         onChange={async (e) => {
-                            let propsfiles = this.state.files;
+                            let propsfiles = state.files;
                             const files = e.currentTarget.files;
                             if (!files) {
                                 return;
@@ -219,7 +219,7 @@ export class Editor extends Component<EditorProps, EditorState> {
                                 }}
                             >
                             </textarea>
-                            <div class="flex justify-cente items-start hidden md:block">
+                            <div class="flex justify-cente items-start hidden md:block cursor-default select-none">
                                 <div class="flex justify-center items-center text-[#FFFFFF99] text-sm p-1 m-1 mt-[0.325rem] rounded-[0.625rem] ">
                                     Ctrl + Enter
                                 </div>
@@ -276,21 +276,21 @@ function ReplyIndicator(props: {
     }
     return (
         <div class="h-10 w-full flex flex-row justify-between items-center text-[#B6BAC0] bg-[#2B2D31] px-4 rounded-t-lg">
-            <button class="w-3/4">
+            <div class="w-3/4 cursor-default select-none">
                 <div class="text-left overflow-hidden whitespace-nowrap truncate">
                     {`Replying to `}
                     <span class="font-bold">
                         {replyToAuthor}
                     </span>
                 </div>
-            </button>
+            </div>
             <button
-                class="h-6 w-6 flex justify-center items-center shrink-0"
+                class="h-6 w-6 flex justify-center items-center shrink-0 group"
                 onClick={() => {
                     props.replyTo?.onEventIDChange(undefined);
                 }}
             >
-                <XCircleIcon class="h-4 w-4" />
+                <XCircleIcon class="h-4 w-4 group-hover:text-[#FFFFFF]" />
             </button>
         </div>
     );
