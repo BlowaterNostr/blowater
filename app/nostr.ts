@@ -141,8 +141,8 @@ export async function prepareNostrImageEvent(
     return signedEvent;
 }
 
-export async function prepareReplyEncryptNostrEvent(
-    signer: nostr.NostrAccountContext,
+export async function prepareReplyEncryptEvent(
+    author: nostr.NostrAccountContext,
     args: {
         encryptKey: PublicKey;
         kind: NostrKind;
@@ -154,7 +154,7 @@ export async function prepareReplyEncryptNostrEvent(
     },
 ): Promise<nostr.NostrEvent | Error> {
     const { targetEvent, content, tags, currentRelay, encryptKey, kind, algorithm } = args;
-    return prepareEncryptedNostrEvent(signer, {
+    return prepareEncryptedNostrEvent(author, {
         encryptKey,
         kind,
         content,

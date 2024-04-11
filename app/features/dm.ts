@@ -10,7 +10,7 @@ import {
     getTags,
     Parsed_Event,
     prepareNostrImageEvent,
-    prepareReplyEncryptNostrEvent,
+    prepareReplyEncryptEvent,
     Tag,
     Tags,
 } from "../nostr.ts";
@@ -53,7 +53,7 @@ export async function sendDirectMessages(args: {
         ];
         // build the nostr event
         const nostrEvent = targetEvent
-            ? await prepareReplyEncryptNostrEvent(sender, {
+            ? await prepareReplyEncryptEvent(sender, {
                 encryptKey: receiverPublicKey,
                 kind: NostrKind.DIRECT_MESSAGE,
                 targetEvent,
