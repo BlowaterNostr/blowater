@@ -142,40 +142,31 @@ export async function prepareNostrImageEvent(
 }
 
 export async function prepareReplyEncryptNostrEvent(
-    sender: nostr.NostrAccountContext,
+    signer: nostr.NostrAccountContext,
     args: {
         encryptKey: PublicKey;
         kind: NostrKind;
-        tags?: Tag[];
+        tags: Tag[];
         algorithm?: "nip4" | "nip44";
         targetEvent: nostr.NostrEvent;
         content: string;
         currentRelay: string;
     },
 ): Promise<nostr.NostrEvent | Error> {
-    const { targetEvent, tags, content, currentRelay, encryptKey, kind, algorithm } = args;
-    return prepareEncryptedNostrEvent(sender, {
+    const { targetEvent, content, tags, currentRelay, encryptKey, kind, algorithm } = args;
+    return prepareEncryptedNostrEvent(signer, {
         encryptKey,
         kind,
         content,
-        tags: tags
-            ? [
-                [
-                    "e",
-                    targetEvent.id,
-                    currentRelay,
-                    "reply",
-                ],
-                ...tags,
-            ]
-            : [
-                [
-                    "e",
-                    targetEvent.id,
-                    currentRelay,
-                    "reply",
-                ],
+        tags: [
+            [
+                "e",
+                targetEvent.id,
+                currentRelay,
+                "reply",
             ],
+            ...tags,
+        ],
         algorithm,
     });
 }
