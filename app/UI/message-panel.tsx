@@ -7,7 +7,7 @@ import { RelayRecordGetter } from "../database.ts";
 import { emitFunc, EventSubscriber } from "../event-bus.ts";
 import { ProfileData } from "../features/profile.ts";
 import { Parsed_Event, PinConversation, UnpinConversation } from "../nostr.ts";
-import { UI_Interaction_Event } from "./app_update.tsx";
+import { ChatMessagesGetter, UI_Interaction_Event } from "./app_update.tsx";
 import { Editor, EditorEvent } from "./editor.tsx";
 
 import { AboutIcon } from "./icons/about-icon.tsx";
@@ -60,6 +60,7 @@ interface MessagePanelProps {
     eventSub: EventSubscriber<UI_Interaction_Event>;
     messages: ChatMessage[];
     getters: {
+        messageGetter: ChatMessagesGetter;
         profileGetter: ProfileGetter;
         relayRecordGetter: RelayRecordGetter;
         isUserBlocked: (pubkey: PublicKey) => boolean;

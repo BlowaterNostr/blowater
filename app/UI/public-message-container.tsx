@@ -1,7 +1,7 @@
 import { Component, h } from "https://esm.sh/preact@10.17.1";
 import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 import { emitFunc, EventBus } from "../event-bus.ts";
-import { UI_Interaction_Event } from "./app_update.tsx";
+import { ChatMessagesGetter, UI_Interaction_Event } from "./app_update.tsx";
 import { setState } from "./_helper.ts";
 import { ProfileGetter } from "./search.tsx";
 
@@ -29,6 +29,7 @@ type Props = {
     bus: EventBus<UI_Interaction_Event>;
     messages: ChatMessage[];
     getters: {
+        messageGetter: ChatMessagesGetter;
         profileGetter: ProfileGetter;
         convoListRetriever: ConversationListRetriever;
         newMessageChecker: NewMessageChecker;

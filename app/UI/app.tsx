@@ -367,6 +367,7 @@ export class AppComponent extends Component<AppProps> {
                     ctx={myAccountCtx}
                     {...model.public}
                     getters={{
+                        messageGetter: app.dmController,
                         convoListRetriever: app.conversationLists,
                         newMessageChecker: app.conversationLists,
                         relayRecordGetter: app.database,

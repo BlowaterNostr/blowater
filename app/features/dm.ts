@@ -172,6 +172,10 @@ export class DirectedMessageController implements DirectMessageGetter {
         return messages;
     }
 
+    public getMessageById(id: string) {
+        return this.directed_messages.get(id);
+    }
+
     async addEvent(
         event:
             | Parsed_Event<NostrKind.DIRECT_MESSAGE>

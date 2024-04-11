@@ -32,12 +32,15 @@ import { Parsed_Event } from "../nostr.ts";
 import { NoteID } from "../../libs/nostr.ts/nip19.ts";
 import { robohash } from "./relay-detail.tsx";
 import { ReplyIcon } from "./icons/reply-icon.tsx";
+import { ChatMessagesGetter } from "./app_update.tsx";
+import { NostrKind } from "../../libs/nostr.ts/nostr.ts";
 
 interface Props {
     myPublicKey: PublicKey;
     messages: ChatMessage[];
     emit: emitFunc<DirectMessagePanelUpdate | SelectConversation | SyncEvent | ViewUserDetail>;
     getters: {
+        messageGetter: ChatMessagesGetter;
         profileGetter: ProfileGetter;
         relayRecordGetter: RelayRecordGetter;
         getEventByID: func_GetEventByID;
@@ -281,6 +284,7 @@ function MessageBoxGroup(props: {
         DirectMessagePanelUpdate | ViewUserDetail | SelectConversation | SyncEvent
     >;
     getters: {
+        messageGetter: ChatMessagesGetter;
         profileGetter: ProfileGetter;
         relayRecordGetter: RelayRecordGetter;
         getEventByID: func_GetEventByID;
@@ -431,6 +435,7 @@ function isReply(event: Parsed_Event) {
 }
 
 function renderRelply(event: Parsed_Event, getters: {
+    messageGetter: ChatMessagesGetter;
     getEventByID: func_GetEventByID;
     profileGetter: ProfileGetter;
 }, emit: emitFunc<ViewUserDetail>) {
@@ -450,12 +455,17 @@ function renderRelply(event: Parsed_Event, getters: {
             picture = profile.profile.picture || robohash(reply_to_event.publicKey.hex);
         }
     }
+    let content = reply_to_event.content;
+    if (reply_to_event.kind === NostrKind.DIRECT_MESSAGE) {
+        const message = getters.messageGetter.getMessageById(reply_to_event.id);
+        if (message) content = message.content;
+    }
     return (
         <ReplyTo
             emit={emit}
             reply={{
                 pubkey: reply_to_event.publicKey,
-                content: reply_to_event.content,
+                content,
                 name: author,
                 picture,
             }}

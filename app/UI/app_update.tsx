@@ -465,6 +465,7 @@ export type DirectMessageGetter = ChatMessagesGetter & {
 
 export type ChatMessagesGetter = {
     getChatMessages(publicKey: string): ChatMessage[];
+    getMessageById(id: string): ChatMessage | undefined;
 };
 
 //////////////
