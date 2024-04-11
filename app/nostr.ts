@@ -150,10 +150,9 @@ export async function prepareReplyEncryptEvent(
         algorithm?: "nip4" | "nip44";
         targetEvent: nostr.NostrEvent;
         content: string;
-        currentRelay: string;
     },
 ): Promise<nostr.NostrEvent | Error> {
-    const { targetEvent, content, tags, currentRelay, encryptKey, kind, algorithm } = args;
+    const { targetEvent, content, tags, encryptKey, kind, algorithm } = args;
     return prepareEncryptedNostrEvent(author, {
         encryptKey,
         kind,
@@ -162,7 +161,7 @@ export async function prepareReplyEncryptEvent(
             [
                 "e",
                 targetEvent.id,
-                currentRelay,
+                "",
                 "reply",
             ],
             ...tags,

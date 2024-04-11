@@ -597,7 +597,6 @@ export async function handle_SendMessage(
             lamport_timestamp: lamport.now(),
             eventSender: args.blowater_relay,
             targetEvent: replyToEvent,
-            currentRelay: args.current_relay.url,
         });
         if (events_send instanceof Error) {
             return events_send;

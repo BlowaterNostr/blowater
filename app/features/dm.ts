@@ -32,7 +32,6 @@ export async function sendDirectMessages(args: {
     lamport_timestamp: number;
     eventSender: EventSender;
     targetEvent?: nostr.NostrEvent;
-    currentRelay: string;
 }) {
     const {
         sender,
@@ -42,7 +41,6 @@ export async function sendDirectMessages(args: {
         lamport_timestamp,
         eventSender,
         targetEvent,
-        currentRelay,
     } = args;
     console.log("sendDMandImages", message, files);
     const eventsToSend: NostrEvent[] = [];
@@ -59,7 +57,6 @@ export async function sendDirectMessages(args: {
                 targetEvent,
                 tags,
                 content: message,
-                currentRelay,
             })
             : await prepareEncryptedNostrEvent(
                 sender,
