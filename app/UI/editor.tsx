@@ -45,7 +45,6 @@ type EditorProps = {
     readonly maxHeight: string;
     readonly emit: emitFunc<EditorEvent>;
     readonly text?: string;
-    readonly files?: [];
     readonly getters: {
         getEventByID: func_GetEventByID;
         getProfilesByPublicKey: func_GetProfilesByPublicKey;
@@ -60,7 +59,7 @@ export type EditorState = {
 export class Editor extends Component<EditorProps, EditorState> {
     state: Readonly<EditorState> = {
         text: this.props.text || "",
-        files: this.props.files || [],
+        files: [],
     };
 
     textareaElement = createRef<HTMLTextAreaElement>();

@@ -67,7 +67,6 @@ function TextBook() {
 type Props = {
     defaultEventId?: string;
     defalutText?: string;
-    defalutFiles?: []
 };
 
 function EditorTest(props: Props) {
@@ -91,7 +90,6 @@ function EditorTest(props: Props) {
             maxHeight="50vh"
             emit={testEventBus.emit}
             text={props.defalutText}
-            files={props.defalutFiles}
             getters={{
                 getProfilesByPublicKey: testGetProfilesByPublicKey,
                 getEventByID: testGetEventByID,
