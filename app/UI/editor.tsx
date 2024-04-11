@@ -91,11 +91,7 @@ export class Editor extends Component<EditorProps, EditorState> {
 
         return (
             <div class="flex flex-col mb-4 mx-4 justify-center rounded-lg">
-                {ReplyIndicator({
-                    getters: props.getters,
-                    replyTo: props.replyTo,
-                })}
-                <div class="w-full flex items-start gap-2">
+                <div class="w-full flex items-end gap-2">
                     <button
                         class="flex items-center justify-center group
                         w-10 h-10 rounded-[50%]
@@ -138,6 +134,10 @@ export class Editor extends Component<EditorProps, EditorState> {
                         class="hidden bg-[#FFFFFF2C]"
                     />
                     <div class="flex flex-col flex-1 overflow-hidden bg-[#FFFFFF2C] rounded-xl">
+                        {ReplyIndicator({
+                            getters: props.getters,
+                            replyTo: props.replyTo,
+                        })}
                         {this.state.files.length > 0
                             ? (
                                 <ul class="flex overflow-auto list-none py-2 w-full border-b border-[#FFFFFF99]">
