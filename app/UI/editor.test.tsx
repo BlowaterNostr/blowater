@@ -12,9 +12,7 @@ import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { NostrEvent } from "../../libs/nostr.ts/nostr.ts";
 
 const test_ctx = InMemoryAccountContext.Generate();
-const testProfile = {
-    name: "test",
-};
+const testProfile = { name: "test" };
 const testProfileEvent = await prepareNormalNostrEvent(test_ctx, {
     kind: NostrKind.META_DATA,
     content: JSON.stringify(testProfile),
@@ -56,40 +54,50 @@ const testGetEventByID = (id: string | NoteID) => {
     return undefined;
 };
 
-function EditorTest() {
-    if (!testEvent || testEvent instanceof Error) {
-        fail();
-    }
-    const [eventID, setEventID] = useState<string | NoteID | undefined>(undefined);
-
+function TextBook() {
     return (
-        <div class="w-screen h-screen flex-col items-center justify-center">
-            <div class="w-full h-60 flex items-center justify-center">
-                <button
-                    class="w-20 h-10 rounded px-4 py2 bg-[#89BDDE]"
-                    onClick={() => setEventID(testEvent.id)}
-                >
-                    Reply
-                </button>
-            </div>
-
-            <Editor
-                replyTo={{
-                    eventID: eventID,
-                    onEventIDChange: (id) => {
-                        setEventID(id);
-                    },
-                }}
-                placeholder="Message @xxx"
-                maxHeight="50vh"
-                emit={testEventBus.emit}
-                getters={{
-                    getProfilesByPublicKey: testGetProfilesByPublicKey,
-                    getEventByID: testGetEventByID,
-                }}
-            />
+        <div class="w-screen h-screen flex-col items-center justify-center gap-2">
+            <EditorTest />
+            <EditorTest defaultEventId={testEvent.id} />
+            <EditorTest defaultEventId={testEvent.id} defalutText={`hello world`} />
         </div>
     );
 }
 
-render(<EditorTest />, document.body);
+type Props = {
+    defaultEventId?: string;
+    defalutText?: string;
+    defalutFiles?: []
+};
+
+function EditorTest(props: Props) {
+    if (!testEvent || testEvent instanceof Error) {
+        fail();
+    }
+
+    const { defaultEventId } = props;
+
+    const [eventID, setEventID] = useState<string | NoteID | undefined>(defaultEventId);
+
+    return (
+        <Editor
+            replyTo={{
+                eventID: eventID,
+                onEventIDChange: (id) => {
+                    setEventID(id);
+                },
+            }}
+            placeholder="Message @xxx"
+            maxHeight="50vh"
+            emit={testEventBus.emit}
+            text={props.defalutText}
+            files={props.defalutFiles}
+            getters={{
+                getProfilesByPublicKey: testGetProfilesByPublicKey,
+                getEventByID: testGetEventByID,
+            }}
+        />
+    );
+}
+
+render(<TextBook />, document.body);
