@@ -12,11 +12,27 @@ import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { NostrEvent } from "../../libs/nostr.ts/nostr.ts";
 
 const test_ctx = InMemoryAccountContext.Generate();
-const testProfile = { name: "test" };
-const testProfileEvent = await prepareNormalNostrEvent(test_ctx, {
-    kind: NostrKind.META_DATA,
-    content: JSON.stringify(testProfile),
-}) as NostrEvent<NostrKind.META_DATA>;
+
+const prepareProfileEvent = async (profile: { name?: string; display_name?: string }) => {
+    const testProfileEvent2 = await prepareNormalNostrEvent(test_ctx, {
+        kind: NostrKind.META_DATA,
+        content: JSON.stringify(profile),
+    }) as NostrEvent<NostrKind.META_DATA>;
+    return {
+        ...testProfileEvent2,
+        profile,
+        publicKey: test_ctx.publicKey,
+        parsedTags: {
+            p: [],
+            e: [],
+        },
+    };
+};
+const testProfile1 = { name: "test_name" };
+const testProfileEvent1: Profile_Nostr_Event = await prepareProfileEvent(testProfile1);
+
+const testProfile2 = { display_name: "test_display_name" };
+const testProfileEvent2: Profile_Nostr_Event = await prepareProfileEvent(testProfile2);
 
 const testEvent = await prepareEncryptedNostrEvent(test_ctx, {
     encryptKey: test_ctx.publicKey,
@@ -31,50 +47,39 @@ const testParsedEvent: Parsed_Event = {
     publicKey: test_ctx.publicKey,
 };
 
-const testProfileNostrEvent: Profile_Nostr_Event = {
-    ...testProfileEvent,
-    profile: testProfile,
-    publicKey: test_ctx.publicKey,
-    parsedTags: {
-        p: [],
-        e: [],
-    },
-};
-
-const testGetProfilesByPublicKey = (pubkey: PublicKey) => {
-    if (pubkey === test_ctx.publicKey) {
-        return testProfileNostrEvent;
-    }
-    return undefined;
-};
-const testGetEventByID = (id: string | NoteID) => {
-    if (id === testEvent.id) {
-        return testParsedEvent;
-    }
-    return undefined;
-};
-
 function TextBook() {
     return (
         <div class="w-screen h-screen flex-col items-center justify-center gap-2">
             <EditorTest />
             <EditorTest defaultEventId={testEvent.id} />
-            <EditorTest defaultEventId={testEvent.id} defalutText={`hello world`} />
+            <EditorTest defaultEventId={testEvent.id} profileEvent={testProfileEvent1} />
+            <EditorTest defaultEventId={testEvent.id} profileEvent={testProfileEvent2} />
         </div>
     );
 }
 
 type Props = {
     defaultEventId?: string;
-    defalutText?: string;
+    profileEvent?: Profile_Nostr_Event;
 };
 
 function EditorTest(props: Props) {
+    const { defaultEventId, profileEvent } = props;
+
+    const testGetProfilesByPublicKey = (pubkey: PublicKey) => {
+        if (pubkey === test_ctx.publicKey) {
+            return profileEvent;
+        }
+    };
+    const testGetEventByID = (id: string | NoteID) => {
+        if (id === testEvent.id) {
+            return testParsedEvent;
+        }
+    };
+
     if (!testEvent || testEvent instanceof Error) {
         fail();
     }
-
-    const { defaultEventId } = props;
 
     const [eventID, setEventID] = useState<string | NoteID | undefined>(defaultEventId);
 
@@ -89,7 +94,6 @@ function EditorTest(props: Props) {
             placeholder="Message @xxx"
             maxHeight="50vh"
             emit={testEventBus.emit}
-            text={props.defalutText}
             getters={{
                 getProfileByPublicKey: testGetProfilesByPublicKey,
                 getEventByID: testGetEventByID,

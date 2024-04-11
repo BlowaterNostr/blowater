@@ -28,6 +28,7 @@ export type UpdateEditorText = {
     readonly isGroupChat: boolean;
     readonly text: string;
 };
+
 export type UpdateMessageFiles = {
     readonly type: "UpdateMessageFiles";
     readonly pubkey: PublicKey;
@@ -43,7 +44,6 @@ type EditorProps = {
     readonly placeholder: string;
     readonly maxHeight: string;
     readonly emit: emitFunc<EditorEvent>;
-    readonly text?: string;
     readonly getters: {
         getEventByID: func_GetEventByID;
         getProfileByPublicKey: func_GetProfileByPublicKey;
@@ -57,7 +57,7 @@ export type EditorState = {
 
 export class Editor extends Component<EditorProps, EditorState> {
     state: Readonly<EditorState> = {
-        text: this.props.text || "",
+        text: "",
         files: [],
     };
 
