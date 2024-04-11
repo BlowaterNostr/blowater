@@ -7,12 +7,11 @@ import { ImageIcon } from "./icons/image-icon.tsx";
 import { SendIcon } from "./icons/send-icon.tsx";
 import { Component } from "https://esm.sh/preact@10.17.1";
 import { RemoveIcon } from "./icons/remove-icon.tsx";
-import { isMobile, setState } from "./_helper.ts";
+import { setState } from "./_helper.ts";
 import { XCircleIcon } from "./icons/x-circle-icon.tsx";
 import { func_GetEventByID } from "./message-list.tsx";
-import { ProfileGetter } from "./search.tsx";
+import { func_GetProfileByPublicKey } from "./search.tsx";
 import { NoteID } from "../../libs/nostr.ts/nip19.ts";
-import { Profile_Nostr_Event } from "../nostr.ts";
 
 export type EditorEvent = SendMessage | UpdateEditorText | UpdateMessageFiles;
 
@@ -47,7 +46,7 @@ type EditorProps = {
     readonly text?: string;
     readonly getters: {
         getEventByID: func_GetEventByID;
-        getProfilesByPublicKey: func_GetProfilesByPublicKey;
+        getProfilesByPublicKey: func_GetProfileByPublicKey;
     };
 };
 
@@ -252,8 +251,6 @@ export class Editor extends Component<EditorProps, EditorState> {
     }
 }
 
-export type func_GetProfilesByPublicKey = (pubkey: PublicKey) => Profile_Nostr_Event | undefined;
-
 function ReplyIndicator(props: {
     readonly replyTo?: {
         eventID?: string | NoteID;
@@ -261,7 +258,7 @@ function ReplyIndicator(props: {
     };
     getters: {
         getEventByID: func_GetEventByID;
-        getProfilesByPublicKey: func_GetProfilesByPublicKey;
+        getProfilesByPublicKey: func_GetProfileByPublicKey;
     };
 }) {
     if (!props.replyTo || !props.replyTo.eventID) {

@@ -29,9 +29,10 @@ export interface ProfileSetter {
     setProfile(profileEvent: Profile_Nostr_Event, relayURL: string): void;
 }
 
+export type func_GetProfileByPublicKey = (pubkey: PublicKey) => Profile_Nostr_Event | undefined;
 export interface ProfileGetter {
     getProfilesByText(input: string): Profile_Nostr_Event[];
-    getProfilesByPublicKey(pubkey: PublicKey): Profile_Nostr_Event | undefined;
+    getProfilesByPublicKey: func_GetProfileByPublicKey;
     getUniqueProfileCount(): number;
 }
 
