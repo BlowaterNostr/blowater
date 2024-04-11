@@ -32,7 +32,7 @@ export interface ProfileSetter {
 export type func_GetProfileByPublicKey = (pubkey: PublicKey) => Profile_Nostr_Event | undefined;
 export interface ProfileGetter {
     getProfilesByText(input: string): Profile_Nostr_Event[];
-    getProfilesByPublicKey: func_GetProfileByPublicKey;
+    getProfileByPublicKey: func_GetProfileByPublicKey;
     getUniqueProfileCount(): number;
 }
 
@@ -89,7 +89,7 @@ export class Search extends Component<Props, State> {
                 searchResults: profiles,
             });
         } else {
-            const profile_event = this.props.profileGetter.getProfilesByPublicKey(pubkey);
+            const profile_event = this.props.profileGetter.getProfileByPublicKey(pubkey);
             this.setState({
                 searchResults: profile_event ? [profile_event] : pubkey,
             });

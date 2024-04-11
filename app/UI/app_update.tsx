@@ -321,7 +321,7 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                 () => {
                     return (
                         <UserDetail
-                            targetUserProfile={app.database.getProfilesByPublicKey(event.pubkey)
+                            targetUserProfile={app.database.getProfileByPublicKey(event.pubkey)
                                 ?.profile ||
                                 {}}
                             pubkey={event.pubkey}
@@ -528,7 +528,7 @@ export async function* Database_Update(
 
             // notification should be moved to after domain objects
             {
-                const author = database.getProfilesByPublicKey(e.publicKey)
+                const author = database.getProfileByPublicKey(e.publicKey)
                     ?.profile;
                 if (e.pubkey != ctx.publicKey.hex && e.parsedTags.p.includes(ctx.publicKey.hex)) {
                     notify(

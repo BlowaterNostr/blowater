@@ -46,7 +46,7 @@ type EditorProps = {
     readonly text?: string;
     readonly getters: {
         getEventByID: func_GetEventByID;
-        getProfilesByPublicKey: func_GetProfileByPublicKey;
+        getProfileByPublicKey: func_GetProfileByPublicKey;
     };
 };
 
@@ -258,7 +258,7 @@ function ReplyIndicator(props: {
     };
     getters: {
         getEventByID: func_GetEventByID;
-        getProfilesByPublicKey: func_GetProfileByPublicKey;
+        getProfileByPublicKey: func_GetProfileByPublicKey;
     };
 }) {
     if (!props.replyTo || !props.replyTo.eventID) {
@@ -268,7 +268,7 @@ function ReplyIndicator(props: {
     if (!ctx) {
         return undefined;
     }
-    const profile = props.getters.getProfilesByPublicKey(ctx)?.profile;
+    const profile = props.getters.getProfileByPublicKey(ctx)?.profile;
     let replyToAuthor = profile?.name || profile?.display_name;
     if (!replyToAuthor) {
         replyToAuthor = ctx.bech32();

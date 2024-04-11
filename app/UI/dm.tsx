@@ -102,7 +102,7 @@ function TopBar(props: {
     profileGetter: ProfileGetter;
     buttons: VNode[];
 }) {
-    const conversation_profile = props.profileGetter.getProfilesByPublicKey(
+    const conversation_profile = props.profileGetter.getProfileByPublicKey(
         props.currentConversation,
     );
     let conversation_name = conversation_profile?.profile.name ||

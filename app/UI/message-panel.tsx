@@ -106,7 +106,7 @@ export class MessagePanel extends Component<MessagePanelProps, MessagePanelState
                         placeholder=""
                         getters={{
                             ...props.getters,
-                            getProfilesByPublicKey: props.getters.profileGetter.getProfilesByPublicKey,
+                            getProfileByPublicKey: props.getters.profileGetter.getProfileByPublicKey,
                         }}
                     />
                 </div>
@@ -149,7 +149,7 @@ export class MessagePanel_V0 extends Component<MessagePanelProps, MessagePanelSt
                         placeholder=""
                         getters={{
                             ...props.getters,
-                            getProfilesByPublicKey: props.getters.profileGetter.getProfilesByPublicKey,
+                            getProfileByPublicKey: props.getters.profileGetter.getProfileByPublicKey,
                         }}
                     />
                 </div>
@@ -252,7 +252,7 @@ export function ParseMessageContent(
                 );
             }
         } else if (item.type == "npub") {
-            const profile = getters.profileGetter.getProfilesByPublicKey(item.pubkey);
+            const profile = getters.profileGetter.getProfileByPublicKey(item.pubkey);
             if (profile) {
                 vnode.push(
                     <ProfileCard
@@ -275,7 +275,7 @@ export function ParseMessageContent(
                     eventID: item.noteID.hex,
                 });
             } else {
-                const profile = getters.profileGetter.getProfilesByPublicKey(event.publicKey);
+                const profile = getters.profileGetter.getProfileByPublicKey(event.publicKey);
                 vnode.push(Card(event, profile?.profile, emit, event.publicKey));
             }
         } else if (item.type == "nevent") {
@@ -289,7 +289,7 @@ export function ParseMessageContent(
                     eventID: item.event.pointer.id,
                 });
             } else {
-                const profile = getters.profileGetter.getProfilesByPublicKey(event.publicKey);
+                const profile = getters.profileGetter.getProfileByPublicKey(event.publicKey);
                 vnode.push(Card(event, profile ? profile.profile : undefined, emit, event.publicKey));
             }
         }

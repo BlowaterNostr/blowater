@@ -91,7 +91,7 @@ function EditorTest(props: Props) {
             emit={testEventBus.emit}
             text={props.defalutText}
             getters={{
-                getProfilesByPublicKey: testGetProfilesByPublicKey,
+                getProfileByPublicKey: testGetProfilesByPublicKey,
                 getEventByID: testGetEventByID,
             }}
         />

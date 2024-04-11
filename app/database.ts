@@ -202,7 +202,7 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
         return result;
     }
 
-    getProfilesByPublicKey(pubkey: PublicKey): Profile_Nostr_Event | undefined {
+    getProfileByPublicKey(pubkey: PublicKey): Profile_Nostr_Event | undefined {
         const profile = this.profiles.get(pubkey.hex);
         return profile;
     }
