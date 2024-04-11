@@ -8,7 +8,7 @@ import { emitFunc, EventSubscriber } from "../event-bus.ts";
 import { ProfileData } from "../features/profile.ts";
 import { Parsed_Event, PinConversation, UnpinConversation } from "../nostr.ts";
 import { ChatMessagesGetter, UI_Interaction_Event } from "./app_update.tsx";
-import { Editor, EditorEvent } from "./editor.tsx";
+import { Editor, EditorEvent, func_GetProfilesByPublicKey } from "./editor.tsx";
 
 import { AboutIcon } from "./icons/about-icon.tsx";
 import { ChatMessage, parseContent, urlIsImage, urlIsVideo } from "./message.ts";
@@ -105,8 +105,8 @@ export class MessagePanel extends Component<MessagePanelProps, MessagePanelState
                         emit={props.emit}
                         placeholder=""
                         getters={{
-                            profileGetter: props.getters.profileGetter,
-                            getEventByID: props.getters.getEventByID,
+                            ...props.getters,
+                            getProfilesByPublicKey: props.getters.profileGetter.getProfilesByPublicKey,
                         }}
                     />
                 </div>
@@ -148,8 +148,8 @@ export class MessagePanel_V0 extends Component<MessagePanelProps, MessagePanelSt
                         emit={props.emit}
                         placeholder=""
                         getters={{
-                            profileGetter: props.getters.profileGetter,
-                            getEventByID: props.getters.getEventByID,
+                            ...props.getters,
+                            getProfilesByPublicKey: props.getters.profileGetter.getProfilesByPublicKey,
                         }}
                     />
                 </div>

@@ -12,6 +12,7 @@ import { XCircleIcon } from "./icons/x-circle-icon.tsx";
 import { func_GetEventByID } from "./message-list.tsx";
 import { ProfileGetter } from "./search.tsx";
 import { NoteID } from "../../libs/nostr.ts/nip19.ts";
+import { Profile_Nostr_Event } from "../nostr.ts";
 
 export type EditorEvent = SendMessage | UpdateEditorText | UpdateMessageFiles;
 
@@ -45,7 +46,7 @@ type EditorProps = {
     readonly emit: emitFunc<EditorEvent>;
     readonly getters: {
         getEventByID: func_GetEventByID;
-        profileGetter: ProfileGetter;
+        getProfilesByPublicKey: func_GetProfilesByPublicKey;
     };
 };
 
@@ -250,6 +251,8 @@ export class Editor extends Component<EditorProps, EditorState> {
     }
 }
 
+export type func_GetProfilesByPublicKey = (pubkey: PublicKey) => Profile_Nostr_Event | undefined;
+
 function ReplyIndicator(props: {
     readonly replyTo?: {
         eventID?: string | NoteID;
@@ -257,7 +260,7 @@ function ReplyIndicator(props: {
     };
     getters: {
         getEventByID: func_GetEventByID;
-        profileGetter: ProfileGetter;
+        getProfilesByPublicKey: func_GetProfilesByPublicKey;
     };
 }) {
     if (!props.replyTo || !props.replyTo.eventID) {
@@ -267,7 +270,7 @@ function ReplyIndicator(props: {
     if (!ctx) {
         return undefined;
     }
-    const profile = props.getters.profileGetter.getProfilesByPublicKey(ctx)?.profile;
+    const profile = props.getters.getProfilesByPublicKey(ctx)?.profile;
     let replyToAuthor = profile?.name || profile?.display_name;
     if (!replyToAuthor) {
         replyToAuthor = ctx.bech32();
