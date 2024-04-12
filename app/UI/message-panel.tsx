@@ -23,7 +23,7 @@ import {
     LinkColor,
 } from "./style/colors.ts";
 import { BlockUser, UnblockUser } from "./user-detail.tsx";
-import { func_GetEventByID, MessageList } from "./message-list.tsx";
+import { func_GetEventByID, MessageList, ReplyToMessage } from "./message-list.tsx";
 import { MessageList_V0 } from "./message-list.tsx";
 
 export type DirectMessagePanelUpdate =
@@ -56,6 +56,7 @@ interface MessagePanelProps {
         | BlockUser
         | UnblockUser
         | SyncEvent
+        | ReplyToMessage
     >;
     eventSub: EventSubscriber<UI_Interaction_Event>;
     messages: ChatMessage[];

@@ -33,12 +33,14 @@ import { NoteID } from "../../libs/nostr.ts/nip19.ts";
 import { robohash } from "./relay-detail.tsx";
 import { ReplyIcon } from "./icons/reply-icon.tsx";
 import { ChatMessagesGetter } from "./app_update.tsx";
-import { NostrKind } from "../../libs/nostr.ts/nostr.ts";
+import { NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
 
 interface Props {
     myPublicKey: PublicKey;
     messages: ChatMessage[];
-    emit: emitFunc<DirectMessagePanelUpdate | SelectConversation | SyncEvent | ViewUserDetail>;
+    emit: emitFunc<
+        DirectMessagePanelUpdate | SelectConversation | SyncEvent | ViewUserDetail | ReplyToMessage
+    >;
     getters: {
         messageGetter: ChatMessagesGetter;
         profileGetter: ProfileGetter;
@@ -281,7 +283,7 @@ function MessageBoxGroup(props: {
     messages: ChatMessage[];
     myPublicKey: PublicKey;
     emit: emitFunc<
-        DirectMessagePanelUpdate | ViewUserDetail | SelectConversation | SyncEvent
+        DirectMessagePanelUpdate | ViewUserDetail | SelectConversation | SyncEvent | ReplyToMessage
     >;
     getters: {
         messageGetter: ChatMessagesGetter;
@@ -299,7 +301,7 @@ function MessageBoxGroup(props: {
                 isMobile() ? "select-none" : ""
             }`}
         >
-            {MessageActions(first_message, props.emit, props.onReplyToEventIDChange)}
+            {MessageActions(first_message, props.emit)}
             {renderRelply(first_message.event, props.getters, props.emit)}
             <div class="flex items-start">
                 <Avatar
@@ -348,7 +350,7 @@ function MessageBoxGroup(props: {
                     isMobile() ? "select-none" : ""
                 }`}
             >
-                {MessageActions(msg, props.emit, props.onReplyToEventIDChange)}
+                {MessageActions(msg, props.emit)}
                 {Time(msg.created_at)}
                 <div
                     class={`flex-1`}
@@ -375,10 +377,14 @@ function MessageBoxGroup(props: {
     return vnode;
 }
 
+export type ReplyToMessage = {
+    type: "ReplyToMessage";
+    message: ChatMessage;
+};
+
 function MessageActions(
     message: ChatMessage,
-    emit: emitFunc<DirectMessagePanelUpdate>,
-    onReplyToEventIDChange?: (eventID?: string | NoteID) => void,
+    emit: emitFunc<DirectMessagePanelUpdate | ReplyToMessage>,
 ) {
     return (
         <div
@@ -389,26 +395,25 @@ function MessageActions(
             hover:drop-shadow-lg
             absolute top-[-1rem] right-[3rem]  `}
         >
-            {onReplyToEventIDChange
-                ? (
-                    <button
-                        class={`flex items-center justify-center
+            <button
+                class={`flex items-center justify-center
                 rounded-l
                 p-1
                 bg-[#313338] hover:bg-[#3A3C41]`}
-                        onClick={() => {
-                            onReplyToEventIDChange(message.event.id);
-                        }}
-                    >
-                        <ReplyIcon class={`w-5 h-5 text-[#B6BAC0] hover:text-[#D9DBDE]`} />
-                    </button>
-                )
-                : null}
+                onClick={() => {
+                    emit({
+                        type: "ReplyToMessage",
+                        message,
+                    });
+                }}
+            >
+                <ReplyIcon class={`w-5 h-5 text-[#B6BAC0] hover:text-[#D9DBDE]`} />
+            </button>
 
             <button
                 class={`flex items-center justify-center
                 p-1
-                bg-[#313338] hover:bg-[#3A3C41] ${onReplyToEventIDChange ? "rounded-r" : "rounded"}`}
+                bg-[#313338] hover:bg-[#3A3C41] rounded-r`}
                 onClick={async () => {
                     emit({
                         type: "ViewEventDetail",

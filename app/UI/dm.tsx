@@ -18,7 +18,6 @@ import {
     PinListGetter,
 } from "./conversation-list.tsx";
 import { func_GetEventByID } from "./message-list.tsx";
-import { ProfileCard } from "./profile-card.tsx";
 
 export type DM_Model = {
     currentConversation: PublicKey | undefined;
