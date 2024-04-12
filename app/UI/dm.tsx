@@ -18,7 +18,6 @@ import {
     PinListGetter,
 } from "./conversation-list.tsx";
 import { func_GetEventByID } from "./message-list.tsx";
-import { ProfileCard } from "./profile-card.tsx";
 
 export type DM_Model = {
     currentConversation: PublicKey | undefined;
@@ -102,7 +101,7 @@ function TopBar(props: {
     profileGetter: ProfileGetter;
     buttons: VNode[];
 }) {
-    const conversation_profile = props.profileGetter.getProfilesByPublicKey(
+    const conversation_profile = props.profileGetter.getProfileByPublicKey(
         props.currentConversation,
     );
     let conversation_name = conversation_profile?.profile.name ||

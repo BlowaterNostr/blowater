@@ -141,6 +141,35 @@ export async function prepareNostrImageEvent(
     return signedEvent;
 }
 
+export async function prepareReplyEncryptEvent(
+    author: nostr.NostrAccountContext,
+    args: {
+        encryptKey: PublicKey;
+        kind: NostrKind;
+        tags: Tag[];
+        algorithm?: "nip4" | "nip44";
+        targetEvent: nostr.NostrEvent;
+        content: string;
+    },
+): Promise<nostr.NostrEvent | Error> {
+    const { targetEvent, content, tags, encryptKey, kind, algorithm } = args;
+    return prepareEncryptedNostrEvent(author, {
+        encryptKey,
+        kind,
+        content,
+        tags: [
+            [
+                "e",
+                targetEvent.id,
+                "",
+                "reply",
+            ],
+            ...tags,
+        ],
+        algorithm,
+    });
+}
+
 export async function prepareReplyEvent(
     sender: nostr.NostrAccountContext,
     args: {
@@ -151,36 +180,6 @@ export async function prepareReplyEvent(
     },
 ): Promise<nostr.NostrEvent | Error> {
     const ps = getTags(args.targetEvent).p;
-    if (args.targetEvent.kind == NostrKind.DIRECT_MESSAGE) {
-        const replyTo = PublicKey.FromHex(args.targetEvent.pubkey);
-        if (replyTo instanceof Error) {
-            return replyTo;
-        }
-        return prepareEncryptedNostrEvent(
-            sender,
-            {
-                encryptKey: replyTo,
-                kind: args.targetEvent.kind,
-                tags: [
-                    [
-                        "e",
-                        args.targetEvent.id,
-                        args.currentRelay,
-                        "reply",
-                    ],
-                    ...ps.map((p) =>
-                        [
-                            "p",
-                            p,
-                        ] as TagPubKey
-                    ),
-                    ...args.tags,
-                ],
-                content: args.content,
-            },
-        );
-    }
-
     return prepareNormalNostrEvent(
         sender,
         {

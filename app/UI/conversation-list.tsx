@@ -194,7 +194,7 @@ function ContactGroup(props: ConversationListProps) {
         <ul class={`overflow-auto flex-1 p-2 text-[#96989D]`}>
             {pinned.map((contact) => {
                 let profile;
-                const profileEvent = props.getters.profileGetter.getProfilesByPublicKey(
+                const profileEvent = props.getters.profileGetter.getProfileByPublicKey(
                     contact.conversation.pubkey,
                 );
                 if (profileEvent) {
@@ -248,7 +248,7 @@ function ContactGroup(props: ConversationListProps) {
 
             {unpinned.map((contact) => {
                 let profile;
-                const profileEvent = props.getters.profileGetter.getProfilesByPublicKey(
+                const profileEvent = props.getters.profileGetter.getProfileByPublicKey(
                     contact.conversation.pubkey,
                 );
                 if (profileEvent) {

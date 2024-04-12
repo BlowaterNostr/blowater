@@ -367,6 +367,7 @@ export class AppComponent extends Component<AppProps> {
                     ctx={myAccountCtx}
                     {...model.public}
                     getters={{
+                        messageGetter: app.dmController,
                         convoListRetriever: app.conversationLists,
                         newMessageChecker: app.conversationLists,
                         relayRecordGetter: app.database,
@@ -416,7 +417,7 @@ export class AppComponent extends Component<AppProps> {
                     >
                         <EditProfile
                             ctx={model.app.ctx}
-                            profile={app.database.getProfilesByPublicKey(myAccountCtx.publicKey)?.profile ||
+                            profile={app.database.getProfileByPublicKey(myAccountCtx.publicKey)?.profile ||
                                 {}}
                             emit={props.eventBus.emit}
                         />
@@ -429,7 +430,7 @@ export class AppComponent extends Component<AppProps> {
             <div class={`h-screen w-full flex`}>
                 <NavBar
                     publicKey={app.ctx.publicKey}
-                    profile={app.database.getProfilesByPublicKey(myAccountCtx.publicKey)}
+                    profile={app.database.getProfileByPublicKey(myAccountCtx.publicKey)}
                     emit={app.eventBus.emit}
                     installPrompt={props.installPrompt}
                     currentRelay={model.currentRelay}
@@ -472,7 +473,7 @@ export function getFocusedContent(
         return;
     }
     if (focusedContent instanceof PublicKey) {
-        const profileData = profileGetter.getProfilesByPublicKey(focusedContent)?.profile;
+        const profileData = profileGetter.getProfileByPublicKey(focusedContent)?.profile;
         return {
             type: "ProfileData" as "ProfileData",
             data: profileData,

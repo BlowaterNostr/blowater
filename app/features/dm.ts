@@ -10,6 +10,7 @@ import {
     getTags,
     Parsed_Event,
     prepareNostrImageEvent,
+    prepareReplyEncryptEvent,
     Tag,
     Tags,
 } from "../nostr.ts";
@@ -21,7 +22,7 @@ import {
     Multicaster,
     PutToClosedChannelError,
 } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { hours_ago } from "../UI/app.tsx";
+import * as nostr from "../../libs/nostr.ts/nostr.ts";
 
 export async function sendDirectMessages(args: {
     sender: NostrAccountContext;
@@ -30,24 +31,42 @@ export async function sendDirectMessages(args: {
     files: Blob[];
     lamport_timestamp: number;
     eventSender: EventSender;
+    targetEvent?: nostr.NostrEvent;
 }) {
-    const { sender, receiverPublicKey, message, files, lamport_timestamp, eventSender } = args;
+    const {
+        sender,
+        receiverPublicKey,
+        message,
+        files,
+        lamport_timestamp,
+        eventSender,
+        targetEvent,
+    } = args;
     console.log("sendDMandImages", message, files);
     const eventsToSend: NostrEvent[] = [];
     if (message.trim().length !== 0) {
+        const tags: Tag[] = [
+            ["p", receiverPublicKey.hex],
+            ["lamport", String(lamport_timestamp)],
+        ];
         // build the nostr event
-        const nostrEvent = await prepareEncryptedNostrEvent(
-            sender,
-            {
+        const nostrEvent = targetEvent
+            ? await prepareReplyEncryptEvent(sender, {
                 encryptKey: receiverPublicKey,
                 kind: NostrKind.DIRECT_MESSAGE,
-                tags: [
-                    ["p", receiverPublicKey.hex],
-                    ["lamport", String(lamport_timestamp)],
-                ],
+                targetEvent,
+                tags,
                 content: message,
-            },
-        );
+            })
+            : await prepareEncryptedNostrEvent(
+                sender,
+                {
+                    encryptKey: receiverPublicKey,
+                    kind: NostrKind.DIRECT_MESSAGE,
+                    tags,
+                    content: message,
+                },
+            );
         if (nostrEvent instanceof Error) {
             return nostrEvent;
         }
@@ -148,6 +167,10 @@ export class DirectedMessageController implements DirectMessageGetter {
             await messages.close();
         })();
         return messages;
+    }
+
+    public getMessageById(id: string) {
+        return this.directed_messages.get(id);
     }
 
     async addEvent(

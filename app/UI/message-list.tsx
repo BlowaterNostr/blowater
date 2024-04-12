@@ -32,17 +32,21 @@ import { Parsed_Event } from "../nostr.ts";
 import { NoteID } from "../../libs/nostr.ts/nip19.ts";
 import { robohash } from "./relay-detail.tsx";
 import { ReplyIcon } from "./icons/reply-icon.tsx";
+import { ChatMessagesGetter } from "./app_update.tsx";
+import { NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
 
 interface Props {
     myPublicKey: PublicKey;
     messages: ChatMessage[];
-    emit: emitFunc<DirectMessagePanelUpdate | SelectConversation | SyncEvent | ViewUserDetail>;
+    emit: emitFunc<
+        DirectMessagePanelUpdate | SelectConversation | SyncEvent | ViewUserDetail | ReplyToMessage
+    >;
     getters: {
+        messageGetter: ChatMessagesGetter;
         profileGetter: ProfileGetter;
         relayRecordGetter: RelayRecordGetter;
         getEventByID: func_GetEventByID;
     };
-    onReplyToEventIDChange?: (eventID?: string | NoteID) => void;
 }
 
 interface MessageListState {
@@ -87,7 +91,7 @@ export class MessageList extends Component<Props, MessageListState> {
         });
         const messageBoxGroups = [];
         for (const messages of groups) {
-            const profileEvent = this.props.getters.profileGetter.getProfilesByPublicKey(messages[0].author);
+            const profileEvent = this.props.getters.profileGetter.getProfileByPublicKey(messages[0].author);
             messageBoxGroups.push(
                 MessageBoxGroup({
                     messages: messages,
@@ -95,7 +99,6 @@ export class MessageList extends Component<Props, MessageListState> {
                     emit: this.props.emit,
                     authorProfile: profileEvent ? profileEvent.profile : undefined,
                     getters: this.props.getters,
-                    onReplyToEventIDChange: this.props.onReplyToEventIDChange,
                 }),
             );
         }
@@ -215,12 +218,12 @@ export class MessageList_V0 extends Component<Props> {
             const sameAuthor = pre.event.pubkey == cur.event.pubkey;
             const _66sec = Math.abs(cur.created_at.getTime() - pre.created_at.getTime()) <
                 1000 * 60;
-            return sameAuthor && _66sec;
+            return sameAuthor && _66sec && !isReply(cur.event);
         });
         const messageBoxGroups = [];
         for (const messages of groups) {
             const profileEvent = this.props.getters.profileGetter
-                .getProfilesByPublicKey(messages[0].author);
+                .getProfileByPublicKey(messages[0].author);
             messageBoxGroups.push(
                 MessageBoxGroup({
                     messages: messages,
@@ -272,14 +275,14 @@ export type func_GetEventByID = (
 ) => Parsed_Event | undefined;
 
 function MessageBoxGroup(props: {
-    onReplyToEventIDChange?: (eventID?: string | NoteID) => void;
     authorProfile: ProfileData | undefined;
     messages: ChatMessage[];
     myPublicKey: PublicKey;
     emit: emitFunc<
-        DirectMessagePanelUpdate | ViewUserDetail | SelectConversation | SyncEvent
+        DirectMessagePanelUpdate | ViewUserDetail | SelectConversation | SyncEvent | ReplyToMessage
     >;
     getters: {
+        messageGetter: ChatMessagesGetter;
         profileGetter: ProfileGetter;
         relayRecordGetter: RelayRecordGetter;
         getEventByID: func_GetEventByID;
@@ -294,7 +297,7 @@ function MessageBoxGroup(props: {
                 isMobile() ? "select-none" : ""
             }`}
         >
-            {MessageActions(first_message, props.emit, props.onReplyToEventIDChange)}
+            {MessageActions(first_message, props.emit)}
             {renderRelply(first_message.event, props.getters, props.emit)}
             <div class="flex items-start">
                 <Avatar
@@ -343,7 +346,7 @@ function MessageBoxGroup(props: {
                     isMobile() ? "select-none" : ""
                 }`}
             >
-                {MessageActions(msg, props.emit, props.onReplyToEventIDChange)}
+                {MessageActions(msg, props.emit)}
                 {Time(msg.created_at)}
                 <div
                     class={`flex-1`}
@@ -370,10 +373,14 @@ function MessageBoxGroup(props: {
     return vnode;
 }
 
+export type ReplyToMessage = {
+    type: "ReplyToMessage";
+    event: Parsed_Event;
+};
+
 function MessageActions(
     message: ChatMessage,
-    emit: emitFunc<DirectMessagePanelUpdate>,
-    onReplyToEventIDChange?: (eventID?: string | NoteID) => void,
+    emit: emitFunc<DirectMessagePanelUpdate | ReplyToMessage>,
 ) {
     return (
         <div
@@ -384,26 +391,25 @@ function MessageActions(
             hover:drop-shadow-lg
             absolute top-[-1rem] right-[3rem]  `}
         >
-            {onReplyToEventIDChange
-                ? (
-                    <button
-                        class={`flex items-center justify-center
+            <button
+                class={`flex items-center justify-center
                 rounded-l
                 p-1
                 bg-[#313338] hover:bg-[#3A3C41]`}
-                        onClick={() => {
-                            onReplyToEventIDChange(message.event.id);
-                        }}
-                    >
-                        <ReplyIcon class={`w-5 h-5 text-[#B6BAC0] hover:text-[#D9DBDE]`} />
-                    </button>
-                )
-                : null}
+                onClick={() => {
+                    emit({
+                        type: "ReplyToMessage",
+                        event: message.event,
+                    });
+                }}
+            >
+                <ReplyIcon class={`w-5 h-5 text-[#B6BAC0] hover:text-[#D9DBDE]`} />
+            </button>
 
             <button
                 class={`flex items-center justify-center
                 p-1
-                bg-[#313338] hover:bg-[#3A3C41] ${onReplyToEventIDChange ? "rounded-r" : "rounded"}`}
+                bg-[#313338] hover:bg-[#3A3C41] rounded-r`}
                 onClick={async () => {
                     emit({
                         type: "ViewEventDetail",
@@ -430,6 +436,7 @@ function isReply(event: Parsed_Event) {
 }
 
 function renderRelply(event: Parsed_Event, getters: {
+    messageGetter: ChatMessagesGetter;
     getEventByID: func_GetEventByID;
     profileGetter: ProfileGetter;
 }, emit: emitFunc<ViewUserDetail>) {
@@ -442,19 +449,24 @@ function renderRelply(event: Parsed_Event, getters: {
     let author = reply_to_event.publicKey.bech32();
     let picture = robohash(reply_to_event.publicKey.hex);
     if (reply_to_event.pubkey) {
-        const profile = getters.profileGetter.getProfilesByPublicKey(reply_to_event.publicKey);
+        const profile = getters.profileGetter.getProfileByPublicKey(reply_to_event.publicKey);
         if (profile) {
             author = profile.profile.name || profile.profile.display_name ||
                 reply_to_event?.publicKey.bech32();
             picture = profile.profile.picture || robohash(reply_to_event.publicKey.hex);
         }
     }
+    let content = reply_to_event.content;
+    if (reply_to_event.kind === NostrKind.DIRECT_MESSAGE) {
+        const message = getters.messageGetter.getMessageById(reply_to_event.id);
+        if (message) content = message.content;
+    }
     return (
         <ReplyTo
             emit={emit}
             reply={{
                 pubkey: reply_to_event.publicKey,
-                content: reply_to_event.content,
+                content,
                 name: author,
                 picture,
             }}

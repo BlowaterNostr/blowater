@@ -59,6 +59,7 @@ import { func_GetEventByID } from "./message-list.tsx";
 import { FilterContent } from "./filter.tsx";
 import { CloseRightPanel } from "./components/right-panel.tsx";
 import { RightPanelChannel } from "./components/right-panel.tsx";
+import { ReplyToMessage } from "./message-list.tsx";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -82,7 +83,8 @@ export type UI_Interaction_Event =
     | HidePopOver
     | SyncEvent
     | FilterContent
-    | CloseRightPanel;
+    | CloseRightPanel
+    | ReplyToMessage;
 
 type BackToContactList = {
     type: "BackToContactList";
@@ -321,7 +323,7 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                 () => {
                     return (
                         <UserDetail
-                            targetUserProfile={app.database.getProfilesByPublicKey(event.pubkey)
+                            targetUserProfile={app.database.getProfileByPublicKey(event.pubkey)
                                 ?.profile ||
                                 {}}
                             pubkey={event.pubkey}
@@ -465,6 +467,7 @@ export type DirectMessageGetter = ChatMessagesGetter & {
 
 export type ChatMessagesGetter = {
     getChatMessages(publicKey: string): ChatMessage[];
+    getMessageById(id: string): ChatMessage | undefined;
 };
 
 //////////////
@@ -527,7 +530,7 @@ export async function* Database_Update(
 
             // notification should be moved to after domain objects
             {
-                const author = database.getProfilesByPublicKey(e.publicKey)
+                const author = database.getProfileByPublicKey(e.publicKey)
                     ?.profile;
                 if (e.pubkey != ctx.publicKey.hex && e.parsedTags.p.includes(ctx.publicKey.hex)) {
                     notify(
@@ -581,6 +584,11 @@ export async function handle_SendMessage(
         return new Error("can't send empty message");
     }
 
+    let replyToEvent: NostrEvent | undefined;
+    if (ui_event.reply_to_event_id) {
+        replyToEvent = args.getEventByID(ui_event.reply_to_event_id);
+    }
+
     let events: NostrEvent[];
     if (args.navigationModel.activeNav == "DM") {
         const events_send = await sendDirectMessages({
@@ -590,6 +598,7 @@ export async function handle_SendMessage(
             files: ui_event.files,
             lamport_timestamp: lamport.now(),
             eventSender: args.blowater_relay,
+            targetEvent: replyToEvent,
         });
         if (events_send instanceof Error) {
             return events_send;
@@ -602,10 +611,6 @@ export async function handle_SendMessage(
         }
         events = events_send;
     } else if (args.navigationModel.activeNav == "Public") {
-        let replyToEvent: NostrEvent | undefined;
-        if (ui_event.reply_to_event_id) {
-            replyToEvent = args.getEventByID(ui_event.reply_to_event_id);
-        }
         const nostr_event = replyToEvent
             ? await prepareReplyEvent(
                 ctx,

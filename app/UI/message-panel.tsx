@@ -7,7 +7,7 @@ import { RelayRecordGetter } from "../database.ts";
 import { emitFunc, EventSubscriber } from "../event-bus.ts";
 import { ProfileData } from "../features/profile.ts";
 import { Parsed_Event, PinConversation, UnpinConversation } from "../nostr.ts";
-import { UI_Interaction_Event } from "./app_update.tsx";
+import { ChatMessagesGetter, UI_Interaction_Event } from "./app_update.tsx";
 import { Editor, EditorEvent } from "./editor.tsx";
 
 import { AboutIcon } from "./icons/about-icon.tsx";
@@ -23,7 +23,7 @@ import {
     LinkColor,
 } from "./style/colors.ts";
 import { BlockUser, UnblockUser } from "./user-detail.tsx";
-import { func_GetEventByID, MessageList } from "./message-list.tsx";
+import { func_GetEventByID, MessageList, ReplyToMessage } from "./message-list.tsx";
 import { MessageList_V0 } from "./message-list.tsx";
 
 export type DirectMessagePanelUpdate =
@@ -56,10 +56,12 @@ interface MessagePanelProps {
         | BlockUser
         | UnblockUser
         | SyncEvent
+        | ReplyToMessage
     >;
     eventSub: EventSubscriber<UI_Interaction_Event>;
     messages: ChatMessage[];
     getters: {
+        messageGetter: ChatMessagesGetter;
         profileGetter: ProfileGetter;
         relayRecordGetter: RelayRecordGetter;
         isUserBlocked: (pubkey: PublicKey) => boolean;
@@ -67,19 +69,7 @@ interface MessagePanelProps {
     };
 }
 
-type MessagePanelState = {
-    replyToEventID?: NoteID | string;
-};
-
-export class MessagePanel extends Component<MessagePanelProps, MessagePanelState> {
-    state = {
-        replyToEventID: undefined,
-    };
-
-    handleReplyToEventIDChange = (eventID?: NoteID | string) => {
-        this.setState({ replyToEventID: eventID });
-    };
-
+export class MessagePanel extends Component<MessagePanelProps> {
     render(props: MessagePanelProps) {
         let vnode = (
             <div class={`flex h-full w-full relative ${BackgroundColor_MessagePanel}`}>
@@ -87,7 +77,6 @@ export class MessagePanel extends Component<MessagePanelProps, MessagePanelState
                     <div class={`flex-1`}></div>
 
                     <MessageList
-                        onReplyToEventIDChange={this.handleReplyToEventIDChange}
                         key={props.messages[0]?.event.id} // this is not a 100% correct key which should be a stable hash of the whole array
                         myPublicKey={props.myPublicKey}
                         messages={props.messages}
@@ -96,16 +85,13 @@ export class MessagePanel extends Component<MessagePanelProps, MessagePanelState
                     />
 
                     <Editor
-                        replyTo={{
-                            eventID: this.state.replyToEventID,
-                            onEventIDChange: this.handleReplyToEventIDChange,
-                        }}
                         maxHeight="30vh"
                         emit={props.emit}
+                        sub={props.eventSub}
                         placeholder=""
                         getters={{
-                            profileGetter: props.getters.profileGetter,
-                            getEventByID: props.getters.getEventByID,
+                            ...props.getters,
+                            getProfileByPublicKey: props.getters.profileGetter.getProfileByPublicKey,
                         }}
                     />
                 </div>
@@ -116,6 +102,14 @@ export class MessagePanel extends Component<MessagePanelProps, MessagePanelState
 }
 
 export class MessagePanel_V0 extends Component<MessagePanelProps> {
+    state = {
+        replyToEventID: undefined,
+    };
+
+    handleReplyToEventIDChange = (eventID?: NoteID | string) => {
+        this.setState({ replyToEventID: eventID });
+    };
+
     render(props: MessagePanelProps) {
         let vnode = (
             <div class={`flex h-full w-full relative ${BackgroundColor_MessagePanel}`}>
@@ -132,10 +126,11 @@ export class MessagePanel_V0 extends Component<MessagePanelProps> {
                     <Editor
                         maxHeight="30vh"
                         emit={props.emit}
+                        sub={props.eventSub}
                         placeholder=""
                         getters={{
-                            profileGetter: props.getters.profileGetter,
-                            getEventByID: props.getters.getEventByID,
+                            ...props.getters,
+                            getProfileByPublicKey: props.getters.profileGetter.getProfileByPublicKey,
                         }}
                     />
                 </div>
@@ -238,7 +233,7 @@ export function ParseMessageContent(
                 );
             }
         } else if (item.type == "npub") {
-            const profile = getters.profileGetter.getProfilesByPublicKey(item.pubkey);
+            const profile = getters.profileGetter.getProfileByPublicKey(item.pubkey);
             if (profile) {
                 vnode.push(
                     <ProfileCard
@@ -261,7 +256,7 @@ export function ParseMessageContent(
                     eventID: item.noteID.hex,
                 });
             } else {
-                const profile = getters.profileGetter.getProfilesByPublicKey(event.publicKey);
+                const profile = getters.profileGetter.getProfileByPublicKey(event.publicKey);
                 vnode.push(Card(event, profile?.profile, emit, event.publicKey));
             }
         } else if (item.type == "nevent") {
@@ -275,7 +270,7 @@ export function ParseMessageContent(
                     eventID: item.event.pointer.id,
                 });
             } else {
-                const profile = getters.profileGetter.getProfilesByPublicKey(event.publicKey);
+                const profile = getters.profileGetter.getProfileByPublicKey(event.publicKey);
                 vnode.push(Card(event, profile ? profile.profile : undefined, emit, event.publicKey));
             }
         }

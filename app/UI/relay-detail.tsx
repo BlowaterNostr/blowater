@@ -101,7 +101,7 @@ export class RelayInformationComponent extends Component<Props, State> {
                             <p class={this.styles.title}>Admin</p>
                             <AuthorField
                                 publicKey={pubkey}
-                                profileData={this.props.profileGetter.getProfilesByPublicKey(pubkey)}
+                                profileData={this.props.profileGetter.getProfileByPublicKey(pubkey)}
                                 emit={this.props.emit}
                             />
                         </Fragment>,
