@@ -15,6 +15,8 @@ import { NoteID } from "../../libs/nostr.ts/nip19.ts";
 import { ReplyToMessage } from "./message-list.tsx";
 import { EventSubscriber } from "../event-bus.ts";
 import { UI_Interaction_Event } from "./app_update.tsx";
+import { Parsed_Event } from "../nostr.ts";
+import { NostrEvent } from "../../libs/nostr.ts/nostr.ts";
 
 export type EditorEvent = SendMessage | UpdateEditorText | UpdateMessageFiles;
 
@@ -45,7 +47,6 @@ type EditorProps = {
     readonly emit: emitFunc<EditorEvent>;
     readonly sub: EventSubscriber<UI_Interaction_Event>;
     readonly getters: {
-        getEventByID: func_GetEventByID;
         getProfileByPublicKey: func_GetProfileByPublicKey;
     };
 };
@@ -53,7 +54,7 @@ type EditorProps = {
 export type EditorState = {
     text: string;
     files: Blob[];
-    replyTo?: string | NoteID;
+    replyTo?: Parsed_Event;
 };
 
 export class Editor extends Component<EditorProps, EditorState> {
@@ -68,7 +69,7 @@ export class Editor extends Component<EditorProps, EditorState> {
         for await (const event of this.props.sub.onChange()) {
             if (event.type == "ReplyToMessage") {
                 await setState(this, {
-                    replyTo: event.message.event.id,
+                    replyTo: event.event,
                 });
             }
         }
@@ -246,7 +247,7 @@ export class Editor extends Component<EditorProps, EditorState> {
             type: "SendMessage",
             files: this.state.files,
             text: this.state.text,
-            reply_to_event_id: this.state.replyTo,
+            reply_to_event_id: this.state.replyTo?.id,
         });
         this.textareaElement.current?.setAttribute(
             "rows",
@@ -265,24 +266,21 @@ export class Editor extends Component<EditorProps, EditorState> {
 }
 
 function ReplyIndicator(props: {
-    replyTo?: string | NoteID;
+    replyTo?: Parsed_Event;
     cancelReply: () => void;
     getters: {
-        getEventByID: func_GetEventByID;
         getProfileByPublicKey: func_GetProfileByPublicKey;
     };
 }) {
     if (!props.replyTo) {
         return undefined;
     }
-    const ctx = props.getters.getEventByID(props.replyTo)?.publicKey;
-    if (!ctx) {
-        return undefined;
-    }
-    const profile = props.getters.getProfileByPublicKey(ctx)?.profile;
+
+    const authorPubkey = props.replyTo.publicKey;
+    const profile = props.getters.getProfileByPublicKey(authorPubkey)?.profile;
     let replyToAuthor = profile?.name || profile?.display_name;
     if (!replyToAuthor) {
-        replyToAuthor = ctx.bech32();
+        replyToAuthor = authorPubkey.bech32();
     } else {
         replyToAuthor = `@${replyToAuthor}`;
     }

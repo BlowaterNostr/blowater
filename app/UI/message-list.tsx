@@ -375,7 +375,7 @@ function MessageBoxGroup(props: {
 
 export type ReplyToMessage = {
     type: "ReplyToMessage";
-    message: ChatMessage;
+    event: Parsed_Event;
 };
 
 function MessageActions(
@@ -399,7 +399,7 @@ function MessageActions(
                 onClick={() => {
                     emit({
                         type: "ReplyToMessage",
-                        message,
+                        event: message.event,
                     });
                 }}
             >
