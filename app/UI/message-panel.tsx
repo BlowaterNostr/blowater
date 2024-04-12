@@ -69,19 +69,7 @@ interface MessagePanelProps {
     };
 }
 
-type MessagePanelState = {
-    replyToEventID?: NoteID | string;
-};
-
-export class MessagePanel extends Component<MessagePanelProps, MessagePanelState> {
-    state = {
-        replyToEventID: undefined,
-    };
-
-    handleReplyToEventIDChange = (eventID?: NoteID | string) => {
-        this.setState({ replyToEventID: eventID });
-    };
-
+export class MessagePanel extends Component<MessagePanelProps> {
     render(props: MessagePanelProps) {
         let vnode = (
             <div class={`flex h-full w-full relative ${BackgroundColor_MessagePanel}`}>
@@ -89,7 +77,6 @@ export class MessagePanel extends Component<MessagePanelProps, MessagePanelState
                     <div class={`flex-1`}></div>
 
                     <MessageList
-                        onReplyToEventIDChange={this.handleReplyToEventIDChange}
                         key={props.messages[0]?.event.id} // this is not a 100% correct key which should be a stable hash of the whole array
                         myPublicKey={props.myPublicKey}
                         messages={props.messages}
@@ -98,12 +85,9 @@ export class MessagePanel extends Component<MessagePanelProps, MessagePanelState
                     />
 
                     <Editor
-                        replyTo={{
-                            eventID: this.state.replyToEventID,
-                            onEventIDChange: this.handleReplyToEventIDChange,
-                        }}
                         maxHeight="30vh"
                         emit={props.emit}
+                        sub={props.eventSub}
                         placeholder=""
                         getters={{
                             ...props.getters,
@@ -117,7 +101,7 @@ export class MessagePanel extends Component<MessagePanelProps, MessagePanelState
     }
 }
 
-export class MessagePanel_V0 extends Component<MessagePanelProps, MessagePanelState> {
+export class MessagePanel_V0 extends Component<MessagePanelProps> {
     state = {
         replyToEventID: undefined,
     };
@@ -133,7 +117,6 @@ export class MessagePanel_V0 extends Component<MessagePanelProps, MessagePanelSt
                     <div class={`flex-1`}></div>
 
                     <MessageList_V0
-                        onReplyToEventIDChange={this.handleReplyToEventIDChange}
                         myPublicKey={props.myPublicKey}
                         messages={props.messages}
                         emit={props.emit}
@@ -141,12 +124,9 @@ export class MessagePanel_V0 extends Component<MessagePanelProps, MessagePanelSt
                     />
 
                     <Editor
-                        replyTo={{
-                            eventID: this.state.replyToEventID,
-                            onEventIDChange: this.handleReplyToEventIDChange,
-                        }}
                         maxHeight="30vh"
                         emit={props.emit}
+                        sub={props.eventSub}
                         placeholder=""
                         getters={{
                             ...props.getters,

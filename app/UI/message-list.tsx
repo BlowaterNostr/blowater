@@ -47,7 +47,6 @@ interface Props {
         relayRecordGetter: RelayRecordGetter;
         getEventByID: func_GetEventByID;
     };
-    onReplyToEventIDChange?: (eventID?: string | NoteID) => void;
 }
 
 interface MessageListState {
@@ -100,7 +99,6 @@ export class MessageList extends Component<Props, MessageListState> {
                     emit: this.props.emit,
                     authorProfile: profileEvent ? profileEvent.profile : undefined,
                     getters: this.props.getters,
-                    onReplyToEventIDChange: this.props.onReplyToEventIDChange,
                 }),
             );
         }
@@ -228,7 +226,6 @@ export class MessageList_V0 extends Component<Props> {
                 .getProfileByPublicKey(messages[0].author);
             messageBoxGroups.push(
                 MessageBoxGroup({
-                    onReplyToEventIDChange: this.props.onReplyToEventIDChange,
                     messages: messages,
                     myPublicKey: this.props.myPublicKey,
                     emit: this.props.emit,
@@ -278,7 +275,6 @@ export type func_GetEventByID = (
 ) => Parsed_Event | undefined;
 
 function MessageBoxGroup(props: {
-    onReplyToEventIDChange?: (eventID?: string | NoteID) => void;
     authorProfile: ProfileData | undefined;
     messages: ChatMessage[];
     myPublicKey: PublicKey;

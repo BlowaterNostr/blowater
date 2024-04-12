@@ -12,6 +12,9 @@ import { XCircleIcon } from "./icons/x-circle-icon.tsx";
 import { func_GetEventByID } from "./message-list.tsx";
 import { func_GetProfileByPublicKey } from "./search.tsx";
 import { NoteID } from "../../libs/nostr.ts/nip19.ts";
+import { ReplyToMessage } from "./message-list.tsx";
+import { EventSubscriber } from "../event-bus.ts";
+import { UI_Interaction_Event } from "./app_update.tsx";
 
 export type EditorEvent = SendMessage | UpdateEditorText | UpdateMessageFiles;
 
@@ -37,13 +40,10 @@ export type UpdateMessageFiles = {
 };
 
 type EditorProps = {
-    readonly replyTo?: {
-        eventID?: string | NoteID;
-        onEventIDChange: (eventID?: string | NoteID) => void;
-    };
     readonly placeholder: string;
     readonly maxHeight: string;
     readonly emit: emitFunc<EditorEvent>;
+    readonly sub: EventSubscriber<UI_Interaction_Event>;
     readonly getters: {
         getEventByID: func_GetEventByID;
         getProfileByPublicKey: func_GetProfileByPublicKey;
@@ -53,6 +53,7 @@ type EditorProps = {
 export type EditorState = {
     text: string;
     files: Blob[];
+    replyTo?: string | NoteID;
 };
 
 export class Editor extends Component<EditorProps, EditorState> {
@@ -63,29 +64,15 @@ export class Editor extends Component<EditorProps, EditorState> {
 
     textareaElement = createRef<HTMLTextAreaElement>();
 
-    sendMessage = async () => {
-        const props = this.props;
-        props.emit({
-            type: "SendMessage",
-            files: this.state.files,
-            text: this.state.text,
-            reply_to_event_id: this.props.replyTo?.eventID,
-        });
-        this.textareaElement.current?.setAttribute(
-            "rows",
-            "1",
-        );
-        this.props.replyTo?.onEventIDChange(undefined);
-        await setState(this, { text: "", files: [] });
-    };
-
-    removeFile = (index: number) => {
-        const files = this.state.files;
-        const newFiles = files.slice(0, index).concat(files.slice(index + 1));
-        this.setState({
-            files: newFiles,
-        });
-    };
+    async componentDidMount() {
+        for await (const event of this.props.sub.onChange()) {
+            if (event.type == "ReplyToMessage") {
+                await setState(this, {
+                    replyTo: event.message.event.id,
+                });
+            }
+        }
+    }
 
     render(props: EditorProps, state: EditorState) {
         const uploadFileInput = createRef();
@@ -137,7 +124,10 @@ export class Editor extends Component<EditorProps, EditorState> {
                     <div class="flex flex-col flex-1 overflow-hidden bg-[#FFFFFF2C] rounded-xl">
                         {ReplyIndicator({
                             getters: props.getters,
-                            replyTo: props.replyTo,
+                            replyTo: this.state.replyTo,
+                            cancelReply: () => {
+                                setState(this, { replyTo: undefined });
+                            },
                         })}
                         {this.state.files.length > 0
                             ? (
@@ -249,22 +239,43 @@ export class Editor extends Component<EditorProps, EditorState> {
             </div>
         );
     }
+
+    sendMessage = async () => {
+        const props = this.props;
+        await props.emit({
+            type: "SendMessage",
+            files: this.state.files,
+            text: this.state.text,
+            reply_to_event_id: this.state.replyTo,
+        });
+        this.textareaElement.current?.setAttribute(
+            "rows",
+            "1",
+        );
+        await setState(this, { text: "", files: [], replyTo: undefined });
+    };
+
+    removeFile = (index: number) => {
+        const files = this.state.files;
+        const newFiles = files.slice(0, index).concat(files.slice(index + 1));
+        this.setState({
+            files: newFiles,
+        });
+    };
 }
 
 function ReplyIndicator(props: {
-    readonly replyTo?: {
-        eventID?: string | NoteID;
-        onEventIDChange: (eventID?: string | NoteID) => void;
-    };
+    replyTo?: string | NoteID;
+    cancelReply: () => void;
     getters: {
         getEventByID: func_GetEventByID;
         getProfileByPublicKey: func_GetProfileByPublicKey;
     };
 }) {
-    if (!props.replyTo || !props.replyTo.eventID) {
+    if (!props.replyTo) {
         return undefined;
     }
-    const ctx = props.getters.getEventByID(props.replyTo.eventID)?.publicKey;
+    const ctx = props.getters.getEventByID(props.replyTo)?.publicKey;
     if (!ctx) {
         return undefined;
     }
@@ -288,7 +299,7 @@ function ReplyIndicator(props: {
             <button
                 class="h-6 w-6 flex justify-center items-center shrink-0 group"
                 onClick={() => {
-                    props.replyTo?.onEventIDChange(undefined);
+                    props.cancelReply();
                 }}
             >
                 <XCircleIcon class="h-4 w-4 group-hover:text-[#FFFFFF]" />
