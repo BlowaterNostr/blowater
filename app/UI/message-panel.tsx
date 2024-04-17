@@ -234,19 +234,19 @@ export function ParseMessageContent(
             }
         } else if (item.type == "npub") {
             const profile = getters.profileGetter.getProfileByPublicKey(item.pubkey);
-            if (profile) {
-                vnode.push(
-                    <ProfileCard
-                        profileData={profile.profile}
-                        publicKey={item.pubkey}
-                        emit={emit}
-                    />,
-                );
-            } else {
-                vnode.push(
-                    <ProfileCard publicKey={item.pubkey} emit={emit} />,
-                );
-            }
+            const name = profile?.profile.name || profile?.profile.display_name;
+            vnode.push(
+                <span
+                    class="cursor-pointer text-[#C9CEF8] bg-[#3D446D] rounded hover:text-white hover:bg-[#5869EA] px-[0.1rem] hover:underline"
+                    onClick={() =>
+                        emit({
+                            type: "ViewUserDetail",
+                            pubkey: item.pubkey,
+                        })}
+                >
+                    {name ? `@${name}` : item.pubkey.bech32()}
+                </span>,
+            );
         } else if (item.type == "note") {
             const event = getters.getEventByID(item.noteID);
             if (event == undefined || event.kind == NostrKind.DIRECT_MESSAGE) {
