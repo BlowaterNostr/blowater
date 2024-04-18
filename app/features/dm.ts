@@ -3,7 +3,7 @@ import { InvalidKey, PublicKey } from "../../libs/nostr.ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 import { DirectMessageGetter } from "../UI/app_update.tsx";
-import { ChatMessage, parseContent } from "../UI/message.ts";
+import { ChatMessage } from "../UI/message.ts";
 import {
     compare,
     DirectedMessage_Event,
@@ -297,7 +297,6 @@ async function parseDM(
             parsedTags,
             publicKey,
             decryptedContent: decrypted,
-            parsedContentItems: Array.from(parseContent(decrypted)),
         },
     };
 }

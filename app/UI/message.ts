@@ -183,7 +183,7 @@ function* match(regex: RegExp, content: string, type: ItemType): Generator<Conte
 }
 
 type otherItemType = "url" | "tag";
-type ItemType = otherItemType | "note" | "npub" | "nprofile" | "naddr" | "nevent";
+export type ItemType = otherItemType | "note" | "npub" | "nprofile" | "naddr" | "nevent";
 export type ContentItem = {
     type: otherItemType;
     start: number;

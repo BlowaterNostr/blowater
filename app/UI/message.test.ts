@@ -264,7 +264,6 @@ Deno.test("message group", () => {
                 pubkey: "",
                 sig: "",
                 tags: [],
-                parsedContentItems: [],
                 parsedTags: {
                     e: [],
                     p: [],

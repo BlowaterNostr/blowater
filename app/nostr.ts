@@ -5,7 +5,7 @@ import { PublicKey } from "../libs/nostr.ts/key.ts";
 import * as nostr from "../libs/nostr.ts/nostr.ts";
 import { NostrKind, TagPubKey } from "../libs/nostr.ts/nostr.ts";
 import { ProfileData } from "./features/profile.ts";
-import { ContentItem } from "./UI/message.ts";
+import { ItemType } from "./UI/message.ts";
 import { prepareEncryptedNostrEvent, prepareNormalNostrEvent } from "../libs/nostr.ts/event.ts";
 
 type TotolChunks = string;
@@ -47,7 +47,6 @@ export type Profile_Nostr_Event = Parsed_Event<NostrKind.META_DATA> & {
 
 export type DirectedMessage_Event = Parsed_Event<NostrKind.DIRECT_MESSAGE> & {
     decryptedContent: string;
-    parsedContentItems: ContentItem[];
 };
 export type Encrypted_Event = DirectedMessage_Event;
 
