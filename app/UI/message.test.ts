@@ -3,7 +3,7 @@ import {
     ChatMessage,
     findUrlInString,
     groupContinuousMessages,
-    newParseContent,
+    parseContent,
 } from "./message.ts";
 import { PrivateKey } from "../../libs/nostr.ts/key.ts";
 
@@ -255,7 +255,7 @@ Deno.test("inline parse", async (t) => {
     ];
     for (const test of data) {
         await t.step(`t-${test.input}`, () => {
-            assertEquals(test.output, newParseContent(test.input));
+            assertEquals(test.output, parseContent(test.input));
         });
     }
 });

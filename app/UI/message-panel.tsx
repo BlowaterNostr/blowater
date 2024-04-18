@@ -11,7 +11,7 @@ import { ChatMessagesGetter, UI_Interaction_Event } from "./app_update.tsx";
 import { Editor, EditorEvent } from "./editor.tsx";
 
 import { AboutIcon } from "./icons/about-icon.tsx";
-import { ChatMessage, newParseContent, urlIsImage, urlIsVideo } from "./message.ts";
+import { ChatMessage, parseContent, urlIsImage, urlIsVideo } from "./message.ts";
 import { NoteCard } from "./note-card.tsx";
 import { ProfileCard } from "./profile-card.tsx";
 import { ProfileGetter } from "./search.tsx";
@@ -202,7 +202,7 @@ export function ParseMessageContent(
         );
     }
 
-    const parsedContentItems = newParseContent(message.content);
+    const parsedContentItems = parseContent(message.content);
 
     const vnode = [];
     for (const item of parsedContentItems) {

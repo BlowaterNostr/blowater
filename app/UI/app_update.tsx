@@ -37,7 +37,7 @@ import { EditorEvent, SendMessage } from "./editor.tsx";
 import { EventDetail, EventDetailItem } from "./event-detail.tsx";
 
 import { DirectMessagePanelUpdate } from "./message-panel.tsx";
-import { ChatMessage, newParseContent } from "./message.ts";
+import { ChatMessage, parseContent } from "./message.ts";
 import { InstallPrompt, NavigationModel, NavigationUpdate, SelectRelay } from "./nav.tsx";
 import { notify } from "./notification.ts";
 import { RelayInformationComponent } from "./relay-detail.tsx";
@@ -663,7 +663,7 @@ export function generateTags(
 ) {
     const eTags = new Map<string, [string, string]>();
     const pTags = new Set<string>();
-    const parsedTextItems = newParseContent(args.content);
+    const parsedTextItems = parseContent(args.content);
     for (const item of parsedTextItems) {
         if (item.type === "nevent") {
             const bech32 = item.text.startsWith("nostr:") ? item.text.slice(6) : item.text;
