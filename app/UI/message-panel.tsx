@@ -25,7 +25,7 @@ import {
 import { BlockUser, UnblockUser } from "./user-detail.tsx";
 import { func_GetEventByID, MessageList, ReplyToMessage } from "./message-list.tsx";
 import { MessageList_V0 } from "./message-list.tsx";
-import { Nevent } from "../../libs/nostr.ts/nip19.ts";
+import { Nevent, NostrProfile } from "../../libs/nostr.ts/nip19.ts";
 
 export type DirectMessagePanelUpdate =
     | ViewUserDetail
@@ -245,6 +245,24 @@ export function ParseMessageContent(
                         emit({
                             type: "ViewUserDetail",
                             pubkey,
+                        })}
+                >
+                    {name ? `@${name}` : bech32}
+                </span>,
+            );
+        } else if (item.type === "nprofile") {
+            const bech32 = item.text.startsWith("nostr:") ? item.text.slice(6) : item.text;
+            const decoded_nProfile = NostrProfile.decode(bech32);
+            if (decoded_nProfile instanceof Error) continue;
+            const profile = getters.profileGetter.getProfileByPublicKey(decoded_nProfile.pubkey);
+            const name = profile?.profile.name || profile?.profile.display_name;
+            vnode.push(
+                <span
+                    class="cursor-pointer text-[#C9CEF8] bg-[#3D446D] rounded hover:text-white hover:bg-[#5869EA] px-[0.1rem] hover:underline"
+                    onClick={() =>
+                        emit({
+                            type: "ViewUserDetail",
+                            pubkey: decoded_nProfile.pubkey,
                         })}
                 >
                     {name ? `@${name}` : bech32}
