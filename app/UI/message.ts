@@ -3,6 +3,54 @@ import { DirectedMessage_Event, Parsed_Event } from "../nostr.ts";
 import { Nevent, NostrAddress, NostrProfile, NoteID } from "../../libs/nostr.ts/nip19.ts";
 import { NostrKind } from "../../libs/nostr.ts/nostr.ts";
 
+const regexs: { name: ItemType; regex: RegExp }[] = [
+    { name: "url", regex: /https?:\/\/[^\s]+/ },
+    { name: "npub", regex: /(nostr:)?npub[0-9a-z]{59}/ },
+    { name: "nprofile", regex: /(nostr:)?nprofile[0-9a-z]+/ },
+    { name: "naddr", regex: /(nostr:)?naddr[0-9a-z]+/ },
+    { name: "note", regex: /note[0-9a-z]{59}/ },
+    { name: "nevent", regex: /(nostr:)?nevent[0-9a-z]+/ },
+    { name: "tag", regex: /#\[[0-9]+\]/ },
+];
+
+export function newPareseContent(content: string): { text: string; type: ItemType | "normal" }[] {
+    if (content.length === 0) {
+        return [];
+    }
+    let max_legth_match: {
+        name: ItemType;
+        start: number;
+        end: number;
+    } | undefined;
+    for (const r of regexs) {
+        const mached = r.regex.exec(content);
+        if (mached !== null) {
+            const start = mached.index;
+            const end = mached.index + mached[0].length;
+            // Return the matching string with the maximum length
+            if (!max_legth_match || (end - start) > (max_legth_match.end - max_legth_match.start)) {
+                max_legth_match = { name: r.name, start, end };
+            }
+        }
+    }
+    if (!max_legth_match) {
+        return [
+            {
+                text: content,
+                type: "normal",
+            },
+        ];
+    }
+    return [
+        ...newPareseContent(content.substring(0, max_legth_match.start)),
+        {
+            text: content.substring(max_legth_match.start, max_legth_match.end),
+            type: max_legth_match.name,
+        },
+        ...newPareseContent(content.substring(max_legth_match.end, content.length)),
+    ];
+}
+
 export function* parseContent(content: string) {
     // URLs
     yield* match(/https?:\/\/[^\s]+/g, content, "url");
