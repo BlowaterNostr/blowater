@@ -13,7 +13,7 @@ const regexs: { name: ItemType; regex: RegExp }[] = [
     { name: "tag", regex: /#\[[0-9]+\]/ },
 ];
 
-export function newPareseContent(content: string): { text: string; type: ItemType | "normal" }[] {
+export function newParseContent(content: string): { text: string; type: ItemType | "normal" }[] {
     if (content.length === 0) {
         return [];
     }
@@ -42,12 +42,12 @@ export function newPareseContent(content: string): { text: string; type: ItemTyp
         ];
     }
     return [
-        ...newPareseContent(content.substring(0, max_length_match.start)),
+        ...newParseContent(content.substring(0, max_length_match.start)),
         {
             text: content.substring(max_length_match.start, max_length_match.end),
             type: max_length_match.name,
         },
-        ...newPareseContent(content.substring(max_length_match.end, content.length)),
+        ...newParseContent(content.substring(max_length_match.end, content.length)),
     ];
 }
 
