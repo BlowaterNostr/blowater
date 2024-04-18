@@ -8,7 +8,7 @@ import {
 import { prepareNormalNostrEvent } from "../../libs/nostr.ts/event.ts";
 import { prepareReplyEvent } from "../nostr.ts";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
-import { NoteID } from "../../libs/nostr.ts/nip19.ts";
+import { Nevent, NoteID } from "../../libs/nostr.ts/nip19.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 import { Database_View } from "../database.ts";
@@ -37,7 +37,7 @@ import { EditorEvent, SendMessage } from "./editor.tsx";
 import { EventDetail, EventDetailItem } from "./event-detail.tsx";
 
 import { DirectMessagePanelUpdate } from "./message-panel.tsx";
-import { ChatMessage, parseContent } from "./message.ts";
+import { ChatMessage, newParseContent } from "./message.ts";
 import { InstallPrompt, NavigationModel, NavigationUpdate, SelectRelay } from "./nav.tsx";
 import { notify } from "./notification.ts";
 import { RelayInformationComponent } from "./relay-detail.tsx";
@@ -663,18 +663,27 @@ export function generateTags(
 ) {
     const eTags = new Map<string, [string, string]>();
     const pTags = new Set<string>();
-    const parsedTextItems = parseContent(args.content);
+    const parsedTextItems = newParseContent(args.content);
     for (const item of parsedTextItems) {
         if (item.type === "nevent") {
-            eTags.set(item.event.pointer.id, [item.event.pointer.relays?.[0] || "", "mention"]);
-            if (item.event.pointer.pubkey) {
-                pTags.add(item.event.pointer.pubkey.hex);
+            const bech32 = item.text.startsWith("nostr:") ? item.text.slice(6) : item.text;
+            const decoded_nEvent = Nevent.decode(bech32);
+            if (decoded_nEvent instanceof Error) continue;
+            eTags.set(decoded_nEvent.pointer.id, [decoded_nEvent.pointer.relays?.[0] || "", "mention"]);
+            if (decoded_nEvent.pointer.pubkey) {
+                pTags.add(decoded_nEvent.pointer.pubkey.hex);
             }
         } else if (item.type === "npub") {
-            pTags.add(item.pubkey.hex);
+            const bech32 = item.text.startsWith("nostr:") ? item.text.slice(6) : item.text;
+            const pubkey = PublicKey.FromBech32(bech32);
+            if (pubkey instanceof Error) continue;
+            pTags.add(pubkey.hex);
         } else if (item.type === "note") {
-            eTags.set(item.noteID.hex, [args.current_relay, "mention"]);
-            const event = args.getEventByID(item.noteID);
+            const bech32 = item.text.startsWith("nostr:") ? item.text.slice(6) : item.text;
+            const noteID = NoteID.FromBech32(bech32);
+            if (noteID instanceof Error) continue;
+            eTags.set(noteID.hex, [args.current_relay, "mention"]);
+            const event = args.getEventByID(noteID);
             if (event) {
                 pTags.add(event.pubkey);
             }
