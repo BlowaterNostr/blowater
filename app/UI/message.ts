@@ -17,7 +17,7 @@ export function newPareseContent(content: string): { text: string; type: ItemTyp
     if (content.length === 0) {
         return [];
     }
-    let max_legth_match: {
+    let max_length_match: {
         name: ItemType;
         start: number;
         end: number;
@@ -28,12 +28,12 @@ export function newPareseContent(content: string): { text: string; type: ItemTyp
             const start = mached.index;
             const end = mached.index + mached[0].length;
             // Return the matching string with the maximum length
-            if (!max_legth_match || (end - start) > (max_legth_match.end - max_legth_match.start)) {
-                max_legth_match = { name: r.name, start, end };
+            if (!max_length_match || (end - start) > (max_length_match.end - max_length_match.start)) {
+                max_length_match = { name: r.name, start, end };
             }
         }
     }
-    if (!max_legth_match) {
+    if (!max_length_match) {
         return [
             {
                 text: content,
@@ -42,12 +42,12 @@ export function newPareseContent(content: string): { text: string; type: ItemTyp
         ];
     }
     return [
-        ...newPareseContent(content.substring(0, max_legth_match.start)),
+        ...newPareseContent(content.substring(0, max_length_match.start)),
         {
-            text: content.substring(max_legth_match.start, max_legth_match.end),
-            type: max_legth_match.name,
+            text: content.substring(max_length_match.start, max_length_match.end),
+            type: max_length_match.name,
         },
-        ...newPareseContent(content.substring(max_legth_match.end, content.length)),
+        ...newPareseContent(content.substring(max_length_match.end, content.length)),
     ];
 }
 
