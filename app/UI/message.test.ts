@@ -1,10 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.202.0/assert/assert_equals.ts";
-import {
-    ChatMessage,
-    findUrlInString,
-    groupContinuousMessages,
-    parseContent,
-} from "./message.ts";
+import { ChatMessage, findUrlInString, groupContinuousMessages, parseContent } from "./message.ts";
 import { PrivateKey } from "../../libs/nostr.ts/key.ts";
 
 import { NostrKind } from "../../libs/nostr.ts/nostr.ts";

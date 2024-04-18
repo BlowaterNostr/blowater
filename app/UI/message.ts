@@ -7,7 +7,7 @@ const regexs: { name: ItemType; regex: RegExp }[] = [
     { name: "npub", regex: /(nostr:)?npub[0-9a-z]{59}/ },
     { name: "nprofile", regex: /(nostr:)?nprofile[0-9a-z]+/ },
     { name: "naddr", regex: /(nostr:)?naddr[0-9a-z]+/ },
-    { name: "note", regex: /note[0-9a-z]{59}/ },
+    { name: "note", regex: /(nostr:)?note[0-9a-z]{59}/ },
     { name: "nevent", regex: /(nostr:)?nevent[0-9a-z]+/ },
     { name: "tag", regex: /#\[[0-9]+\]/ },
 ];
