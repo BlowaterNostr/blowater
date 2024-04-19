@@ -14,7 +14,7 @@ Deno.test("inline parse", async (t) => {
             input: `nothing`,
             output: [{
                 text: "nothing",
-                type: "normal",
+                type: "raw",
             }],
         },
         {
@@ -32,7 +32,7 @@ Deno.test("inline parse", async (t) => {
             output: [
                 {
                     text: " ",
-                    type: "normal",
+                    type: "raw",
                 },
                 {
                     text:
@@ -52,7 +52,7 @@ Deno.test("inline parse", async (t) => {
                 },
                 {
                     text: " ",
-                    type: "normal",
+                    type: "raw",
                 },
             ],
         },
@@ -61,14 +61,14 @@ Deno.test("inline parse", async (t) => {
                 ` https://nostr.build/i/f91187675750791b652f7e129b374c2b682d7cc0e9dbc28def58ffdf66508867.jpg `,
             output: [{
                 text: " ",
-                type: "normal",
+                type: "raw",
             }, {
                 text:
                     "https://nostr.build/i/f91187675750791b652f7e129b374c2b682d7cc0e9dbc28def58ffdf66508867.jpg",
                 type: "url",
             }, {
                 text: " ",
-                type: "normal",
+                type: "raw",
             }],
         },
         {
@@ -76,7 +76,7 @@ Deno.test("inline parse", async (t) => {
             output: [
                 {
                     text: "Hi ",
-                    type: "normal",
+                    type: "raw",
                 },
                 {
                     text: "https://some.jpg",
@@ -88,13 +88,13 @@ Deno.test("inline parse", async (t) => {
             input: `Hi https://some.jpg http://some.jpg`,
             output: [{
                 text: "Hi ",
-                type: "normal",
+                type: "raw",
             }, {
                 text: "https://some.jpg",
                 type: "url",
             }, {
                 text: " ",
-                type: "normal",
+                type: "raw",
             }, {
                 text: "http://some.jpg",
                 type: "url",
@@ -114,20 +114,20 @@ Deno.test("inline parse", async (t) => {
                 type: "npub",
             }, {
                 text: "ログボ",
-                type: "normal",
+                type: "raw",
             }],
         },
         {
             input: `sherryiscutenpub17dxnfw2vrhgtk4fgqdmpuqxv05u9raau3w0shay7msmr0dzs4m7s6ng4ylログボ`,
             output: [{
                 text: "sherryiscute",
-                type: "normal",
+                type: "raw",
             }, {
                 text: "npub17dxnfw2vrhgtk4fgqdmpuqxv05u9raau3w0shay7msmr0dzs4m7s6ng4yl",
                 type: "npub",
             }, {
                 text: "ログボ",
-                type: "normal",
+                type: "raw",
             }],
         },
 
@@ -145,14 +145,14 @@ Deno.test("inline parse", async (t) => {
                 `sherryiscutenprofile1qqsf37u9q4up37etd4w4fgdfkxvurxk74gcmsf9ea0g7vgyasfdjeycpp4mhxue69uhkummn9ekx7mqpz3mhxue69uhhyetvv9ujuerpd46hxtnfduqscamnwvaz7tmzwf3zu6t0qyd8wumn8ghj7mn0wd68ytn0wfskuem9wp5kcmpwv3jhvqghwaehxw309aex2mrp0yhxxatjwfjkuapwveukjqgswaehxw309ahx7um5wgh8w6twv5q3samnwvaz7tmjv4kxz7fwwdhx7un59eek7cmfv9kqz9thwden5te0v4jx2m3wdehhxarj9ekxzmnyqyd8wumn8ghj7un9d3shjtnwdaehgun8wfshq6pwdejhgqgewaehxw309ac82unpwe5kgcfwdehhxarj9ekxzmnyqyvhwumn8ghj7mn0wd68ytn6v43x2er9v5hxxmr0w4jqzynhwden5te0wp6hyurvv4cxzeewv4esz9nhwden5te0v96xcctn9ehx7um5wghxcctwvsq3camnwvaz7tmwdaehgu3wd46hg6tw09mkzmrvv46zucm0d5lxp0l4 123`,
             output: [{
                 text: "sherryiscute",
-                type: "normal",
+                type: "raw",
             }, {
                 type: "nprofile",
                 text:
                     "nprofile1qqsf37u9q4up37etd4w4fgdfkxvurxk74gcmsf9ea0g7vgyasfdjeycpp4mhxue69uhkummn9ekx7mqpz3mhxue69uhhyetvv9ujuerpd46hxtnfduqscamnwvaz7tmzwf3zu6t0qyd8wumn8ghj7mn0wd68ytn0wfskuem9wp5kcmpwv3jhvqghwaehxw309aex2mrp0yhxxatjwfjkuapwveukjqgswaehxw309ahx7um5wgh8w6twv5q3samnwvaz7tmjv4kxz7fwwdhx7un59eek7cmfv9kqz9thwden5te0v4jx2m3wdehhxarj9ekxzmnyqyd8wumn8ghj7un9d3shjtnwdaehgun8wfshq6pwdejhgqgewaehxw309ac82unpwe5kgcfwdehhxarj9ekxzmnyqyvhwumn8ghj7mn0wd68ytn6v43x2er9v5hxxmr0w4jqzynhwden5te0wp6hyurvv4cxzeewv4esz9nhwden5te0v96xcctn9ehx7um5wghxcctwvsq3camnwvaz7tmwdaehgu3wd46hg6tw09mkzmrvv46zucm0d5lxp0l4",
             }, {
                 text: " 123",
-                type: "normal",
+                type: "raw",
             }],
         },
         {
@@ -186,7 +186,7 @@ Deno.test("inline parse", async (t) => {
             input: `Thank you #[0]​ #[2]#[3]`,
             output: [
                 {
-                    type: "normal",
+                    type: "raw",
                     text: "Thank you ",
                 },
                 {
@@ -194,7 +194,7 @@ Deno.test("inline parse", async (t) => {
                     text: "#[0]",
                 },
                 {
-                    type: "normal",
+                    type: "raw",
                     text: "​ ",
                 },
                 {
@@ -216,7 +216,7 @@ Deno.test("inline parse", async (t) => {
                     text: "nostr:npub17dxnfw2vrhgtk4fgqdmpuqxv05u9raau3w0shay7msmr0dzs4m7s6ng4yl",
                 },
                 {
-                    type: "normal",
+                    type: "raw",
                     text: " ",
                 },
                 {
@@ -230,7 +230,7 @@ Deno.test("inline parse", async (t) => {
                 `hi https://example.com nostr:npub17dxnfw2vrhgtk4fgqdmpuqxv05u9raau3w0shay7msmr0dzs4m7s6ng4yl`,
             output: [
                 {
-                    type: "normal",
+                    type: "raw",
                     text: "hi ",
                 },
                 {
@@ -238,7 +238,7 @@ Deno.test("inline parse", async (t) => {
                     text: "https://example.com",
                 },
                 {
-                    type: "normal",
+                    type: "raw",
                     text: " ",
                 },
                 {

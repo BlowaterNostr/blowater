@@ -12,7 +12,7 @@ const regexs: { name: ItemType; regex: RegExp }[] = [
     { name: "tag", regex: /#\[[0-9]+\]/ },
 ];
 
-export function parseContent(content: string): { text: string; type: ItemType | "normal" }[] {
+export function parseContent(content: string): { text: string; type: ItemType | "raw" }[] {
     if (content.length === 0) {
         return [];
     }
@@ -36,7 +36,7 @@ export function parseContent(content: string): { text: string; type: ItemType | 
         return [
             {
                 text: content,
-                type: "normal",
+                type: "raw",
             },
         ];
     }
