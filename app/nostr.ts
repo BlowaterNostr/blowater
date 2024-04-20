@@ -5,7 +5,6 @@ import { PublicKey } from "../libs/nostr.ts/key.ts";
 import * as nostr from "../libs/nostr.ts/nostr.ts";
 import { NostrKind, TagPubKey } from "../libs/nostr.ts/nostr.ts";
 import { ProfileData } from "./features/profile.ts";
-import { ItemType } from "./UI/message.ts";
 import { prepareEncryptedNostrEvent, prepareNormalNostrEvent } from "../libs/nostr.ts/event.ts";
 
 type TotolChunks = string;

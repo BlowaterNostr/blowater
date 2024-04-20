@@ -75,8 +75,8 @@ export function parseContent(content: string): ContentItem[] {
 }
 
 type otherItemType = "url" | "tag";
-export type ItemType = otherItemType | "note" | "npub" | "nprofile" | "naddr" | "nevent";
-export type ContentItem = {
+type ItemType = otherItemType | "note" | "npub" | "nprofile" | "naddr" | "nevent";
+type ContentItem = {
     type: otherItemType;
     text: string;
 } | {
