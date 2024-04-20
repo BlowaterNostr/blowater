@@ -92,6 +92,7 @@ export class MessagePanel extends Component<MessagePanelProps> {
                         getters={{
                             ...props.getters,
                             getProfileByPublicKey: props.getters.profileGetter.getProfileByPublicKey,
+                            getProfilesByText: props.getters.profileGetter.getProfilesByText,
                         }}
                     />
                 </div>
@@ -131,6 +132,7 @@ export class MessagePanel_V0 extends Component<MessagePanelProps> {
                         getters={{
                             ...props.getters,
                             getProfileByPublicKey: props.getters.profileGetter.getProfileByPublicKey,
+                            getProfilesByText: props.getters.profileGetter.getProfilesByText,
                         }}
                     />
                 </div>

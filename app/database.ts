@@ -187,7 +187,7 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
         }
     }
 
-    getProfilesByText(name: string): Profile_Nostr_Event[] {
+    getProfilesByText = (name: string): Profile_Nostr_Event[] => {
         const result = [];
         for (const event of this.profiles.values()) {
             if (
@@ -200,7 +200,7 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
             }
         }
         return result;
-    }
+    };
 
     getProfileByPublicKey = (pubkey: PublicKey): Profile_Nostr_Event | undefined => {
         if (!this.profiles) return;

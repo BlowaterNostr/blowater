@@ -1,5 +1,5 @@
 /** @jsx h */
-import { createRef, h } from "https://esm.sh/preact@10.17.1";
+import { createRef, h, JSX } from "https://esm.sh/preact@10.17.1";
 import { emitFunc } from "../event-bus.ts";
 
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
@@ -9,16 +9,15 @@ import { Component } from "https://esm.sh/preact@10.17.1";
 import { RemoveIcon } from "./icons/remove-icon.tsx";
 import { setState } from "./_helper.ts";
 import { XCircleIcon } from "./icons/x-circle-icon.tsx";
-import { func_GetEventByID } from "./message-list.tsx";
 import { func_GetProfileByPublicKey } from "./search.tsx";
 import { NoteID } from "../../libs/nostr.ts/nip19.ts";
-import { ReplyToMessage } from "./message-list.tsx";
 import { EventSubscriber } from "../event-bus.ts";
 import { UI_Interaction_Event } from "./app_update.tsx";
 import { Parsed_Event } from "../nostr.ts";
-import { NostrEvent } from "../../libs/nostr.ts/nostr.ts";
+import { Profile_Nostr_Event } from "../nostr.ts";
+import { robohash } from "./relay-detail.tsx";
 
-export type EditorEvent = SendMessage | UpdateEditorText | UpdateMessageFiles;
+export type EditorEvent = SendMessage | UpdateEditorText | UpdateMessageFiles | SelectMember;
 
 export type SendMessage = {
     readonly type: "SendMessage";
@@ -41,6 +40,11 @@ export type UpdateMessageFiles = {
     readonly files: Blob[];
 };
 
+export type SelectMember = {
+    readonly type: "SelectMember";
+    readonly member: Profile_Nostr_Event;
+};
+
 type EditorProps = {
     readonly placeholder: string;
     readonly maxHeight: string;
@@ -48,6 +52,7 @@ type EditorProps = {
     readonly sub: EventSubscriber<UI_Interaction_Event>;
     readonly getters: {
         getProfileByPublicKey: func_GetProfileByPublicKey;
+        getProfilesByText(input: string): Profile_Nostr_Event[];
     };
 };
 
@@ -55,12 +60,15 @@ export type EditorState = {
     text: string;
     files: Blob[];
     replyTo?: Parsed_Event;
+    matching?: string;
+    searchResults: Profile_Nostr_Event[];
 };
 
 export class Editor extends Component<EditorProps, EditorState> {
     state: Readonly<EditorState> = {
         text: "",
         files: [],
+        searchResults: [],
     };
 
     textareaElement = createRef<HTMLTextAreaElement>();
@@ -70,6 +78,17 @@ export class Editor extends Component<EditorProps, EditorState> {
             if (event.type == "ReplyToMessage") {
                 await setState(this, {
                     replyTo: event.event,
+                });
+            } else if (event.type == "SelectMember") {
+                const regex = /@\w+$/;
+                const text = this.state.text.replace(
+                    regex,
+                    `nostr:${event.member.publicKey.bech32()}`,
+                );
+                await setState(this, {
+                    text,
+                    matching: undefined,
+                    searchResults: [],
                 });
             }
         }
@@ -123,6 +142,16 @@ export class Editor extends Component<EditorProps, EditorState> {
                         class="hidden bg-[#FFFFFF2C]"
                     />
                     <div class="flex flex-col flex-1 overflow-hidden bg-[#FFFFFF2C] rounded-xl">
+                        {MatchingBar({
+                            matching: this.state.matching,
+                            searchResults: this.state.searchResults,
+                            selectMember: (member: Profile_Nostr_Event) => {
+                                props.emit({
+                                    type: "SelectMember",
+                                    member,
+                                });
+                            },
+                        })}
                         {ReplyIndicator({
                             getters: props.getters,
                             replyTo: this.state.replyTo,
@@ -174,14 +203,7 @@ export class Editor extends Component<EditorProps, EditorState> {
                                 rows={1}
                                 class="flex-1 px-4 py-[0.5rem] bg-transparent focus-visible:outline-none placeholder-[#FFFFFF4D] text-[#FFFFFF99] whitespace-nowrap resize-none overflow-x-hidden overflow-y-auto"
                                 placeholder={this.props.placeholder}
-                                onInput={(e) => {
-                                    const lines = e.currentTarget.value.split("\n");
-                                    e.currentTarget.setAttribute(
-                                        "rows",
-                                        `${lines.length}`,
-                                    );
-                                    this.setState({ text: e.currentTarget.value });
-                                }}
+                                onInput={this.onInputChange}
                                 onKeyDown={async (e) => {
                                     // https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/metaKey
                                     if (e.code === "Enter" && (e.ctrlKey || e.metaKey)) {
@@ -241,6 +263,25 @@ export class Editor extends Component<EditorProps, EditorState> {
         );
     }
 
+    onInputChange = async (e: h.JSX.TargetedEvent<HTMLTextAreaElement>) => {
+        const text = e.currentTarget.value;
+        const regex = /@\w+$/;
+        const matched = regex.exec(text);
+        const matching = matched ? matched[0].slice(1) : undefined;
+
+        const searchResults = matched
+            ? this.props.getters.getProfilesByText(matched[0].slice(1)).splice(0, 10)
+            : [];
+        console.log(`searchResults`, searchResults);
+
+        const lines = text.split("\n");
+        e.currentTarget.setAttribute(
+            "rows",
+            `${lines.length}`,
+        );
+        setState(this, { text, matching, searchResults });
+    };
+
     sendMessage = async () => {
         const props = this.props;
         await props.emit({
@@ -263,6 +304,43 @@ export class Editor extends Component<EditorProps, EditorState> {
             files: newFiles,
         });
     };
+}
+
+function MatchingBar(props: {
+    matching?: string;
+    searchResults: Profile_Nostr_Event[];
+    selectMember: (member: Profile_Nostr_Event) => void;
+}) {
+    if (!props.matching) return undefined;
+    return (
+        <div class="px-4 rounded-t-lg">
+            <div class="text-[#B6BAC0]">
+                MEMBERS MATCHING {props.matching}
+            </div>
+            <ol>
+                {props.searchResults.map((profile) => {
+                    return (
+                        <li
+                            class="flex items-center justify-start p-1 m-1 hover:bg-blue-200 cursor-pointer"
+                            onClick={() => {
+                                props.selectMember(profile);
+                            }}
+                        >
+                            <img
+                                class="w-8 h-8 mr-2 rounded"
+                                src={profile.profile?.picture || robohash(profile.pubkey)}
+                                alt=""
+                            />
+                            <div class="truncate">
+                                {profile.profile?.name || profile.profile?.display_name ||
+                                    profile.pubkey}
+                            </div>
+                        </li>
+                    );
+                })}
+            </ol>
+        </div>
+    );
 }
 
 function ReplyIndicator(props: {
