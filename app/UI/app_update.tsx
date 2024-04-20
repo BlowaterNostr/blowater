@@ -8,7 +8,7 @@ import {
 import { prepareNormalNostrEvent } from "../../libs/nostr.ts/event.ts";
 import { prepareReplyEvent } from "../nostr.ts";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
-import { Nevent, NoteID } from "../../libs/nostr.ts/nip19.ts";
+import { NoteID } from "../../libs/nostr.ts/nip19.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 import { Database_View } from "../database.ts";
@@ -666,24 +666,15 @@ export function generateTags(
     const parsedTextItems = parseContent(args.content);
     for (const item of parsedTextItems) {
         if (item.type === "nevent") {
-            const bech32 = item.text.startsWith("nostr:") ? item.text.slice(6) : item.text;
-            const decoded_nEvent = Nevent.decode(bech32);
-            if (decoded_nEvent instanceof Error) continue;
-            eTags.set(decoded_nEvent.pointer.id, [decoded_nEvent.pointer.relays?.[0] || "", "mention"]);
-            if (decoded_nEvent.pointer.pubkey) {
-                pTags.add(decoded_nEvent.pointer.pubkey.hex);
+            eTags.set(item.nevent.pointer.id, [item.nevent.pointer.relays?.[0] || "", "mention"]);
+            if (item.nevent.pointer.pubkey) {
+                pTags.add(item.nevent.pointer.pubkey.hex);
             }
         } else if (item.type === "npub") {
-            const bech32 = item.text.startsWith("nostr:") ? item.text.slice(6) : item.text;
-            const pubkey = PublicKey.FromBech32(bech32);
-            if (pubkey instanceof Error) continue;
-            pTags.add(pubkey.hex);
+            pTags.add(item.pubkey.hex);
         } else if (item.type === "note") {
-            const bech32 = item.text.startsWith("nostr:") ? item.text.slice(6) : item.text;
-            const noteID = NoteID.FromBech32(bech32);
-            if (noteID instanceof Error) continue;
-            eTags.set(noteID.hex, [args.current_relay, "mention"]);
-            const event = args.getEventByID(noteID);
+            eTags.set(item.noteID.hex, [args.current_relay, "mention"]);
+            const event = args.getEventByID(item.noteID);
             if (event) {
                 pTags.add(event.pubkey);
             }

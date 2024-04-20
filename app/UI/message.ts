@@ -1,6 +1,7 @@
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { DirectedMessage_Event, Parsed_Event } from "../nostr.ts";
 import { NostrKind } from "../../libs/nostr.ts/nostr.ts";
+import { Nevent, NostrAddress, NostrProfile, NoteID } from "../../libs/nostr.ts/nip19.ts";
 
 const regexs: { name: ItemType; regex: RegExp }[] = [
     { name: "url", regex: /https?:\/\/[^\s]+/ },
@@ -12,7 +13,7 @@ const regexs: { name: ItemType; regex: RegExp }[] = [
     { name: "tag", regex: /#\[[0-9]+\]/ },
 ];
 
-export function parseContent(content: string): { text: string; type: ItemType | "raw" }[] {
+export function parseContent(content: string): ContentItem[] {
     if (content.length === 0) {
         return [];
     }
@@ -33,25 +34,74 @@ export function parseContent(content: string): { text: string; type: ItemType | 
         }
     }
     if (!max_length_match) {
-        return [
-            {
-                text: content,
-                type: "raw",
-            },
-        ];
+        return [{ text: content, type: "raw" }];
+    }
+    const text = content.substring(max_length_match.start, max_length_match.end);
+    const bech32 = text.startsWith("nostr:") ? text.slice(6) : text;
+    let matchedItem: ContentItem;
+    if (max_length_match.name === "npub") {
+        const pubkey = PublicKey.FromBech32(bech32);
+        matchedItem = pubkey instanceof Error
+            ? { text, type: "error" }
+            : { text, type: max_length_match.name, pubkey };
+    } else if (max_length_match.name === "nprofile") {
+        const decoded_nProfile = NostrProfile.decode(bech32);
+        matchedItem = decoded_nProfile instanceof Error
+            ? { text, type: "error" }
+            : { text, type: max_length_match.name, pubkey: decoded_nProfile.pubkey };
+    } else if (max_length_match.name === "note") {
+        const noteID = NoteID.FromBech32(bech32);
+        matchedItem = noteID instanceof Error
+            ? { text, type: "error" }
+            : { text, type: max_length_match.name, noteID };
+    } else if (max_length_match.name === "naddr") {
+        const addr = NostrAddress.decode(bech32);
+        matchedItem = addr instanceof Error
+            ? { text, type: "error" }
+            : { text, type: max_length_match.name, addr };
+    } else if (max_length_match.name === "nevent") {
+        const nevent = Nevent.decode(bech32);
+        matchedItem = nevent instanceof Error
+            ? { text, type: "error" }
+            : { text, type: max_length_match.name, nevent };
+    } else {
+        matchedItem = { text, type: max_length_match.name };
     }
     return [
         ...parseContent(content.substring(0, max_length_match.start)),
-        {
-            text: content.substring(max_length_match.start, max_length_match.end),
-            type: max_length_match.name,
-        },
+        matchedItem,
         ...parseContent(content.substring(max_length_match.end, content.length)),
     ];
 }
 
 type otherItemType = "url" | "tag";
 export type ItemType = otherItemType | "note" | "npub" | "nprofile" | "naddr" | "nevent";
+export type ContentItem = {
+    type: otherItemType;
+    text: string;
+} | {
+    type: "npub" | "nprofile";
+    text: string;
+    pubkey: PublicKey;
+} | {
+    type: "note";
+    text: string;
+    noteID: NoteID;
+} | {
+    type: "naddr";
+    text: string;
+    addr: NostrAddress;
+} | {
+    type: "nevent";
+    text: string;
+    nevent: Nevent;
+} | {
+    type: "raw";
+    text: string;
+} | {
+    type: "error";
+    text: string;
+};
 
 // Think of ChatMessage as an materialized view of NostrEvent
 export type ChatMessage = {

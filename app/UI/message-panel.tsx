@@ -25,7 +25,6 @@ import {
 import { BlockUser, UnblockUser } from "./user-detail.tsx";
 import { func_GetEventByID, MessageList, ReplyToMessage } from "./message-list.tsx";
 import { MessageList_V0 } from "./message-list.tsx";
-import { Nevent, NostrProfile } from "../../libs/nostr.ts/nip19.ts";
 
 export type DirectMessagePanelUpdate =
     | ViewUserDetail
@@ -206,7 +205,7 @@ export function ParseMessageContent(
 
     const vnode = [];
     for (const item of parsedContentItems) {
-        if (item.type === "raw") {
+        if (item.type === "raw" || "tag" || "error") {
             vnode.push(item.text);
         } else if (item.type == "url") {
             if (urlIsImage(item.text)) {
@@ -233,10 +232,7 @@ export function ParseMessageContent(
                 );
             }
         } else if (item.type == "npub") {
-            const bech32 = item.text.startsWith("nostr:") ? item.text.slice(6) : item.text;
-            const pubkey = PublicKey.FromBech32(bech32);
-            if (pubkey instanceof Error) continue;
-            const profile = getters.profileGetter.getProfileByPublicKey(pubkey);
+            const profile = getters.profileGetter.getProfileByPublicKey(item.pubkey);
             const name = profile?.profile.name || profile?.profile.display_name;
             vnode.push(
                 <span
@@ -244,17 +240,14 @@ export function ParseMessageContent(
                     onClick={() =>
                         emit({
                             type: "ViewUserDetail",
-                            pubkey,
+                            pubkey: item.pubkey,
                         })}
                 >
-                    {name ? `@${name}` : bech32}
+                    {name ? `@${name}` : item.pubkey.bech32()}
                 </span>,
             );
         } else if (item.type === "nprofile") {
-            const bech32 = item.text.startsWith("nostr:") ? item.text.slice(6) : item.text;
-            const decoded_nProfile = NostrProfile.decode(bech32);
-            if (decoded_nProfile instanceof Error) continue;
-            const profile = getters.profileGetter.getProfileByPublicKey(decoded_nProfile.pubkey);
+            const profile = getters.profileGetter.getProfileByPublicKey(item.pubkey);
             const name = profile?.profile.name || profile?.profile.display_name;
             vnode.push(
                 <span
@@ -262,39 +255,33 @@ export function ParseMessageContent(
                     onClick={() =>
                         emit({
                             type: "ViewUserDetail",
-                            pubkey: decoded_nProfile.pubkey,
+                            pubkey: item.pubkey,
                         })}
                 >
-                    {name ? `@${name}` : bech32}
+                    {name ? `@${name}` : item.pubkey.bech32()}
                 </span>,
             );
         } else if (item.type == "note") {
-            const bech32 = item.text.startsWith("nostr:") ? item.text.slice(6) : item.text;
-            const noteID = NoteID.FromBech32(bech32);
-            if (noteID instanceof Error) continue;
-            const event = getters.getEventByID(noteID);
+            const event = getters.getEventByID(item.noteID);
             if (event == undefined || event.kind == NostrKind.DIRECT_MESSAGE) {
                 vnode.push(item.text);
                 emit({
                     type: "SyncEvent",
-                    eventID: noteID.hex,
+                    eventID: item.noteID.hex,
                 });
             } else {
                 const profile = getters.profileGetter.getProfileByPublicKey(event.publicKey);
                 vnode.push(Card(event, profile?.profile, emit, event.publicKey));
             }
         } else if (item.type == "nevent") {
-            const bech32 = item.text.startsWith("nostr:") ? item.text.slice(6) : item.text;
-            const decoded_nEvent = Nevent.decode(bech32);
-            if (decoded_nEvent instanceof Error) continue;
-            const event = getters.getEventByID(NoteID.FromString(decoded_nEvent.pointer.id));
+            const event = getters.getEventByID(NoteID.FromString(item.nevent.pointer.id));
             if (
                 event == undefined || event.kind == NostrKind.DIRECT_MESSAGE
             ) {
                 vnode.push(item.text);
                 emit({
                     type: "SyncEvent",
-                    eventID: decoded_nEvent.pointer.id,
+                    eventID: item.nevent.pointer.id,
                 });
             } else {
                 const profile = getters.profileGetter.getProfileByPublicKey(event.publicKey);
