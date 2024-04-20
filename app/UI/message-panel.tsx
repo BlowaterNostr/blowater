@@ -205,7 +205,7 @@ export function ParseMessageContent(
 
     const vnode = [];
     for (const item of parsedContentItems) {
-        if (item.type === "raw" || "tag" || "error") {
+        if (item.type === "raw" || item.type === "tag" || item.type === "error") {
             vnode.push(item.text);
         } else if (item.type === "url") {
             if (urlIsImage(item.text)) {
