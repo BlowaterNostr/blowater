@@ -207,7 +207,7 @@ export function ParseMessageContent(
     for (const item of parsedContentItems) {
         if (item.type === "raw" || "tag" || "error") {
             vnode.push(item.text);
-        } else if (item.type == "url") {
+        } else if (item.type === "url") {
             if (urlIsImage(item.text)) {
                 vnode.push(
                     <img
@@ -231,7 +231,7 @@ export function ParseMessageContent(
                     </a>,
                 );
             }
-        } else if (item.type == "npub") {
+        } else if (item.type === "npub" || item.type === "nprofile") {
             const profile = getters.profileGetter.getProfileByPublicKey(item.pubkey);
             const name = profile?.profile.name || profile?.profile.display_name;
             vnode.push(
@@ -246,22 +246,7 @@ export function ParseMessageContent(
                     {name ? `@${name}` : item.pubkey.bech32()}
                 </span>,
             );
-        } else if (item.type === "nprofile") {
-            const profile = getters.profileGetter.getProfileByPublicKey(item.pubkey);
-            const name = profile?.profile.name || profile?.profile.display_name;
-            vnode.push(
-                <span
-                    class="cursor-pointer text-[#C9CEF8] bg-[#3D446D] rounded hover:text-white hover:bg-[#5869EA] px-[0.1rem] hover:underline"
-                    onClick={() =>
-                        emit({
-                            type: "ViewUserDetail",
-                            pubkey: item.pubkey,
-                        })}
-                >
-                    {name ? `@${name}` : item.pubkey.bech32()}
-                </span>,
-            );
-        } else if (item.type == "note") {
+        } else if (item.type === "note") {
             const event = getters.getEventByID(item.noteID);
             if (event == undefined || event.kind == NostrKind.DIRECT_MESSAGE) {
                 vnode.push(item.text);
@@ -273,7 +258,7 @@ export function ParseMessageContent(
                 const profile = getters.profileGetter.getProfileByPublicKey(event.publicKey);
                 vnode.push(Card(event, profile?.profile, emit, event.publicKey));
             }
-        } else if (item.type == "nevent") {
+        } else if (item.type === "nevent") {
             const event = getters.getEventByID(NoteID.FromString(item.nevent.pointer.id));
             if (
                 event == undefined || event.kind == NostrKind.DIRECT_MESSAGE
