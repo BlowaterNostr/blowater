@@ -5,7 +5,7 @@ import { Nevent, NostrAddress, NostrProfile, NoteID } from "../../libs/nostr.ts/
 
 type ItemType = "url" | "tag" | "note" | "npub" | "nprofile" | "naddr" | "nevent";
 export type ContentItem = {
-    type: "url" | "tag";
+    type: "raw" | "url" | "tag";
     text: string;
 } | {
     type: "npub";
@@ -27,51 +27,13 @@ export type ContentItem = {
     type: "nevent";
     text: string;
     nevent: Nevent;
-} | {
-    type: "raw";
-    text: string;
 };
 
 export function* parseContent(content: string): Iterable<ContentItem> {
-    const regexs: { name: ItemType; regex: RegExp }[] = [
-        { name: "url", regex: /https?:\/\/[^\s]+/ },
-        { name: "npub", regex: /(nostr:)?npub[0-9a-z]{59}/ },
-        { name: "nprofile", regex: /(nostr:)?nprofile[0-9a-z]+/ },
-        { name: "naddr", regex: /(nostr:)?naddr[0-9a-z]+/ },
-        { name: "note", regex: /(nostr:)?note[0-9a-z]{59}/ },
-        { name: "nevent", regex: /(nostr:)?nevent[0-9a-z]+/ },
-        { name: "tag", regex: /#\[[0-9]+\]/ },
-    ];
     if (content.length === 0) {
         return;
     }
-    let first_match: {
-        name: ItemType | "raw";
-        start: number;
-        end: number;
-    } | undefined;
-    for (const r of regexs) {
-        const matched = r.regex.exec(content);
-        if (matched == null) {
-            continue;
-        }
-        const start = matched.index;
-        const end = matched.index + matched[0].length;
-
-        // Return the matching string with the maximum length
-        if (first_match == undefined) {
-            first_match = { name: r.name, start, end };
-            continue;
-        }
-        if (start < first_match.start) {
-            first_match = { name: r.name, start, end };
-            continue;
-        }
-        if (first_match.start == start && end > first_match.end) {
-            first_match = { name: r.name, start, end };
-            continue;
-        }
-    }
+    const first_match = match_first(content);
     if (!first_match) {
         yield { text: content, type: "raw" };
         return;
@@ -173,6 +135,51 @@ export function* parseContent(content: string): Iterable<ContentItem> {
         yield { text, type: first_match.name };
         yield* parseContent(content.slice(first_match.end));
     }
+}
+
+function match_first(content: string) {
+    if (content.length === 0) {
+        return;
+    }
+
+    const regexs: { name: ItemType; regex: RegExp }[] = [
+        { name: "url", regex: /https?:\/\/[^\s]+/ },
+        { name: "npub", regex: /(nostr:)?npub[0-9a-z]{59}/ },
+        { name: "nprofile", regex: /(nostr:)?nprofile[0-9a-z]+/ },
+        { name: "naddr", regex: /(nostr:)?naddr[0-9a-z]+/ },
+        { name: "note", regex: /(nostr:)?note[0-9a-z]{59}/ },
+        { name: "nevent", regex: /(nostr:)?nevent[0-9a-z]+/ },
+        { name: "tag", regex: /#\[[0-9]+\]/ },
+    ];
+
+    let first_match: {
+        name: ItemType;
+        start: number;
+        end: number;
+    } | undefined;
+    for (const r of regexs) {
+        const matched = r.regex.exec(content);
+        if (matched == null) {
+            continue;
+        }
+        const start = matched.index;
+        const end = matched.index + matched[0].length;
+
+        // Return the matching string with the maximum length
+        if (first_match == undefined) {
+            first_match = { name: r.name, start, end };
+            continue;
+        }
+        if (start < first_match.start) {
+            first_match = { name: r.name, start, end };
+            continue;
+        }
+        if (first_match.start == start && end > first_match.end) {
+            first_match = { name: r.name, start, end };
+            continue;
+        }
+    }
+    return first_match;
 }
 
 // Think of ChatMessage as an materialized view of NostrEvent
