@@ -205,7 +205,7 @@ export function ParseMessageContent(
 
     const vnode = [];
     for (const item of parsedContentItems) {
-        if (item.type === "raw" || item.type === "tag" || item.type === "error") {
+        if (item.type === "raw" || item.type === "tag") {
             vnode.push(item.text);
         } else if (item.type === "url") {
             if (urlIsImage(item.text)) {
@@ -232,7 +232,8 @@ export function ParseMessageContent(
                 );
             }
         } else if (item.type === "npub" || item.type === "nprofile") {
-            const profile = getters.profileGetter.getProfileByPublicKey(item.pubkey);
+            const pubkey = item.type == "npub" ? item.pubkey : item.nprofile.pubkey;
+            const profile = getters.profileGetter.getProfileByPublicKey(pubkey);
             const name = profile?.profile.name || profile?.profile.display_name;
             vnode.push(
                 <span
@@ -240,10 +241,10 @@ export function ParseMessageContent(
                     onClick={() =>
                         emit({
                             type: "ViewUserDetail",
-                            pubkey: item.pubkey,
+                            pubkey: pubkey,
                         })}
                 >
-                    {name ? `@${name}` : item.pubkey.bech32()}
+                    {name ? `@${name}` : pubkey.bech32()}
                 </span>,
             );
         } else if (item.type === "note") {
