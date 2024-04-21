@@ -1,12 +1,21 @@
 import { assertEquals } from "https://deno.land/std@0.202.0/assert/assert_equals.ts";
-import { ChatMessage, findUrlInString, groupContinuousMessages, parseContent } from "./message.ts";
+import {
+    ChatMessage,
+    ContentItem,
+    findUrlInString,
+    groupContinuousMessages,
+    parseContent,
+} from "./message.ts";
 import { PrivateKey, PublicKey } from "../../libs/nostr.ts/key.ts";
 
 import { NostrKind } from "../../libs/nostr.ts/nostr.ts";
-import { Nevent, NostrAddress } from "../../libs/nostr.ts/nip19.ts";
+import { Nevent, NostrAddress, NostrProfile } from "../../libs/nostr.ts/nip19.ts";
 
 Deno.test("inline parse", async (t) => {
-    const data = [
+    const data: {
+        input: string;
+        output: ContentItem[];
+    }[] = [
         {
             input: "",
             output: [],
@@ -108,7 +117,7 @@ Deno.test("inline parse", async (t) => {
                 type: "npub",
                 pubkey: PublicKey.FromBech32(
                     "npub17dxnfw2vrhgtk4fgqdmpuqxv05u9raau3w0shay7msmr0dzs4m7s6ng4yl",
-                ),
+                ) as PublicKey,
             }],
         },
         {
@@ -118,7 +127,7 @@ Deno.test("inline parse", async (t) => {
                 type: "npub",
                 pubkey: PublicKey.FromBech32(
                     "npub17dxnfw2vrhgtk4fgqdmpuqxv05u9raau3w0shay7msmr0dzs4m7s6ng4yl",
-                ),
+                ) as PublicKey,
             }, {
                 text: "ログボ",
                 type: "raw",
@@ -134,7 +143,7 @@ Deno.test("inline parse", async (t) => {
                 type: "npub",
                 pubkey: PublicKey.FromBech32(
                     "npub17dxnfw2vrhgtk4fgqdmpuqxv05u9raau3w0shay7msmr0dzs4m7s6ng4yl",
-                ),
+                ) as PublicKey,
             }, {
                 text: "ログボ",
                 type: "raw",
@@ -148,9 +157,9 @@ Deno.test("inline parse", async (t) => {
                 type: "nprofile",
                 text:
                     "nostr:nprofile1qqsf37u9q4up37etd4w4fgdfkxvurxk74gcmsf9ea0g7vgyasfdjeycpp4mhxue69uhkummn9ekx7mqpz3mhxue69uhhyetvv9ujuerpd46hxtnfduqscamnwvaz7tmzwf3zu6t0qyd8wumn8ghj7mn0wd68ytn0wfskuem9wp5kcmpwv3jhvqghwaehxw309aex2mrp0yhxxatjwfjkuapwveukjqgswaehxw309ahx7um5wgh8w6twv5q3samnwvaz7tmjv4kxz7fwwdhx7un59eek7cmfv9kqz9thwden5te0v4jx2m3wdehhxarj9ekxzmnyqyd8wumn8ghj7un9d3shjtnwdaehgun8wfshq6pwdejhgqgewaehxw309ac82unpwe5kgcfwdehhxarj9ekxzmnyqyvhwumn8ghj7mn0wd68ytn6v43x2er9v5hxxmr0w4jqzynhwden5te0wp6hyurvv4cxzeewv4esz9nhwden5te0v96xcctn9ehx7um5wghxcctwvsq3camnwvaz7tmwdaehgu3wd46hg6tw09mkzmrvv46zucm0d5lxp0l4",
-                pubkey: PublicKey.FromBech32(
-                    "98fb85057818fb2b6d5d54a1a9b199c19adeaa31b824b9ebd1e6209d825b2c93",
-                ),
+                nprofile: NostrProfile.decode(
+                    "nprofile1qqsf37u9q4up37etd4w4fgdfkxvurxk74gcmsf9ea0g7vgyasfdjeycpp4mhxue69uhkummn9ekx7mqpz3mhxue69uhhyetvv9ujuerpd46hxtnfduqscamnwvaz7tmzwf3zu6t0qyd8wumn8ghj7mn0wd68ytn0wfskuem9wp5kcmpwv3jhvqghwaehxw309aex2mrp0yhxxatjwfjkuapwveukjqgswaehxw309ahx7um5wgh8w6twv5q3samnwvaz7tmjv4kxz7fwwdhx7un59eek7cmfv9kqz9thwden5te0v4jx2m3wdehhxarj9ekxzmnyqyd8wumn8ghj7un9d3shjtnwdaehgun8wfshq6pwdejhgqgewaehxw309ac82unpwe5kgcfwdehhxarj9ekxzmnyqyvhwumn8ghj7mn0wd68ytn6v43x2er9v5hxxmr0w4jqzynhwden5te0wp6hyurvv4cxzeewv4esz9nhwden5te0v96xcctn9ehx7um5wghxcctwvsq3camnwvaz7tmwdaehgu3wd46hg6tw09mkzmrvv46zucm0d5lxp0l4",
+                ) as NostrProfile,
             }],
         },
         {
@@ -163,9 +172,9 @@ Deno.test("inline parse", async (t) => {
                 type: "nprofile",
                 text:
                     "nprofile1qqsf37u9q4up37etd4w4fgdfkxvurxk74gcmsf9ea0g7vgyasfdjeycpp4mhxue69uhkummn9ekx7mqpz3mhxue69uhhyetvv9ujuerpd46hxtnfduqscamnwvaz7tmzwf3zu6t0qyd8wumn8ghj7mn0wd68ytn0wfskuem9wp5kcmpwv3jhvqghwaehxw309aex2mrp0yhxxatjwfjkuapwveukjqgswaehxw309ahx7um5wgh8w6twv5q3samnwvaz7tmjv4kxz7fwwdhx7un59eek7cmfv9kqz9thwden5te0v4jx2m3wdehhxarj9ekxzmnyqyd8wumn8ghj7un9d3shjtnwdaehgun8wfshq6pwdejhgqgewaehxw309ac82unpwe5kgcfwdehhxarj9ekxzmnyqyvhwumn8ghj7mn0wd68ytn6v43x2er9v5hxxmr0w4jqzynhwden5te0wp6hyurvv4cxzeewv4esz9nhwden5te0v96xcctn9ehx7um5wghxcctwvsq3camnwvaz7tmwdaehgu3wd46hg6tw09mkzmrvv46zucm0d5lxp0l4",
-                pubkey: PublicKey.FromBech32(
-                    "98fb85057818fb2b6d5d54a1a9b199c19adeaa31b824b9ebd1e6209d825b2c93",
-                ),
+                nprofile: NostrProfile.decode(
+                    "nprofile1qqsf37u9q4up37etd4w4fgdfkxvurxk74gcmsf9ea0g7vgyasfdjeycpp4mhxue69uhkummn9ekx7mqpz3mhxue69uhhyetvv9ujuerpd46hxtnfduqscamnwvaz7tmzwf3zu6t0qyd8wumn8ghj7mn0wd68ytn0wfskuem9wp5kcmpwv3jhvqghwaehxw309aex2mrp0yhxxatjwfjkuapwveukjqgswaehxw309ahx7um5wgh8w6twv5q3samnwvaz7tmjv4kxz7fwwdhx7un59eek7cmfv9kqz9thwden5te0v4jx2m3wdehhxarj9ekxzmnyqyd8wumn8ghj7un9d3shjtnwdaehgun8wfshq6pwdejhgqgewaehxw309ac82unpwe5kgcfwdehhxarj9ekxzmnyqyvhwumn8ghj7mn0wd68ytn6v43x2er9v5hxxmr0w4jqzynhwden5te0wp6hyurvv4cxzeewv4esz9nhwden5te0v96xcctn9ehx7um5wghxcctwvsq3camnwvaz7tmwdaehgu3wd46hg6tw09mkzmrvv46zucm0d5lxp0l4",
+                ) as NostrProfile,
             }, {
                 text: " 123",
                 type: "raw",
@@ -178,9 +187,9 @@ Deno.test("inline parse", async (t) => {
                 type: "nprofile",
                 text:
                     "nprofile1qqsf37u9q4up37etd4w4fgdfkxvurxk74gcmsf9ea0g7vgyasfdjeycpp4mhxue69uhkummn9ekx7mqpz3mhxue69uhhyetvv9ujuerpd46hxtnfduqscamnwvaz7tmzwf3zu6t0qyd8wumn8ghj7mn0wd68ytn0wfskuem9wp5kcmpwv3jhvqghwaehxw309aex2mrp0yhxxatjwfjkuapwveukjqgswaehxw309ahx7um5wgh8w6twv5q3samnwvaz7tmjv4kxz7fwwdhx7un59eek7cmfv9kqz9thwden5te0v4jx2m3wdehhxarj9ekxzmnyqyd8wumn8ghj7un9d3shjtnwdaehgun8wfshq6pwdejhgqgewaehxw309ac82unpwe5kgcfwdehhxarj9ekxzmnyqyvhwumn8ghj7mn0wd68ytn6v43x2er9v5hxxmr0w4jqzynhwden5te0wp6hyurvv4cxzeewv4esz9nhwden5te0v96xcctn9ehx7um5wghxcctwvsq3camnwvaz7tmwdaehgu3wd46hg6tw09mkzmrvv46zucm0d5lxp0l4",
-                pubkey: PublicKey.FromBech32(
-                    "98fb85057818fb2b6d5d54a1a9b199c19adeaa31b824b9ebd1e6209d825b2c93",
-                ),
+                nprofile: NostrProfile.decode(
+                    "nprofile1qqsf37u9q4up37etd4w4fgdfkxvurxk74gcmsf9ea0g7vgyasfdjeycpp4mhxue69uhkummn9ekx7mqpz3mhxue69uhhyetvv9ujuerpd46hxtnfduqscamnwvaz7tmzwf3zu6t0qyd8wumn8ghj7mn0wd68ytn0wfskuem9wp5kcmpwv3jhvqghwaehxw309aex2mrp0yhxxatjwfjkuapwveukjqgswaehxw309ahx7um5wgh8w6twv5q3samnwvaz7tmjv4kxz7fwwdhx7un59eek7cmfv9kqz9thwden5te0v4jx2m3wdehhxarj9ekxzmnyqyd8wumn8ghj7un9d3shjtnwdaehgun8wfshq6pwdejhgqgewaehxw309ac82unpwe5kgcfwdehhxarj9ekxzmnyqyvhwumn8ghj7mn0wd68ytn6v43x2er9v5hxxmr0w4jqzynhwden5te0wp6hyurvv4cxzeewv4esz9nhwden5te0v96xcctn9ehx7um5wghxcctwvsq3camnwvaz7tmwdaehgu3wd46hg6tw09mkzmrvv46zucm0d5lxp0l4",
+                ) as NostrProfile,
             }],
         },
         {
@@ -255,7 +264,7 @@ Deno.test("inline parse", async (t) => {
                     text: "nostr:npub17dxnfw2vrhgtk4fgqdmpuqxv05u9raau3w0shay7msmr0dzs4m7s6ng4yl",
                     pubkey: PublicKey.FromBech32(
                         "npub17dxnfw2vrhgtk4fgqdmpuqxv05u9raau3w0shay7msmr0dzs4m7s6ng4yl",
-                    ),
+                    ) as PublicKey,
                 },
                 {
                     type: "raw",
@@ -288,7 +297,7 @@ Deno.test("inline parse", async (t) => {
                     text: "nostr:npub17dxnfw2vrhgtk4fgqdmpuqxv05u9raau3w0shay7msmr0dzs4m7s6ng4yl",
                     pubkey: PublicKey.FromBech32(
                         "npub17dxnfw2vrhgtk4fgqdmpuqxv05u9raau3w0shay7msmr0dzs4m7s6ng4yl",
-                    ),
+                    ) as PublicKey,
                 },
             ],
         },
@@ -296,16 +305,13 @@ Deno.test("inline parse", async (t) => {
             input: `pubkey error: nostr:npub1xxxxxxxxrhgtk4fgqdmpuqxv05u9raau3w0shay7msmr0dzs4m7sxxxxxx`,
             output: [{
                 type: "raw",
-                text: "pubkey error: ",
-            }, {
-                type: "error",
-                text: "nostr:npub1xxxxxxxxrhgtk4fgqdmpuqxv05u9raau3w0shay7msmr0dzs4m7sxxxxxx",
+                text: "pubkey error: nostr:npub1xxxxxxxxrhgtk4fgqdmpuqxv05u9raau3w0shay7msmr0dzs4m7sxxxxxx",
             }],
         },
     ];
     for (const test of data) {
         await t.step(`t-${test.input}`, () => {
-            assertEquals(test.output, parseContent(test.input));
+            assertEquals(Array.from(parseContent(test.input)), test.output);
         });
     }
 });
