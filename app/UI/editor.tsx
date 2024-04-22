@@ -316,8 +316,10 @@ function MatchingBar(props: {
     if (!props.matching) return undefined;
     return (
         <div
-            class="w-full absolute z-10 pl-12 pr-[6.5rem]"
+            class="absolute z-10"
             style={{
+                left: `3.5rem`,
+                width: `calc(100% - 9.5rem)`,
                 bottom: `calc(100% + 0.5rem)`,
             }}
         >
