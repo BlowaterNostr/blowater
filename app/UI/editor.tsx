@@ -84,7 +84,7 @@ export class Editor extends Component<EditorProps, EditorState> {
                 const regex = /@\w+$/;
                 const text = this.state.text.replace(
                     regex,
-                    `nostr:${event.member.publicKey.bech32()}`,
+                    `nostr:${event.member.publicKey.bech32()} `,
                 );
                 await setState(this, {
                     text,
