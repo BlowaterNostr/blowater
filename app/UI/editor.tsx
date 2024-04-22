@@ -195,7 +195,7 @@ export class Editor extends Component<EditorProps, EditorState> {
                                 rows={1}
                                 class="flex-1 px-4 py-[0.5rem] bg-transparent focus-visible:outline-none placeholder-[#FFFFFF4D] text-[#FFFFFF99] whitespace-nowrap resize-none overflow-x-hidden overflow-y-auto"
                                 placeholder={this.props.placeholder}
-                                onInput={this.onInputChange}
+                                onInput={this.handleMessageInput}
                                 onKeyDown={async (e) => {
                                     // https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/metaKey
                                     if (e.code === "Enter" && (e.ctrlKey || e.metaKey)) {
@@ -265,7 +265,7 @@ export class Editor extends Component<EditorProps, EditorState> {
         );
     }
 
-    onInputChange = async (e: h.JSX.TargetedEvent<HTMLTextAreaElement>) => {
+    handleMessageInput = async (e: h.JSX.TargetedEvent<HTMLTextAreaElement>) => {
         const text = e.currentTarget.value;
         const regex = /@\w+$/;
         const matched = regex.exec(text);
