@@ -260,6 +260,9 @@ export class Editor extends Component<EditorProps, EditorState> {
                             member,
                         });
                     },
+                    close: () => {
+                        setState(this, { matching: undefined, searchResults: [] });
+                    },
                 })}
             </div>
         );
@@ -312,6 +315,7 @@ function MatchingBar(props: {
     matching?: string;
     searchResults: Profile_Nostr_Event[];
     selectMember: (member: Profile_Nostr_Event) => void;
+    close: () => void;
 }) {
     if (!props.matching) return undefined;
     return (
@@ -324,8 +328,18 @@ function MatchingBar(props: {
             }}
         >
             <div class="w-full p-2 rounded-lg bg-[#2B2D31] shadow-lg">
-                <div class="text-[#B6BAC0]">
-                    MEMBERS MATCHING <span class="text-white">@{props.matching}</span>
+                <div class="flex justify-between item-center">
+                    <div class="text-[#B6BAC0]">
+                        MEMBERS MATCHING <span class="text-white">@{props.matching}</span>
+                    </div>
+                    <button
+                        class="h-6 w-6 flex justify-center items-center shrink-0 group"
+                        onClick={() => {
+                            props.close();
+                        }}
+                    >
+                        <XCircleIcon class="h-4 w-4 text-[#B6BAC0] group-hover:text-[#FFFFFF]" />
+                    </button>
                 </div>
                 <ol>
                     {props.searchResults.map((profile) => {
