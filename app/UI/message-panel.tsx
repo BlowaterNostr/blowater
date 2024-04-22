@@ -204,36 +204,36 @@ export function ParseMessageContent(
     const parsedContentItems = parseContent(message.content);
 
     const vnode = [];
-    let start = 0;
     for (const item of parsedContentItems) {
-        vnode.push(message.content.slice(start, item.start));
-        const itemStr = message.content.slice(item.start, item.end + 1);
-        if (item.type == "url") {
-            if (urlIsImage(itemStr)) {
+        if (item.type === "raw" || item.type === "tag") {
+            vnode.push(item.text);
+        } else if (item.type === "url") {
+            if (urlIsImage(item.text)) {
                 vnode.push(
                     <img
                         class={`w-96 p-1 rounded-lg border-2 border-[${DividerBackgroundColor}]`}
-                        src={itemStr}
+                        src={item.text}
                     />,
                 );
-            } else if (urlIsVideo(itemStr)) {
+            } else if (urlIsVideo(item.text)) {
                 vnode.push(
                     <video
                         class={`w-96 p-1 rounded-lg border-2 border-[${DividerBackgroundColor}]`}
                         controls
-                        src={itemStr}
+                        src={item.text}
                     >
                     </video>,
                 );
             } else {
                 vnode.push(
-                    <a target="_blank" class={`hover:underline text-[${LinkColor}]`} href={itemStr}>
-                        {itemStr}
+                    <a target="_blank" class={`hover:underline text-[${LinkColor}]`} href={item.text}>
+                        {item.text}
                     </a>,
                 );
             }
-        } else if (item.type == "npub") {
-            const profile = getters.profileGetter.getProfileByPublicKey(item.pubkey);
+        } else if (item.type === "npub" || item.type === "nprofile") {
+            const pubkey = item.type == "npub" ? item.pubkey : item.nprofile.pubkey;
+            const profile = getters.profileGetter.getProfileByPublicKey(pubkey);
             const name = profile?.profile.name || profile?.profile.display_name;
             vnode.push(
                 <span
@@ -241,16 +241,16 @@ export function ParseMessageContent(
                     onClick={() =>
                         emit({
                             type: "ViewUserDetail",
-                            pubkey: item.pubkey,
+                            pubkey: pubkey,
                         })}
                 >
-                    {name ? `@${name}` : item.pubkey.bech32()}
+                    {name ? `@${name}` : pubkey.bech32()}
                 </span>,
             );
-        } else if (item.type == "note") {
+        } else if (item.type === "note") {
             const event = getters.getEventByID(item.noteID);
             if (event == undefined || event.kind == NostrKind.DIRECT_MESSAGE) {
-                vnode.push(itemStr);
+                vnode.push(item.text);
                 emit({
                     type: "SyncEvent",
                     eventID: item.noteID.hex,
@@ -259,26 +259,22 @@ export function ParseMessageContent(
                 const profile = getters.profileGetter.getProfileByPublicKey(event.publicKey);
                 vnode.push(Card(event, profile?.profile, emit, event.publicKey));
             }
-        } else if (item.type == "nevent") {
-            const event = getters.getEventByID(NoteID.FromString(item.event.pointer.id));
+        } else if (item.type === "nevent") {
+            const event = getters.getEventByID(NoteID.FromString(item.nevent.pointer.id));
             if (
                 event == undefined || event.kind == NostrKind.DIRECT_MESSAGE
             ) {
-                vnode.push(itemStr);
+                vnode.push(item.text);
                 emit({
                     type: "SyncEvent",
-                    eventID: item.event.pointer.id,
+                    eventID: item.nevent.pointer.id,
                 });
             } else {
                 const profile = getters.profileGetter.getProfileByPublicKey(event.publicKey);
                 vnode.push(Card(event, profile ? profile.profile : undefined, emit, event.publicKey));
             }
         }
-
-        start = item.end + 1;
     }
-    vnode.push(message.content.slice(start));
-
     return vnode;
 }
 

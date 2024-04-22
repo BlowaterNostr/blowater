@@ -666,9 +666,9 @@ export function generateTags(
     const parsedTextItems = parseContent(args.content);
     for (const item of parsedTextItems) {
         if (item.type === "nevent") {
-            eTags.set(item.event.pointer.id, [item.event.pointer.relays?.[0] || "", "mention"]);
-            if (item.event.pointer.pubkey) {
-                pTags.add(item.event.pointer.pubkey.hex);
+            eTags.set(item.nevent.pointer.id, [item.nevent.pointer.relays?.[0] || "", "mention"]);
+            if (item.nevent.pointer.pubkey) {
+                pTags.add(item.nevent.pointer.pubkey.hex);
             }
         } else if (item.type === "npub") {
             pTags.add(item.pubkey.hex);

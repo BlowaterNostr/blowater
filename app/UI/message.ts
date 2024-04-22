@@ -1,167 +1,186 @@
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { DirectedMessage_Event, Parsed_Event } from "../nostr.ts";
-import { Nevent, NostrAddress, NostrProfile, NoteID } from "../../libs/nostr.ts/nip19.ts";
 import { NostrKind } from "../../libs/nostr.ts/nostr.ts";
+import { Nevent, NostrAddress, NostrProfile, NoteID } from "../../libs/nostr.ts/nip19.ts";
 
-export function* parseContent(content: string) {
-    // URLs
-    yield* match(/https?:\/\/[^\s]+/g, content, "url");
-
-    // npubs
-    yield* match(/(nostr:)?npub[0-9a-z]{59}/g, content, "npub");
-
-    //nprofile
-    yield* match(/(nostr:)?nprofile[0-9a-z]+/g, content, "nprofile");
-
-    //naddr
-    yield* match(/(nostr:)?naddr[0-9a-z]+/g, content, "naddr");
-
-    // notes
-    yield* match(/note[0-9a-z]{59}/g, content, "note");
-
-    // nevent
-    yield* match(/(nostr:)?nevent[0-9a-z]+/g, content, "nevent");
-
-    // tags
-    yield* match(/#\[[0-9]+\]/g, content, "tag");
-}
-
-function* match(regex: RegExp, content: string, type: ItemType): Generator<ContentItem, void, unknown> {
-    let match;
-    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/exec#return_value
-    // If the match succeeds, the exec() method returns an array and
-    // updates the lastIndex property of the regular expression object.
-    while ((match = regex.exec(content)) !== null) {
-        const urlStartPosition = match.index;
-        if (urlStartPosition == undefined) {
-            return;
-        }
-        const urlEndPosition = urlStartPosition + match[0].length - 1;
-        if (type == "note") {
-            const noteID = NoteID.FromBech32(content.slice(urlStartPosition, urlEndPosition + 1));
-            if (noteID instanceof Error) {
-                // ignore
-            } else {
-                yield {
-                    type: type,
-                    noteID: noteID,
-                    start: urlStartPosition,
-                    end: urlEndPosition,
-                };
-            }
-        } else if (type == "npub") {
-            let bech32: string;
-            if (match[0].startsWith("nostr:")) {
-                bech32 = content.slice(urlStartPosition + 6, urlEndPosition + 1);
-            } else {
-                bech32 = content.slice(urlStartPosition, urlEndPosition + 1);
-            }
-            const pubkey = PublicKey.FromBech32(bech32);
-            if (pubkey instanceof Error) {
-                // ignore
-            } else {
-                yield {
-                    type: type,
-                    pubkey: pubkey,
-                    start: urlStartPosition,
-                    end: urlEndPosition,
-                };
-            }
-        } else if (type == "nprofile") {
-            let bech32: string;
-            if (match[0].startsWith("nostr:")) {
-                bech32 = content.slice(urlStartPosition + 6, urlEndPosition + 1);
-            } else {
-                bech32 = content.slice(urlStartPosition, urlEndPosition + 1);
-            }
-            const decoded_nProfile = NostrProfile.decode(bech32);
-            if (decoded_nProfile instanceof Error) {
-                // ignore
-            } else {
-                const pubkey = decoded_nProfile.pubkey;
-
-                yield {
-                    type: "npub",
-                    pubkey: pubkey,
-                    start: urlStartPosition,
-                    end: urlEndPosition,
-                    relays: decoded_nProfile.relays,
-                };
-            }
-        } else if (type == "naddr") {
-            let bech32: string;
-            if (match[0].startsWith("nostr:")) {
-                bech32 = content.slice(urlStartPosition + 6, urlEndPosition + 1);
-            } else {
-                bech32 = content.slice(urlStartPosition, urlEndPosition + 1);
-            }
-            const decoded_nAddr = NostrAddress.decode(bech32);
-            if (decoded_nAddr instanceof Error) {
-                // ignore
-            } else {
-                yield {
-                    type: "naddr",
-                    start: urlStartPosition,
-                    end: urlEndPosition,
-                    addr: decoded_nAddr,
-                };
-            }
-        } else if (type == "nevent") {
-            let bech32: string;
-            if (match[0].startsWith("nostr:")) {
-                bech32 = content.slice(urlStartPosition + 6, urlEndPosition + 1);
-            } else {
-                bech32 = content.slice(urlStartPosition, urlEndPosition + 1);
-            }
-            const decoded_nEvent = Nevent.decode(bech32);
-            if (decoded_nEvent instanceof Error) {
-                // ignore
-            } else {
-                yield {
-                    type: "nevent",
-                    start: urlStartPosition,
-                    end: urlEndPosition,
-                    event: decoded_nEvent,
-                };
-            }
-        } else {
-            yield {
-                type: type,
-                start: urlStartPosition,
-                end: urlEndPosition,
-            };
-        }
-    }
-}
-
-type otherItemType = "url" | "tag";
-type ItemType = otherItemType | "note" | "npub" | "nprofile" | "naddr" | "nevent";
+type ItemType = "url" | "tag" | "note" | "npub" | "nprofile" | "naddr" | "nevent";
 export type ContentItem = {
-    type: otherItemType;
-    start: number;
-    end: number;
+    type: "raw" | "url" | "tag";
+    text: string;
 } | {
     type: "npub";
+    text: string;
     pubkey: PublicKey;
-    start: number;
-    end: number;
-    relays?: string[];
+} | {
+    type: "nprofile";
+    text: string;
+    nprofile: NostrProfile;
 } | {
     type: "note";
+    text: string;
     noteID: NoteID;
-    start: number;
-    end: number;
 } | {
     type: "naddr";
-    start: number;
-    end: number;
+    text: string;
     addr: NostrAddress;
 } | {
     type: "nevent";
-    start: number;
-    end: number;
-    event: Nevent;
+    text: string;
+    nevent: Nevent;
 };
+
+export function* parseContent(content: string): Iterable<ContentItem> {
+    if (content.length === 0) {
+        return;
+    }
+    const first_match = match_first(content);
+    if (!first_match) {
+        yield { text: content, type: "raw" };
+        return;
+    }
+
+    const text = content.substring(first_match.start, first_match.end);
+    const bech32 = text.startsWith("nostr:") ? text.slice(6) : text;
+    const raw_string_before = content.substring(0, first_match.start);
+
+    if (first_match.name === "npub") {
+        const pubkey = PublicKey.FromBech32(bech32);
+        if (pubkey instanceof Error) {
+            yield {
+                type: "raw",
+                text: content.slice(0, first_match.end),
+            };
+            yield* parseContent(content.slice(first_match.end));
+            return;
+        } else {
+            if (raw_string_before) {
+                yield { text: raw_string_before, type: "raw" };
+            }
+            yield { text, type: first_match.name, pubkey };
+            yield* parseContent(content.slice(first_match.end));
+            return;
+        }
+    } else if (first_match.name === "nprofile") {
+        const decoded_nProfile = NostrProfile.decode(bech32);
+        if (decoded_nProfile instanceof Error) {
+            yield {
+                type: "raw",
+                text: content.slice(0, first_match.end),
+            };
+            yield* parseContent(content.slice(first_match.end));
+            return;
+        } else {
+            if (raw_string_before) {
+                yield { text: raw_string_before, type: "raw" };
+            }
+            yield { text, type: first_match.name, nprofile: decoded_nProfile };
+            yield* parseContent(content.slice(first_match.end));
+            return;
+        }
+    } else if (first_match.name === "note") {
+        const noteID = NoteID.FromBech32(bech32);
+        if (noteID instanceof Error) {
+            yield {
+                type: "raw",
+                text: content.slice(0, first_match.end),
+            };
+            yield* parseContent(content.slice(first_match.end));
+            return;
+        } else {
+            if (raw_string_before) {
+                yield { text: raw_string_before, type: "raw" };
+            }
+            yield { text, type: first_match.name, noteID };
+            yield* parseContent(content.slice(first_match.end));
+            return;
+        }
+    } else if (first_match.name === "naddr") {
+        const addr = NostrAddress.decode(bech32);
+        if (addr instanceof Error) {
+            yield {
+                type: "raw",
+                text: content.slice(0, first_match.end),
+            };
+            yield* parseContent(content.slice(first_match.end));
+            return;
+        } else {
+            if (raw_string_before) {
+                yield { text: raw_string_before, type: "raw" };
+            }
+            yield { text, type: first_match.name, addr };
+            yield* parseContent(content.slice(first_match.end));
+            return;
+        }
+    } else if (first_match.name === "nevent") {
+        const nevent = Nevent.decode(bech32);
+        if (nevent instanceof Error) {
+            yield {
+                type: "raw",
+                text: content.slice(0, first_match.end),
+            };
+            yield* parseContent(content.slice(first_match.end));
+            return;
+        } else {
+            if (raw_string_before) {
+                yield { text: raw_string_before, type: "raw" };
+            }
+            yield { text, type: first_match.name, nevent };
+            yield* parseContent(content.slice(first_match.end));
+            return;
+        }
+    } else {
+        if (raw_string_before) {
+            yield { text: raw_string_before, type: "raw" };
+        }
+        yield { text, type: first_match.name };
+        yield* parseContent(content.slice(first_match.end));
+    }
+}
+
+function match_first(content: string) {
+    if (content.length === 0) {
+        return;
+    }
+
+    const regexs: { name: ItemType; regex: RegExp }[] = [
+        { name: "url", regex: /https?:\/\/[^\s]+/ },
+        { name: "npub", regex: /(nostr:)?npub[0-9a-z]{59}/ },
+        { name: "nprofile", regex: /(nostr:)?nprofile[0-9a-z]+/ },
+        { name: "naddr", regex: /(nostr:)?naddr[0-9a-z]+/ },
+        { name: "note", regex: /(nostr:)?note[0-9a-z]{59}/ },
+        { name: "nevent", regex: /(nostr:)?nevent[0-9a-z]+/ },
+        { name: "tag", regex: /#\[[0-9]+\]/ },
+    ];
+
+    let first_match: {
+        name: ItemType;
+        start: number;
+        end: number;
+    } | undefined;
+    for (const r of regexs) {
+        const matched = r.regex.exec(content);
+        if (matched == null) {
+            continue;
+        }
+        const start = matched.index;
+        const end = matched.index + matched[0].length;
+
+        // Return the matching string with the maximum length
+        if (first_match == undefined) {
+            first_match = { name: r.name, start, end };
+            continue;
+        }
+        if (start < first_match.start) {
+            first_match = { name: r.name, start, end };
+            continue;
+        }
+        if (first_match.start == start && end > first_match.end) {
+            first_match = { name: r.name, start, end };
+            continue;
+        }
+    }
+    return first_match;
+}
 
 // Think of ChatMessage as an materialized view of NostrEvent
 export type ChatMessage = {
