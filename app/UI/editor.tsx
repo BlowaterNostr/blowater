@@ -42,7 +42,7 @@ export type UpdateMessageFiles = {
 };
 
 export type SelectMember = {
-    readonly type: "SelectMember";
+    readonly type: "EditorSelectProfile";
     readonly member: Profile_Nostr_Event;
 };
 
@@ -80,7 +80,7 @@ export class Editor extends Component<EditorProps, EditorState> {
                 await setState(this, {
                     replyTo: event.event,
                 });
-            } else if (event.type == "SelectMember") {
+            } else if (event.type == "EditorSelectProfile") {
                 const regex = /@\w+$/;
                 const text = this.state.text.replace(
                     regex,
@@ -254,9 +254,9 @@ export class Editor extends Component<EditorProps, EditorState> {
                 {MatchingBar({
                     matching: this.state.matching,
                     searchResults: this.state.searchResults,
-                    selectMember: (member: Profile_Nostr_Event) => {
+                    selectProfile: (member: Profile_Nostr_Event) => {
                         props.emit({
-                            type: "SelectMember",
+                            type: "EditorSelectProfile",
                             member,
                         });
                     },
@@ -313,7 +313,7 @@ export class Editor extends Component<EditorProps, EditorState> {
 function MatchingBar(props: {
     matching?: string;
     searchResults: Profile_Nostr_Event[];
-    selectMember: (member: Profile_Nostr_Event) => void;
+    selectProfile: (member: Profile_Nostr_Event) => void;
     close: () => void;
 }) {
     if (!props.matching) return undefined;
@@ -346,7 +346,7 @@ function MatchingBar(props: {
                             <li
                                 class="flex items-center justify-start p-1 m-1 hover:bg-[#36373C] rounded-lg cursor-pointer"
                                 onClick={() => {
-                                    props.selectMember(profile);
+                                    props.selectProfile(profile);
                                 }}
                             >
                                 <Avatar
