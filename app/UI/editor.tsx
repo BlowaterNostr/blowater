@@ -315,7 +315,12 @@ function MatchingBar(props: {
 }) {
     if (!props.matching) return undefined;
     return (
-        <div class="w-full absolute bottom-16 z-10 pl-12 pr-[6.5rem]">
+        <div
+            class="w-full absolute z-10 pl-12 pr-[6.5rem]"
+            style={{
+                bottom: `calc(100% + 0.5rem)`,
+            }}
+        >
             <div class="w-full p-2 rounded-lg bg-[#2B2D31] shadow-lg">
                 <div class="text-[#B6BAC0]">
                     MEMBERS MATCHING <span class="text-white">@{props.matching}</span>
