@@ -18,7 +18,7 @@ import { Profile_Nostr_Event } from "../nostr.ts";
 import { robohash } from "./relay-detail.tsx";
 import { Avatar } from "./components/avatar.tsx";
 
-export type EditorEvent = SendMessage | UpdateEditorText | UpdateMessageFiles | SelectMember;
+export type EditorEvent = SendMessage | UpdateEditorText | UpdateMessageFiles | EditorSelectProfile;
 
 export type SendMessage = {
     readonly type: "SendMessage";
@@ -41,7 +41,7 @@ export type UpdateMessageFiles = {
     readonly files: Blob[];
 };
 
-export type SelectMember = {
+export type EditorSelectProfile = {
     readonly type: "EditorSelectProfile";
     readonly member: Profile_Nostr_Event;
 };
