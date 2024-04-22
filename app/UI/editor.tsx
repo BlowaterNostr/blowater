@@ -100,7 +100,7 @@ export class Editor extends Component<EditorProps, EditorState> {
         const uploadFileInput = createRef();
 
         return (
-            <div class="flex flex-col p-2 justify-center bg-[#36393F]">
+            <div class="relative flex flex-col p-2 justify-center bg-[#36393F]">
                 <div class="w-full flex items-end gap-2">
                     <button
                         class="flex items-center justify-center group
@@ -315,31 +315,33 @@ function MatchingBar(props: {
 }) {
     if (!props.matching) return undefined;
     return (
-        <div class="absolute bottom-16 z-10 w-[60%] mx-12 p-4 rounded bg-[#2B2D31] shadow-lg">
-            <div class="text-[#B6BAC0]">
-                MEMBERS MATCHING <span class="text-white">@{props.matching}</span>
+        <div class="w-full absolute bottom-16 z-10 pl-12 pr-[6.5rem]">
+            <div class="w-full p-2 rounded-lg bg-[#2B2D31] shadow-lg">
+                <div class="text-[#B6BAC0]">
+                    MEMBERS MATCHING <span class="text-white">@{props.matching}</span>
+                </div>
+                <ol>
+                    {props.searchResults.map((profile) => {
+                        return (
+                            <li
+                                class="flex items-center justify-start p-1 m-1 hover:bg-[#36373C] rounded-lg cursor-pointer"
+                                onClick={() => {
+                                    props.selectMember(profile);
+                                }}
+                            >
+                                <Avatar
+                                    class={`h-8 w-8 mr-2 flex-shrink-0`}
+                                    picture={profile.profile?.picture || robohash(profile.pubkey)}
+                                />
+                                <div class="truncate text-white">
+                                    {profile.profile?.name || profile.profile?.display_name ||
+                                        profile.pubkey}
+                                </div>
+                            </li>
+                        );
+                    })}
+                </ol>
             </div>
-            <ol>
-                {props.searchResults.map((profile) => {
-                    return (
-                        <li
-                            class="flex items-center justify-start p-1 m-1 hover:bg-[#36373C] rounded cursor-pointer"
-                            onClick={() => {
-                                props.selectMember(profile);
-                            }}
-                        >
-                            <Avatar
-                                class={`h-8 w-8 mr-2 flex-shrink-0`}
-                                picture={profile.profile?.picture || robohash(profile.pubkey)}
-                            />
-                            <div class="truncate text-white">
-                                {profile.profile?.name || profile.profile?.display_name ||
-                                    profile.pubkey}
-                            </div>
-                        </li>
-                    );
-                })}
-            </ol>
         </div>
     );
 }
