@@ -1,5 +1,5 @@
 /** @jsx h */
-import { createRef, h, JSX } from "https://esm.sh/preact@10.17.1";
+import { createRef, h } from "https://esm.sh/preact@10.17.1";
 import { emitFunc } from "../event-bus.ts";
 
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
@@ -63,7 +63,6 @@ export type EditorState = {
     replyTo?: Parsed_Event;
     matching?: string;
     searchResults: Profile_Nostr_Event[];
-    pubkeys: Record<string, PublicKey>[];
 };
 
 export class Editor extends Component<EditorProps, EditorState> {
@@ -71,7 +70,6 @@ export class Editor extends Component<EditorProps, EditorState> {
         text: "",
         files: [],
         searchResults: [],
-        pubkeys: [],
     };
 
     textareaElement = createRef<HTMLTextAreaElement>();
@@ -365,7 +363,7 @@ function ReplyIndicator(props: {
         replyToAuthor = `@${replyToAuthor}`;
     }
     return (
-        <div class="absolute bottom-20 h-10 w-full flex flex-row justify-between items-center text-[#B6BAC0] bg-[#2B2D31] px-4 rounded-t-lg">
+        <div class="h-10 w-full flex flex-row justify-between items-center text-[#B6BAC0] bg-[#2B2D31] px-4 rounded-t-lg">
             <div class="w-3/4 cursor-default select-none">
                 <div class="text-left overflow-hidden whitespace-nowrap truncate">
                     {`Replying to `}
