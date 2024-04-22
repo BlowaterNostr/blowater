@@ -277,7 +277,6 @@ export class Editor extends Component<EditorProps, EditorState> {
         const searchResults = matched
             ? this.props.getters.getProfilesByText(matched[0].slice(1)).splice(0, 10)
             : [];
-        console.log(`searchResults`, searchResults);
 
         const lines = text.split("\n");
         e.currentTarget.setAttribute(
@@ -330,7 +329,7 @@ function MatchingBar(props: {
             <div class="w-full p-2 rounded-lg bg-[#2B2D31] shadow-lg">
                 <div class="flex justify-between item-center">
                     <div class="text-[#B6BAC0]">
-                        MEMBERS MATCHING <span class="text-white">@{props.matching}</span>
+                        Profiles matching <span class="text-white">@{props.matching}</span>
                     </div>
                     <button
                         class="h-6 w-6 flex justify-center items-center shrink-0 group"
