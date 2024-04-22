@@ -142,16 +142,6 @@ export class Editor extends Component<EditorProps, EditorState> {
                         class="hidden bg-[#FFFFFF2C]"
                     />
                     <div class="flex flex-col flex-1 overflow-hidden bg-[#FFFFFF2C] rounded-xl">
-                        {MatchingBar({
-                            matching: this.state.matching,
-                            searchResults: this.state.searchResults,
-                            selectMember: (member: Profile_Nostr_Event) => {
-                                props.emit({
-                                    type: "SelectMember",
-                                    member,
-                                });
-                            },
-                        })}
                         {ReplyIndicator({
                             getters: props.getters,
                             replyTo: this.state.replyTo,
@@ -259,6 +249,16 @@ export class Editor extends Component<EditorProps, EditorState> {
                         <span class="text-[#FFFFFF] font-700 leading-[1.25rem]">Send</span>
                     </button>
                 </div>
+                {MatchingBar({
+                    matching: this.state.matching,
+                    searchResults: this.state.searchResults,
+                    selectMember: (member: Profile_Nostr_Event) => {
+                        props.emit({
+                            type: "SelectMember",
+                            member,
+                        });
+                    },
+                })}
             </div>
         );
     }
@@ -313,9 +313,9 @@ function MatchingBar(props: {
 }) {
     if (!props.matching) return undefined;
     return (
-        <div class="px-4 rounded-t-lg">
+        <div class="absolute bottom-16 z-10 w-[80%] px-4 rounded-t-lg bg-[#2B2D31] border-t border-[#FFFFFF99] shadow-lg">
             <div class="text-[#B6BAC0]">
-                MEMBERS MATCHING {props.matching}
+                MEMBERS MATCHING <span class="text-white">@{props.matching}</span>
             </div>
             <ol>
                 {props.searchResults.map((profile) => {
@@ -363,7 +363,7 @@ function ReplyIndicator(props: {
         replyToAuthor = `@${replyToAuthor}`;
     }
     return (
-        <div class="h-10 w-full flex flex-row justify-between items-center text-[#B6BAC0] bg-[#2B2D31] px-4 rounded-t-lg">
+        <div class="absolute bottom-20 h-10 w-full flex flex-row justify-between items-center text-[#B6BAC0] bg-[#2B2D31] px-4 rounded-t-lg">
             <div class="w-3/4 cursor-default select-none">
                 <div class="text-left overflow-hidden whitespace-nowrap truncate">
                     {`Replying to `}
