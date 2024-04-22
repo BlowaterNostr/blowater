@@ -91,6 +91,7 @@ export class Editor extends Component<EditorProps, EditorState> {
                     matching: undefined,
                     searchResults: [],
                 });
+                this.textareaElement.current?.focus();
             }
         }
     }
