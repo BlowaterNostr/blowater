@@ -60,6 +60,7 @@ import { FilterContent } from "./filter.tsx";
 import { CloseRightPanel } from "./components/right-panel.tsx";
 import { RightPanelChannel } from "./components/right-panel.tsx";
 import { ReplyToMessage } from "./message-list.tsx";
+import { EditorSelectProfile } from "./editor.tsx";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -84,7 +85,8 @@ export type UI_Interaction_Event =
     | SyncEvent
     | FilterContent
     | CloseRightPanel
-    | ReplyToMessage;
+    | ReplyToMessage
+    | EditorSelectProfile;
 
 type BackToContactList = {
     type: "BackToContactList";

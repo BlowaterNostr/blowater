@@ -9,16 +9,16 @@ import { Component } from "https://esm.sh/preact@10.17.1";
 import { RemoveIcon } from "./icons/remove-icon.tsx";
 import { setState } from "./_helper.ts";
 import { XCircleIcon } from "./icons/x-circle-icon.tsx";
-import { func_GetEventByID } from "./message-list.tsx";
 import { func_GetProfileByPublicKey } from "./search.tsx";
 import { NoteID } from "../../libs/nostr.ts/nip19.ts";
-import { ReplyToMessage } from "./message-list.tsx";
 import { EventSubscriber } from "../event-bus.ts";
 import { UI_Interaction_Event } from "./app_update.tsx";
 import { Parsed_Event } from "../nostr.ts";
-import { NostrEvent } from "../../libs/nostr.ts/nostr.ts";
+import { Profile_Nostr_Event } from "../nostr.ts";
+import { robohash } from "./relay-detail.tsx";
+import { Avatar } from "./components/avatar.tsx";
 
-export type EditorEvent = SendMessage | UpdateEditorText | UpdateMessageFiles;
+export type EditorEvent = SendMessage | UpdateEditorText | UpdateMessageFiles | EditorSelectProfile;
 
 export type SendMessage = {
     readonly type: "SendMessage";
@@ -41,6 +41,11 @@ export type UpdateMessageFiles = {
     readonly files: Blob[];
 };
 
+export type EditorSelectProfile = {
+    readonly type: "EditorSelectProfile";
+    readonly member: Profile_Nostr_Event;
+};
+
 type EditorProps = {
     readonly placeholder: string;
     readonly maxHeight: string;
@@ -48,6 +53,7 @@ type EditorProps = {
     readonly sub: EventSubscriber<UI_Interaction_Event>;
     readonly getters: {
         getProfileByPublicKey: func_GetProfileByPublicKey;
+        getProfilesByText(input: string): Profile_Nostr_Event[];
     };
 };
 
@@ -55,12 +61,15 @@ export type EditorState = {
     text: string;
     files: Blob[];
     replyTo?: Parsed_Event;
+    matching?: string;
+    searchResults: Profile_Nostr_Event[];
 };
 
 export class Editor extends Component<EditorProps, EditorState> {
     state: Readonly<EditorState> = {
         text: "",
         files: [],
+        searchResults: [],
     };
 
     textareaElement = createRef<HTMLTextAreaElement>();
@@ -71,6 +80,18 @@ export class Editor extends Component<EditorProps, EditorState> {
                 await setState(this, {
                     replyTo: event.event,
                 });
+            } else if (event.type == "EditorSelectProfile") {
+                const regex = /@\w+$/;
+                const text = this.state.text.replace(
+                    regex,
+                    `nostr:${event.member.publicKey.bech32()} `,
+                );
+                await setState(this, {
+                    text,
+                    matching: undefined,
+                    searchResults: [],
+                });
+                this.textareaElement.current?.focus();
             }
         }
     }
@@ -79,7 +100,7 @@ export class Editor extends Component<EditorProps, EditorState> {
         const uploadFileInput = createRef();
 
         return (
-            <div class="flex flex-col p-2 justify-center bg-[#36393F]">
+            <div class="relative flex flex-col p-2 justify-center bg-[#36393F]">
                 <div class="w-full flex items-end gap-2">
                     <button
                         class="flex items-center justify-center group
@@ -174,14 +195,7 @@ export class Editor extends Component<EditorProps, EditorState> {
                                 rows={1}
                                 class="flex-1 px-4 py-[0.5rem] bg-transparent focus-visible:outline-none placeholder-[#FFFFFF4D] text-[#FFFFFF99] whitespace-nowrap resize-none overflow-x-hidden overflow-y-auto"
                                 placeholder={this.props.placeholder}
-                                onInput={(e) => {
-                                    const lines = e.currentTarget.value.split("\n");
-                                    e.currentTarget.setAttribute(
-                                        "rows",
-                                        `${lines.length}`,
-                                    );
-                                    this.setState({ text: e.currentTarget.value });
-                                }}
+                                onInput={this.handleMessageInput}
                                 onKeyDown={async (e) => {
                                     // https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/metaKey
                                     if (e.code === "Enter" && (e.ctrlKey || e.metaKey)) {
@@ -237,9 +251,40 @@ export class Editor extends Component<EditorProps, EditorState> {
                         <span class="text-[#FFFFFF] font-700 leading-[1.25rem]">Send</span>
                     </button>
                 </div>
+                {MatchingBar({
+                    matching: this.state.matching,
+                    searchResults: this.state.searchResults,
+                    selectProfile: (member: Profile_Nostr_Event) => {
+                        props.emit({
+                            type: "EditorSelectProfile",
+                            member,
+                        });
+                    },
+                    close: () => {
+                        setState(this, { matching: undefined, searchResults: [] });
+                    },
+                })}
             </div>
         );
     }
+
+    handleMessageInput = async (e: h.JSX.TargetedEvent<HTMLTextAreaElement>) => {
+        const text = e.currentTarget.value;
+        const regex = /@\w+$/;
+        const matched = regex.exec(text);
+        const matching = matched ? matched[0].slice(1) : undefined;
+
+        const searchResults = matched
+            ? this.props.getters.getProfilesByText(matched[0].slice(1)).splice(0, 10)
+            : [];
+
+        const lines = text.split("\n");
+        e.currentTarget.setAttribute(
+            "rows",
+            `${lines.length}`,
+        );
+        setState(this, { text, matching, searchResults });
+    };
 
     sendMessage = async () => {
         const props = this.props;
@@ -263,6 +308,62 @@ export class Editor extends Component<EditorProps, EditorState> {
             files: newFiles,
         });
     };
+}
+
+function MatchingBar(props: {
+    matching?: string;
+    searchResults: Profile_Nostr_Event[];
+    selectProfile: (member: Profile_Nostr_Event) => void;
+    close: () => void;
+}) {
+    if (!props.matching) return undefined;
+    return (
+        <div
+            class="absolute z-10"
+            style={{
+                left: `3.5rem`,
+                width: `calc(100% - 9.5rem)`,
+                bottom: `calc(100% + 0.5rem)`,
+            }}
+        >
+            <div class="w-full p-2 rounded-lg bg-[#2B2D31] shadow-lg">
+                <div class="flex justify-between item-center">
+                    <div class="text-[#B6BAC0]">
+                        Profiles matching <span class="text-white">@{props.matching}</span>
+                    </div>
+                    <button
+                        class="h-6 w-6 flex justify-center items-center shrink-0 group"
+                        onClick={() => {
+                            props.close();
+                        }}
+                    >
+                        <XCircleIcon class="h-4 w-4 text-[#B6BAC0] group-hover:text-[#FFFFFF]" />
+                    </button>
+                </div>
+                <ol>
+                    {props.searchResults.map((profile) => {
+                        return (
+                            <li
+                                class="flex items-center justify-start p-1 m-1 hover:bg-[#36373C] rounded-lg cursor-pointer"
+                                onClick={() => {
+                                    props.selectProfile(profile);
+                                }}
+                            >
+                                <Avatar
+                                    class={`h-8 w-8 mr-2 flex-shrink-0`}
+                                    picture={profile.profile?.picture || robohash(profile.pubkey)}
+                                />
+                                <div class="truncate text-white">
+                                    {profile.profile?.name || profile.profile?.display_name ||
+                                        profile.pubkey}
+                                </div>
+                            </li>
+                        );
+                    })}
+                </ol>
+            </div>
+        </div>
+    );
 }
 
 function ReplyIndicator(props: {

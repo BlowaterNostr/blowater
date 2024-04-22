@@ -71,6 +71,7 @@ function EditorTest(props: {
             sub={testEventBus}
             getters={{
                 getProfileByPublicKey: () => profileEvent,
+                getProfilesByText: () => [onlyName, onlyDisplayName, empty],
             }}
         />
     );
