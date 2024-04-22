@@ -16,6 +16,7 @@ import { UI_Interaction_Event } from "./app_update.tsx";
 import { Parsed_Event } from "../nostr.ts";
 import { Profile_Nostr_Event } from "../nostr.ts";
 import { robohash } from "./relay-detail.tsx";
+import { Avatar } from "./components/avatar.tsx";
 
 export type EditorEvent = SendMessage | UpdateEditorText | UpdateMessageFiles | SelectMember;
 
@@ -62,6 +63,7 @@ export type EditorState = {
     replyTo?: Parsed_Event;
     matching?: string;
     searchResults: Profile_Nostr_Event[];
+    pubkeys: Record<string, PublicKey>[];
 };
 
 export class Editor extends Component<EditorProps, EditorState> {
@@ -69,6 +71,7 @@ export class Editor extends Component<EditorProps, EditorState> {
         text: "",
         files: [],
         searchResults: [],
+        pubkeys: [],
     };
 
     textareaElement = createRef<HTMLTextAreaElement>();
@@ -313,7 +316,7 @@ function MatchingBar(props: {
 }) {
     if (!props.matching) return undefined;
     return (
-        <div class="absolute bottom-16 z-10 w-[80%] px-4 rounded-t-lg bg-[#2B2D31] border-t border-[#FFFFFF99] shadow-lg">
+        <div class="absolute bottom-16 z-10 w-[60%] mx-12 p-4 rounded bg-[#2B2D31] shadow-lg">
             <div class="text-[#B6BAC0]">
                 MEMBERS MATCHING <span class="text-white">@{props.matching}</span>
             </div>
@@ -321,17 +324,16 @@ function MatchingBar(props: {
                 {props.searchResults.map((profile) => {
                     return (
                         <li
-                            class="flex items-center justify-start p-1 m-1 hover:bg-blue-200 cursor-pointer"
+                            class="flex items-center justify-start p-1 m-1 hover:bg-[#36373C] rounded cursor-pointer"
                             onClick={() => {
                                 props.selectMember(profile);
                             }}
                         >
-                            <img
-                                class="w-8 h-8 mr-2 rounded"
-                                src={profile.profile?.picture || robohash(profile.pubkey)}
-                                alt=""
+                            <Avatar
+                                class={`h-8 w-8 mr-2 flex-shrink-0`}
+                                picture={profile.profile?.picture || robohash(profile.pubkey)}
                             />
-                            <div class="truncate">
+                            <div class="truncate text-white">
                                 {profile.profile?.name || profile.profile?.display_name ||
                                     profile.pubkey}
                             </div>
