@@ -60,9 +60,8 @@ compile-all-ui-tests:
 	deno run --allow-read --allow-env --allow-write --allow-net app/UI/_compile-ui-tests.ts
 
 # build the tauri application
-tauri-dev:
+tauri-dev: build
 	cargo tauri dev
 
-tauri-build: fmt
-	deno bundle 1_app/UI/_main.tsx build-pwa/main.mjs
+tauri-build: build
 	cargo tauri build
