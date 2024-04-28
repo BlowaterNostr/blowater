@@ -1,7 +1,7 @@
 {
     "productName": "Blowater",
     "version": "0.0.0",
-    "identifier": "com.tauri.dev",
+    "identifier": "app.blowater",
     "build": {
         "frontendDist": "../../build-pwa"
     },
@@ -22,7 +22,7 @@
         "active": true,
         "targets": "all",
         "icon": [
-            "icons/logo.png"
+            "icons/128x128.png"
         ]
     }
 }
