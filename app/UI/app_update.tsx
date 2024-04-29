@@ -617,7 +617,7 @@ export async function handle_SendMessage(
             content: ui_event.text,
             getEventByID: args.getEventByID,
             current_relay: args.current_relay.url,
-        })
+        });
         const nostr_event = replyToEvent
             ? await prepareReplyEvent(
                 ctx,
