@@ -20,7 +20,6 @@ import {
     ViewUserDetail,
 } from "./message-panel.tsx";
 import { ChatMessage, groupContinuousMessages, sortMessage } from "./message.ts";
-import { ProfileGetter } from "./search.tsx";
 import { SelectConversation } from "./search_model.ts";
 import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { ProfileData } from "../features/profile.ts";
@@ -33,7 +32,8 @@ import { NoteID } from "../../libs/nostr.ts/nip19.ts";
 import { robohash } from "./relay-detail.tsx";
 import { ReplyIcon } from "./icons/reply-icon.tsx";
 import { ChatMessagesGetter } from "./app_update.tsx";
-import { NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
+import { NostrKind } from "../../libs/nostr.ts/nostr.ts";
+import { func_GetProfileByPublicKey } from "./search.tsx";
 
 interface Props {
     myPublicKey: PublicKey;
@@ -43,7 +43,7 @@ interface Props {
     >;
     getters: {
         messageGetter: ChatMessagesGetter;
-        profileGetter: ProfileGetter;
+        getProfileByPublicKey: func_GetProfileByPublicKey;
         relayRecordGetter: RelayRecordGetter;
         getEventByID: func_GetEventByID;
     };
@@ -91,7 +91,7 @@ export class MessageList extends Component<Props, MessageListState> {
         });
         const messageBoxGroups = [];
         for (const messages of groups) {
-            const profileEvent = this.props.getters.profileGetter.getProfileByPublicKey(messages[0].author);
+            const profileEvent = this.props.getters.getProfileByPublicKey(messages[0].author);
             messageBoxGroups.push(
                 MessageBoxGroup({
                     messages: messages,
@@ -222,8 +222,7 @@ export class MessageList_V0 extends Component<Props> {
         });
         const messageBoxGroups = [];
         for (const messages of groups) {
-            const profileEvent = this.props.getters.profileGetter
-                .getProfileByPublicKey(messages[0].author);
+            const profileEvent = this.props.getters.getProfileByPublicKey(messages[0].author);
             messageBoxGroups.push(
                 MessageBoxGroup({
                     messages: messages,
@@ -283,7 +282,7 @@ function MessageBoxGroup(props: {
     >;
     getters: {
         messageGetter: ChatMessagesGetter;
-        profileGetter: ProfileGetter;
+        getProfileByPublicKey: func_GetProfileByPublicKey;
         relayRecordGetter: RelayRecordGetter;
         getEventByID: func_GetEventByID;
     };
@@ -438,7 +437,7 @@ function isReply(event: Parsed_Event) {
 function renderRelply(event: Parsed_Event, getters: {
     messageGetter: ChatMessagesGetter;
     getEventByID: func_GetEventByID;
-    profileGetter: ProfileGetter;
+    getProfileByPublicKey: func_GetProfileByPublicKey;
 }, emit: emitFunc<ViewUserDetail>) {
     if (!isReply(event)) return;
     const replyEventId = event.parsedTags.reply?.[0] || event.parsedTags.root?.[0] || event.parsedTags.e[0];
@@ -449,7 +448,7 @@ function renderRelply(event: Parsed_Event, getters: {
     let author = reply_to_event.publicKey.bech32();
     let picture = robohash(reply_to_event.publicKey.hex);
     if (reply_to_event.pubkey) {
-        const profile = getters.profileGetter.getProfileByPublicKey(reply_to_event.publicKey);
+        const profile = getters.getProfileByPublicKey(reply_to_event.publicKey);
         if (profile) {
             author = profile.profile.name || profile.profile.display_name ||
                 reply_to_event?.publicKey.bech32();
