@@ -613,16 +613,17 @@ export async function handle_SendMessage(
         }
         events = events_send;
     } else if (args.navigationModel.activeNav == "Public") {
+        const tags = generateTags({
+            content: ui_event.text,
+            getEventByID: args.getEventByID,
+            current_relay: args.current_relay.url,
+        });
         const nostr_event = replyToEvent
             ? await prepareReplyEvent(
                 ctx,
                 {
                     targetEvent: replyToEvent,
-                    tags: generateTags({
-                        content: ui_event.text,
-                        getEventByID: args.getEventByID,
-                        current_relay: args.current_relay.url,
-                    }),
+                    tags: [...tags, ["client", "https://blowater.app"]],
                     content: ui_event.text,
                     currentRelay: args.current_relay.url,
                 },
@@ -630,11 +631,7 @@ export async function handle_SendMessage(
             : await prepareNormalNostrEvent(ctx, {
                 content: ui_event.text,
                 kind: NostrKind.TEXT_NOTE,
-                tags: generateTags({
-                    content: ui_event.text,
-                    getEventByID: args.getEventByID,
-                    current_relay: args.current_relay.url,
-                }),
+                tags: [...tags, ["client", "https://blowater.app"]],
             });
         if (nostr_event instanceof Error) {
             return nostr_event;
