@@ -346,7 +346,8 @@ export class AppComponent extends Component<AppProps> {
                             newMessageChecker: app.conversationLists,
                             relayRecordGetter: app.database,
                             pinListGetter: app.otherConfig,
-                            profileGetter: app.database,
+                            getProfileByPublicKey: app.database.getProfileByPublicKey,
+                            getProfilesByText: app.database.getProfilesByText,
                             isUserBlocked: app.conversationLists.isUserBlocked,
                             getEventByID: app.database.getEventByID,
                         }}
@@ -371,7 +372,8 @@ export class AppComponent extends Component<AppProps> {
                         convoListRetriever: app.conversationLists,
                         newMessageChecker: app.conversationLists,
                         relayRecordGetter: app.database,
-                        profileGetter: app.database,
+                        getProfileByPublicKey: app.database.getProfileByPublicKey,
+                        getProfilesByText: app.database.getProfilesByText,
                         isUserBlocked: app.conversationLists.isUserBlocked,
                         getEventByID: app.database.getEventByID,
                     }}

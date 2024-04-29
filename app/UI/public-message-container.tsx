@@ -3,7 +3,7 @@ import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 import { emitFunc, EventBus } from "../event-bus.ts";
 import { ChatMessagesGetter, UI_Interaction_Event } from "./app_update.tsx";
 import { setState } from "./_helper.ts";
-import { ProfileGetter } from "./search.tsx";
+import { func_GetProfileByPublicKey, func_GetProfilesByText, ProfileGetter } from "./search.tsx";
 
 import { RelayRecordGetter } from "../database.ts";
 import { NewMessageChecker } from "./conversation-list.tsx";
@@ -30,7 +30,8 @@ type Props = {
     messages: ChatMessage[];
     getters: {
         messageGetter: ChatMessagesGetter;
-        profileGetter: ProfileGetter;
+        getProfileByPublicKey: func_GetProfileByPublicKey;
+        getProfilesByText: func_GetProfilesByText;
         convoListRetriever: ConversationListRetriever;
         newMessageChecker: NewMessageChecker;
         relayRecordGetter: RelayRecordGetter;

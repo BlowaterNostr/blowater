@@ -14,7 +14,7 @@ import { ConversationSummary, sortUserInfo } from "./conversation-list.ts";
 import { ChatIcon } from "./icons/chat-icon.tsx";
 import { PinIcon } from "./icons/pin-icon.tsx";
 import { UnpinIcon } from "./icons/unpin-icon.tsx";
-import { ProfileGetter } from "./search.tsx";
+import { func_GetProfileByPublicKey, func_GetProfilesByText, ProfileGetter } from "./search.tsx";
 import { SearchUpdate, SelectConversation } from "./search_model.ts";
 import { ErrorColor, PrimaryTextColor, SecondaryBackgroundColor } from "./style/colors.ts";
 import { ContactTag, ContactTags, TagSelected } from "./contact-tags.tsx";
@@ -51,7 +51,8 @@ type Props = {
         convoListRetriever: ConversationListRetriever;
         newMessageChecker: NewMessageChecker;
         pinListGetter: PinListGetter;
-        profileGetter: ProfileGetter;
+        getProfileByPublicKey: func_GetProfileByPublicKey;
+        getProfilesByText: func_GetProfilesByText;
     };
     userBlocker: UserBlocker;
 };
@@ -171,7 +172,7 @@ type ConversationListProps = {
     emit: emitFunc<ContactUpdate | ViewUserDetail>;
     getters: {
         pinListGetter: PinListGetter;
-        profileGetter: ProfileGetter;
+        getProfileByPublicKey: func_GetProfileByPublicKey;
     };
 };
 
@@ -194,7 +195,7 @@ function ContactGroup(props: ConversationListProps) {
         <ul class={`overflow-auto flex-1 p-2 text-[#96989D]`}>
             {pinned.map((contact) => {
                 let profile;
-                const profileEvent = props.getters.profileGetter.getProfileByPublicKey(
+                const profileEvent = props.getters.getProfileByPublicKey(
                     contact.conversation.pubkey,
                 );
                 if (profileEvent) {
@@ -248,7 +249,7 @@ function ContactGroup(props: ConversationListProps) {
 
             {unpinned.map((contact) => {
                 let profile;
-                const profileEvent = props.getters.profileGetter.getProfileByPublicKey(
+                const profileEvent = props.getters.getProfileByPublicKey(
                     contact.conversation.pubkey,
                 );
                 if (profileEvent) {

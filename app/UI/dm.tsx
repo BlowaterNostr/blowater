@@ -9,7 +9,7 @@ import { IconButtonClass } from "./components/tw.ts";
 
 import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
 import { MessagePanel_V0 } from "./message-panel.tsx";
-import { ProfileGetter } from "./search.tsx";
+import { func_GetProfileByPublicKey, func_GetProfilesByText, ProfileGetter } from "./search.tsx";
 
 import {
     ConversationList,
@@ -27,7 +27,8 @@ type DirectMessageContainerProps = {
     ctx: NostrAccountContext;
     bus: EventBus<UI_Interaction_Event>;
     getters: {
-        profileGetter: ProfileGetter;
+        getProfileByPublicKey: func_GetProfileByPublicKey;
+        getProfilesByText: func_GetProfilesByText;
         messageGetter: ChatMessagesGetter;
         pinListGetter: PinListGetter;
         convoListRetriever: ConversationListRetriever;
@@ -71,7 +72,7 @@ export class DirectMessageContainer extends Component<DirectMessageContainerProp
                                 bus={this.props.bus}
                                 buttons={[]}
                                 currentConversation={this.props.currentConversation}
-                                profileGetter={this.props.getters.profileGetter}
+                                getters={this.props.getters}
                             />
                             <div class={`flex-1 overflow-auto`}>
                                 <MessagePanel_V0
@@ -98,10 +99,13 @@ export class DirectMessageContainer extends Component<DirectMessageContainerProp
 function TopBar(props: {
     bus: EventBus<UI_Interaction_Event>;
     currentConversation: PublicKey;
-    profileGetter: ProfileGetter;
     buttons: VNode[];
+    getters: {
+        getProfilesByText: func_GetProfilesByText;
+        getProfileByPublicKey: func_GetProfileByPublicKey;
+    };
 }) {
-    const conversation_profile = props.profileGetter.getProfileByPublicKey(
+    const conversation_profile = props.getters.getProfileByPublicKey(
         props.currentConversation,
     );
     let conversation_name = conversation_profile?.profile.name ||

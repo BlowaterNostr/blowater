@@ -14,7 +14,7 @@ import { AboutIcon } from "./icons/about-icon.tsx";
 import { ChatMessage, parseContent, urlIsImage, urlIsVideo } from "./message.ts";
 import { NoteCard } from "./note-card.tsx";
 import { ProfileCard } from "./profile-card.tsx";
-import { ProfileGetter } from "./search.tsx";
+import { func_GetProfilesByText } from "./search.tsx";
 import { SelectConversation } from "./search_model.ts";
 import {
     BackgroundColor_MessagePanel,
@@ -25,6 +25,7 @@ import {
 import { BlockUser, UnblockUser } from "./user-detail.tsx";
 import { func_GetEventByID, MessageList, ReplyToMessage } from "./message-list.tsx";
 import { MessageList_V0 } from "./message-list.tsx";
+import { func_GetProfileByPublicKey } from "./search.tsx";
 
 export type DirectMessagePanelUpdate =
     | ViewUserDetail
@@ -62,7 +63,8 @@ interface MessagePanelProps {
     messages: ChatMessage[];
     getters: {
         messageGetter: ChatMessagesGetter;
-        profileGetter: ProfileGetter;
+        getProfileByPublicKey: func_GetProfileByPublicKey;
+        getProfilesByText: func_GetProfilesByText;
         relayRecordGetter: RelayRecordGetter;
         isUserBlocked: (pubkey: PublicKey) => boolean;
         getEventByID: func_GetEventByID;
@@ -91,8 +93,8 @@ export class MessagePanel extends Component<MessagePanelProps> {
                         placeholder=""
                         getters={{
                             ...props.getters,
-                            getProfileByPublicKey: props.getters.profileGetter.getProfileByPublicKey,
-                            getProfilesByText: props.getters.profileGetter.getProfilesByText,
+                            getProfileByPublicKey: props.getters.getProfileByPublicKey,
+                            getProfilesByText: props.getters.getProfilesByText,
                         }}
                     />
                 </div>
@@ -129,11 +131,7 @@ export class MessagePanel_V0 extends Component<MessagePanelProps> {
                         emit={props.emit}
                         sub={props.eventSub}
                         placeholder=""
-                        getters={{
-                            ...props.getters,
-                            getProfileByPublicKey: props.getters.profileGetter.getProfileByPublicKey,
-                            getProfilesByText: props.getters.profileGetter.getProfilesByText,
-                        }}
+                        getters={props.getters}
                     />
                 </div>
             </div>
@@ -190,7 +188,7 @@ export function ParseMessageContent(
     message: ChatMessage,
     emit: emitFunc<ViewUserDetail | OpenNote | SelectConversation | SyncEvent>,
     getters: {
-        profileGetter: ProfileGetter;
+        getProfileByPublicKey: func_GetProfileByPublicKey;
         getEventByID: func_GetEventByID;
     },
 ) {
@@ -235,7 +233,7 @@ export function ParseMessageContent(
             }
         } else if (item.type === "npub" || item.type === "nprofile") {
             const pubkey = item.type == "npub" ? item.pubkey : item.nprofile.pubkey;
-            const profile = getters.profileGetter.getProfileByPublicKey(pubkey);
+            const profile = getters.getProfileByPublicKey(pubkey);
             const name = profile?.profile.name || profile?.profile.display_name;
             vnode.push(
                 <span
@@ -258,7 +256,7 @@ export function ParseMessageContent(
                     eventID: item.noteID.hex,
                 });
             } else {
-                const profile = getters.profileGetter.getProfileByPublicKey(event.publicKey);
+                const profile = getters.getProfileByPublicKey(event.publicKey);
                 vnode.push(Card(event, profile?.profile, emit, event.publicKey));
             }
         } else if (item.type === "nevent") {
@@ -272,7 +270,7 @@ export function ParseMessageContent(
                     eventID: item.nevent.pointer.id,
                 });
             } else {
-                const profile = getters.profileGetter.getProfileByPublicKey(event.publicKey);
+                const profile = getters.getProfileByPublicKey(event.publicKey);
                 vnode.push(Card(event, profile ? profile.profile : undefined, emit, event.publicKey));
             }
         }
