@@ -63,5 +63,5 @@ compile-all-ui-tests:
 tauri-dev: build
 	cargo tauri dev
 
-tauri-build: build
-	cargo tauri build
+tauri-build-mac: build
+	cargo tauri build --target universal-apple-darwin
