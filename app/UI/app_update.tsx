@@ -606,7 +606,7 @@ export async function handle_SendMessage(
             return events_send;
         }
         for (const event of events_send) {
-            const result = args.current_relay.sendEvent(event);
+            const result = await args.current_relay.sendEvent(event);
             if (result instanceof Error) {
                 return result;
             }
