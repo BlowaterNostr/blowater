@@ -605,12 +605,6 @@ export async function handle_SendMessage(
         if (events_send instanceof Error) {
             return events_send;
         }
-        for (const event of events_send) {
-            const result = await args.current_relay.sendEvent(event);
-            if (result instanceof Error) {
-                return result;
-            }
-        }
         events = events_send;
     } else if (args.navigationModel.activeNav == "Public") {
         const tags = generateTags({
