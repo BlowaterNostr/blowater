@@ -27,7 +27,7 @@ fmt:
 	deno fmt
 
 fmt-check:
-	deno fmt --check --config deno.json
+	deno fmt --check
 
 install:
 	deno install --allow-net --allow-read https://deno.land/std@0.178.0/http/file_server.ts
