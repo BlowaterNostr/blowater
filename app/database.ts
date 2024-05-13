@@ -5,6 +5,7 @@ import { NostrEvent, NostrKind, Tag, verifyEvent } from "../libs/nostr.ts/nostr.
 import { PublicKey } from "../libs/nostr.ts/key.ts";
 import { ProfileGetter, ProfileSetter } from "./UI/search.tsx";
 import { NoteID } from "../libs/nostr.ts/nip19.ts";
+import { RelayInformation } from "./UI/relay-detail.tsx";
 
 const buffer_size = 2000;
 export interface Indices {
@@ -164,9 +165,11 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
         }
     }
 
-    isDeleted(id: string) {
+    isDeleted(id: string, relayInformation?: RelayInformation) {
         const deletionEvent = this.deletionEvents.get(id);
-        return deletionEvent?.pubkey == this.getEventByID(id)?.publicKey.hex;
+        const targetEvent = this.getEventByID(id);
+        return deletionEvent?.pubkey == targetEvent?.publicKey.hex ||
+            deletionEvent?.pubkey == relayInformation?.pubkey;
     }
 
     async remove(id: string): Promise<void> {
