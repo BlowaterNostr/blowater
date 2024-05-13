@@ -9,7 +9,7 @@ export type Model = {
     app?: App; // app is only available after sign-in
     currentRelay: {
         url: string;
-        relayInformation: RelayInformation;
+        relayInformation?: RelayInformation;
     };
     dm: DM_Model;
 
@@ -25,12 +25,11 @@ export type Model = {
     navigationModel: NavigationModel;
 };
 
-export async function initialModel(): Promise<Model> {
+export function initialModel(): Model {
     return {
         app: undefined,
         currentRelay: {
             url: default_blowater_relay,
-            relayInformation: await getRelayInformation(default_blowater_relay),
         },
         dm: {
             currentConversation: undefined,

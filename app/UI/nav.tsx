@@ -51,7 +51,7 @@ type Props = {
     pool: ConnectionPool;
     currentRelay: {
         url: string;
-        relayInformation: RelayInformation;
+        relayInformation?: RelayInformation;
     };
     activeNav: NavTabID;
 };

@@ -13,7 +13,7 @@ import { AddIcon } from "./icons/add-icon.tsx";
 type RelaySwitchListProps = {
     currentRelay: {
         url: string;
-        relayInformation: RelayInformation;
+        relayInformation?: RelayInformation;
     };
     pool: ConnectionPool;
     emit: emitFunc<SelectRelay | NavigationUpdate>;
@@ -71,7 +71,7 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
                     {this.props.currentRelay
                         ? (
                             <RelayAvatar
-                                icon={this.props.currentRelay.relayInformation.icon ||
+                                icon={this.props.currentRelay.relayInformation?.icon ||
                                     robohash(this.props.currentRelay.url)}
                             />
                         )

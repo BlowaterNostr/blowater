@@ -34,6 +34,7 @@ import { getTags, Parsed_Event } from "../nostr.ts";
 import { Toast } from "./components/toast.tsx";
 import { ToastChannel } from "./components/toast.tsx";
 import { RightPanelChannel } from "./components/right-panel.tsx";
+import { getRelayInformation } from "./relay-detail.tsx";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
@@ -47,7 +48,7 @@ export async function Start(database: DexieDatabase) {
     });
 
     const lamport = new LamportTime();
-    const model = await initialModel();
+    const model = initialModel();
     const eventBus = new EventBus<UI_Interaction_Event>();
     const pool = new ConnectionPool();
     const popOverInputChan: PopOverInputChannel = new Channel();
@@ -55,6 +56,14 @@ export async function Start(database: DexieDatabase) {
     const toastInputChan: ToastChannel = new Channel();
     const dbView = await Database_View.New(database, database, database);
     const newNostrEventChannel = new Channel<NostrEvent>();
+
+    const currentRelayInformation = await getRelayInformation(model.currentRelay.url);
+    if (currentRelayInformation instanceof Error) {
+        console.error(currentRelayInformation);
+    } else {
+        model.currentRelay.relayInformation = currentRelayInformation;
+    }
+
     (async () => {
         for await (const event of newNostrEventChannel) {
             const err = await pool.sendEvent(event);
