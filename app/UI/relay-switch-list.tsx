@@ -157,15 +157,9 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
         await setState(this, {
             showRelayList: false,
         });
-        const relayInformation = this.state.relayInformation.get(relay.url);
-        if (!relayInformation) {
-            console.error("relay information not found");
-            return;
-        }
         this.props.emit({
             type: "SelectRelay",
             relay,
-            relayInformation,
         });
     };
 

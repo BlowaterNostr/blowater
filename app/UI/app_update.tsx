@@ -186,7 +186,7 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
         // All events below are only valid after signning in
         if (event.type == "SelectRelay") {
             model.currentRelay.url = event.relay.url;
-            model.currentRelay.relayInformation = event.relayInformation;
+            model.currentRelay.relayInformation = await getRelayInformation(event.relay.url);
         } //
         // Searchx
         //

@@ -37,7 +37,6 @@ export type NavigationUpdate = {
 export type SelectRelay = {
     type: "SelectRelay";
     relay: SingleRelayConnection;
-    relayInformation: RelayInformation;
 };
 
 export type NavigationModel = {

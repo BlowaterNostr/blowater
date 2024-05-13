@@ -166,7 +166,7 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
 
     isDeleted(id: string) {
         const deletionEvent = this.deletionEvents.get(id);
-        return deletionEvent?.pubkey == this.getEventByID(id)?.publicKey.hex
+        return deletionEvent?.pubkey == this.getEventByID(id)?.publicKey.hex;
     }
 
     async remove(id: string): Promise<void> {
