@@ -5,7 +5,6 @@ import { NostrEvent, NostrKind, Tag, verifyEvent } from "../libs/nostr.ts/nostr.
 import { PublicKey } from "../libs/nostr.ts/key.ts";
 import { ProfileGetter, ProfileSetter } from "./UI/search.tsx";
 import { NoteID } from "../libs/nostr.ts/nip19.ts";
-import { PubKey } from "https://esm.sh/v135/@noble/curves@1.3.0/abstract/weierstrass.js";
 
 const buffer_size = 2000;
 export interface Indices {
@@ -66,7 +65,7 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
     private readonly sourceOfChange = csp.chan<{ event: Parsed_Event; relay?: string }>(buffer_size);
     private readonly caster = csp.multi<{ event: Parsed_Event; relay?: string }>(this.sourceOfChange);
     private readonly profiles = new Map<string, Profile_Nostr_Event>();
-    private readonly deletionEvents = new Map</* event id */ string, /* pubkey hex */ string>();
+    private readonly deletionEvents = new Map</* event id */ string, /* deletion event */ Parsed_Event>();
 
     private constructor(
         private readonly eventsAdapter: EventsAdapter,
@@ -127,18 +126,18 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
             new Set(all_removed_events.map((mark) => mark.event_id)),
         );
         console.log("Datebase_View:New time spent", Date.now() - t);
-        for (const e of db.events.values()) {
-            if (e.kind == NostrKind.META_DATA) {
+        for (const event of db.events.values()) {
+            if (event.kind == NostrKind.META_DATA) {
                 // @ts-ignore
-                const pEvent = parseProfileEvent(e);
+                const pEvent = parseProfileEvent(event);
                 if (pEvent instanceof Error) {
                     console.error(pEvent);
                     continue;
                 }
                 db.setProfile(pEvent);
-            } else if (e.kind == NostrKind.DELETE) {
-                e.parsedTags.e.forEach((event_id) => {
-                    db.deletionEvents.set(event_id, e.publicKey.hex);
+            } else if (event.kind == NostrKind.DELETE) {
+                event.parsedTags.e.forEach((event_id) => {
+                    db.deletionEvents.set(event_id, event);
                 });
             }
         }
@@ -167,7 +166,7 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
 
     isDeleted(id: string) {
         const deletionEvents = this.deletionEvents.get(id);
-        if (deletionEvents == this.getEventByID(id)?.publicKey.hex) {
+        if (deletionEvents?.pubkey === this.getEventByID(id)?.pubkey) {
             return true;
         }
         return false;
@@ -290,7 +289,7 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
             this.setProfile(pEvent);
         } else if (parsedEvent.kind == NostrKind.DELETE) {
             parsedEvent.parsedTags.e.forEach((event_id) => {
-                this.deletionEvents.set(event_id, parsedEvent.publicKey.hex);
+                this.deletionEvents.set(event_id, parsedEvent);
             });
         }
 

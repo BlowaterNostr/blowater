@@ -29,7 +29,6 @@ import { PublicMessageContainer } from "./public-message-container.tsx";
 import { ChatMessage } from "./message.ts";
 import { filter, forever, map } from "./_helper.ts";
 import { RightPanel } from "./components/right-panel.tsx";
-import { ComponentChildren } from "https://esm.sh/preact@10.17.1";
 import { SignIn } from "./sign-in.tsx";
 import { getTags, Parsed_Event } from "../nostr.ts";
 import { Toast } from "./components/toast.tsx";
@@ -587,9 +586,13 @@ const sync_deletion_events = async (
         return stream;
     }
     for await (const msg of stream.chan) {
-        if (msg.res.type == "EOSE" || msg.res.type == "NOTICE") {
+        if (msg.res.type === "EOSE") {
+            continue;
+        } else if (msg.res.type === "NOTICE") {
+            console.log(`Notice: ${msg.res.note}`);
             continue;
         }
+
         const ok = await database.addEvent(msg.res.event, msg.url);
         if (ok instanceof Error) {
             console.error(msg);
