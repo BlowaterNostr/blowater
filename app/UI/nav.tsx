@@ -49,11 +49,11 @@ type Props = {
     emit: emitFunc<NavigationUpdate | SelectRelay | StartSearch>;
     installPrompt: InstallPrompt;
     pool: ConnectionPool;
+    activeNav: NavTabID;
     currentRelay: {
         url: string;
         relayInformation?: RelayInformation;
     };
-    activeNav: NavTabID;
 };
 
 type State = {

@@ -11,12 +11,12 @@ import { setState } from "./_helper.ts";
 import { AddIcon } from "./icons/add-icon.tsx";
 
 type RelaySwitchListProps = {
+    pool: ConnectionPool;
+    emit: emitFunc<SelectRelay | NavigationUpdate>;
     currentRelay: {
         url: string;
         relayInformation?: RelayInformation;
     };
-    pool: ConnectionPool;
-    emit: emitFunc<SelectRelay | NavigationUpdate>;
 };
 
 type RelaySwitchListState = {

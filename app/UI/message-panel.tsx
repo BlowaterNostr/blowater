@@ -47,9 +47,7 @@ export type ViewUserDetail = {
 };
 
 interface MessagePanelProps {
-    relayInformation?: RelayInformation;
     myPublicKey: PublicKey;
-
     emit: emitFunc<
         | EditorEvent
         | DirectMessagePanelUpdate
@@ -72,6 +70,7 @@ interface MessagePanelProps {
         isUserBlocked: (pubkey: PublicKey) => boolean;
         getEventByID: func_GetEventByID;
     };
+    relayInformation?: RelayInformation;
 }
 
 export class MessagePanel extends Component<MessagePanelProps> {

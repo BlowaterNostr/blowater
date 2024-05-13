@@ -27,7 +27,6 @@ export type func_IsUserBlocked = (pubkey: PublicKey) => boolean;
 type Props = {
     ctx: NostrAccountContext;
     relay: SingleRelayConnection;
-    relayInformation?: RelayInformation;
     bus: EventBus<UI_Interaction_Event>;
     messages: ChatMessage[];
     getters: {
@@ -40,6 +39,7 @@ type Props = {
         isUserBlocked: func_IsUserBlocked;
         getEventByID: func_GetEventByID;
     };
+    relayInformation?: RelayInformation;
 } & Public_Model;
 
 type State = {

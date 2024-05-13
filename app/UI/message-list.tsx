@@ -37,7 +37,6 @@ import { func_GetProfileByPublicKey } from "./search.tsx";
 import { DeleteIcon } from "./icons/delete-icon.tsx";
 
 interface Props {
-    relayInformation?: RelayInformation;
     myPublicKey: PublicKey;
     messages: ChatMessage[];
     emit: emitFunc<
@@ -54,6 +53,7 @@ interface Props {
         relayRecordGetter: RelayRecordGetter;
         getEventByID: func_GetEventByID;
     };
+    relayInformation?: RelayInformation;
 }
 
 interface MessageListState {
@@ -285,7 +285,6 @@ export type func_GetEventByID = (
 function MessageBoxGroup(props: {
     authorProfile: ProfileData | undefined;
     messages: ChatMessage[];
-    relayInformation?: RelayInformation;
     myPublicKey: PublicKey;
     emit: emitFunc<
         | DirectMessagePanelUpdate
@@ -301,12 +300,11 @@ function MessageBoxGroup(props: {
         relayRecordGetter: RelayRecordGetter;
         getEventByID: func_GetEventByID;
     };
+    relayInformation?: RelayInformation;
 }) {
     const first_message = props.messages[0];
-    const { myPublicKey } = props;
-    const { relayInformation } = props;
+    const { myPublicKey, relayInformation } = props;
     const rows = [];
-    const adminPublicKeyHex = relayInformation?.pubkey;
 
     rows.push(
         <li
@@ -314,7 +312,7 @@ function MessageBoxGroup(props: {
                 isMobile() ? "select-none" : ""
             }`}
         >
-            {MessageActions(adminPublicKeyHex, myPublicKey, first_message, props.emit)}
+            {MessageActions({ relayInformation, myPublicKey, message: first_message, emit: props.emit })}
             {renderRelply(first_message.event, props.getters, props.emit)}
             <div class="flex items-start">
                 <Avatar
@@ -363,7 +361,7 @@ function MessageBoxGroup(props: {
                     isMobile() ? "select-none" : ""
                 }`}
             >
-                {MessageActions(adminPublicKeyHex, myPublicKey, msg, props.emit)}
+                {MessageActions({ relayInformation, myPublicKey, message: msg, emit: props.emit })}
                 {Time(msg.created_at)}
                 <div
                     class={`flex-1`}
@@ -395,12 +393,13 @@ export type ReplyToMessage = {
     event: Parsed_Event;
 };
 
-function MessageActions(
-    adminPublicKeyHex: string | undefined,
-    myPublicKey: PublicKey,
-    message: ChatMessage,
-    emit: emitFunc<DirectMessagePanelUpdate | ReplyToMessage | DeleteEvent>,
-) {
+function MessageActions(args: {
+    myPublicKey: PublicKey;
+    message: ChatMessage;
+    emit: emitFunc<DirectMessagePanelUpdate | ReplyToMessage | DeleteEvent>;
+    relayInformation?: RelayInformation;
+}) {
+    const { relayInformation, myPublicKey, message, emit } = args;
     return (
         <div
             class={`hidden
@@ -425,7 +424,8 @@ function MessageActions(
                 <ReplyIcon class={`w-5 h-5 text-[#B6BAC0] hover:text-[#D9DBDE]`} />
             </button>
 
-            {(myPublicKey.hex === message.author.hex || myPublicKey.hex === adminPublicKeyHex) &&
+            {(myPublicKey.hex === message.author.hex || myPublicKey.hex === relayInformation?.pubkey) &&
+                (message.event.kind === NostrKind.TEXT_NOTE) &&
                 (
                     <button
                         class={`flex items-center justify-center
