@@ -50,7 +50,10 @@ type Props = {
     emit: emitFunc<NavigationUpdate | SelectRelay | StartSearch>;
     installPrompt: InstallPrompt;
     pool: ConnectionPool;
-    currentRelay?: string;
+    currentRelay: {
+        url: string;
+        relayInformation: RelayInformation;
+    };
     activeNav: NavTabID;
 };
 
@@ -142,7 +145,13 @@ export class NavBar extends Component<Props, State> {
         return (
             <div class={this.styles.container}>
                 {/* <Avatar class={this.styles.avatar} picture={this.props.profile?.profile?.picture} /> */}
-                {<RelaySwitchList emit={props.emit} pool={props.pool} currentRelay={props.currentRelay} />}
+                {
+                    <RelaySwitchList
+                        emit={props.emit}
+                        pool={props.pool}
+                        currentRelay={props.currentRelay}
+                    />
+                }
                 {this.tabs.map(({ icon, id }) => (
                     <div class={this.styles.tabsContainer}>
                         {id === "Setting" && this.state.installPrompt.event
