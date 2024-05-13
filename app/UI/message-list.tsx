@@ -34,6 +34,7 @@ import { ReplyIcon } from "./icons/reply-icon.tsx";
 import { ChatMessagesGetter } from "./app_update.tsx";
 import { NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { func_GetProfileByPublicKey } from "./search.tsx";
+import { DeleteIcon } from "./icons/delete-icon.tsx";
 
 interface Props {
     myPublicKey: PublicKey;
@@ -405,6 +406,16 @@ function MessageActions(
                 <ReplyIcon class={`w-5 h-5 text-[#B6BAC0] hover:text-[#D9DBDE]`} />
             </button>
 
+            <button
+                class={`flex items-center justify-center
+                p-1
+                bg-[#313338] hover:bg-[#3A3C41]`}
+                onClick={() => {
+                    console.log("delete message");
+                }}
+            >
+                <DeleteIcon class={`w-5 h-5 text-[#B6BAC0] hover:text-[#D9DBDE]`} />
+            </button>
             <button
                 class={`flex items-center justify-center
                 p-1
