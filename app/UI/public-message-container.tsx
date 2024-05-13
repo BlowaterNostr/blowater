@@ -16,6 +16,7 @@ import { ChatMessage } from "./message.ts";
 import { func_GetEventByID } from "./message-list.tsx";
 import { Filter, FilterContent } from "./filter.tsx";
 import { NoteID } from "../../libs/nostr.ts/nip19.ts";
+import { RelayInformation } from "./relay-detail.tsx";
 
 export type Public_Model = {
     relaySelectedChannel: Map<string, /* relay url */ string /* channel name */>;
@@ -26,6 +27,7 @@ export type func_IsUserBlocked = (pubkey: PublicKey) => boolean;
 type Props = {
     ctx: NostrAccountContext;
     relay: SingleRelayConnection;
+    relayInformation: RelayInformation;
     bus: EventBus<UI_Interaction_Event>;
     messages: ChatMessage[];
     getters: {
@@ -86,6 +88,7 @@ export class PublicMessageContainer extends Component<Props, State> {
                                 {
                                     <MessagePanel
                                         key={props.relay.url}
+                                        relayInformation={props.relayInformation}
                                         myPublicKey={props.ctx.publicKey}
                                         emit={props.bus.emit}
                                         eventSub={props.bus}

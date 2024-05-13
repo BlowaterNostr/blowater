@@ -1,15 +1,16 @@
 import { NavigationModel } from "./nav.tsx";
-import { ProfileData } from "../features/profile.ts";
-
 import { DM_Model } from "./dm.tsx";
 import { Public_Model } from "./public-message-container.tsx";
 import { App } from "./app.tsx";
-import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { default_blowater_relay } from "./relay-config.ts";
+import { getRelayInformation, RelayInformation } from "./relay-detail.tsx";
 
 export type Model = {
     app?: App; // app is only available after sign-in
-    currentRelay: string;
+    currentRelay: {
+        url: string;
+        relayInformation: RelayInformation;
+    };
     dm: DM_Model;
 
     public: Public_Model;
@@ -24,10 +25,13 @@ export type Model = {
     navigationModel: NavigationModel;
 };
 
-export function initialModel(): Model {
+export async function initialModel(): Promise<Model> {
     return {
         app: undefined,
-        currentRelay: default_blowater_relay,
+        currentRelay: {
+            url: default_blowater_relay,
+            relayInformation: await getRelayInformation(default_blowater_relay),
+        },
         dm: {
             currentConversation: undefined,
         },

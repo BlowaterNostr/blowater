@@ -47,7 +47,7 @@ export async function Start(database: DexieDatabase) {
     });
 
     const lamport = new LamportTime();
-    const model = initialModel();
+    const model = await initialModel();
     const eventBus = new EventBus<UI_Interaction_Event>();
     const pool = new ConnectionPool();
     const popOverInputChan: PopOverInputChannel = new Channel();
@@ -367,6 +367,7 @@ export class AppComponent extends Component<AppProps> {
                 <PublicMessageContainer
                     ctx={myAccountCtx}
                     {...model.public}
+                    relayInformation={model.currentRelay.relayInformation}
                     getters={{
                         messageGetter: app.dmController,
                         convoListRetriever: app.conversationLists,
@@ -386,7 +387,7 @@ export class AppComponent extends Component<AppProps> {
                                         return false;
                                     }
                                     const relays = app.database.getRelayRecord(e.id);
-                                    return relays.has(model.currentRelay);
+                                    return relays.has(model.currentRelay.url);
                                 },
                             ),
                             (e) => {
@@ -403,7 +404,7 @@ export class AppComponent extends Component<AppProps> {
                             },
                         ),
                     )}
-                    relay={props.pool.getRelay(model.currentRelay) as SingleRelayConnection}
+                    relay={props.pool.getRelay(model.currentRelay.url) as SingleRelayConnection}
                     bus={app.eventBus}
                 />
             );
@@ -436,7 +437,7 @@ export class AppComponent extends Component<AppProps> {
                     profile={app.database.getProfileByPublicKey(myAccountCtx.publicKey)}
                     emit={app.eventBus.emit}
                     installPrompt={props.installPrompt}
-                    currentRelay={model.currentRelay}
+                    currentRelay={model.currentRelay.url}
                     activeNav={model.navigationModel.activeNav}
                     pool={app.pool}
                 />

@@ -26,6 +26,7 @@ import { BlockUser, UnblockUser } from "./user-detail.tsx";
 import { func_GetEventByID, MessageList, ReplyToMessage } from "./message-list.tsx";
 import { MessageList_V0 } from "./message-list.tsx";
 import { func_GetProfileByPublicKey } from "./search.tsx";
+import { RelayInformation } from "./relay-detail.tsx";
 
 export type DirectMessagePanelUpdate =
     | ViewUserDetail
@@ -46,6 +47,7 @@ export type ViewUserDetail = {
 };
 
 interface MessagePanelProps {
+    relayInformation?: RelayInformation;
     myPublicKey: PublicKey;
 
     emit: emitFunc<
@@ -80,6 +82,7 @@ export class MessagePanel extends Component<MessagePanelProps> {
 
                     <MessageList
                         key={props.messages[0]?.event.id} // this is not a 100% correct key which should be a stable hash of the whole array
+                        relayInformation={props.relayInformation}
                         myPublicKey={props.myPublicKey}
                         messages={props.messages}
                         emit={props.emit}

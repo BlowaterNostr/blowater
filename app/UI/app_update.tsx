@@ -40,7 +40,7 @@ import { DirectMessagePanelUpdate } from "./message-panel.tsx";
 import { ChatMessage, parseContent } from "./message.ts";
 import { InstallPrompt, NavigationModel, NavigationUpdate, SelectRelay } from "./nav.tsx";
 import { notify } from "./notification.ts";
-import { RelayInformationComponent } from "./relay-detail.tsx";
+import { getRelayInformation, RelayInformationComponent } from "./relay-detail.tsx";
 import { Search } from "./search.tsx";
 import { SearchUpdate, SelectConversation } from "./search_model.ts";
 import { RelayConfigChange, ViewRecommendedRelaysList, ViewRelayDetail } from "./setting.tsx";
@@ -171,7 +171,7 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
             continue;
         }
 
-        const current_relay = pool.getRelay(model.currentRelay);
+        const current_relay = pool.getRelay(model.currentRelay.url);
         if (current_relay == undefined) {
             console.error(Array.from(pool.getRelays()));
             continue;
@@ -185,7 +185,8 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
 
         // All events below are only valid after signning in
         if (event.type == "SelectRelay") {
-            model.currentRelay = event.relay.url;
+            model.currentRelay.url = event.relay.url;
+            model.currentRelay.relayInformation = event.relayInformation;
         } //
         // Searchx
         //
@@ -358,7 +359,10 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                         return;
                     }
                     if (current_relay.url == event.url) {
-                        model.currentRelay = default_blowater_relay;
+                        model.currentRelay.url = default_blowater_relay;
+                        model.currentRelay.relayInformation = await getRelayInformation(
+                            default_blowater_relay,
+                        );
                     }
                 }
             })();
