@@ -5,7 +5,7 @@ import {
     PutChannel,
     sleep,
 } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { prepareNormalNostrEvent } from "../../libs/nostr.ts/event.ts";
+import { prepareDeletionEvent, prepareNormalNostrEvent } from "../../libs/nostr.ts/event.ts";
 import { prepareReplyEvent } from "../nostr.ts";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { NoteID } from "../../libs/nostr.ts/nip19.ts";
@@ -55,7 +55,7 @@ import { SendingEventRejection, ToastChannel } from "./components/toast.tsx";
 import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 import { default_blowater_relay } from "./relay-config.ts";
 import { forever } from "./_helper.ts";
-import { func_GetEventByID } from "./message-list.tsx";
+import { DeleteEvent, func_GetEventByID } from "./message-list.tsx";
 import { FilterContent } from "./filter.tsx";
 import { CloseRightPanel } from "./components/right-panel.tsx";
 import { RightPanelChannel } from "./components/right-panel.tsx";
@@ -86,7 +86,8 @@ export type UI_Interaction_Event =
     | FilterContent
     | CloseRightPanel
     | ReplyToMessage
-    | EditorSelectProfile;
+    | EditorSelectProfile
+    | DeleteEvent;
 
 type BackToContactList = {
     type: "BackToContactList";
@@ -316,6 +317,25 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
             model.navigationModel.activeNav = event.id;
         } else if (event.type == "CloseRightPanel") {
             app.rightPanelInputChan.put(undefined);
+        } //
+        //
+        // Deletion
+        //
+        else if (event.type == "DeleteEvent") {
+            const deletionEvent = await prepareDeletionEvent(
+                app.ctx,
+                "Request deletion",
+                event.event,
+            );
+            if (deletionEvent instanceof Error) {
+                app.toastInputChan.put(() => deletionEvent.message);
+                continue;
+            }
+            const err = await current_relay.sendEvent(deletionEvent);
+            if (err instanceof Error) {
+                app.toastInputChan.put(() => err.message);
+                continue;
+            }
         } //
         //
         // DM

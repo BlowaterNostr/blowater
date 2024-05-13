@@ -41,7 +41,12 @@ interface Props {
     myPublicKey: PublicKey;
     messages: ChatMessage[];
     emit: emitFunc<
-        DirectMessagePanelUpdate | SelectConversation | SyncEvent | ViewUserDetail | ReplyToMessage
+        | DirectMessagePanelUpdate
+        | SelectConversation
+        | SyncEvent
+        | ViewUserDetail
+        | ReplyToMessage
+        | DeleteEvent
     >;
     getters: {
         messageGetter: ChatMessagesGetter;
@@ -283,7 +288,12 @@ function MessageBoxGroup(props: {
     relayInformation?: RelayInformation;
     myPublicKey: PublicKey;
     emit: emitFunc<
-        DirectMessagePanelUpdate | ViewUserDetail | SelectConversation | SyncEvent | ReplyToMessage
+        | DirectMessagePanelUpdate
+        | ViewUserDetail
+        | SelectConversation
+        | SyncEvent
+        | ReplyToMessage
+        | DeleteEvent
     >;
     getters: {
         messageGetter: ChatMessagesGetter;
@@ -389,7 +399,7 @@ function MessageActions(
     adminPublicKeyHex: string | undefined,
     myPublicKey: PublicKey,
     message: ChatMessage,
-    emit: emitFunc<DirectMessagePanelUpdate | ReplyToMessage>,
+    emit: emitFunc<DirectMessagePanelUpdate | ReplyToMessage | DeleteEvent>,
 ) {
     return (
         <div
@@ -422,7 +432,10 @@ function MessageActions(
                 p-1
                 bg-[#313338] hover:bg-[#3A3C41]`}
                         onClick={() => {
-                            console.log("delete message");
+                            emit({
+                                type: "DeleteEvent",
+                                event: message.event,
+                            });
                         }}
                     >
                         <DeleteIcon class={`w-5 h-5 text-[#B6BAC0] hover:text-[#D9DBDE]`} />
@@ -445,6 +458,11 @@ function MessageActions(
         </div>
     );
 }
+
+export type DeleteEvent = {
+    type: "DeleteEvent";
+    event: Parsed_Event;
+};
 
 function last<T>(array: Array<T>): T | undefined {
     if (array.length == 0) {

@@ -23,7 +23,7 @@ import {
     LinkColor,
 } from "./style/colors.ts";
 import { BlockUser, UnblockUser } from "./user-detail.tsx";
-import { func_GetEventByID, MessageList, ReplyToMessage } from "./message-list.tsx";
+import { DeleteEvent, func_GetEventByID, MessageList, ReplyToMessage } from "./message-list.tsx";
 import { MessageList_V0 } from "./message-list.tsx";
 import { func_GetProfileByPublicKey } from "./search.tsx";
 import { RelayInformation } from "./relay-detail.tsx";
@@ -60,6 +60,7 @@ interface MessagePanelProps {
         | UnblockUser
         | SyncEvent
         | ReplyToMessage
+        | DeleteEvent
     >;
     eventSub: EventSubscriber<UI_Interaction_Event>;
     messages: ChatMessage[];
