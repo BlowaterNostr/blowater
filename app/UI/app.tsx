@@ -328,20 +328,13 @@ export class AppComponent extends Component<AppProps, {
     };
 
     async componentDidMount() {
-        const currentRelayInformation = await getRelayInformation(this.props.model.currentRelay);
-        if (currentRelayInformation instanceof Error) {
-            console.error(currentRelayInformation);
-            return;
+        await this.updateAdminState();
+        for await (const update of this.props.eventBus.onChange()) {
+            if (update.type == "SelectRelay") {
+                this.updateAdminState();
+            }
         }
-        this.setState({
-            admin: currentRelayInformation.pubkey,
-            isAdmin: this.isAdmin(currentRelayInformation.pubkey),
-        });
     }
-
-    isAdmin = (admin?: string) => (pubkey: string) => {
-        return admin === pubkey;
-    };
 
     render(props: AppProps) {
         const t = Date.now();
@@ -494,6 +487,22 @@ export class AppComponent extends Component<AppProps, {
         console.debug("AppComponent:end", Date.now() - t);
         return final;
     }
+
+    updateAdminState = async () => {
+        const currentRelayInformation = await getRelayInformation(this.props.model.currentRelay);
+        if (currentRelayInformation instanceof Error) {
+            console.error(currentRelayInformation);
+            return;
+        }
+        this.setState({
+            admin: currentRelayInformation.pubkey,
+            isAdmin: this.isAdmin(currentRelayInformation.pubkey),
+        });
+    };
+
+    isAdmin = (admin?: string) => (pubkey: string) => {
+        return admin === pubkey;
+    };
 }
 
 // todo: move to somewhere else
