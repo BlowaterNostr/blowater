@@ -40,7 +40,7 @@ import { DirectMessagePanelUpdate } from "./message-panel.tsx";
 import { ChatMessage, parseContent } from "./message.ts";
 import { InstallPrompt, NavigationModel, NavigationUpdate, SelectRelay } from "./nav.tsx";
 import { notify } from "./notification.ts";
-import { getRelayInformation, RelayInformationComponent } from "./relay-detail.tsx";
+import { RelayInformationComponent } from "./relay-detail.tsx";
 import { Search } from "./search.tsx";
 import { SearchUpdate, SelectConversation } from "./search_model.ts";
 import { RelayConfigChange, ViewRecommendedRelaysList, ViewRelayDetail } from "./setting.tsx";
