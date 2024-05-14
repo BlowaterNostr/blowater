@@ -23,7 +23,6 @@ import { RelaySwitchList } from "./relay-switch-list.tsx";
 import { SocialIcon } from "./icons/social-icon.tsx";
 import { SearchIcon } from "./icons/search-icon.tsx";
 import { StartSearch } from "./search_model.ts";
-import { RelayInformation } from "./relay-detail.tsx";
 
 export type InstallPrompt = {
     event: Event | undefined;

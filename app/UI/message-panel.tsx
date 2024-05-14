@@ -32,7 +32,6 @@ import {
 } from "./message-list.tsx";
 import { MessageList_V0 } from "./message-list.tsx";
 import { func_GetProfileByPublicKey } from "./search.tsx";
-import { RelayInformation } from "./relay-detail.tsx";
 
 export type DirectMessagePanelUpdate =
     | ViewUserDetail
