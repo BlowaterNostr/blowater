@@ -120,10 +120,11 @@ export class SignIn extends Component<Props, State> {
                             console.error(nip07);
                             return;
                         }
-                        this.props.emit({
+                        await this.props.emit({
                             type: "SignInEvent",
                             ctx: nip07,
                         });
+                        setSignInState("nip07");
                     }}
                     class={`w-full p-3 rounded-lg  flex items-center justify-center bg-[#4d4f57] hover:bg-[#6c6f77]`}
                 >
