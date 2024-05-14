@@ -138,30 +138,26 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
         console.log(event);
         if (event.type == "SignInEvent") {
             const ctx = event.ctx;
-            if (ctx) {
-                console.log("sign in as", ctx.publicKey.bech32());
-                const otherConfig = await OtherConfig.FromLocalStorage(
-                    ctx,
-                    args.newNostrEventChannel,
-                    args.lamport,
-                );
-                const app = await App.Start({
-                    database: dbView,
-                    model,
-                    ctx,
-                    eventBus,
-                    pool,
-                    popOverInputChan: args.popOver,
-                    rightPanelInputChan: args.rightPanel,
-                    otherConfig,
-                    lamport: args.lamport,
-                    installPrompt,
-                    toastInputChan: args.toastInputChan,
-                });
-                model.app = app;
-            } else {
-                console.error("failed to sign in");
-            }
+            console.log("sign in as", ctx.publicKey.bech32());
+            const otherConfig = await OtherConfig.FromLocalStorage(
+                ctx,
+                args.newNostrEventChannel,
+                args.lamport,
+            );
+            const app = await App.Start({
+                database: dbView,
+                model,
+                ctx,
+                eventBus,
+                pool,
+                popOverInputChan: args.popOver,
+                rightPanelInputChan: args.rightPanel,
+                otherConfig,
+                lamport: args.lamport,
+                installPrompt,
+                toastInputChan: args.toastInputChan,
+            });
+            model.app = app;
             continue;
         }
 
