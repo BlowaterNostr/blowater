@@ -403,7 +403,8 @@ export class AppComponent extends Component<AppProps> {
                                         return false;
                                     }
                                     const relays = app.database.getRelayRecord(e.id);
-                                    return relays.has(model.currentRelay.url);
+                                    return relays.has(model.currentRelay.url) &&
+                                        !app.database.isDeleted(e.id, model.currentRelay.relayInformation);
                                 },
                             ),
                             (e) => {
