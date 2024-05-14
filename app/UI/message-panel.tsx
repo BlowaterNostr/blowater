@@ -74,7 +74,7 @@ interface MessagePanelProps {
         relayRecordGetter: RelayRecordGetter;
         isUserBlocked: (pubkey: PublicKey) => boolean;
         getEventByID: func_GetEventByID;
-        isAdmin: func_IsAdmin;
+        isAdmin: func_IsAdmin | undefined;
     };
 }
 

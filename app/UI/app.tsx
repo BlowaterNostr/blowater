@@ -35,6 +35,7 @@ import { Toast } from "./components/toast.tsx";
 import { ToastChannel } from "./components/toast.tsx";
 import { RightPanelChannel } from "./components/right-panel.tsx";
 import { getRelayInformation } from "./relay-detail.tsx";
+import { func_IsAdmin } from "./message-list.tsx";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
@@ -56,13 +57,6 @@ export async function Start(database: DexieDatabase) {
     const toastInputChan: ToastChannel = new Channel();
     const dbView = await Database_View.New(database, database, database);
     const newNostrEventChannel = new Channel<NostrEvent>();
-
-    const currentRelayInformation = await getRelayInformation(model.currentRelay.url);
-    if (currentRelayInformation instanceof Error) {
-        console.error(currentRelayInformation);
-    } else {
-        model.currentRelay.relayInformation = currentRelayInformation;
-    }
 
     (async () => {
         for await (const event of newNostrEventChannel) {
@@ -324,7 +318,31 @@ type AppProps = {
     installPrompt: InstallPrompt;
 };
 
-export class AppComponent extends Component<AppProps> {
+export class AppComponent extends Component<AppProps, {
+    isAdmin: func_IsAdmin | undefined;
+    admin: string | undefined;
+}> {
+    state = {
+        isAdmin: undefined,
+        admin: undefined,
+    };
+
+    async componentDidMount() {
+        const currentRelayInformation = await getRelayInformation(this.props.model.currentRelay);
+        if (currentRelayInformation instanceof Error) {
+            console.error(currentRelayInformation);
+            return;
+        }
+        this.setState({
+            admin: currentRelayInformation.pubkey,
+            isAdmin: this.isAdmin(currentRelayInformation.pubkey),
+        });
+    }
+
+    isAdmin = (admin?: string) => (pubkey: string) => {
+        return admin === pubkey;
+    };
+
     render(props: AppProps) {
         const t = Date.now();
         const model = props.model;
@@ -359,10 +377,7 @@ export class AppComponent extends Component<AppProps> {
                             getProfilesByText: app.database.getProfilesByText,
                             isUserBlocked: app.conversationLists.isUserBlocked,
                             getEventByID: app.database.getEventByID,
-                            isAdmin: (pubkey) => {
-                                return model.currentRelay.relayInformation?.pubkey ===
-                                    (pubkey instanceof PublicKey ? pubkey.hex : pubkey);
-                            },
+                            isAdmin: this.state.isAdmin,
                         }}
                         userBlocker={app.conversationLists}
                     />
@@ -389,10 +404,7 @@ export class AppComponent extends Component<AppProps> {
                         getProfilesByText: app.database.getProfilesByText,
                         isUserBlocked: app.conversationLists.isUserBlocked,
                         getEventByID: app.database.getEventByID,
-                        isAdmin: (pubkey) => {
-                            return model.currentRelay.relayInformation?.pubkey ===
-                                (pubkey instanceof PublicKey ? pubkey.hex : pubkey);
-                        },
+                        isAdmin: this.state.isAdmin,
                     }}
                     messages={Array.from(
                         map(
@@ -403,8 +415,8 @@ export class AppComponent extends Component<AppProps> {
                                         return false;
                                     }
                                     const relays = app.database.getRelayRecord(e.id);
-                                    return relays.has(model.currentRelay.url) &&
-                                        !app.database.isDeleted(e.id, model.currentRelay.relayInformation);
+                                    return relays.has(model.currentRelay) &&
+                                        !app.database.isDeleted(e.id, this.state.admin);
                                 },
                             ),
                             (e) => {
@@ -420,7 +432,7 @@ export class AppComponent extends Component<AppProps> {
                             },
                         ),
                     )}
-                    relay={props.pool.getRelay(model.currentRelay.url) as SingleRelayConnection}
+                    relay={props.pool.getRelay(model.currentRelay) as SingleRelayConnection}
                     bus={app.eventBus}
                 />
             );
@@ -453,7 +465,7 @@ export class AppComponent extends Component<AppProps> {
                     profile={app.database.getProfileByPublicKey(myAccountCtx.publicKey)}
                     emit={app.eventBus.emit}
                     installPrompt={props.installPrompt}
-                    currentRelay={model.currentRelay.url}
+                    currentRelay={model.currentRelay}
                     activeNav={model.navigationModel.activeNav}
                     pool={app.pool}
                 />
@@ -597,7 +609,7 @@ const sync_deletion_events = async (
 ) => {
     const stream = await pool.newSub("sync_deletion_events", {
         kinds: [NostrKind.DELETE],
-        since: hours_ago(3),
+        since: hours_ago(48),
     });
     if (stream instanceof Error) {
         return stream;

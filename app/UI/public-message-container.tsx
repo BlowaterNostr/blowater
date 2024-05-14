@@ -37,7 +37,7 @@ type Props = {
         relayRecordGetter: RelayRecordGetter;
         isUserBlocked: func_IsUserBlocked;
         getEventByID: func_GetEventByID;
-        isAdmin: func_IsAdmin;
+        isAdmin: func_IsAdmin | undefined;
     };
 } & Public_Model;
 

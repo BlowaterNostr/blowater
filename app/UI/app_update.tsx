@@ -172,7 +172,7 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
             continue;
         }
 
-        const current_relay = pool.getRelay(model.currentRelay.url);
+        const current_relay = pool.getRelay(model.currentRelay);
         if (current_relay == undefined) {
             console.error(Array.from(pool.getRelays()));
             continue;
@@ -186,8 +186,7 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
 
         // All events below are only valid after signning in
         if (event.type == "SelectRelay") {
-            model.currentRelay.url = event.relay.url;
-            model.currentRelay.relayInformation = await getRelayInformation(event.relay.url);
+            model.currentRelay = event.relay.url;
         } //
         // Searchx
         //
@@ -379,10 +378,7 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                         return;
                     }
                     if (current_relay.url == event.url) {
-                        model.currentRelay.url = default_blowater_relay;
-                        model.currentRelay.relayInformation = await getRelayInformation(
-                            default_blowater_relay,
-                        );
+                        model.currentRelay = default_blowater_relay;
                     }
                 }
             })();

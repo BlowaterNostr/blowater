@@ -36,7 +36,7 @@ import { NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { func_GetProfileByPublicKey } from "./search.tsx";
 import { DeleteIcon } from "./icons/delete-icon.tsx";
 
-export type func_IsAdmin = (pubkey: string | PublicKey) => boolean;
+export type func_IsAdmin = (pubkey: string) => boolean;
 
 interface Props {
     myPublicKey: PublicKey;
@@ -54,7 +54,7 @@ interface Props {
         getProfileByPublicKey: func_GetProfileByPublicKey;
         relayRecordGetter: RelayRecordGetter;
         getEventByID: func_GetEventByID;
-        isAdmin: func_IsAdmin;
+        isAdmin: func_IsAdmin | undefined;
     };
 }
 
@@ -299,7 +299,7 @@ function MessageBoxGroup(props: {
         getProfileByPublicKey: func_GetProfileByPublicKey;
         relayRecordGetter: RelayRecordGetter;
         getEventByID: func_GetEventByID;
-        isAdmin: func_IsAdmin;
+        isAdmin: func_IsAdmin | undefined;
     };
 }) {
     const first_message = props.messages[0];
@@ -407,7 +407,7 @@ function MessageActions(args: {
     myPublicKey: PublicKey;
     message: ChatMessage;
     emit: emitFunc<DirectMessagePanelUpdate | ReplyToMessage | DeleteEvent>;
-    isAdmin: func_IsAdmin;
+    isAdmin: func_IsAdmin | undefined;
 }) {
     const { myPublicKey, message, emit, isAdmin } = args;
     return (
@@ -434,7 +434,7 @@ function MessageActions(args: {
                 <ReplyIcon class={`w-5 h-5 text-[#B6BAC0] hover:text-[#D9DBDE]`} />
             </button>
 
-            {(myPublicKey.hex === message.author.hex || isAdmin(myPublicKey)) &&
+            {(myPublicKey.hex === message.author.hex || (isAdmin && isAdmin(myPublicKey.hex))) &&
                 (message.event.kind === NostrKind.TEXT_NOTE) &&
                 (
                     <button

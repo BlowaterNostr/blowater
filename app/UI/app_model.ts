@@ -7,10 +7,7 @@ import { RelayInformation } from "./relay-detail.tsx";
 
 export type Model = {
     app?: App; // app is only available after sign-in
-    currentRelay: {
-        url: string;
-        relayInformation?: RelayInformation;
-    };
+    currentRelay: string;
     dm: DM_Model;
 
     public: Public_Model;
@@ -28,9 +25,7 @@ export type Model = {
 export function initialModel(): Model {
     return {
         app: undefined,
-        currentRelay: {
-            url: default_blowater_relay,
-        },
+        currentRelay: default_blowater_relay,
         dm: {
             currentConversation: undefined,
         },

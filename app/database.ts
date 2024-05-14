@@ -165,11 +165,17 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
         }
     }
 
-    isDeleted(id: string, relayInformation?: RelayInformation) {
+    isDeleted(id: string, admin?: string) {
         const deletionEvent = this.deletionEvents.get(id);
+        if (deletionEvent == undefined) {
+            return false;
+        }
         const targetEvent = this.getEventByID(id);
-        return deletionEvent?.pubkey == targetEvent?.publicKey.hex ||
-            deletionEvent?.pubkey == relayInformation?.pubkey;
+        if (targetEvent == undefined) {
+            return false;
+        }
+        return deletionEvent.pubkey == targetEvent.publicKey.hex ||
+            deletionEvent.pubkey == admin;
     }
 
     async remove(id: string): Promise<void> {
