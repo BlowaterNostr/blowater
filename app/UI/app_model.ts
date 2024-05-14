@@ -1,10 +1,7 @@
 import { NavigationModel } from "./nav.tsx";
-import { ProfileData } from "../features/profile.ts";
-
 import { DM_Model } from "./dm.tsx";
 import { Public_Model } from "./public-message-container.tsx";
 import { App } from "./app.tsx";
-import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { default_blowater_relay } from "./relay-config.ts";
 
 export type Model = {

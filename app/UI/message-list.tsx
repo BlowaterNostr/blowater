@@ -29,23 +29,32 @@ import { AboutIcon } from "./icons/about-icon.tsx";
 import { BackgroundColor_MessagePanel, PrimaryTextColor } from "./style/colors.ts";
 import { Parsed_Event } from "../nostr.ts";
 import { NoteID } from "../../libs/nostr.ts/nip19.ts";
-import { robohash } from "./relay-detail.tsx";
+import { RelayInformation, robohash } from "./relay-detail.tsx";
 import { ReplyIcon } from "./icons/reply-icon.tsx";
 import { ChatMessagesGetter } from "./app_update.tsx";
 import { NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { func_GetProfileByPublicKey } from "./search.tsx";
+import { DeleteIcon } from "./icons/delete-icon.tsx";
+
+export type func_IsAdmin = (pubkey: string) => boolean;
 
 interface Props {
     myPublicKey: PublicKey;
     messages: ChatMessage[];
     emit: emitFunc<
-        DirectMessagePanelUpdate | SelectConversation | SyncEvent | ViewUserDetail | ReplyToMessage
+        | DirectMessagePanelUpdate
+        | SelectConversation
+        | SyncEvent
+        | ViewUserDetail
+        | ReplyToMessage
+        | DeleteEvent
     >;
     getters: {
         messageGetter: ChatMessagesGetter;
         getProfileByPublicKey: func_GetProfileByPublicKey;
         relayRecordGetter: RelayRecordGetter;
         getEventByID: func_GetEventByID;
+        isAdmin: func_IsAdmin | undefined;
     };
 }
 
@@ -278,16 +287,23 @@ function MessageBoxGroup(props: {
     messages: ChatMessage[];
     myPublicKey: PublicKey;
     emit: emitFunc<
-        DirectMessagePanelUpdate | ViewUserDetail | SelectConversation | SyncEvent | ReplyToMessage
+        | DirectMessagePanelUpdate
+        | ViewUserDetail
+        | SelectConversation
+        | SyncEvent
+        | ReplyToMessage
+        | DeleteEvent
     >;
     getters: {
         messageGetter: ChatMessagesGetter;
         getProfileByPublicKey: func_GetProfileByPublicKey;
         relayRecordGetter: RelayRecordGetter;
         getEventByID: func_GetEventByID;
+        isAdmin: func_IsAdmin | undefined;
     };
 }) {
     const first_message = props.messages[0];
+    const { myPublicKey } = props;
     const rows = [];
 
     rows.push(
@@ -296,7 +312,12 @@ function MessageBoxGroup(props: {
                 isMobile() ? "select-none" : ""
             }`}
         >
-            {MessageActions(first_message, props.emit)}
+            {MessageActions({
+                isAdmin: props.getters.isAdmin,
+                myPublicKey,
+                message: first_message,
+                emit: props.emit,
+            })}
             {renderRelply(first_message.event, props.getters, props.emit)}
             <div class="flex items-start">
                 <Avatar
@@ -345,7 +366,12 @@ function MessageBoxGroup(props: {
                     isMobile() ? "select-none" : ""
                 }`}
             >
-                {MessageActions(msg, props.emit)}
+                {MessageActions({
+                    isAdmin: props.getters.isAdmin,
+                    myPublicKey,
+                    message: msg,
+                    emit: props.emit,
+                })}
                 {Time(msg.created_at)}
                 <div
                     class={`flex-1`}
@@ -377,10 +403,13 @@ export type ReplyToMessage = {
     event: Parsed_Event;
 };
 
-function MessageActions(
-    message: ChatMessage,
-    emit: emitFunc<DirectMessagePanelUpdate | ReplyToMessage>,
-) {
+function MessageActions(args: {
+    myPublicKey: PublicKey;
+    message: ChatMessage;
+    emit: emitFunc<DirectMessagePanelUpdate | ReplyToMessage | DeleteEvent>;
+    isAdmin: func_IsAdmin | undefined;
+}) {
+    const { myPublicKey, message, emit, isAdmin } = args;
     return (
         <div
             class={`hidden
@@ -405,6 +434,24 @@ function MessageActions(
                 <ReplyIcon class={`w-5 h-5 text-[#B6BAC0] hover:text-[#D9DBDE]`} />
             </button>
 
+            {(myPublicKey.hex === message.author.hex || (isAdmin && isAdmin(myPublicKey.hex))) &&
+                (message.event.kind === NostrKind.TEXT_NOTE) &&
+                (
+                    <button
+                        class={`flex items-center justify-center
+                p-1
+                bg-[#313338] hover:bg-[#3A3C41]`}
+                        onClick={() => {
+                            emit({
+                                type: "DeleteEvent",
+                                event: message.event,
+                            });
+                        }}
+                    >
+                        <DeleteIcon class={`w-5 h-5 text-[#B6BAC0] hover:text-[#D9DBDE]`} />
+                    </button>
+                )}
+
             <button
                 class={`flex items-center justify-center
                 p-1
@@ -421,6 +468,11 @@ function MessageActions(
         </div>
     );
 }
+
+export type DeleteEvent = {
+    type: "DeleteEvent";
+    event: Parsed_Event;
+};
 
 function last<T>(array: Array<T>): T | undefined {
     if (array.length == 0) {

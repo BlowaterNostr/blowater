@@ -23,7 +23,6 @@ import { RelaySwitchList } from "./relay-switch-list.tsx";
 import { SocialIcon } from "./icons/social-icon.tsx";
 import { SearchIcon } from "./icons/search-icon.tsx";
 import { StartSearch } from "./search_model.ts";
-import { setState } from "./_helper.ts";
 
 export type InstallPrompt = {
     event: Event | undefined;
@@ -49,8 +48,8 @@ type Props = {
     emit: emitFunc<NavigationUpdate | SelectRelay | StartSearch>;
     installPrompt: InstallPrompt;
     pool: ConnectionPool;
-    currentRelay?: string;
     activeNav: NavTabID;
+    currentRelay: string;
 };
 
 type State = {
@@ -140,8 +139,13 @@ export class NavBar extends Component<Props, State> {
     render(props: Props) {
         return (
             <div class={this.styles.container}>
-                {/* <Avatar class={this.styles.avatar} picture={this.props.profile?.profile?.picture} /> */}
-                {<RelaySwitchList emit={props.emit} pool={props.pool} currentRelay={props.currentRelay} />}
+                {
+                    <RelaySwitchList
+                        emit={props.emit}
+                        pool={props.pool}
+                        currentRelay={props.currentRelay}
+                    />
+                }
                 {this.tabs.map(({ icon, id }) => (
                     <div class={this.styles.tabsContainer}>
                         {id === "Setting" && this.state.installPrompt.event

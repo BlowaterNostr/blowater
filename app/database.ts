@@ -65,6 +65,7 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
     private readonly sourceOfChange = csp.chan<{ event: Parsed_Event; relay?: string }>(buffer_size);
     private readonly caster = csp.multi<{ event: Parsed_Event; relay?: string }>(this.sourceOfChange);
     private readonly profiles = new Map<string, Profile_Nostr_Event>();
+    private readonly deletionEvents = new Map</* event id */ string, /* deletion event */ Parsed_Event>();
 
     private constructor(
         private readonly eventsAdapter: EventsAdapter,
@@ -125,18 +126,22 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
             new Set(all_removed_events.map((mark) => mark.event_id)),
         );
         console.log("Datebase_View:New time spent", Date.now() - t);
-        for (const e of db.events.values()) {
-            if (e.kind == NostrKind.META_DATA) {
+        for (const event of db.events.values()) {
+            if (event.kind == NostrKind.META_DATA) {
                 // @ts-ignore
-                const pEvent = parseProfileEvent(e);
+                const pEvent = parseProfileEvent(event);
                 if (pEvent instanceof Error) {
                     console.error(pEvent);
                     continue;
                 }
                 db.setProfile(pEvent);
+            } else if (event.kind == NostrKind.DELETE) {
+                event.parsedTags.e.forEach((event_id) => {
+                    db.deletionEvents.set(event_id, event);
+                });
             }
         }
-
+        console.log(`Datebase_View:Deletion events size: ${db.deletionEvents.size}`);
         return db;
     }
 
@@ -157,6 +162,19 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
             }
             yield event;
         }
+    }
+
+    isDeleted(id: string, admin?: string) {
+        const deletionEvent = this.deletionEvents.get(id);
+        if (deletionEvent == undefined) {
+            return false;
+        }
+        const targetEvent = this.getEventByID(id);
+        if (targetEvent == undefined) {
+            return false;
+        }
+        return deletionEvent.pubkey == targetEvent.publicKey.hex ||
+            deletionEvent.pubkey == admin;
     }
 
     async remove(id: string): Promise<void> {
@@ -274,6 +292,10 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
                 return pEvent;
             }
             this.setProfile(pEvent);
+        } else if (parsedEvent.kind == NostrKind.DELETE) {
+            parsedEvent.parsedTags.e.forEach((event_id) => {
+                this.deletionEvents.set(event_id, parsedEvent);
+            });
         }
 
         await this.eventsAdapter.put(event);

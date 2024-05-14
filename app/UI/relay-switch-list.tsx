@@ -11,9 +11,9 @@ import { setState } from "./_helper.ts";
 import { AddIcon } from "./icons/add-icon.tsx";
 
 type RelaySwitchListProps = {
-    currentRelay?: string;
     pool: ConnectionPool;
     emit: emitFunc<SelectRelay | NavigationUpdate>;
+    currentRelay: string;
 };
 
 type RelaySwitchListState = {

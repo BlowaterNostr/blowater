@@ -23,7 +23,13 @@ import {
     LinkColor,
 } from "./style/colors.ts";
 import { BlockUser, UnblockUser } from "./user-detail.tsx";
-import { func_GetEventByID, MessageList, ReplyToMessage } from "./message-list.tsx";
+import {
+    DeleteEvent,
+    func_GetEventByID,
+    func_IsAdmin,
+    MessageList,
+    ReplyToMessage,
+} from "./message-list.tsx";
 import { MessageList_V0 } from "./message-list.tsx";
 import { func_GetProfileByPublicKey } from "./search.tsx";
 
@@ -47,7 +53,6 @@ export type ViewUserDetail = {
 
 interface MessagePanelProps {
     myPublicKey: PublicKey;
-
     emit: emitFunc<
         | EditorEvent
         | DirectMessagePanelUpdate
@@ -58,6 +63,7 @@ interface MessagePanelProps {
         | UnblockUser
         | SyncEvent
         | ReplyToMessage
+        | DeleteEvent
     >;
     eventSub: EventSubscriber<UI_Interaction_Event>;
     messages: ChatMessage[];
@@ -68,6 +74,7 @@ interface MessagePanelProps {
         relayRecordGetter: RelayRecordGetter;
         isUserBlocked: (pubkey: PublicKey) => boolean;
         getEventByID: func_GetEventByID;
+        isAdmin: func_IsAdmin | undefined;
     };
 }
 

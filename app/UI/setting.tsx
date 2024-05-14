@@ -248,10 +248,7 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
                                             onClick={this.removeRelay(props, r.url)}
                                         >
                                             <DeleteIcon
-                                                class={`w-[1rem] h-[1rem]`}
-                                                style={{
-                                                    stroke: ErrorColor,
-                                                }}
+                                                class={`w-[1rem] h-[1rem] text-[${ErrorColor}]`}
                                             />
                                         </button>
                                     )

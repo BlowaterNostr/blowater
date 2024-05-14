@@ -9,7 +9,7 @@ import { IconButtonClass } from "./components/tw.ts";
 
 import { LeftArrowIcon } from "./icons/left-arrow-icon.tsx";
 import { MessagePanel_V0 } from "./message-panel.tsx";
-import { func_GetProfileByPublicKey, func_GetProfilesByText, ProfileGetter } from "./search.tsx";
+import { func_GetProfileByPublicKey, func_GetProfilesByText } from "./search.tsx";
 
 import {
     ConversationList,
@@ -17,7 +17,7 @@ import {
     NewMessageChecker,
     PinListGetter,
 } from "./conversation-list.tsx";
-import { func_GetEventByID } from "./message-list.tsx";
+import { func_GetEventByID, func_IsAdmin } from "./message-list.tsx";
 
 export type DM_Model = {
     currentConversation: PublicKey | undefined;
@@ -36,6 +36,7 @@ type DirectMessageContainerProps = {
         relayRecordGetter: RelayRecordGetter;
         isUserBlocked: (pubkey: PublicKey) => boolean;
         getEventByID: func_GetEventByID;
+        isAdmin: func_IsAdmin | undefined;
     };
     userBlocker: UserBlocker;
 } & DM_Model;

@@ -29,12 +29,13 @@ import { PublicMessageContainer } from "./public-message-container.tsx";
 import { ChatMessage } from "./message.ts";
 import { filter, forever, map } from "./_helper.ts";
 import { RightPanel } from "./components/right-panel.tsx";
-import { ComponentChildren } from "https://esm.sh/preact@10.17.1";
 import { SignIn } from "./sign-in.tsx";
 import { getTags, Parsed_Event } from "../nostr.ts";
 import { Toast } from "./components/toast.tsx";
 import { ToastChannel } from "./components/toast.tsx";
 import { RightPanelChannel } from "./components/right-panel.tsx";
+import { getRelayInformation } from "./relay-detail.tsx";
+import { func_IsAdmin } from "./message-list.tsx";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
@@ -56,6 +57,7 @@ export async function Start(database: DexieDatabase) {
     const toastInputChan: ToastChannel = new Channel();
     const dbView = await Database_View.New(database, database, database);
     const newNostrEventChannel = new Channel<NostrEvent>();
+
     (async () => {
         for await (const event of newNostrEventChannel) {
             const err = await pool.sendEvent(event);
@@ -246,6 +248,7 @@ export class App {
             forever(sync_client_specific_data(this.pool, this.ctx, this.database));
             forever(sync_profile_events(this.database, this.pool));
             forever(sync_public_notes(this.pool, this.database));
+            forever(sync_deletion_events(this.pool, this.database));
         }
 
         (async () => {
@@ -315,7 +318,24 @@ type AppProps = {
     installPrompt: InstallPrompt;
 };
 
-export class AppComponent extends Component<AppProps> {
+export class AppComponent extends Component<AppProps, {
+    isAdmin: func_IsAdmin | undefined;
+    admin: string | undefined;
+}> {
+    state = {
+        isAdmin: undefined,
+        admin: undefined,
+    };
+
+    async componentDidMount() {
+        await this.updateAdminState();
+        for await (const update of this.props.eventBus.onChange()) {
+            if (update.type == "SelectRelay") {
+                this.updateAdminState();
+            }
+        }
+    }
+
     render(props: AppProps) {
         const t = Date.now();
         const model = props.model;
@@ -350,6 +370,7 @@ export class AppComponent extends Component<AppProps> {
                             getProfilesByText: app.database.getProfilesByText,
                             isUserBlocked: app.conversationLists.isUserBlocked,
                             getEventByID: app.database.getEventByID,
+                            isAdmin: this.state.isAdmin,
                         }}
                         userBlocker={app.conversationLists}
                     />
@@ -376,6 +397,7 @@ export class AppComponent extends Component<AppProps> {
                         getProfilesByText: app.database.getProfilesByText,
                         isUserBlocked: app.conversationLists.isUserBlocked,
                         getEventByID: app.database.getEventByID,
+                        isAdmin: this.state.isAdmin,
                     }}
                     messages={Array.from(
                         map(
@@ -386,7 +408,8 @@ export class AppComponent extends Component<AppProps> {
                                         return false;
                                     }
                                     const relays = app.database.getRelayRecord(e.id);
-                                    return relays.has(model.currentRelay);
+                                    return relays.has(model.currentRelay) &&
+                                        !app.database.isDeleted(e.id, this.state.admin);
                                 },
                             ),
                             (e) => {
@@ -464,6 +487,22 @@ export class AppComponent extends Component<AppProps> {
         console.debug("AppComponent:end", Date.now() - t);
         return final;
     }
+
+    updateAdminState = async () => {
+        const currentRelayInformation = await getRelayInformation(this.props.model.currentRelay);
+        if (currentRelayInformation instanceof Error) {
+            console.error(currentRelayInformation);
+            return;
+        }
+        this.setState({
+            admin: currentRelayInformation.pubkey,
+            isAdmin: this.isAdmin(currentRelayInformation.pubkey),
+        });
+    };
+
+    isAdmin = (admin?: string) => (pubkey: string) => {
+        return admin === pubkey;
+    };
 }
 
 // todo: move to somewhere else
@@ -568,6 +607,33 @@ const sync_client_specific_data = async (
         const ok = await database.addEvent(msg.res.event, msg.url);
         if (ok instanceof Error) {
             console.error(msg.res.event);
+            console.error(ok);
+        }
+    }
+};
+
+const sync_deletion_events = async (
+    pool: ConnectionPool,
+    database: Database_View,
+) => {
+    const stream = await pool.newSub("sync_deletion_events", {
+        kinds: [NostrKind.DELETE],
+        since: hours_ago(48),
+    });
+    if (stream instanceof Error) {
+        return stream;
+    }
+    for await (const msg of stream.chan) {
+        if (msg.res.type === "EOSE") {
+            continue;
+        } else if (msg.res.type === "NOTICE") {
+            console.log(`Notice: ${msg.res.note}`);
+            continue;
+        }
+
+        const ok = await database.addEvent(msg.res.event, msg.url);
+        if (ok instanceof Error) {
+            console.error(msg);
             console.error(ok);
         }
     }
