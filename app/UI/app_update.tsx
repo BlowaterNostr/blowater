@@ -391,7 +391,6 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
             const eventID = nostrEvent.id;
             const eventIDBech32 = NoteID.FromString(nostrEvent.id).bech32();
             const authorPubkey = event.message.author;
-            const isDeleted = event.message.is_deleted;
 
             const content = nostrEvent.content;
             const originalEventRaw = JSON.stringify(
@@ -414,7 +413,6 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                     fields: [
                         eventID,
                         eventIDBech32,
-                        isDeleted ? "deleted" : "not deleted",
                     ],
                 },
                 {

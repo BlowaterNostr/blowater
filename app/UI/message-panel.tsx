@@ -23,7 +23,13 @@ import {
     LinkColor,
 } from "./style/colors.ts";
 import { BlockUser, UnblockUser } from "./user-detail.tsx";
-import { DeleteEvent, func_GetEventByID, MessageList, ReplyToMessage } from "./message-list.tsx";
+import {
+    DeleteEvent,
+    func_GetEventByID,
+    func_IsAdmin,
+    MessageList,
+    ReplyToMessage,
+} from "./message-list.tsx";
 import { MessageList_V0 } from "./message-list.tsx";
 import { func_GetProfileByPublicKey } from "./search.tsx";
 import { RelayInformation } from "./relay-detail.tsx";
@@ -69,8 +75,8 @@ interface MessagePanelProps {
         relayRecordGetter: RelayRecordGetter;
         isUserBlocked: (pubkey: PublicKey) => boolean;
         getEventByID: func_GetEventByID;
+        isAdmin: func_IsAdmin;
     };
-    relayInformation?: RelayInformation;
 }
 
 export class MessagePanel extends Component<MessagePanelProps> {
@@ -82,7 +88,6 @@ export class MessagePanel extends Component<MessagePanelProps> {
 
                     <MessageList
                         key={props.messages[0]?.event.id} // this is not a 100% correct key which should be a stable hash of the whole array
-                        relayInformation={props.relayInformation}
                         myPublicKey={props.myPublicKey}
                         messages={props.messages}
                         emit={props.emit}
@@ -195,15 +200,6 @@ export function ParseMessageContent(
         getEventByID: func_GetEventByID;
     },
 ) {
-    if (message.is_deleted) {
-        return (
-            <div class={`text-[#A3A6AA]`}>
-                <p class={`italic`}>
-                    This message was deleted
-                </p>
-            </div>
-        );
-    }
     if (message.type == "image") {
         return (
             <img

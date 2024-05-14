@@ -190,7 +190,6 @@ export type ChatMessage = {
     readonly created_at: Date;
     readonly lamport: number | undefined;
     readonly content: string;
-    readonly is_deleted?: boolean;
 };
 
 export function urlIsImage(url: string) {

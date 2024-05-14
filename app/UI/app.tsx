@@ -359,6 +359,10 @@ export class AppComponent extends Component<AppProps> {
                             getProfilesByText: app.database.getProfilesByText,
                             isUserBlocked: app.conversationLists.isUserBlocked,
                             getEventByID: app.database.getEventByID,
+                            isAdmin: (pubkey) => {
+                                return model.currentRelay.relayInformation?.pubkey ===
+                                    (pubkey instanceof PublicKey ? pubkey.hex : pubkey);
+                            },
                         }}
                         userBlocker={app.conversationLists}
                     />
@@ -376,7 +380,6 @@ export class AppComponent extends Component<AppProps> {
                 <PublicMessageContainer
                     ctx={myAccountCtx}
                     {...model.public}
-                    relayInformation={model.currentRelay.relayInformation}
                     getters={{
                         messageGetter: app.dmController,
                         convoListRetriever: app.conversationLists,
@@ -386,6 +389,10 @@ export class AppComponent extends Component<AppProps> {
                         getProfilesByText: app.database.getProfilesByText,
                         isUserBlocked: app.conversationLists.isUserBlocked,
                         getEventByID: app.database.getEventByID,
+                        isAdmin: (pubkey) => {
+                            return model.currentRelay.relayInformation?.pubkey ===
+                                (pubkey instanceof PublicKey ? pubkey.hex : pubkey);
+                        },
                     }}
                     messages={Array.from(
                         map(
@@ -407,10 +414,6 @@ export class AppComponent extends Component<AppProps> {
                                     event: e as Parsed_Event<NostrKind.TEXT_NOTE | NostrKind.Long_Form>,
                                     lamport: getTags(e).lamport_timestamp,
                                     type: "text",
-                                    is_deleted: app.database.isDeleted(
-                                        e.id,
-                                        model.currentRelay.relayInformation,
-                                    ),
                                 };
                                 return msg;
                             },
@@ -449,7 +452,7 @@ export class AppComponent extends Component<AppProps> {
                     profile={app.database.getProfileByPublicKey(myAccountCtx.publicKey)}
                     emit={app.eventBus.emit}
                     installPrompt={props.installPrompt}
-                    currentRelay={model.currentRelay}
+                    currentRelay={model.currentRelay.url}
                     activeNav={model.navigationModel.activeNav}
                     pool={app.pool}
                 />

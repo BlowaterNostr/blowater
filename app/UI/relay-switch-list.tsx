@@ -13,10 +13,7 @@ import { AddIcon } from "./icons/add-icon.tsx";
 type RelaySwitchListProps = {
     pool: ConnectionPool;
     emit: emitFunc<SelectRelay | NavigationUpdate>;
-    currentRelay: {
-        url: string;
-        relayInformation?: RelayInformation;
-    };
+    currentRelay: string;
 };
 
 type RelaySwitchListState = {
@@ -59,7 +56,7 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
                 continue;
             }
             relayList.push(
-                this.RelayListItem(relay, this.props.currentRelay.url == relay.url),
+                this.RelayListItem(relay, this.props.currentRelay == relay.url),
             );
         }
         return (
@@ -71,8 +68,8 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
                     {this.props.currentRelay
                         ? (
                             <RelayAvatar
-                                icon={this.props.currentRelay.relayInformation?.icon ||
-                                    robohash(this.props.currentRelay.url)}
+                                icon={this.state.relayInformation.get(this.props.currentRelay)?.icon ||
+                                    robohash(this.props.currentRelay)}
                             />
                         )
                         : <RelayAvatar icon="logo.webp" />}

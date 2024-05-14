@@ -13,7 +13,7 @@ import { NostrAccountContext } from "../../libs/nostr.ts/nostr.ts";
 import { MessagePanel } from "./message-panel.tsx";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { ChatMessage } from "./message.ts";
-import { func_GetEventByID } from "./message-list.tsx";
+import { func_GetEventByID, func_IsAdmin } from "./message-list.tsx";
 import { Filter, FilterContent } from "./filter.tsx";
 import { NoteID } from "../../libs/nostr.ts/nip19.ts";
 import { RelayInformation } from "./relay-detail.tsx";
@@ -38,8 +38,8 @@ type Props = {
         relayRecordGetter: RelayRecordGetter;
         isUserBlocked: func_IsUserBlocked;
         getEventByID: func_GetEventByID;
+        isAdmin: func_IsAdmin;
     };
-    relayInformation?: RelayInformation;
 } & Public_Model;
 
 type State = {
@@ -88,7 +88,6 @@ export class PublicMessageContainer extends Component<Props, State> {
                                 {
                                     <MessagePanel
                                         key={props.relay.url}
-                                        relayInformation={props.relayInformation}
                                         myPublicKey={props.ctx.publicKey}
                                         emit={props.bus.emit}
                                         eventSub={props.bus}

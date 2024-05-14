@@ -36,6 +36,8 @@ import { NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { func_GetProfileByPublicKey } from "./search.tsx";
 import { DeleteIcon } from "./icons/delete-icon.tsx";
 
+export type func_IsAdmin = (pubkey: string | PublicKey) => boolean;
+
 interface Props {
     myPublicKey: PublicKey;
     messages: ChatMessage[];
@@ -52,8 +54,8 @@ interface Props {
         getProfileByPublicKey: func_GetProfileByPublicKey;
         relayRecordGetter: RelayRecordGetter;
         getEventByID: func_GetEventByID;
+        isAdmin: func_IsAdmin;
     };
-    relayInformation?: RelayInformation;
 }
 
 interface MessageListState {
@@ -102,7 +104,6 @@ export class MessageList extends Component<Props, MessageListState> {
             messageBoxGroups.push(
                 MessageBoxGroup({
                     messages: messages,
-                    relayInformation: this.props.relayInformation,
                     myPublicKey: this.props.myPublicKey,
                     emit: this.props.emit,
                     authorProfile: profileEvent ? profileEvent.profile : undefined,
@@ -234,7 +235,6 @@ export class MessageList_V0 extends Component<Props> {
             messageBoxGroups.push(
                 MessageBoxGroup({
                     messages: messages,
-                    relayInformation: this.props.relayInformation,
                     myPublicKey: this.props.myPublicKey,
                     emit: this.props.emit,
                     authorProfile: profileEvent ? profileEvent.profile : undefined,
@@ -299,11 +299,11 @@ function MessageBoxGroup(props: {
         getProfileByPublicKey: func_GetProfileByPublicKey;
         relayRecordGetter: RelayRecordGetter;
         getEventByID: func_GetEventByID;
+        isAdmin: func_IsAdmin;
     };
-    relayInformation?: RelayInformation;
 }) {
     const first_message = props.messages[0];
-    const { myPublicKey, relayInformation } = props;
+    const { myPublicKey } = props;
     const rows = [];
 
     rows.push(
@@ -312,7 +312,12 @@ function MessageBoxGroup(props: {
                 isMobile() ? "select-none" : ""
             }`}
         >
-            {MessageActions({ relayInformation, myPublicKey, message: first_message, emit: props.emit })}
+            {MessageActions({
+                isAdmin: props.getters.isAdmin,
+                myPublicKey,
+                message: first_message,
+                emit: props.emit,
+            })}
             {renderRelply(first_message.event, props.getters, props.emit)}
             <div class="flex items-start">
                 <Avatar
@@ -361,7 +366,12 @@ function MessageBoxGroup(props: {
                     isMobile() ? "select-none" : ""
                 }`}
             >
-                {MessageActions({ relayInformation, myPublicKey, message: msg, emit: props.emit })}
+                {MessageActions({
+                    isAdmin: props.getters.isAdmin,
+                    myPublicKey,
+                    message: msg,
+                    emit: props.emit,
+                })}
                 {Time(msg.created_at)}
                 <div
                     class={`flex-1`}
@@ -397,9 +407,9 @@ function MessageActions(args: {
     myPublicKey: PublicKey;
     message: ChatMessage;
     emit: emitFunc<DirectMessagePanelUpdate | ReplyToMessage | DeleteEvent>;
-    relayInformation?: RelayInformation;
+    isAdmin: func_IsAdmin;
 }) {
-    const { relayInformation, myPublicKey, message, emit } = args;
+    const { myPublicKey, message, emit, isAdmin } = args;
     return (
         <div
             class={`hidden
@@ -424,7 +434,7 @@ function MessageActions(args: {
                 <ReplyIcon class={`w-5 h-5 text-[#B6BAC0] hover:text-[#D9DBDE]`} />
             </button>
 
-            {(myPublicKey.hex === message.author.hex || myPublicKey.hex === relayInformation?.pubkey) &&
+            {(myPublicKey.hex === message.author.hex || isAdmin(myPublicKey)) &&
                 (message.event.kind === NostrKind.TEXT_NOTE) &&
                 (
                     <button

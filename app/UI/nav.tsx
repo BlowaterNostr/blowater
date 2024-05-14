@@ -50,10 +50,7 @@ type Props = {
     installPrompt: InstallPrompt;
     pool: ConnectionPool;
     activeNav: NavTabID;
-    currentRelay: {
-        url: string;
-        relayInformation?: RelayInformation;
-    };
+    currentRelay: string;
 };
 
 type State = {
