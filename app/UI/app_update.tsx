@@ -330,11 +330,11 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                 app.toastInputChan.put(() => deletionEvent.message);
                 continue;
             }
-            const err = await current_relay.sendEvent(deletionEvent);
-            if (err instanceof Error) {
-                app.toastInputChan.put(() => err.message);
-                continue;
-            }
+            current_relay.sendEvent(deletionEvent).then((res) => {
+                if (res instanceof Error) {
+                    app.toastInputChan.put(() => res.message);
+                }
+            });
         } //
         //
         // DM
