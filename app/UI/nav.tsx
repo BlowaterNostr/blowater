@@ -139,7 +139,6 @@ export class NavBar extends Component<Props, State> {
     render(props: Props) {
         return (
             <div class={this.styles.container}>
-                {/* <Avatar class={this.styles.avatar} picture={this.props.profile?.profile?.picture} /> */}
                 {
                     <RelaySwitchList
                         emit={props.emit}
