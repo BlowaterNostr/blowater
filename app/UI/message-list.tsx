@@ -435,7 +435,7 @@ function MessageActions(args: {
             </button>
 
             {(myPublicKey.hex === message.author.hex || (isAdmin && isAdmin(myPublicKey.hex))) &&
-                (message.event.kind === NostrKind.TEXT_NOTE) &&
+                ([NostrKind.TEXT_NOTE, NostrKind.Long_Form].includes(message.event.kind)) &&
                 (
                     <button
                         class={`flex items-center justify-center
