@@ -337,9 +337,7 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
             }
             if (invalid_files_name.length > 0) {
                 app.toastInputChan.put(() =>
-                    `Uploading, except for these invalid files: ${
-                        invalid_files_name.join(", ")
-                    }`
+                    `Uploading, except for these invalid files: ${invalid_files_name.join(", ")}`
                 );
             } else {
                 app.toastInputChan.put(() => "uploading...");
