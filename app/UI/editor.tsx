@@ -17,7 +17,7 @@ import { Profile_Nostr_Event } from "../nostr.ts";
 import { robohash } from "./relay-detail.tsx";
 import { Avatar } from "./components/avatar.tsx";
 
-export type EditorEvent = SendMessage | UpdateMessageFiles | EditorSelectProfile;
+export type EditorEvent = SendMessage | UploadImages | EditorSelectProfile;
 
 export type SendMessage = {
     readonly type: "SendMessage";
@@ -26,8 +26,8 @@ export type SendMessage = {
     readonly reply_to_event_id?: string | NoteID;
 };
 
-export type UpdateMessageFiles = {
-    readonly type: "UpdateMessageFiles";
+export type UploadImages = {
+    readonly type: "UploadImages";
     readonly files: File[];
 };
 
@@ -44,12 +44,13 @@ export type EditorSelectProfile = {
 type EditorProps = {
     readonly placeholder: string;
     readonly maxHeight: string;
-    readonly emit: emitFunc<EditorEvent | UpdateMessageFiles>;
+    readonly emit: emitFunc<EditorEvent | UploadImages>;
     readonly sub: EventSubscriber<UI_Interaction_Event>;
     readonly getters: {
         getProfileByPublicKey: func_GetProfileByPublicKey;
         getProfilesByText(input: string): Profile_Nostr_Event[];
     };
+    readonly nip96?: boolean;
 };
 
 export type EditorState = {
@@ -125,32 +126,33 @@ export class Editor extends Component<EditorProps, EditorState> {
                         accept="image/*"
                         multiple
                         onChange={async (e) => {
-                            // V1 start
-                            // let propsfiles = state.files;
-                            // const files = e.currentTarget.files;
-                            // if (!files) {
-                            //     return;
-                            // }
-                            // for (let i = 0; i < files.length; i++) {
-                            //     const file = files.item(i);
-                            //     if (!file) {
-                            //         continue;
-                            //     }
-                            //     propsfiles = propsfiles.concat([file]);
-                            // }
-                            // await setState(this, {
-                            //     files: propsfiles,
-                            // });
-                            // V1 end
-                            const selectedFiles = e.currentTarget.files;
-                            if (!selectedFiles) {
-                                return;
+                            if (props.nip96) {
+                                const selectedFiles = e.currentTarget.files;
+                                if (!selectedFiles) {
+                                    return;
+                                }
+                                const files: File[] = Array.from(selectedFiles);
+                                await props.emit({
+                                    type: "UploadImages",
+                                    files,
+                                });
+                            } else {
+                                let propsfiles = state.files;
+                                const files = e.currentTarget.files;
+                                if (!files) {
+                                    return;
+                                }
+                                for (let i = 0; i < files.length; i++) {
+                                    const file = files.item(i);
+                                    if (!file) {
+                                        continue;
+                                    }
+                                    propsfiles = propsfiles.concat([file]);
+                                }
+                                await setState(this, {
+                                    files: propsfiles,
+                                });
                             }
-                            const files: File[] = Array.from(selectedFiles);
-                            await props.emit({
-                                type: "UpdateMessageFiles",
-                                files,
-                            });
                         }}
                         class="hidden bg-[#FFFFFF2C]"
                     />

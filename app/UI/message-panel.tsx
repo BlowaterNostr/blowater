@@ -103,6 +103,7 @@ export class MessagePanel extends Component<MessagePanelProps> {
                             getProfileByPublicKey: props.getters.getProfileByPublicKey,
                             getProfilesByText: props.getters.getProfilesByText,
                         }}
+                        nip96
                     />
                 </div>
             </div>

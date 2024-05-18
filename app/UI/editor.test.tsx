@@ -46,6 +46,7 @@ function TextBook() {
     return (
         <div class="w-screen h-screen flex-col items-center justify-center gap-2">
             <EditorTest />
+            <EditorTest nip96 />
             <EditorTest profileEvent={onlyName} />
             <EditorTest profileEvent={onlyDisplayName} />
             <EditorTest profileEvent={empty} />
@@ -60,6 +61,7 @@ testEventBus.emit({
 
 function EditorTest(props: {
     profileEvent?: Profile_Nostr_Event;
+    nip96?: boolean;
 }) {
     const { profileEvent } = props;
 
@@ -73,6 +75,7 @@ function EditorTest(props: {
                 getProfileByPublicKey: () => profileEvent,
                 getProfilesByText: () => [onlyName, onlyDisplayName, empty],
             }}
+            nip96={props.nip96}
         />
     );
 }
