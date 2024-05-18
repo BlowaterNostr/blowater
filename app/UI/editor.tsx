@@ -2,7 +2,6 @@
 import { createRef, h } from "https://esm.sh/preact@10.17.1";
 import { emitFunc } from "../event-bus.ts";
 
-import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { ImageIcon } from "./icons/image-icon.tsx";
 import { SendIcon } from "./icons/send-icon.tsx";
 import { Component } from "https://esm.sh/preact@10.17.1";
@@ -18,7 +17,7 @@ import { Profile_Nostr_Event } from "../nostr.ts";
 import { robohash } from "./relay-detail.tsx";
 import { Avatar } from "./components/avatar.tsx";
 
-export type EditorEvent = SendMessage | UpdateEditorText | UpdateMessageFiles | EditorSelectProfile;
+export type EditorEvent = SendMessage | UpdateMessageFiles | EditorSelectProfile;
 
 export type SendMessage = {
     readonly type: "SendMessage";
@@ -27,18 +26,14 @@ export type SendMessage = {
     readonly reply_to_event_id?: string | NoteID;
 };
 
-export type UpdateEditorText = {
-    readonly type: "UpdateEditorText";
-    readonly pubkey: PublicKey;
-    readonly isGroupChat: boolean;
-    readonly text: string;
-};
-
 export type UpdateMessageFiles = {
     readonly type: "UpdateMessageFiles";
-    readonly pubkey: PublicKey;
-    readonly isGroupChat: boolean;
-    readonly files: Blob[];
+    readonly files: File[];
+};
+
+export type TextAppention = {
+    type: "TextAppention";
+    text: string;
 };
 
 export type EditorSelectProfile = {
@@ -49,7 +44,7 @@ export type EditorSelectProfile = {
 type EditorProps = {
     readonly placeholder: string;
     readonly maxHeight: string;
-    readonly emit: emitFunc<EditorEvent>;
+    readonly emit: emitFunc<EditorEvent | UpdateMessageFiles>;
     readonly sub: EventSubscriber<UI_Interaction_Event>;
     readonly getters: {
         getProfileByPublicKey: func_GetProfileByPublicKey;
@@ -92,6 +87,11 @@ export class Editor extends Component<EditorProps, EditorState> {
                     searchResults: [],
                 });
                 this.textareaElement.current?.focus();
+            } else if (event.type == "TextAppention") {
+                await setState(this, {
+                    text: `${this.state.text} ${event.text} `,
+                });
+                this.textareaElement.current?.focus();
             }
         }
     }
@@ -125,20 +125,31 @@ export class Editor extends Component<EditorProps, EditorState> {
                         accept="image/*"
                         multiple
                         onChange={async (e) => {
-                            let propsfiles = state.files;
-                            const files = e.currentTarget.files;
-                            if (!files) {
+                            // V1 start
+                            // let propsfiles = state.files;
+                            // const files = e.currentTarget.files;
+                            // if (!files) {
+                            //     return;
+                            // }
+                            // for (let i = 0; i < files.length; i++) {
+                            //     const file = files.item(i);
+                            //     if (!file) {
+                            //         continue;
+                            //     }
+                            //     propsfiles = propsfiles.concat([file]);
+                            // }
+                            // await setState(this, {
+                            //     files: propsfiles,
+                            // });
+                            // V1 end
+                            const selectedFiles = e.currentTarget.files;
+                            if (!selectedFiles) {
                                 return;
                             }
-                            for (let i = 0; i < files.length; i++) {
-                                const file = files.item(i);
-                                if (!file) {
-                                    continue;
-                                }
-                                propsfiles = propsfiles.concat([file]);
-                            }
-                            await setState(this, {
-                                files: propsfiles,
+                            const files: File[] = Array.from(selectedFiles);
+                            await props.emit({
+                                type: "UpdateMessageFiles",
+                                files,
                             });
                         }}
                         class="hidden bg-[#FFFFFF2C]"

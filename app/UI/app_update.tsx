@@ -33,7 +33,7 @@ import { DM_List } from "./conversation-list.ts";
 import { ContactUpdate } from "./conversation-list.tsx";
 import { StartInvite } from "./dm.tsx";
 import { SaveProfile } from "./edit-profile.tsx";
-import { EditorEvent, SendMessage } from "./editor.tsx";
+import { EditorEvent, SendMessage, TextAppention, UpdateMessageFiles } from "./editor.tsx";
 import { EventDetail, EventDetailItem } from "./event-detail.tsx";
 
 import { DirectMessagePanelUpdate } from "./message-panel.tsx";
@@ -61,6 +61,7 @@ import { CloseRightPanel } from "./components/right-panel.tsx";
 import { RightPanelChannel } from "./components/right-panel.tsx";
 import { ReplyToMessage } from "./message-list.tsx";
 import { EditorSelectProfile } from "./editor.tsx";
+import { uploadFile } from "../../libs/nostr.ts/nip96.ts";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -87,7 +88,9 @@ export type UI_Interaction_Event =
     | CloseRightPanel
     | ReplyToMessage
     | EditorSelectProfile
-    | DeleteEvent;
+    | DeleteEvent
+    | UpdateMessageFiles
+    | TextAppention;
 
 type BackToContactList = {
     type: "BackToContactList";
@@ -278,9 +281,63 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                 }
             });
         } else if (event.type == "UpdateMessageFiles") {
-            console.log("to be implemented");
-        } else if (event.type == "UpdateEditorText") {
-            console.log("to be implemented");
+            function validateFile(file: File) {
+                // https://nostr.build/.well-known/nostr/nip96.json
+                const max_byte_size = 10485760;
+                const image_postfix = [".png", ".jpg", ".jpeg", ".gif", ".webp"];
+                if (file.size > max_byte_size) {
+                    return false;
+                }
+                if (!image_postfix.some((postfix) => file.name.endsWith(postfix))) {
+                    return false;
+                }
+                return true;
+            }
+            async function uploadValidFiles(app: any, validFiles: File[], apiURL: string): Promise<string[]> {
+                const uploadedURLs: string[] = [];
+                const uploadPromises = validFiles.map(async (file) => {
+                    const uploaded = await uploadFile(app.ctx, { api_url: apiURL, file });
+                    app.toastInputChan.put(() => uploaded.message);
+                    if (uploaded instanceof Error) {
+                        throw uploaded;
+                    }
+                    if (uploaded.status === "error") {
+                        throw new Error(uploaded.message);
+                    }
+                    uploadedURLs.push(uploaded.nip94_event.tags[0][1]);
+                });
+                await Promise.all(uploadPromises);
+                return uploadedURLs;
+            }
+            const { files } = event
+            if (files.length === 0) {
+                app.toastInputChan.put(() => "no files selected");
+                continue;
+            }
+            const invalid_files : File[] = [];
+            const valid_files : File[] = [];
+            files.forEach((file) => {
+                if (!validateFile(file)) {
+                    invalid_files.push(file);
+                } else {
+                    valid_files.push(file);
+                }
+            })
+            if(valid_files.length == 0) {
+                app.toastInputChan.put(() => "no valid files selected");
+                continue;
+            }
+            if (invalid_files.length > 0) {
+                app.toastInputChan.put(() => `Uploading, except for these invalid files: ${invalid_files.map((file) => file.name).join(", ")}`);
+            } else {
+                app.toastInputChan.put(() => "uploading...");
+            }
+            const api_url = "https://nostr.build/api/v2/nip96/upload";
+            const uploadedURLs = await uploadValidFiles(app, valid_files, api_url);
+            app.eventBus.emit({
+                "type": "TextAppention",
+                "text": uploadedURLs.join(" "),
+            });
         } //
         //
         // Profile
