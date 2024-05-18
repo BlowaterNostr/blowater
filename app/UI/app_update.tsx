@@ -280,18 +280,18 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                 }
             });
         } else if (event.type == "UploadImage") {
-            const { file } = event;
+            const { file, callback } = event;
             const api_url = "https://nostr.build/api/v2/nip96/upload";
+            app.toastInputChan.put(() => "Uploading image...");
             const uploaded = await uploadFile(app.ctx, { api_url, file });
+            app.toastInputChan.put(() => uploaded.message);
             if (uploaded instanceof Error) {
-                app.toastInputChan.put(() => uploaded.message);
                 continue;
             }
             if (uploaded.status === "error") {
-                app.toastInputChan.put(() => uploaded.message);
                 continue;
             }
-            console.log("uploaded url:", uploaded.nip94_event.tags[0][1]);
+            callback(uploaded.nip94_event.tags[0][1]);
         } //
         //
         // Profile

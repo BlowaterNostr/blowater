@@ -29,6 +29,7 @@ export type SendMessage = {
 export type UploadImage = {
     readonly type: "UploadImage";
     readonly file: File;
+    readonly callback: (url: string) => void;
 };
 
 export type TextAppention = {
@@ -128,6 +129,12 @@ export class Editor extends Component<EditorProps, EditorState> {
                                 await props.emit({
                                     type: "UploadImage",
                                     file: selectedFiles[0],
+                                    callback: (url) => {
+                                        const text = this.state.text + ` ${url} `;
+                                        setState(this, {
+                                            text,
+                                        });
+                                    },
                                 });
                             } else {
                                 let propsfiles = state.files;
