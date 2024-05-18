@@ -17,7 +17,7 @@ import { Profile_Nostr_Event } from "../nostr.ts";
 import { robohash } from "./relay-detail.tsx";
 import { Avatar } from "./components/avatar.tsx";
 
-export type EditorEvent = SendMessage | UploadImages | EditorSelectProfile;
+export type EditorEvent = SendMessage | UploadImage | EditorSelectProfile;
 
 export type SendMessage = {
     readonly type: "SendMessage";
@@ -26,9 +26,9 @@ export type SendMessage = {
     readonly reply_to_event_id?: string | NoteID;
 };
 
-export type UploadImages = {
-    readonly type: "UploadImages";
-    readonly files: File[];
+export type UploadImage = {
+    readonly type: "UploadImage";
+    readonly file: File;
 };
 
 export type TextAppention = {
@@ -44,7 +44,7 @@ export type EditorSelectProfile = {
 type EditorProps = {
     readonly placeholder: string;
     readonly maxHeight: string;
-    readonly emit: emitFunc<EditorEvent | UploadImages>;
+    readonly emit: emitFunc<EditorEvent | UploadImage>;
     readonly sub: EventSubscriber<UI_Interaction_Event>;
     readonly getters: {
         getProfileByPublicKey: func_GetProfileByPublicKey;
@@ -88,11 +88,6 @@ export class Editor extends Component<EditorProps, EditorState> {
                     searchResults: [],
                 });
                 this.textareaElement.current?.focus();
-            } else if (event.type == "TextAppention") {
-                await setState(this, {
-                    text: `${this.state.text} ${event.text} `,
-                });
-                this.textareaElement.current?.focus();
             }
         }
     }
@@ -124,17 +119,15 @@ export class Editor extends Component<EditorProps, EditorState> {
                         ref={uploadFileInput}
                         type="file"
                         accept="image/*"
-                        multiple
                         onChange={async (e) => {
                             if (props.nip96) {
                                 const selectedFiles = e.currentTarget.files;
                                 if (!selectedFiles) {
                                     return;
                                 }
-                                const files: File[] = Array.from(selectedFiles);
                                 await props.emit({
-                                    type: "UploadImages",
-                                    files,
+                                    type: "UploadImage",
+                                    file: selectedFiles[0],
                                 });
                             } else {
                                 let propsfiles = state.files;

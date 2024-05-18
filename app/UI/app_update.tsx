@@ -33,7 +33,7 @@ import { DM_List } from "./conversation-list.ts";
 import { ContactUpdate } from "./conversation-list.tsx";
 import { StartInvite } from "./dm.tsx";
 import { SaveProfile } from "./edit-profile.tsx";
-import { EditorEvent, SendMessage, TextAppention, UploadImages } from "./editor.tsx";
+import { EditorEvent, SendMessage, UploadImage } from "./editor.tsx";
 import { EventDetail, EventDetailItem } from "./event-detail.tsx";
 
 import { DirectMessagePanelUpdate } from "./message-panel.tsx";
@@ -89,8 +89,7 @@ export type UI_Interaction_Event =
     | ReplyToMessage
     | EditorSelectProfile
     | DeleteEvent
-    | UploadImages
-    | TextAppention;
+    | UploadImage;
 
 type BackToContactList = {
     type: "BackToContactList";
@@ -280,79 +279,19 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                     chan.put(true);
                 }
             });
-        } else if (event.type == "UploadImages") {
-            function validateImageFile(file: File) {
-                // https://nostr.build/.well-known/nostr/nip96.json
-                const max_byte_size = 10485760;
-                const image_postfix = [".png", ".jpg", ".jpeg", ".gif", ".webp"];
-                if (file.size > max_byte_size) {
-                    return false;
-                }
-                if (!image_postfix.some((postfix) => file.name.endsWith(postfix))) {
-                    return false;
-                }
-                return true;
-            }
-            async function uploadValidFiles(app: any, validFiles: File[], apiURL: string): Promise<{
-                uploadedURLs: string[];
-                errorMessages: string[];
-            }> {
-                const uploadedURLs: string[] = [];
-                const errorMessages: string[] = [];
-                const uploadPromises = validFiles.map(async (file) => {
-                    try {
-                        const uploaded = await uploadFile(app.ctx, { api_url: apiURL, file });
-
-                        if (uploaded instanceof Error) {
-                            errorMessages.push(`${file.name}: ${uploaded.message}`);
-                        } else if (uploaded.status === "error") {
-                            errorMessages.push(`${file.name}: ${uploaded.message}`);
-                        } else {
-                            uploadedURLs.push(uploaded.nip94_event.tags[0][1]);
-                        }
-                    } catch (error) {
-                        errorMessages.push(`${file.name}: ${error.message}`);
-                    }
-                });
-                await Promise.all(uploadPromises);
-                return { uploadedURLs, errorMessages };
-            }
-            const { files } = event;
-            if (files.length === 0) {
-                app.toastInputChan.put(() => "no files selected");
-                continue;
-            }
-            const invalid_files_name: string[] = [];
-            const valid_files: File[] = [];
-            files.forEach((file) => {
-                if (!validateImageFile(file)) {
-                    invalid_files_name.push(file.name);
-                } else {
-                    valid_files.push(file);
-                }
-            });
-            if (valid_files.length == 0) {
-                app.toastInputChan.put(() => "no valid files selected");
-                continue;
-            }
-            if (invalid_files_name.length > 0) {
-                app.toastInputChan.put(() =>
-                    `Uploading, except for these invalid files: ${invalid_files_name.join(", ")}`
-                );
-            } else {
-                app.toastInputChan.put(() => "uploading...");
-            }
+        } else if (event.type == "UploadImage") {
+            const { file } = event;
             const api_url = "https://nostr.build/api/v2/nip96/upload";
-            const { uploadedURLs, errorMessages } = await uploadValidFiles(app, valid_files, api_url);
-            if (errorMessages.length > 0) {
-                app.toastInputChan.put(() => errorMessages.join("\n"));
-            } else {
-                app.toastInputChan.put(() => "uploaded");
+            const uploaded = await uploadFile(app.ctx, { api_url, file });
+            if (uploaded instanceof Error) {
+                app.toastInputChan.put(() => uploaded.message);
+                continue;
             }
-            app.eventBus.emit({
-                "type": "TextAppention",
-                "text": uploadedURLs.join(" "),
-            });
+            if (uploaded.status === "error") {
+                app.toastInputChan.put(() => uploaded.message);
+                continue;
+            }
+            console.log("uploaded url:", uploaded.nip94_event.tags[0][1]);
         } //
         //
         // Profile
