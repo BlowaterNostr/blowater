@@ -16,6 +16,7 @@ import { Parsed_Event } from "../nostr.ts";
 import { Profile_Nostr_Event } from "../nostr.ts";
 import { robohash } from "./relay-detail.tsx";
 import { Avatar } from "./components/avatar.tsx";
+import { UploadFileResponse } from "../../libs/nostr.ts/nip96.ts";
 
 export type EditorEvent = SendMessage | UploadImage | EditorSelectProfile;
 
@@ -29,7 +30,7 @@ export type SendMessage = {
 export type UploadImage = {
     readonly type: "UploadImage";
     readonly file: File;
-    readonly callback: (url: string) => void;
+    readonly callback: (uploaded: UploadFileResponse | Error) => void;
 };
 
 export type TextAppention = {
@@ -126,14 +127,30 @@ export class Editor extends Component<EditorProps, EditorState> {
                                 if (!selectedFiles) {
                                     return;
                                 }
-                                await props.emit({
+                                props.emit({
                                     type: "UploadImage",
                                     file: selectedFiles[0],
-                                    callback: (url) => {
-                                        const text = this.state.text + ` ${url} `;
-                                        setState(this, {
-                                            text,
-                                        });
+                                    callback: (uploaded) => {
+                                        console.log("uploaded", uploaded);
+                                        if (uploaded instanceof Error) {
+                                            console.error(uploaded);
+                                            return;
+                                        }
+                                        if (uploaded.status === "error") {
+                                            console.error(uploaded.message);
+                                            return;
+                                        }
+                                        const image_url = uploaded.nip94_event.tags[0][1];
+                                        const { text: previousText } = this.state;
+                                        if (previousText) {
+                                            this.setState({
+                                                text: previousText + ` ${image_url} `,
+                                            });
+                                        } else {
+                                            this.setState({
+                                                text: `${image_url} `,
+                                            });
+                                        }
                                     },
                                 });
                             } else {
