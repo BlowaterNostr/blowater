@@ -137,12 +137,12 @@ export class Editor extends Component<EditorProps, EditorState> {
                                         }
                                         const image_url = uploaded.nip94_event.tags[0][1];
                                         const { text: previousText } = this.state;
-                                        if (previousText) {
-                                            this.setState({
+                                        if (previousText.length > 0) {
+                                            setState(this, {
                                                 text: previousText + ` ${image_url} `,
                                             });
                                         } else {
-                                            this.setState({
+                                            setState(this, {
                                                 text: `${image_url} `,
                                             });
                                         }
