@@ -33,11 +33,6 @@ export type UploadImage = {
     readonly callback: (uploaded: UploadFileResponse | Error) => void;
 };
 
-export type TextAppention = {
-    type: "TextAppention";
-    text: string;
-};
-
 export type EditorSelectProfile = {
     readonly type: "EditorSelectProfile";
     readonly member: Profile_Nostr_Event;
