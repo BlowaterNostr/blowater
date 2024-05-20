@@ -41,7 +41,7 @@ export type EditorSelectProfile = {
 type EditorProps = {
     readonly placeholder: string;
     readonly maxHeight: string;
-    readonly emit: emitFunc<EditorEvent | UploadImage>;
+    readonly emit: emitFunc<EditorEvent>;
     readonly sub: EventSubscriber<UI_Interaction_Event>;
     readonly getters: {
         getProfileByPublicKey: func_GetProfileByPublicKey;
@@ -116,56 +116,7 @@ export class Editor extends Component<EditorProps, EditorState> {
                         ref={uploadFileInput}
                         type="file"
                         accept="image/*"
-                        onChange={async (e) => {
-                            if (props.nip96) {
-                                const selectedFiles = e.currentTarget.files;
-                                if (!selectedFiles) {
-                                    return;
-                                }
-                                props.emit({
-                                    type: "UploadImage",
-                                    file: selectedFiles[0],
-                                    callback: (uploaded) => {
-                                        console.log("uploaded", uploaded);
-                                        if (uploaded instanceof Error) {
-                                            console.error(uploaded);
-                                            return;
-                                        }
-                                        if (uploaded.status === "error") {
-                                            console.error(uploaded.message);
-                                            return;
-                                        }
-                                        const image_url = uploaded.nip94_event.tags[0][1];
-                                        const { text: previousText } = this.state;
-                                        if (previousText.length > 0) {
-                                            setState(this, {
-                                                text: previousText + ` ${image_url} `,
-                                            });
-                                        } else {
-                                            setState(this, {
-                                                text: `${image_url} `,
-                                            });
-                                        }
-                                    },
-                                });
-                            } else {
-                                let propsfiles = state.files;
-                                const files = e.currentTarget.files;
-                                if (!files) {
-                                    return;
-                                }
-                                for (let i = 0; i < files.length; i++) {
-                                    const file = files.item(i);
-                                    if (!file) {
-                                        continue;
-                                    }
-                                    propsfiles = propsfiles.concat([file]);
-                                }
-                                await setState(this, {
-                                    files: propsfiles,
-                                });
-                            }
-                        }}
+                        onChange={async (e) => await this.uploadImage(e)}
                         class="hidden bg-[#FFFFFF2C]"
                     />
                     <div class="flex flex-col flex-1 overflow-hidden bg-[#FFFFFF2C] rounded-xl">
@@ -311,9 +262,60 @@ export class Editor extends Component<EditorProps, EditorState> {
         setState(this, { text, matching, searchResults });
     };
 
+    uploadImage = async (e: h.JSX.TargetedEvent<HTMLInputElement>) => {
+        const { props, state } = this;
+        if (props.nip96) {
+            const selectedFiles = e.currentTarget.files;
+            if (!selectedFiles) {
+                return;
+            }
+            props.emit({
+                type: "UploadImage",
+                file: selectedFiles[0],
+                callback: (uploaded) => {
+                    console.log("uploaded", uploaded);
+                    if (uploaded instanceof Error) {
+                        console.error(uploaded);
+                        return;
+                    }
+                    if (uploaded.status === "error") {
+                        console.error(uploaded.message);
+                        return;
+                    }
+                    const image_url = uploaded.nip94_event.tags[0][1];
+                    const { text: previousText } = this.state;
+                    if (previousText.length > 0) {
+                        setState(this, {
+                            text: previousText + ` ${image_url} `,
+                        });
+                    } else {
+                        setState(this, {
+                            text: `${image_url} `,
+                        });
+                    }
+                },
+            });
+        } else {
+            let propsfiles = state.files;
+            const files = e.currentTarget.files;
+            if (!files) {
+                return;
+            }
+            for (let i = 0; i < files.length; i++) {
+                const file = files.item(i);
+                if (!file) {
+                    continue;
+                }
+                propsfiles = propsfiles.concat([file]);
+            }
+            await setState(this, {
+                files: propsfiles,
+            });
+        }
+    };
+
     sendMessage = async () => {
-        const props = this.props;
-        await props.emit({
+        this.props.emit({
             type: "SendMessage",
             files: this.state.files,
             text: this.state.text,

@@ -33,7 +33,7 @@ import { DM_List } from "./conversation-list.ts";
 import { ContactUpdate } from "./conversation-list.tsx";
 import { StartInvite } from "./dm.tsx";
 import { SaveProfile } from "./edit-profile.tsx";
-import { EditorEvent, SendMessage, UploadImage } from "./editor.tsx";
+import { EditorEvent, SendMessage } from "./editor.tsx";
 import { EventDetail, EventDetailItem } from "./event-detail.tsx";
 
 import { DirectMessagePanelUpdate } from "./message-panel.tsx";
@@ -88,8 +88,7 @@ export type UI_Interaction_Event =
     | CloseRightPanel
     | ReplyToMessage
     | EditorSelectProfile
-    | DeleteEvent
-    | UploadImage;
+    | DeleteEvent;
 
 type BackToContactList = {
     type: "BackToContactList";
