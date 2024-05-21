@@ -116,7 +116,7 @@ export class Editor extends Component<EditorProps, EditorState> {
                         ref={uploadFileInput}
                         type="file"
                         accept="image/*"
-                        onChange={async (e) => await this.uploadImage(e)}
+                        onChange={this.uploadImage}
                         class="hidden bg-[#FFFFFF2C]"
                     />
                     <div class="flex flex-col flex-1 overflow-hidden bg-[#FFFFFF2C] rounded-xl">
@@ -262,13 +262,13 @@ export class Editor extends Component<EditorProps, EditorState> {
         setState(this, { text, matching, searchResults });
     };
 
-    uploadImage = async (e: h.JSX.TargetedEvent<HTMLInputElement>) => {
+    uploadImage = (e: h.JSX.TargetedEvent<HTMLInputElement>) => {
         const { props, state } = this;
+        const selectedFiles = e.currentTarget.files;
+        if (!selectedFiles) {
+            return;
+        }
         if (props.nip96) {
-            const selectedFiles = e.currentTarget.files;
-            if (!selectedFiles) {
-                return;
-            }
             props.emit({
                 type: "UploadImage",
                 file: selectedFiles[0],
@@ -280,6 +280,10 @@ export class Editor extends Component<EditorProps, EditorState> {
                     }
                     if (uploaded.status === "error") {
                         console.error(uploaded.message);
+                        return;
+                    }
+                    if (!uploaded.nip94_event) {
+                        console.error("No NIP-94 event found", uploaded);
                         return;
                     }
                     const image_url = uploaded.nip94_event.tags[0][1];
@@ -296,20 +300,16 @@ export class Editor extends Component<EditorProps, EditorState> {
                 },
             });
         } else {
-            let propsfiles = state.files;
-            const files = e.currentTarget.files;
-            if (!files) {
-                return;
-            }
-            for (let i = 0; i < files.length; i++) {
-                const file = files.item(i);
+            let previousFiles = state.files;
+            for (let i = 0; i < selectedFiles.length; i++) {
+                const file = selectedFiles[i];
                 if (!file) {
                     continue;
                 }
-                propsfiles = propsfiles.concat([file]);
+                previousFiles = previousFiles.concat([file]);
             }
-            await setState(this, {
-                files: propsfiles,
+            setState(this, {
+                files: previousFiles,
             });
         }
     };
