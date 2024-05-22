@@ -26,7 +26,7 @@ import {
 } from "../nostr.ts";
 import { LamportTime } from "../time.ts";
 import { App } from "./app.tsx";
-import { Model } from "./app_model.ts";
+import { Model, rememberCurrentRelay } from "./app_model.ts";
 import { PopOverInputChannel } from "./components/popover.tsx";
 import { OtherConfig } from "./config-other.ts";
 import { DM_List } from "./conversation-list.ts";
@@ -183,6 +183,7 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
 
         // All events below are only valid after signning in
         if (event.type == "SelectRelay") {
+            rememberCurrentRelay(event.relay.url);
             model.currentRelay = event.relay.url;
         } //
         // Searchx

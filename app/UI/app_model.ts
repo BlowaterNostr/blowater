@@ -24,7 +24,7 @@ export type Model = {
 export function initialModel(): Model {
     return {
         app: undefined,
-        currentRelay: default_blowater_relay,
+        currentRelay: awakenCurrentRelay(),
         dm: {
             currentConversation: undefined,
         },
@@ -39,4 +39,12 @@ export function initialModel(): Model {
             activeNav: "Public",
         },
     };
+}
+
+export function rememberCurrentRelay(relay: string) {
+    localStorage.setItem("currentRelay", relay);
+}
+
+function awakenCurrentRelay() {
+    return localStorage.getItem("currentRelay") || default_blowater_relay;
 }
