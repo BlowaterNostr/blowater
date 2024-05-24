@@ -2,7 +2,6 @@
 import { createRef, h } from "https://esm.sh/preact@10.17.1";
 import { emitFunc } from "../event-bus.ts";
 
-import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { ImageIcon } from "./icons/image-icon.tsx";
 import { SendIcon } from "./icons/send-icon.tsx";
 import { Component } from "https://esm.sh/preact@10.17.1";
@@ -17,8 +16,9 @@ import { Parsed_Event } from "../nostr.ts";
 import { Profile_Nostr_Event } from "../nostr.ts";
 import { robohash } from "./relay-detail.tsx";
 import { Avatar } from "./components/avatar.tsx";
+import { UploadFileResponse } from "../../libs/nostr.ts/nip96.ts";
 
-export type EditorEvent = SendMessage | UpdateEditorText | UpdateMessageFiles | EditorSelectProfile;
+export type EditorEvent = SendMessage | UploadImage | EditorSelectProfile;
 
 export type SendMessage = {
     readonly type: "SendMessage";
@@ -27,18 +27,10 @@ export type SendMessage = {
     readonly reply_to_event_id?: string | NoteID;
 };
 
-export type UpdateEditorText = {
-    readonly type: "UpdateEditorText";
-    readonly pubkey: PublicKey;
-    readonly isGroupChat: boolean;
-    readonly text: string;
-};
-
-export type UpdateMessageFiles = {
-    readonly type: "UpdateMessageFiles";
-    readonly pubkey: PublicKey;
-    readonly isGroupChat: boolean;
-    readonly files: Blob[];
+export type UploadImage = {
+    readonly type: "UploadImage";
+    readonly file: File;
+    readonly callback: (uploaded: UploadFileResponse | Error) => void;
 };
 
 export type EditorSelectProfile = {
@@ -55,6 +47,7 @@ type EditorProps = {
         getProfileByPublicKey: func_GetProfileByPublicKey;
         getProfilesByText(input: string): Profile_Nostr_Event[];
     };
+    readonly nip96?: boolean;
 };
 
 export type EditorState = {
@@ -123,24 +116,7 @@ export class Editor extends Component<EditorProps, EditorState> {
                         ref={uploadFileInput}
                         type="file"
                         accept="image/*"
-                        multiple
-                        onChange={async (e) => {
-                            let propsfiles = state.files;
-                            const files = e.currentTarget.files;
-                            if (!files) {
-                                return;
-                            }
-                            for (let i = 0; i < files.length; i++) {
-                                const file = files.item(i);
-                                if (!file) {
-                                    continue;
-                                }
-                                propsfiles = propsfiles.concat([file]);
-                            }
-                            await setState(this, {
-                                files: propsfiles,
-                            });
-                        }}
+                        onChange={this.uploadImage}
                         class="hidden bg-[#FFFFFF2C]"
                     />
                     <div class="flex flex-col flex-1 overflow-hidden bg-[#FFFFFF2C] rounded-xl">
@@ -286,9 +262,60 @@ export class Editor extends Component<EditorProps, EditorState> {
         setState(this, { text, matching, searchResults });
     };
 
+    uploadImage = (e: h.JSX.TargetedEvent<HTMLInputElement>) => {
+        const { props, state } = this;
+        const selectedFiles = e.currentTarget.files;
+        if (!selectedFiles) {
+            return;
+        }
+        if (props.nip96) {
+            props.emit({
+                type: "UploadImage",
+                file: selectedFiles[0],
+                callback: (uploaded) => {
+                    console.log("uploaded", uploaded);
+                    if (uploaded instanceof Error) {
+                        console.error(uploaded);
+                        return;
+                    }
+                    if (uploaded.status === "error") {
+                        console.error(uploaded.message);
+                        return;
+                    }
+                    if (!uploaded.nip94_event) {
+                        console.error("No NIP-94 event found", uploaded);
+                        return;
+                    }
+                    const image_url = uploaded.nip94_event.tags[0][1];
+                    const { text: previousText } = this.state;
+                    if (previousText.length > 0) {
+                        setState(this, {
+                            text: previousText + ` ${image_url} `,
+                        });
+                    } else {
+                        setState(this, {
+                            text: `${image_url} `,
+                        });
+                    }
+                },
+            });
+        } else {
+            let previousFiles = state.files;
+            for (let i = 0; i < selectedFiles.length; i++) {
+                const file = selectedFiles[i];
+                if (!file) {
+                    continue;
+                }
+                previousFiles = previousFiles.concat([file]);
+            }
+            setState(this, {
+                files: previousFiles,
+            });
+        }
+    };
+
     sendMessage = async () => {
-        const props = this.props;
-        await props.emit({
+        this.props.emit({
             type: "SendMessage",
             files: this.state.files,
             text: this.state.text,

@@ -61,6 +61,7 @@ import { CloseRightPanel } from "./components/right-panel.tsx";
 import { RightPanelChannel } from "./components/right-panel.tsx";
 import { ReplyToMessage } from "./message-list.tsx";
 import { EditorSelectProfile } from "./editor.tsx";
+import { uploadFile } from "../../libs/nostr.ts/nip96.ts";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -277,10 +278,12 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                     chan.put(true);
                 }
             });
-        } else if (event.type == "UpdateMessageFiles") {
-            console.log("to be implemented");
-        } else if (event.type == "UpdateEditorText") {
-            console.log("to be implemented");
+        } else if (event.type == "UploadImage") {
+            app.toastInputChan.put(() => "Uploading image...");
+            const api_url = "https://nostr.build/api/v2/nip96/upload";
+            const uploaded = await uploadFile(app.ctx, { api_url, file: event.file });
+            app.toastInputChan.put(() => uploaded.message);
+            event.callback(uploaded);
         } //
         //
         // Profile
