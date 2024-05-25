@@ -56,7 +56,7 @@ type State = {
     installPrompt: InstallPrompt;
 };
 
-type NavTabID = "Public" | "DM" | "Search" | "Profile" | "About" | "Setting";
+export type NavTabID = "Public" | "DM" | "Search" | "Profile" | "About" | "Setting";
 type NavTab = {
     icon: (active: boolean) => ComponentChild;
     id: NavTabID;
