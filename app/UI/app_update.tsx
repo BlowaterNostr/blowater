@@ -26,7 +26,7 @@ import {
 } from "../nostr.ts";
 import { LamportTime } from "../time.ts";
 import { App } from "./app.tsx";
-import { Model } from "./app_model.ts";
+import { Model, rememberActiveNav, rememberCurrentRelay } from "./app_model.ts";
 import { PopOverInputChannel } from "./components/popover.tsx";
 import { OtherConfig } from "./config-other.ts";
 import { DM_List } from "./conversation-list.ts";
@@ -183,6 +183,7 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
 
         // All events below are only valid after signning in
         if (event.type == "SelectRelay") {
+            rememberCurrentRelay(event.relay.url);
             model.currentRelay = event.relay.url;
         } //
         // Searchx
@@ -230,6 +231,7 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
         //
         else if (event.type == "SelectConversation") {
             console.log("SelectConversation", event.pubkey.hex);
+            rememberActiveNav("DM");
             model.navigationModel.activeNav = "DM";
             model.dm.currentConversation = event.pubkey;
             app.popOverInputChan.put({ children: undefined });
@@ -296,7 +298,7 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                     event.profile,
                     event.ctx,
                     current_relay,
-                ).then((result) => {
+                ).then((result: string | Error) => {
                     app.popOverInputChan.put({ children: undefined });
                     if (result instanceof Error) {
                         app.toastInputChan.put(
@@ -312,6 +314,7 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
         // Navigation
         //
         else if (event.type == "ChangeNavigation") {
+            rememberActiveNav(event.id);
             model.navigationModel.activeNav = event.id;
         } else if (event.type == "CloseRightPanel") {
             app.rightPanelInputChan.put(undefined);

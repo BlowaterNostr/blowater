@@ -1,4 +1,4 @@
-import { NavigationModel } from "./nav.tsx";
+import { NavigationModel, NavTabID } from "./nav.tsx";
 import { DM_Model } from "./dm.tsx";
 import { Public_Model } from "./public-message-container.tsx";
 import { App } from "./app.tsx";
@@ -24,7 +24,7 @@ export type Model = {
 export function initialModel(): Model {
     return {
         app: undefined,
-        currentRelay: default_blowater_relay,
+        currentRelay: awakenCurrentRelay(),
         dm: {
             currentConversation: undefined,
         },
@@ -36,7 +36,28 @@ export function initialModel(): Model {
             value: "",
         },
         navigationModel: {
-            activeNav: "Public",
+            activeNav: awakenActiveNav(),
         },
     };
+}
+
+export function rememberCurrentRelay(relay: string) {
+    localStorage.setItem("currentRelay", relay);
+}
+
+export function rememberActiveNav(nav: NavTabID) {
+    localStorage.setItem("activeNav", nav);
+}
+
+function awakenCurrentRelay() {
+    return localStorage.getItem("currentRelay") || default_blowater_relay;
+}
+
+function awakenActiveNav(): NavTabID {
+    const activeNav = localStorage.getItem("activeNav");
+    if (activeNav === null) return "Public";
+    if (["Public", "DM", "Search", "Profile", "About", "Setting"].includes(activeNav)) {
+        return activeNav as NavTabID;
+    }
+    return "Public";
 }
