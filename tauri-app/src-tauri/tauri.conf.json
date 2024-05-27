@@ -1,59 +1,28 @@
 {
+    "productName": "Blowater",
+    "version": "0.0.0",
+    "identifier": "app.blowater",
     "build": {
-        "devPath": "http://localhost:4507",
-        "distDir": "../../UI/build-pwa"
+        "frontendDist": "../../build-pwa"
     },
-    "package": {
-        "productName": "Blowater",
-        "version": "0.1.0"
-    },
-    "tauri": {
-        "allowlist": {
-            "all": false
-        },
-        "bundle": {
-            "active": true,
-            "category": "DeveloperTool",
-            "copyright": "",
-            "deb": {
-                "depends": []
-            },
-            "externalBin": [],
-            "icon": [
-                "../../UI/build-pwa/logo.webp"
-            ],
-            "identifier": "app.blowater",
-            "longDescription": "",
-            "macOS": {
-                "entitlements": null,
-                "exceptionDomain": "",
-                "frameworks": [],
-                "providerShortName": null,
-                "signingIdentity": null
-            },
-            "resources": [],
-            "shortDescription": "",
-            "targets": "all",
-            "windows": {
-                "certificateThumbprint": null,
-                "digestAlgorithm": "sha256",
-                "timestampUrl": ""
-            }
-        },
-        "security": {
-            "csp": null
-        },
-        "updater": {
-            "active": false
-        },
+    "app": {
+        "withGlobalTauri": true,
         "windows": [
             {
-                "fullscreen": false,
-                "height": 600,
-                "resizable": true,
                 "title": "Blowater",
-                "width": 800
+                "width": 800,
+                "height": 600
             }
+        ],
+        "security": {
+            "csp": null
+        }
+    },
+    "bundle": {
+        "active": true,
+        "targets": "all",
+        "icon": [
+            "icons/128x128.png"
         ]
     }
 }

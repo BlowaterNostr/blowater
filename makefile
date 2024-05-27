@@ -29,8 +29,11 @@ fmt:
 fmt-check:
 	deno fmt --check
 
-install:
+install: install-tauri
 	deno install --allow-net --allow-read https://deno.land/std@0.178.0/http/file_server.ts
+
+install-tauri:
+	cargo install tauri-cli create-tauri-app
 
 cache:
 	rm -f deno.lock
@@ -60,9 +63,11 @@ compile-all-ui-tests:
 	deno run --allow-read --allow-env --allow-write --allow-net app/UI/_compile-ui-tests.ts
 
 # build the tauri application
-tauri-dev:
+tauri-dev: build icon
 	cargo tauri dev
 
-tauri-build: fmt
-	deno bundle 1_app/UI/_main.tsx build-pwa/main.mjs
-	cargo tauri build
+tauri-build-mac: build icon
+	cargo tauri build --target universal-apple-darwin
+
+icon:
+	cargo tauri icon app/UI/assets/logo.webp
