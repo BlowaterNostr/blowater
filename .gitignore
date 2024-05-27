@@ -14,5 +14,5 @@ build-pwa
 build-extension
 *.zip
 # tauri
-tauri-build/src-tauri/icons
+tauri-app/src-tauri/icons
 .idea
