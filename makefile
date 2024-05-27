@@ -33,7 +33,7 @@ install: install-tauri
 	deno install --allow-net --allow-read https://deno.land/std@0.178.0/http/file_server.ts
 
 install-tauri:
-	cargo install create-tauri-app
+	cargo install tauri-cli create-tauri-app
 
 cache:
 	rm -f deno.lock
