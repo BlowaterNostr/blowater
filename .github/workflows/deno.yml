@@ -71,3 +71,6 @@ jobs:
           project: "blowater"
           entrypoint: https://raw.githubusercontent.com/denoland/deno_std/0.202.0/http/file_server.ts
           root: build-pwa
+
+      - name: Tauri
+        run: make tauri-build-mac
