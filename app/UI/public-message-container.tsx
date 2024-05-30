@@ -13,7 +13,7 @@ import { NostrAccountContext } from "../../libs/nostr.ts/nostr.ts";
 import { MessagePanel } from "./message-panel.tsx";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { ChatMessage } from "./message.ts";
-import { func_GetEventByID, func_IsAdmin } from "./message-list.tsx";
+import { func_GetEventByID, func_GetReactionsByEventID, func_IsAdmin } from "./message-list.tsx";
 import { Filter, FilterContent } from "./filter.tsx";
 import { NoteID } from "../../libs/nostr.ts/nip19.ts";
 
@@ -38,6 +38,7 @@ type Props = {
         isUserBlocked: func_IsUserBlocked;
         getEventByID: func_GetEventByID;
         isAdmin: func_IsAdmin | undefined;
+        getReactionsByEventID: func_GetReactionsByEventID;
     };
 } & Public_Model;
 

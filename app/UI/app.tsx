@@ -249,6 +249,7 @@ export class App {
             forever(sync_profile_events(this.database, this.pool));
             forever(sync_public_notes(this.pool, this.database));
             forever(sync_deletion_events(this.pool, this.database));
+            forever(sync_reaction_events(this.pool, this.database));
         }
 
         (async () => {
@@ -371,6 +372,7 @@ export class AppComponent extends Component<AppProps, {
                             isUserBlocked: app.conversationLists.isUserBlocked,
                             getEventByID: app.database.getEventByID,
                             isAdmin: this.state.isAdmin,
+                            getReactionsByEventID: app.database.getReactionEvents,
                         }}
                         userBlocker={app.conversationLists}
                     />
@@ -398,6 +400,7 @@ export class AppComponent extends Component<AppProps, {
                         isUserBlocked: app.conversationLists.isUserBlocked,
                         getEventByID: app.database.getEventByID,
                         isAdmin: this.state.isAdmin,
+                        getReactionsByEventID: app.database.getReactionEvents,
                     }}
                     messages={Array.from(
                         map(
@@ -618,6 +621,33 @@ const sync_deletion_events = async (
 ) => {
     const stream = await pool.newSub("sync_deletion_events", {
         kinds: [NostrKind.DELETE],
+        since: hours_ago(48),
+    });
+    if (stream instanceof Error) {
+        return stream;
+    }
+    for await (const msg of stream.chan) {
+        if (msg.res.type === "EOSE") {
+            continue;
+        } else if (msg.res.type === "NOTICE") {
+            console.log(`Notice: ${msg.res.note}`);
+            continue;
+        }
+
+        const ok = await database.addEvent(msg.res.event, msg.url);
+        if (ok instanceof Error) {
+            console.error(msg);
+            console.error(ok);
+        }
+    }
+};
+
+const sync_reaction_events = async (
+    pool: ConnectionPool,
+    database: Database_View,
+) => {
+    const stream = await pool.newSub("sync_reaction_events", {
+        kinds: [NostrKind.REACTION],
         since: hours_ago(48),
     });
     if (stream instanceof Error) {

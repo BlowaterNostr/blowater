@@ -27,7 +27,8 @@
             "vendor",
             "*cov_profile*",
             "*tauri*",
-            "app/UI/assets/"
+            "app/UI/assets/",
+            "*/tailwind.js"
         ],
         "indentWidth": 4,
         "lineWidth": 110

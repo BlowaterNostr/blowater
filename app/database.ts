@@ -66,6 +66,10 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
     private readonly caster = csp.multi<{ event: Parsed_Event; relay?: string }>(this.sourceOfChange);
     private readonly profiles = new Map<string, Profile_Nostr_Event>();
     private readonly deletionEvents = new Map</* event id */ string, /* deletion event */ Parsed_Event>();
+    private readonly reactionEvents = new Map<
+        /* event id */ string,
+        /* reaction events */ Set<Parsed_Event>
+    >();
 
     private constructor(
         private readonly eventsAdapter: EventsAdapter,
@@ -139,9 +143,15 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
                 event.parsedTags.e.forEach((event_id) => {
                     db.deletionEvents.set(event_id, event);
                 });
+            } else if (event.kind == NostrKind.REACTION) {
+                const eventId = event.parsedTags.e[0];
+                const events = db.reactionEvents.get(event.parsedTags.e[0]) || new Set<Parsed_Event>();
+                events.add(event);
+                db.reactionEvents.set(eventId, events);
             }
         }
         console.log(`Datebase_View:Deletion events size: ${db.deletionEvents.size}`);
+        console.log(`Datebase_View:Reaction events size: ${db.reactionEvents.size}`);
         return db;
     }
 
@@ -176,6 +186,10 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
         return deletionEvent.pubkey == targetEvent.publicKey.hex ||
             deletionEvent.pubkey == admin;
     }
+
+    getReactionEvents = (id: string) => {
+        return this.reactionEvents.get(id) || new Set<Parsed_Event>();
+    };
 
     async remove(id: string): Promise<void> {
         this.removedEvents.add(id);
@@ -296,6 +310,11 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
             parsedEvent.parsedTags.e.forEach((event_id) => {
                 this.deletionEvents.set(event_id, parsedEvent);
             });
+        } else if (parsedEvent.kind == NostrKind.REACTION) {
+            const eventId = parsedEvent.parsedTags.e[0];
+            const events = this.reactionEvents.get(eventId) || new Set<Parsed_Event>();
+            events.add(parsedEvent);
+            this.reactionEvents.set(eventId, events);
         }
 
         await this.eventsAdapter.put(event);

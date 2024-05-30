@@ -55,6 +55,7 @@ interface Props {
         relayRecordGetter: RelayRecordGetter;
         getEventByID: func_GetEventByID;
         isAdmin: func_IsAdmin | undefined;
+        getReactionsByEventID: func_GetReactionsByEventID;
     };
 }
 
@@ -282,6 +283,8 @@ export type func_GetEventByID = (
     id: string | NoteID,
 ) => Parsed_Event | undefined;
 
+export type func_GetReactionsByEventID = (id: string) => Set<Parsed_Event>;
+
 function MessageBoxGroup(props: {
     authorProfile: ProfileData | undefined;
     messages: ChatMessage[];
@@ -300,6 +303,7 @@ function MessageBoxGroup(props: {
         relayRecordGetter: RelayRecordGetter;
         getEventByID: func_GetEventByID;
         isAdmin: func_IsAdmin | undefined;
+        getReactionsByEventID: func_GetReactionsByEventID;
     };
 }) {
     const first_message = props.messages[0];
@@ -353,6 +357,7 @@ function MessageBoxGroup(props: {
                     props.getters,
                     )}
                     </pre>
+                    <Reactions events={props.getters.getReactionsByEventID(first_message.event.id)} />
                 </div>
             </div>
         </li>,
@@ -374,7 +379,7 @@ function MessageBoxGroup(props: {
                 })}
                 {Time(msg.created_at)}
                 <div
-                    class={`flex-1`}
+                    className={`flex-1`}
                     style={{
                         maxWidth: "calc(100% - 2.75rem)",
                     }}
@@ -384,6 +389,7 @@ function MessageBoxGroup(props: {
                     >
                     {ParseMessageContent(msg, props.emit, props.getters)}
                     </pre>
+                    <Reactions events={props.getters.getReactionsByEventID(msg.event.id)} />
                 </div>
             </li>,
         );
@@ -576,6 +582,20 @@ function ReplyTo(
                         </>
                     )}
             </div>
+        </div>
+    );
+}
+
+function Reactions(
+    props: {
+        events: Set<Parsed_Event>;
+    },
+) {
+    return (
+        <div class={`flex flex-row justify-start items-center gap-2`}>
+            {Array.from(props.events).map((event) => {
+                return <div>{event.content}</div>;
+            })}
         </div>
     );
 }
