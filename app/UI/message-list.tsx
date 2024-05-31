@@ -357,7 +357,10 @@ function MessageBoxGroup(props: {
                     props.getters,
                     )}
                     </pre>
-                    <Reactions events={props.getters.getReactionsByEventID(first_message.event.id)} />
+                    <Reactions
+                        myPublicKey={props.myPublicKey}
+                        events={props.getters.getReactionsByEventID(first_message.event.id)}
+                    />
                 </div>
             </div>
         </li>,
@@ -389,7 +392,10 @@ function MessageBoxGroup(props: {
                     >
                     {ParseMessageContent(msg, props.emit, props.getters)}
                     </pre>
-                    <Reactions events={props.getters.getReactionsByEventID(msg.event.id)} />
+                    <Reactions
+                        myPublicKey={props.myPublicKey}
+                        events={props.getters.getReactionsByEventID(msg.event.id)}
+                    />
                 </div>
             </li>,
         );
@@ -588,14 +594,52 @@ function ReplyTo(
 
 function Reactions(
     props: {
+        myPublicKey: PublicKey;
         events: Set<Parsed_Event>;
     },
 ) {
+    const reactions: Map<string, {
+        count: number;
+        clicked: boolean;
+    }> = new Map();
+    for (const event of props.events) {
+        let reaction = event.content;
+        if (!reaction) continue;
+        if (reaction === "+") reaction = "👍";
+        if (reaction === "-") reaction = "👎";
+
+        const pre = reactions.get(reaction);
+        const isClicked = event.pubkey === props.myPublicKey.hex;
+        if (pre) {
+            reactions.set(reaction, {
+                count: pre.count + 1,
+                clicked: pre.clicked || isClicked,
+            });
+        } else {
+            reactions.set(reaction, {
+                count: 1,
+                clicked: isClicked,
+            });
+        }
+    }
     return (
-        <div class={`flex flex-row justify-start items-center gap-2`}>
-            {Array.from(props.events).map((event) => {
-                return <div>{event.content}</div>;
-            })}
-        </div>
+        reactions.size > 0
+            ? (
+                <div class={`flex flex-row justify-start items-center gap-1 py-1`}>
+                    {Array.from(reactions).map(([reaction, { count, clicked }]) => {
+                        return (
+                            <div
+                                class={`flex justify-center items-center rounded-full p-1 text-xs text-neutral-400 leading-4 cursor-default ${
+                                    clicked ? "bg-neutral-500" : "bg-neutral-700"
+                                }`}
+                            >
+                                <div class={`flex justify-center items-center w-4`}>{reaction}</div>
+                                {count > 1 && <div>{` ${count}`}</div>}
+                            </div>
+                        );
+                    })}
+                </div>
+            )
+            : null
     );
 }
