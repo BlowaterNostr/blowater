@@ -70,6 +70,7 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
         /* event id */ string,
         /* reaction events */ Set<Parsed_Event>
     >();
+    private readonly latestEvents = new Map<NostrKind, Parsed_Event>();
 
     private constructor(
         private readonly eventsAdapter: EventsAdapter,
@@ -130,6 +131,7 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
             new Set(all_removed_events.map((mark) => mark.event_id)),
         );
         console.log("Datebase_View:New time spent", Date.now() - t);
+
         for (const event of db.events.values()) {
             if (event.kind == NostrKind.META_DATA) {
                 // @ts-ignore
@@ -148,6 +150,12 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
                 const events = db.reactionEvents.get(event.parsedTags.e[0]) || new Set<Parsed_Event>();
                 events.add(event);
                 db.reactionEvents.set(eventId, events);
+            }
+
+            // update latest event
+            const preLatest = db.latestEvents.get(event.kind);
+            if (preLatest === undefined || preLatest.created_at < event.created_at) {
+                db.latestEvents.set(event.kind, event);
             }
         }
         console.log(`Datebase_View:Deletion events size: ${db.deletionEvents.size}`);
@@ -173,6 +181,10 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
             yield event;
         }
     }
+
+    getLatestEvent = (kind: NostrKind) => {
+        return this.latestEvents.get(kind);
+    };
 
     isDeleted(id: string, admin?: string) {
         const deletionEvent = this.deletionEvents.get(id);

@@ -221,6 +221,35 @@ export class App {
             }));
         })();
 
+        // Sync events since latest event in the database or some hours ago
+        {
+            const latestProfile = args.database.getLatestEvent(NostrKind.META_DATA);
+            const latestPublic = args.database.getLatestEvent(NostrKind.TEXT_NOTE);
+            const latestDeletion = args.database.getLatestEvent(NostrKind.DELETE);
+            const latestReaction = args.database.getLatestEvent(NostrKind.REACTION);
+
+            forever(sync_profile_events({
+                database: args.database,
+                pool: args.pool,
+                since: latestProfile ? latestProfile.created_at : hours_ago(48),
+            }));
+            forever(sync_public_notes({
+                pool: args.pool,
+                database: args.database,
+                since: latestPublic ? latestPublic.created_at : hours_ago(48),
+            }));
+            forever(sync_deletion_events({
+                pool: args.pool,
+                database: args.database,
+                since: latestDeletion ? latestDeletion.created_at : hours_ago(48),
+            }));
+            forever(sync_reaction_events({
+                pool: args.pool,
+                database: args.database,
+                since: latestReaction ? latestReaction.created_at : hours_ago(48),
+            }));
+        }
+
         const app = new App(
             args.database,
             args.model,
@@ -243,13 +272,9 @@ export class App {
     private initApp = async (installPrompt: InstallPrompt) => {
         console.log("App.initApp");
 
-        // Sync events
+        // Sync event limit one
         {
             forever(sync_client_specific_data(this.pool, this.ctx, this.database));
-            forever(sync_profile_events(this.database, this.pool));
-            forever(sync_public_notes(this.pool, this.database));
-            forever(sync_deletion_events(this.pool, this.database));
-            forever(sync_reaction_events(this.pool, this.database));
         }
 
         (async () => {
@@ -550,12 +575,16 @@ async function sync_dm_events(
 }
 
 async function sync_profile_events(
-    database: Database_View,
-    pool: ConnectionPool,
+    args: {
+        database: Database_View;
+        pool: ConnectionPool;
+        since: number;
+    },
 ) {
+    const { database, pool, since } = args;
     const messageStream = await pool.newSub("sync_profile_events", {
         kinds: [NostrKind.META_DATA],
-        since: hours_ago(12),
+        since,
     });
     if (messageStream instanceof Error) {
         return messageStream;
@@ -570,10 +599,17 @@ async function sync_profile_events(
     }
 }
 
-const sync_public_notes = async (pool: ConnectionPool, database: Database_View) => {
+const sync_public_notes = async (
+    args: {
+        pool: ConnectionPool;
+        database: Database_View;
+        since: number;
+    },
+) => {
+    const { pool, database, since } = args;
     const stream = await pool.newSub("sync_public_notes", {
         kinds: [NostrKind.TEXT_NOTE, NostrKind.Long_Form],
-        since: hours_ago(3),
+        since,
     });
     if (stream instanceof Error) {
         return stream;
@@ -616,12 +652,16 @@ const sync_client_specific_data = async (
 };
 
 const sync_deletion_events = async (
-    pool: ConnectionPool,
-    database: Database_View,
+    args: {
+        pool: ConnectionPool;
+        database: Database_View;
+        since: number;
+    },
 ) => {
+    const { pool, database, since } = args;
     const stream = await pool.newSub("sync_deletion_events", {
         kinds: [NostrKind.DELETE],
-        since: hours_ago(48),
+        since,
     });
     if (stream instanceof Error) {
         return stream;
@@ -643,12 +683,16 @@ const sync_deletion_events = async (
 };
 
 const sync_reaction_events = async (
-    pool: ConnectionPool,
-    database: Database_View,
+    args: {
+        pool: ConnectionPool;
+        database: Database_View;
+        since: number;
+    },
 ) => {
+    const { pool, database, since } = args;
     const stream = await pool.newSub("sync_reaction_events", {
         kinds: [NostrKind.REACTION],
-        since: hours_ago(48),
+        since,
     });
     if (stream instanceof Error) {
         return stream;
