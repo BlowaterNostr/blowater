@@ -228,6 +228,10 @@ export class App {
             const latestDeletion = args.database.getLatestEvent(NostrKind.DELETE);
             const latestReaction = args.database.getLatestEvent(NostrKind.REACTION);
 
+            // NOTE:
+            // 48 hours ago is because the latestEvent now does not distinguish space(relay).
+            // After adding space, it can be subscribed to as the most recent timestamp.
+            // So adding "hours ago" can at least have some content.
             forever(sync_profile_events({
                 database: args.database,
                 pool: args.pool,
