@@ -17,7 +17,7 @@ import {
     NewMessageChecker,
     PinListGetter,
 } from "./conversation-list.tsx";
-import { func_GetEventByID, func_IsAdmin } from "./message-list.tsx";
+import { func_GetEventByID, func_GetReactionsByEventID, func_IsAdmin } from "./message-list.tsx";
 
 export type DM_Model = {
     currentConversation: PublicKey | undefined;
@@ -37,6 +37,7 @@ type DirectMessageContainerProps = {
         isUserBlocked: (pubkey: PublicKey) => boolean;
         getEventByID: func_GetEventByID;
         isAdmin: func_IsAdmin | undefined;
+        getReactionsByEventID: func_GetReactionsByEventID;
     };
     userBlocker: UserBlocker;
 } & DM_Model;

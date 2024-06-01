@@ -55,6 +55,7 @@ interface Props {
         relayRecordGetter: RelayRecordGetter;
         getEventByID: func_GetEventByID;
         isAdmin: func_IsAdmin | undefined;
+        getReactionsByEventID: func_GetReactionsByEventID;
     };
 }
 
@@ -282,6 +283,8 @@ export type func_GetEventByID = (
     id: string | NoteID,
 ) => Parsed_Event | undefined;
 
+export type func_GetReactionsByEventID = (id: string) => Set<Parsed_Event>;
+
 function MessageBoxGroup(props: {
     authorProfile: ProfileData | undefined;
     messages: ChatMessage[];
@@ -300,6 +303,7 @@ function MessageBoxGroup(props: {
         relayRecordGetter: RelayRecordGetter;
         getEventByID: func_GetEventByID;
         isAdmin: func_IsAdmin | undefined;
+        getReactionsByEventID: func_GetReactionsByEventID;
     };
 }) {
     const first_message = props.messages[0];
@@ -353,6 +357,10 @@ function MessageBoxGroup(props: {
                     props.getters,
                     )}
                     </pre>
+                    <Reactions
+                        myPublicKey={props.myPublicKey}
+                        events={props.getters.getReactionsByEventID(first_message.event.id)}
+                    />
                 </div>
             </div>
         </li>,
@@ -374,7 +382,7 @@ function MessageBoxGroup(props: {
                 })}
                 {Time(msg.created_at)}
                 <div
-                    class={`flex-1`}
+                    className={`flex-1`}
                     style={{
                         maxWidth: "calc(100% - 2.75rem)",
                     }}
@@ -384,6 +392,10 @@ function MessageBoxGroup(props: {
                     >
                     {ParseMessageContent(msg, props.emit, props.getters)}
                     </pre>
+                    <Reactions
+                        myPublicKey={props.myPublicKey}
+                        events={props.getters.getReactionsByEventID(msg.event.id)}
+                    />
                 </div>
             </li>,
         );
@@ -577,5 +589,57 @@ function ReplyTo(
                     )}
             </div>
         </div>
+    );
+}
+
+function Reactions(
+    props: {
+        myPublicKey: PublicKey;
+        events: Set<Parsed_Event>;
+    },
+) {
+    const reactions: Map<string, {
+        count: number;
+        clicked: boolean;
+    }> = new Map();
+    for (const event of props.events) {
+        let reaction = event.content;
+        if (!reaction) continue;
+        if (reaction === "+") reaction = "👍";
+        if (reaction === "-") reaction = "👎";
+
+        const pre = reactions.get(reaction);
+        const isClicked = event.pubkey === props.myPublicKey.hex;
+        if (pre) {
+            reactions.set(reaction, {
+                count: pre.count + 1,
+                clicked: pre.clicked || isClicked,
+            });
+        } else {
+            reactions.set(reaction, {
+                count: 1,
+                clicked: isClicked,
+            });
+        }
+    }
+    return (
+        reactions.size > 0
+            ? (
+                <div class={`flex flex-row justify-start items-center gap-1 py-1`}>
+                    {Array.from(reactions).map(([reaction, { count, clicked }]) => {
+                        return (
+                            <div
+                                class={`flex justify-center items-center rounded-full p-1 text-xs text-neutral-400 leading-4 cursor-default ${
+                                    clicked ? "bg-neutral-500" : "bg-neutral-700"
+                                }`}
+                            >
+                                <div class={`flex justify-center items-center w-4`}>{reaction}</div>
+                                {count > 1 && <div>{` ${count}`}</div>}
+                            </div>
+                        );
+                    })}
+                </div>
+            )
+            : null
     );
 }

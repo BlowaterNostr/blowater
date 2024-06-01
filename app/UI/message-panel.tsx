@@ -26,6 +26,7 @@ import { BlockUser, UnblockUser } from "./user-detail.tsx";
 import {
     DeleteEvent,
     func_GetEventByID,
+    func_GetReactionsByEventID,
     func_IsAdmin,
     MessageList,
     ReplyToMessage,
@@ -75,6 +76,7 @@ interface MessagePanelProps {
         isUserBlocked: (pubkey: PublicKey) => boolean;
         getEventByID: func_GetEventByID;
         isAdmin: func_IsAdmin | undefined;
+        getReactionsByEventID: func_GetReactionsByEventID;
     };
 }
 

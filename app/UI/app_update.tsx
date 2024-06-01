@@ -169,16 +169,16 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
             continue;
         }
 
-        const current_relay = pool.getRelay(model.currentRelay);
-        if (current_relay == undefined) {
-            console.error(Array.from(pool.getRelays()));
-            continue;
-        }
-
         const blowater_relay = pool.getRelay(default_blowater_relay);
         if (blowater_relay == undefined) {
             console.error(Array.from(pool.getRelays()));
             continue;
+        }
+
+        let current_relay = pool.getRelay(model.currentRelay);
+        if (current_relay == undefined) {
+            current_relay = blowater_relay;
+            rememberCurrentRelay(default_blowater_relay);
         }
 
         // All events below are only valid after signning in
