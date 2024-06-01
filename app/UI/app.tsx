@@ -231,7 +231,7 @@ export class App {
             forever(sync_profile_events({
                 database: args.database,
                 pool: args.pool,
-                since: latestProfile ? latestProfile.created_at : hours_ago(48),
+                since: latestProfile ? latestProfile.created_at : undefined, // sync from beginning of time if not exist
             }));
             forever(sync_public_notes({
                 pool: args.pool,
@@ -578,7 +578,7 @@ async function sync_profile_events(
     args: {
         database: Database_View;
         pool: ConnectionPool;
-        since: number;
+        since: number | undefined;
     },
 ) {
     const { database, pool, since } = args;
