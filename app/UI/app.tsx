@@ -221,7 +221,7 @@ export class App {
             }));
         })();
 
-        // Sync events since latest event in the database or some hours ago
+        // Sync events since latest event in the database or beginning of time
         {
             const latestProfile = args.database.getLatestEvent(NostrKind.META_DATA);
             const latestPublic = args.database.getLatestEvent(NostrKind.TEXT_NOTE);
@@ -231,22 +231,22 @@ export class App {
             forever(sync_profile_events({
                 database: args.database,
                 pool: args.pool,
-                since: latestProfile ? latestProfile.created_at : undefined, // sync from beginning of time if not exist
+                since: latestProfile ? hours_ago(latestProfile.created_at, 48) : undefined,
             }));
             forever(sync_public_notes({
                 pool: args.pool,
                 database: args.database,
-                since: latestPublic ? latestPublic.created_at : hours_ago(48),
+                since: latestPublic ? hours_ago(latestPublic.created_at, 48) : undefined,
             }));
             forever(sync_deletion_events({
                 pool: args.pool,
                 database: args.database,
-                since: latestDeletion ? latestDeletion.created_at : hours_ago(48),
+                since: latestDeletion ? hours_ago(latestDeletion.created_at, 48) : undefined,
             }));
             forever(sync_reaction_events({
                 pool: args.pool,
                 database: args.database,
-                since: latestReaction ? latestReaction.created_at : hours_ago(48),
+                since: latestReaction ? hours_ago(latestReaction.created_at, 48) : undefined,
             }));
         }
 
@@ -603,7 +603,7 @@ const sync_public_notes = async (
     args: {
         pool: ConnectionPool;
         database: Database_View;
-        since: number;
+        since: number | undefined;
     },
 ) => {
     const { pool, database, since } = args;
@@ -655,7 +655,7 @@ const sync_deletion_events = async (
     args: {
         pool: ConnectionPool;
         database: Database_View;
-        since: number;
+        since: number | undefined;
     },
 ) => {
     const { pool, database, since } = args;
@@ -686,7 +686,7 @@ const sync_reaction_events = async (
     args: {
         pool: ConnectionPool;
         database: Database_View;
-        since: number;
+        since: number | undefined;
     },
 ) => {
     const { pool, database, since } = args;
@@ -713,6 +713,6 @@ const sync_reaction_events = async (
     }
 };
 
-export function hours_ago(hours: number) {
-    return Math.floor(Date.now() / 1000) - hours * 60 * 60;
+export function hours_ago(time: number, hours: number) {
+    return time - hours * 60 * 60;
 }
