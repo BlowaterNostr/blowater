@@ -25,7 +25,7 @@ export type func_IsUserBlocked = (pubkey: PublicKey) => boolean;
 
 type Props = {
     ctx: NostrAccountContext;
-    relay: SingleRelayConnection;
+    relay_url: string;
     bus: EventBus<UI_Interaction_Event>;
     messages: ChatMessage[];
     getters: {
@@ -87,7 +87,7 @@ export class PublicMessageContainer extends Component<Props, State> {
                             <div class={`flex-1 overflow-auto`}>
                                 {
                                     <MessagePanel
-                                        key={props.relay.url}
+                                        key={props.relay_url}
                                         myPublicKey={props.ctx.publicKey}
                                         emit={props.bus.emit}
                                         eventSub={props.bus}

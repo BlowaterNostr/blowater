@@ -111,10 +111,8 @@ export function UI_Interaction_Update(args: {
     model: Model;
     eventBus: AppEventBus;
     dbView: Database_View;
-    pool: ConnectionPool;
     popOver: PopOverInputChannel;
     rightPanel: RightPanelChannel;
-    newNostrEventChannel: Channel<NostrEvent>;
     lamport: LamportTime;
     installPrompt: InstallPrompt;
     toastInputChan: ToastChannel;
@@ -128,15 +126,13 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
     model: Model;
     eventBus: AppEventBus;
     dbView: Database_View;
-    pool: ConnectionPool;
     popOver: PopOverInputChannel;
     rightPanel: RightPanelChannel;
-    newNostrEventChannel: Channel<NostrEvent>;
     lamport: LamportTime;
     installPrompt: InstallPrompt;
     toastInputChan: ToastChannel;
 }) => {
-    const { model, dbView, eventBus, pool, installPrompt } = args;
+    const { model, dbView, eventBus, installPrompt } = args;
     for await (const event of eventBus.onChange()) {
         console.log(event);
         if (event.type == "SignInEvent") {
@@ -144,7 +140,6 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
             console.log("sign in as", ctx.publicKey.bech32());
             const otherConfig = await OtherConfig.FromLocalStorage(
                 ctx,
-                args.newNostrEventChannel,
                 args.lamport,
             );
             const app = await App.Start({
@@ -152,7 +147,7 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                 model,
                 ctx,
                 eventBus,
-                pool,
+                pool: new ConnectionPool({ signer: ctx }),
                 popOverInputChan: args.popOver,
                 rightPanelInputChan: args.rightPanel,
                 otherConfig,
@@ -170,7 +165,7 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
             console.warn("This could not happen!");
             continue;
         }
-
+        const pool = app.pool;
         const blowater_relay = pool.getRelay(default_blowater_relay);
         if (blowater_relay == undefined) {
             console.error(Array.from(pool.getRelays()));
