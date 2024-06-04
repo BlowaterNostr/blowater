@@ -418,6 +418,7 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                 null,
                 4,
             );
+            const reactions = app.database.getReactionEvents(nostrEvent.id);
 
             const items: EventDetailItem[] = [
                 {
@@ -457,6 +458,15 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                     ],
                 });
             }
+            if (reactions.size > 0) {
+                items.push({
+                    title: "Reactions",
+                    fields: Array.from(reactions).map((r) => {
+                        return `${r.id}: ${r.content}`;
+                    }),
+                });
+            }
+
             app.popOverInputChan.put({
                 children: (
                     <EventDetail
