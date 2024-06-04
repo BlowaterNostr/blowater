@@ -322,7 +322,7 @@ function MessageBoxGroup(props: {
                 message: first_message,
                 emit: props.emit,
             })}
-            {renderRelply(first_message.event, props.getters, props.emit)}
+            {renderReply(first_message.event, props.getters, props.emit)}
             <div class="flex items-start">
                 <Avatar
                     class={`h-8 w-8 mt-[0.45rem] mr-2`}
@@ -498,7 +498,7 @@ function isReply(event: Parsed_Event) {
     return event.parsedTags.reply || event.parsedTags.root || event.parsedTags.e.length != 0;
 }
 
-function renderRelply(event: Parsed_Event, getters: {
+function renderReply(event: Parsed_Event, getters: {
     messageGetter: ChatMessagesGetter;
     getEventByID: func_GetEventByID;
     getProfileByPublicKey: func_GetProfileByPublicKey;
