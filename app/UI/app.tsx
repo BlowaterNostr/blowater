@@ -173,6 +173,8 @@ export class App {
         installPrompt: InstallPrompt;
         toastInputChan: ToastChannel;
     }) {
+        args.pool.setSigner(args.ctx);
+
         const all_events = Array.from(args.database.getAllEvents());
         args.lamport.fromEvents(all_events);
 
