@@ -47,6 +47,12 @@ export type OpenNote = {
     event: NostrEvent;
 };
 
+export type SendReaction = {
+    type: "SendReaction";
+    event: NostrEvent;
+    content: string;
+};
+
 export type ViewUserDetail = {
     type: "ViewUserDetail";
     pubkey: PublicKey;
@@ -65,6 +71,7 @@ interface MessagePanelProps {
         | SyncEvent
         | ReplyToMessage
         | DeleteEvent
+        | SendReaction
     >;
     eventSub: EventSubscriber<UI_Interaction_Event>;
     messages: ChatMessage[];

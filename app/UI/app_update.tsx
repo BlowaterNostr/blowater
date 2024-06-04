@@ -6,6 +6,7 @@ import {
     sleep,
 } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { prepareDeletionEvent, prepareNormalNostrEvent } from "../../libs/nostr.ts/event.ts";
+import { prepareReactionEvent } from "../../libs/nostr.ts/nip25.ts";
 import { prepareReplyEvent } from "../nostr.ts";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { NoteID } from "../../libs/nostr.ts/nip19.ts";
@@ -36,7 +37,7 @@ import { SaveProfile } from "./edit-profile.tsx";
 import { EditorEvent, SendMessage } from "./editor.tsx";
 import { EventDetail, EventDetailItem } from "./event-detail.tsx";
 
-import { DirectMessagePanelUpdate } from "./message-panel.tsx";
+import { DirectMessagePanelUpdate, SendReaction } from "./message-panel.tsx";
 import { ChatMessage, parseContent } from "./message.ts";
 import { InstallPrompt, NavigationModel, NavigationUpdate, SelectRelay } from "./nav.tsx";
 import { notify } from "./notification.ts";
@@ -88,7 +89,8 @@ export type UI_Interaction_Event =
     | CloseRightPanel
     | ReplyToMessage
     | EditorSelectProfile
-    | DeleteEvent;
+    | DeleteEvent
+    | SendReaction;
 
 type BackToContactList = {
     type: "BackToContactList";
@@ -384,6 +386,18 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                     }
                 }
             })();
+        } else if (event.type == "SendReaction") {
+            const { event: targetEvent, content } = event;
+            const reactionEvent = await prepareReactionEvent(app.ctx, { targetEvent, content });
+            if (reactionEvent instanceof Error) {
+                await app.toastInputChan.put(() => reactionEvent.message);
+                continue;
+            }
+            const result = await current_relay.sendEvent(reactionEvent);
+            console.log(result);
+            if (result instanceof Error) {
+                await app.toastInputChan.put(() => result.message);
+            }
         } else if (event.type == "ViewEventDetail") {
             const nostrEvent = event.message.event;
             const eventID = nostrEvent.id;
