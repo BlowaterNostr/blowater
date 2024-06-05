@@ -393,11 +393,11 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                 await app.toastInputChan.put(() => reactionEvent.message);
                 continue;
             }
-            const result = await current_relay.sendEvent(reactionEvent);
-            console.log(result);
-            if (result instanceof Error) {
-                await app.toastInputChan.put(() => result.message);
-            }
+            current_relay.sendEvent(reactionEvent).then((res) => {
+                if (res instanceof Error) {
+                    app.toastInputChan.put(() => res.message);
+                }
+            });
         } else if (event.type == "ViewEventDetail") {
             const nostrEvent = event.message.event;
             const eventID = nostrEvent.id;
