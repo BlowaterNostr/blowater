@@ -15,6 +15,7 @@ import {
     DirectMessagePanelUpdate,
     NameAndTime,
     ParseMessageContent,
+    SendReaction,
     SyncEvent,
     Time,
     ViewUserDetail,
@@ -35,6 +36,7 @@ import { ChatMessagesGetter } from "./app_update.tsx";
 import { NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { func_GetProfileByPublicKey } from "./search.tsx";
 import { DeleteIcon } from "./icons/delete-icon.tsx";
+import { ThumbsUpIcon } from "./icons/thumbs-up-icon.tsx";
 
 export type func_IsAdmin = (pubkey: string) => boolean;
 
@@ -48,6 +50,7 @@ interface Props {
         | ViewUserDetail
         | ReplyToMessage
         | DeleteEvent
+        | SendReaction
     >;
     getters: {
         messageGetter: ChatMessagesGetter;
@@ -296,6 +299,7 @@ function MessageBoxGroup(props: {
         | SyncEvent
         | ReplyToMessage
         | DeleteEvent
+        | SendReaction
     >;
     getters: {
         messageGetter: ChatMessagesGetter;
@@ -322,7 +326,7 @@ function MessageBoxGroup(props: {
                 message: first_message,
                 emit: props.emit,
             })}
-            {renderRelply(first_message.event, props.getters, props.emit)}
+            {renderReply(first_message.event, props.getters, props.emit)}
             <div class="flex items-start">
                 <Avatar
                     class={`h-8 w-8 mt-[0.45rem] mr-2`}
@@ -418,7 +422,7 @@ export type ReplyToMessage = {
 function MessageActions(args: {
     myPublicKey: PublicKey;
     message: ChatMessage;
-    emit: emitFunc<DirectMessagePanelUpdate | ReplyToMessage | DeleteEvent>;
+    emit: emitFunc<DirectMessagePanelUpdate | ReplyToMessage | DeleteEvent | SendReaction>;
     isAdmin: func_IsAdmin | undefined;
 }) {
     const { myPublicKey, message, emit, isAdmin } = args;
@@ -465,6 +469,19 @@ function MessageActions(args: {
                 )}
 
             <button
+                class={`flex items-center justify-center p-1 bg-[#313338] hover:bg-[#3A3C41]`}
+                onClick={() => {
+                    emit({
+                        type: "SendReaction",
+                        event: message.event,
+                        content: "+",
+                    });
+                }}
+            >
+                <ThumbsUpIcon class={`w-5 h-5 text-[#B6BAC0] hover:text-[#D9DBDE]`} />
+            </button>
+
+            <button
                 class={`flex items-center justify-center
                 p-1
                 bg-[#313338] hover:bg-[#3A3C41] rounded-r`}
@@ -498,7 +515,7 @@ function isReply(event: Parsed_Event) {
     return event.parsedTags.reply || event.parsedTags.root || event.parsedTags.e.length != 0;
 }
 
-function renderRelply(event: Parsed_Event, getters: {
+function renderReply(event: Parsed_Event, getters: {
     messageGetter: ChatMessagesGetter;
     getEventByID: func_GetEventByID;
     getProfileByPublicKey: func_GetProfileByPublicKey;
