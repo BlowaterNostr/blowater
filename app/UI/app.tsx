@@ -51,21 +51,10 @@ export async function Start(database: DexieDatabase) {
     const lamport = new LamportTime();
     const model = initialModel();
     const eventBus = new EventBus<UI_Interaction_Event>();
-    const pool = new ConnectionPool();
     const popOverInputChan: PopOverInputChannel = new Channel();
     const rightPanelInputChan: RightPanelChannel = new Channel();
     const toastInputChan: ToastChannel = new Channel();
     const dbView = await Database_View.New(database, database, database);
-    const newNostrEventChannel = new Channel<NostrEvent>();
-
-    (async () => {
-        for await (const event of newNostrEventChannel) {
-            const err = await pool.sendEvent(event);
-            if (err instanceof Error) {
-                console.error(err);
-            }
-        }
-    })();
 
     {
         for (;;) {
@@ -77,13 +66,13 @@ export async function Start(database: DexieDatabase) {
                 console.error(ctx);
                 break;
             } else if (ctx) {
-                const otherConfig = await OtherConfig.FromLocalStorage(ctx, newNostrEventChannel, lamport);
+                const otherConfig = await OtherConfig.FromLocalStorage(ctx, lamport);
                 const app = await App.Start({
                     database: dbView,
                     model,
                     ctx,
                     eventBus,
-                    pool,
+                    pool: new ConnectionPool({ signer: ctx }),
                     popOverInputChan,
                     rightPanelInputChan,
                     otherConfig,
@@ -101,7 +90,6 @@ export async function Start(database: DexieDatabase) {
         <AppComponent
             eventBus={eventBus}
             model={model}
-            pool={pool}
             popOverInputChan={popOverInputChan}
             rightPanelInputChan={rightPanelInputChan}
             installPrompt={installPrompt}
@@ -115,10 +103,8 @@ export async function Start(database: DexieDatabase) {
             model,
             eventBus,
             dbView: dbView,
-            pool,
             popOver: popOverInputChan,
             rightPanel: rightPanelInputChan,
-            newNostrEventChannel: newNostrEventChannel,
             lamport,
             installPrompt,
             toastInputChan: toastInputChan,
@@ -130,7 +116,6 @@ export async function Start(database: DexieDatabase) {
                 <AppComponent
                     eventBus={eventBus}
                     model={model}
-                    pool={pool}
                     popOverInputChan={popOverInputChan}
                     rightPanelInputChan={rightPanelInputChan}
                     installPrompt={installPrompt}
@@ -287,7 +272,6 @@ export class App {
                 <AppComponent
                     eventBus={this.eventBus}
                     model={this.model}
-                    pool={this.pool}
                     popOverInputChan={this.popOverInputChan}
                     rightPanelInputChan={this.rightPanelInputChan}
                     installPrompt={installPrompt}
@@ -319,7 +303,6 @@ export class App {
                     <AppComponent
                         eventBus={this.eventBus}
                         model={this.model}
-                        pool={this.pool}
                         popOverInputChan={this.popOverInputChan}
                         rightPanelInputChan={this.rightPanelInputChan}
                         installPrompt={installPrompt}
@@ -341,7 +324,6 @@ export class App {
 type AppProps = {
     model: Model;
     eventBus: AppEventBus;
-    pool: ConnectionPool;
     popOverInputChan: PopOverInputChannel;
     rightPanelInputChan: RightPanelChannel;
     toastInputChan: ToastChannel;
@@ -457,7 +439,7 @@ export class AppComponent extends Component<AppProps, {
                             },
                         ),
                     )}
-                    relay={props.pool.getRelay(model.currentRelay) as SingleRelayConnection}
+                    relay_url={model.currentRelay}
                     bus={app.eventBus}
                 />
             );
@@ -503,7 +485,7 @@ export class AppComponent extends Component<AppProps, {
                     logout: app.logout,
                     relayConfig: app.relayConfig,
                     myAccountContext: myAccountCtx,
-                    relayPool: props.pool,
+                    relayPool: app.pool,
                     emit: props.eventBus.emit,
                 })}
                 <Popover

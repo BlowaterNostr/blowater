@@ -11,27 +11,26 @@ export type NostrEventAdder = {
 };
 
 export class OtherConfig implements PinListGetter, NostrEventAdder {
-    static Empty(nostrEventPusher: Channel<NostrEvent>, ctx: NostrAccountContext, lamport: LamportTime) {
-        return new OtherConfig(nostrEventPusher, ctx, lamport);
+    static Empty(ctx: NostrAccountContext, lamport: LamportTime) {
+        return new OtherConfig(ctx, lamport);
     }
 
     static async FromLocalStorage(
         ctx: NostrAccountContext,
-        eventPusher: Channel<NostrEvent>,
         lamport: LamportTime,
     ) {
         const item = localStorage.getItem(`${OtherConfig.name}:${ctx.publicKey.bech32()}`);
         if (item == null) {
-            return OtherConfig.Empty(eventPusher, ctx, lamport);
+            return OtherConfig.Empty(ctx, lamport);
         }
         const event = parseJSON<NostrEvent>(item);
         if (event instanceof Error) {
             console.error(event);
-            return OtherConfig.Empty(eventPusher, ctx, lamport);
+            return OtherConfig.Empty(ctx, lamport);
         }
         const ok = await verifyEvent(event);
         if (!ok) {
-            return OtherConfig.Empty(eventPusher, ctx, lamport);
+            return OtherConfig.Empty(ctx, lamport);
         }
         if (event.kind == NostrKind.Encrypted_Custom_App_Data) {
             const config = await OtherConfig.FromNostrEvent(
@@ -40,19 +39,17 @@ export class OtherConfig implements PinListGetter, NostrEventAdder {
                     kind: event.kind,
                 },
                 ctx,
-                eventPusher,
                 lamport,
             );
             if (config instanceof Error) {
-                return OtherConfig.Empty(eventPusher, ctx, lamport);
+                return OtherConfig.Empty(ctx, lamport);
             }
             return config;
         }
-        return OtherConfig.Empty(eventPusher, ctx, lamport);
+        return OtherConfig.Empty(ctx, lamport);
     }
 
     private constructor(
-        private readonly nostrEventPusher: Channel<NostrEvent>,
         private readonly ctx: NostrAccountContext,
         private readonly lamport: LamportTime,
     ) {}
@@ -94,7 +91,6 @@ export class OtherConfig implements PinListGetter, NostrEventAdder {
         if (err instanceof Error) {
             return err;
         }
-        /* no await */ this.nostrEventPusher.put(event);
     }
 
     async removePin(pubkey: string) {
@@ -121,13 +117,11 @@ export class OtherConfig implements PinListGetter, NostrEventAdder {
         if (err instanceof Error) {
             return err;
         }
-        /* no await */ this.nostrEventPusher.put(event);
     }
 
     static async FromNostrEvent(
         event: NostrEvent<NostrKind.Encrypted_Custom_App_Data>,
         ctx: NostrAccountContext,
-        pusher: Channel<NostrEvent>,
         lamport: LamportTime,
     ) {
         const decrypted = await ctx.decrypt(ctx.publicKey.hex, event.content, "nip4");
@@ -147,7 +141,7 @@ export class OtherConfig implements PinListGetter, NostrEventAdder {
             pinList = [];
         }
 
-        const c = new OtherConfig(pusher, ctx, lamport);
+        const c = new OtherConfig(ctx, lamport);
         for (const pin of pinList) {
             const err = await c.addPin(pin);
             if (err instanceof Error) {
