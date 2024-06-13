@@ -1,5 +1,5 @@
 /** @jsx h */
-import { Component, ComponentChildren, Fragment, h } from "https://esm.sh/preact@10.17.1";
+import { Component, Fragment, h } from "https://esm.sh/preact@10.17.1";
 import { CopyButton } from "./components/copy-button.tsx";
 import { CenterClass, InputClass } from "./components/tw.ts";
 import {
@@ -8,27 +8,17 @@ import {
     HintTextColor,
     PrimaryTextColor,
     SecondaryBackgroundColor,
-    TitleIconColor,
 } from "./style/colors.ts";
 import { Avatar } from "./components/avatar.tsx";
 import { ProfileGetter } from "./search.tsx";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { Loading } from "./components/loading.tsx";
-import { RelayIcon } from "./icons/relay-icon.tsx";
 import { Profile_Nostr_Event } from "../nostr.ts";
 import { emitFunc } from "../event-bus.ts";
 import { SelectConversation } from "./search_model.ts";
+import { RelayInformation, getRelayInformation, robohash } from "../../libs/nostr.ts/nip11.ts";
 
-export type RelayInformation = {
-    name?: string;
-    description?: string;
-    pubkey?: string;
-    contact?: string;
-    supported_nips?: number[];
-    software?: string;
-    version?: string;
-    icon?: string;
-};
+
 
 type State = {
     relayInfo: RelayInformation;
@@ -223,33 +213,4 @@ function TextField(props: {
             </div>
         </div>
     );
-}
-
-export async function getRelayInformation(url: string) {
-    try {
-        const httpURL = new URL(url);
-        httpURL.protocol = httpURL.protocol == "wss:" ? "https" : "http";
-        const res = await fetch(httpURL, {
-            headers: {
-                "accept": "application/nostr+json",
-            },
-        });
-
-        if (!res.ok) {
-            return new Error(`Faild to get detail, ${res.status}: ${await res.text()}`);
-        }
-
-        const detail = await res.text();
-        const info = JSON.parse(detail) as RelayInformation;
-        if (!info.icon) {
-            info.icon = robohash(url);
-        }
-        return info;
-    } catch (e) {
-        return e as Error;
-    }
-}
-
-export function robohash(url: string | URL) {
-    return `https://robohash.org/${url}`;
 }

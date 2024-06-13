@@ -14,9 +14,9 @@ import { EventSubscriber } from "../event-bus.ts";
 import { UI_Interaction_Event } from "./app_update.tsx";
 import { Parsed_Event } from "../nostr.ts";
 import { Profile_Nostr_Event } from "../nostr.ts";
-import { robohash } from "./relay-detail.tsx";
 import { Avatar } from "./components/avatar.tsx";
 import { UploadFileResponse } from "../../libs/nostr.ts/nip96.ts";
+import { robohash } from "../../libs/nostr.ts/nip11.ts";
 
 export type EditorEvent = SendMessage | UploadImage | EditorSelectProfile;
 

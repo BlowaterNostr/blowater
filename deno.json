@@ -32,5 +32,8 @@
         ],
         "indentWidth": 4,
         "lineWidth": 110
+    },
+    "test": {
+        "exclude": ["libs/*"]
     }
 }

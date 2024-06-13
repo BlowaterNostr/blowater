@@ -11,9 +11,9 @@ import { UserIcon } from "./icons/user-icon.tsx";
 import { CopyButton } from "./components/copy-button.tsx";
 import { LinkColor } from "./style/colors.ts";
 import { findUrlInString } from "./message.ts";
-import { robohash } from "./relay-detail.tsx";
 import { SelectConversation } from "./search_model.ts";
 import { CloseRightPanel } from "./components/right-panel.tsx";
+import { robohash } from "../../libs/nostr.ts/nip11.ts";
 
 export type BlockUser = {
     type: "BlockUser";

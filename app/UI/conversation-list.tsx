@@ -19,7 +19,8 @@ import { SearchUpdate, SelectConversation } from "./search_model.ts";
 import { ErrorColor, PrimaryTextColor, SecondaryBackgroundColor } from "./style/colors.ts";
 import { ContactTag, ContactTags, TagSelected } from "./contact-tags.tsx";
 import { ViewUserDetail } from "./message-panel.tsx";
-import { robohash } from "./relay-detail.tsx";
+import { robohash } from "../../libs/nostr.ts/nip11.ts";
+
 
 export interface ConversationListRetriever {
     getContacts: () => Iterable<ConversationSummary>;

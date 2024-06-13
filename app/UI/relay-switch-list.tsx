@@ -6,9 +6,9 @@ import { emitFunc } from "../event-bus.ts";
 import { RelayAvatar } from "./components/avatar.tsx";
 import { SelectRelay } from "./nav.tsx";
 import { NavigationUpdate } from "./nav.tsx";
-import { getRelayInformation, RelayInformation, robohash } from "./relay-detail.tsx";
 import { setState } from "./_helper.ts";
 import { AddIcon } from "./icons/add-icon.tsx";
+import { RelayInformation, getRelayInformation, robohash } from "../../libs/nostr.ts/nip11.ts";
 
 type RelaySwitchListProps = {
     pool: ConnectionPool;
