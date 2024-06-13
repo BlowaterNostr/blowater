@@ -41,7 +41,7 @@ import { DirectMessagePanelUpdate, SendReaction } from "./message-panel.tsx";
 import { ChatMessage, parseContent } from "./message.ts";
 import { InstallPrompt, NavigationModel, NavigationUpdate, SelectRelay } from "./nav.tsx";
 import { notify } from "./notification.ts";
-import { RelayInformationComponent } from "./relay-detail.tsx";
+import { SpaceSetting } from "./relay-detail.tsx";
 import { Search } from "./search.tsx";
 import { SearchUpdate, SelectConversation } from "./search_model.ts";
 import { RelayConfigChange, ViewRecommendedRelaysList, ViewRelayDetail } from "./setting.tsx";
@@ -206,7 +206,7 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
         else if (event.type == "ViewRelayDetail") {
             app.popOverInputChan.put({
                 children: (
-                    <RelayInformationComponent
+                    <SpaceSetting
                         relayUrl={event.url}
                         profileGetter={app.database}
                         emit={app.eventBus.emit}

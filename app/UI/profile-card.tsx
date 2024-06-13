@@ -9,7 +9,6 @@ import { ViewUserDetail } from "./message-panel.tsx";
 import { cardBackgroundColor, HintLinkColor, HintTextColor, LinkColor } from "./style/colors.ts";
 import { robohash } from "../../libs/nostr.ts/nip11.ts";
 
-
 export function ProfileCard(props: {
     profileData?: ProfileData;
     publicKey: PublicKey;

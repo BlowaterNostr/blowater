@@ -8,7 +8,7 @@ import { SelectRelay } from "./nav.tsx";
 import { NavigationUpdate } from "./nav.tsx";
 import { setState } from "./_helper.ts";
 import { AddIcon } from "./icons/add-icon.tsx";
-import { RelayInformation, getRelayInformation, robohash } from "../../libs/nostr.ts/nip11.ts";
+import { getRelayInformation, RelayInformation, robohash } from "../../libs/nostr.ts/nip11.ts";
 
 type RelaySwitchListProps = {
     pool: ConnectionPool;

@@ -1,5 +1,13 @@
 /** @jsx h */
-import { Component, Fragment, h } from "https://esm.sh/preact@10.17.1";
+import {
+    Attributes,
+    Component,
+    ComponentChild,
+    ComponentChildren,
+    Fragment,
+    h,
+    Ref,
+} from "https://esm.sh/preact@10.17.1";
 import { CopyButton } from "./components/copy-button.tsx";
 import { CenterClass, InputClass } from "./components/tw.ts";
 import {
@@ -16,9 +24,29 @@ import { Loading } from "./components/loading.tsx";
 import { Profile_Nostr_Event } from "../nostr.ts";
 import { emitFunc } from "../event-bus.ts";
 import { SelectConversation } from "./search_model.ts";
-import { RelayInformation, getRelayInformation, robohash } from "../../libs/nostr.ts/nip11.ts";
+import { getRelayInformation, RelayInformation, robohash } from "../../libs/nostr.ts/nip11.ts";
 
-
+export class SpaceSetting extends Component<
+    {
+        emit: emitFunc<SelectConversation>;
+        profileGetter: ProfileGetter;
+        relayUrl: string;
+    }
+> {
+    render() {
+        return (
+            <div class="flex flex-row">
+                <div>
+                    <button>General</button>
+                    <button>Members</button>
+                </div>
+                <RelayInformationComponent
+                    {...this.props}
+                />
+            </div>
+        );
+    }
+}
 
 type State = {
     relayInfo: RelayInformation;
