@@ -26,26 +26,46 @@ import { emitFunc } from "../event-bus.ts";
 import { SelectConversation } from "./search_model.ts";
 import { getRelayInformation, RelayInformation, robohash } from "../../libs/nostr.ts/nip11.ts";
 
+type SpaceSettingState = {
+    tab: tabs;
+};
+type tabs = "general" | "members";
+
 export class SpaceSetting extends Component<
     {
         emit: emitFunc<SelectConversation>;
         profileGetter: ProfileGetter;
         relayUrl: string;
-    }
+    },
+    SpaceSettingState
 > {
+    state: SpaceSettingState = {
+        tab: "general",
+    };
+
     render() {
         return (
             <div class="flex flex-row">
                 <div>
-                    <button>General</button>
-                    <button>Members</button>
+                    <button onClick={this.changeTab("general")}>General</button>
+                    <button onClick={this.changeTab("members")}>Members</button>
                 </div>
-                <RelayInformationComponent
-                    {...this.props}
-                />
+                {this.state.tab == "general"
+                    ? (
+                        <RelayInformationComponent
+                            {...this.props}
+                        />
+                    )
+                    : <div>Member List</div>}
             </div>
         );
     }
+
+    changeTab = (tab: tabs) => () => {
+        this.setState({
+            tab,
+        });
+    };
 }
 
 type State = {
