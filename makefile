@@ -67,7 +67,7 @@ tauri-dev: build icon
 	cargo tauri dev
 
 tauri-build-mac: build icon
-	cargo tauri build --target universal-apple-darwin
+	cd tauri-app/src-tauri && cargo tauri build --target universal-apple-darwin
 
 icon:
 	cargo tauri icon app/UI/assets/logo.webp
