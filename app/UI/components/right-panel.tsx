@@ -26,7 +26,7 @@ export class RightPanel extends Component<RightPanelProps, RightPanelState> {
         }
     }
 
-    render(props: RightPanelProps, state: RightPanelState) {
+    render(_props: RightPanelProps, state: RightPanelState) {
         return (
             <div
                 class={`${state.children ? "" : "translate-x-full"} fixed top-0 right-0 border-l

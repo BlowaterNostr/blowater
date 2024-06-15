@@ -20,10 +20,11 @@
                 "ban-ts-comment",
                 "no-async-promise-executor",
                 "no-case-declarations",
-                "no-window"
+                "no-window",
+                "no-unused-vars"
             ]
         },
-        "exclude": ["app/UI/assets", "build-pwa", "libs"]
+        "exclude": ["app/UI/assets", "build-pwa", "libs", "*.test.*"]
     },
     "fmt": {
         "exclude": [
