@@ -87,7 +87,7 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
                                 />
                             </div>
                             <div
-                                class="flex flex-col overflow-y-auto overflow-x-hidde"
+                                class="flex flex-col overflow-y-auto overflow-x-hidden"
                                 style={{ maxHeight: "70vh" }}
                             >
                                 {relayList}
