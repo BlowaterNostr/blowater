@@ -16,9 +16,10 @@ import { Loading } from "./components/loading.tsx";
 import { Profile_Nostr_Event } from "../nostr.ts";
 import { emitFunc } from "../event-bus.ts";
 import { SelectConversation } from "./search_model.ts";
-import { getRelayInformation, RelayInformation, robohash } from "../../libs/nostr.ts/nip11.ts";
+import { RelayInformation, robohash } from "../../libs/nostr.ts/nip11.ts";
 import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 import { setState } from "./_helper.ts";
+import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 
 type SpaceSettingState = {
     tab: tabs;
@@ -34,15 +35,15 @@ export class SpaceSetting extends Component<
     },
     SpaceSettingState
 > {
+    infoStream: Channel<RelayInformation | Error> | undefined;
     state: SpaceSettingState = {
         tab: "general",
         info: undefined,
     };
 
     async componentDidMount() {
-        const infoStream = await this.props.relay.getRelayInformationStream();
-        for await (const info of infoStream) {
-            console.log(info);
+        this.infoStream = await this.props.relay.getRelayInformationStream();
+        for await (const info of this.infoStream) {
             if (info instanceof Error) {
                 console.error(info.message, info.cause);
             } else {
@@ -51,6 +52,10 @@ export class SpaceSetting extends Component<
                 });
             }
         }
+    }
+
+    async componentWillUnmount() {
+        this.infoStream?.close();
     }
 
     render() {
