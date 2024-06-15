@@ -49,6 +49,7 @@ stats:
 
 # build the web application
 build: fmt
+	deno lint
 	cp -rv app/UI/assets/ build-pwa/
 	deno bundle app/UI/_main.tsx build-pwa/main.mjs
 
