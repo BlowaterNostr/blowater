@@ -1,13 +1,5 @@
 /** @jsx h */
-import {
-    Attributes,
-    Component,
-    ComponentChild,
-    ComponentChildren,
-    Fragment,
-    h,
-    Ref,
-} from "https://esm.sh/preact@10.17.1";
+import { Component, Fragment, h } from "https://esm.sh/preact@10.17.1";
 import { CopyButton } from "./components/copy-button.tsx";
 import { CenterClass, InputClass } from "./components/tw.ts";
 import {
@@ -25,9 +17,12 @@ import { Profile_Nostr_Event } from "../nostr.ts";
 import { emitFunc } from "../event-bus.ts";
 import { SelectConversation } from "./search_model.ts";
 import { getRelayInformation, RelayInformation, robohash } from "../../libs/nostr.ts/nip11.ts";
+import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
+import { setState } from "./_helper.ts";
 
 type SpaceSettingState = {
     tab: tabs;
+    info: RelayInformation | undefined;
 };
 type tabs = "general" | "members";
 
@@ -35,25 +30,44 @@ export class SpaceSetting extends Component<
     {
         emit: emitFunc<SelectConversation>;
         profileGetter: ProfileGetter;
-        relayUrl: string;
+        relay: SingleRelayConnection;
     },
     SpaceSettingState
 > {
     state: SpaceSettingState = {
         tab: "general",
+        info: undefined,
     };
+
+    async componentDidMount() {
+        const infoStream = await this.props.relay.getRelayInformationStream();
+        for await (const info of infoStream) {
+            console.log(info);
+            if (info instanceof Error) {
+                console.error(info.message, info.cause);
+            } else {
+                await setState(this, {
+                    info,
+                });
+            }
+        }
+    }
 
     render() {
         return (
             <div class="flex flex-row">
-                <div>
-                    <button onClick={this.changeTab("general")}>General</button>
-                    <button onClick={this.changeTab("members")}>Members</button>
+                <div class="flex flex-col">
+                    <button class="border" onClick={this.changeTab("general")}>General</button>
+                    <button class="border" onClick={this.changeTab("members")}>Members</button>
                 </div>
                 {this.state.tab == "general"
-                    ? (
+                    ? this.state.info == undefined ? <Loading /> : (
                         <RelayInformationComponent
                             {...this.props}
+                            info={{
+                                ...this.state.info,
+                                url: this.props.relay.url,
+                            }}
                         />
                     )
                     : <div>Member List</div>}
@@ -69,15 +83,13 @@ export class SpaceSetting extends Component<
 }
 
 type State = {
-    relayInfo: RelayInformation;
     error: string;
-    isLoading: boolean;
 };
 
 type Props = {
-    relayUrl: string;
     profileGetter: ProfileGetter;
     emit: emitFunc<SelectConversation>;
+    info: RelayInformation & { url: string };
 };
 
 export class RelayInformationComponent extends Component<Props, State> {
@@ -91,47 +103,18 @@ export class RelayInformationComponent extends Component<Props, State> {
     };
 
     state: State = {
-        relayInfo: {
-            name: undefined,
-            description: undefined,
-            pubkey: undefined,
-            contact: undefined,
-            supported_nips: undefined,
-            software: undefined,
-            version: undefined,
-        },
         error: "",
-        isLoading: false,
     };
 
-    async componentWillMount() {
-        this.setState({
-            isLoading: true,
-        });
-        const res = await getRelayInformation(this.props.relayUrl);
-        if (res instanceof Error) {
-            this.setState({
-                isLoading: false,
-                error: res.message,
-            });
-        } else {
-            this.setState({
-                isLoading: false,
-                relayInfo: res,
-            });
-        }
-    }
-
     render() {
+        const info = this.props.info;
         let vNode;
-        if (this.state.isLoading) {
-            vNode = <Loading />;
-        } else if (this.state.error) {
+        if (this.state.error) {
             vNode = <p class={this.styles.error}>{this.state.error}</p>;
         } else {
             const nodes = [];
-            if (this.state.relayInfo.pubkey) {
-                const pubkey = PublicKey.FromString(this.state.relayInfo.pubkey);
+            if (info.pubkey) {
+                const pubkey = PublicKey.FromString(info.pubkey);
                 if (pubkey instanceof Error) {
                 } else {
                     nodes.push(
@@ -146,43 +129,43 @@ export class RelayInformationComponent extends Component<Props, State> {
                     );
                 }
             }
-            if (this.state.relayInfo.contact) {
+            if (info.contact) {
                 nodes.push(
                     <Fragment>
                         <p class={this.styles.title}>Contact</p>
-                        <TextField text={this.state.relayInfo.contact} />
+                        <TextField text={info.contact} />
                     </Fragment>,
                 );
             }
-            if (this.state.relayInfo.description) {
+            if (info.description) {
                 nodes.push(
                     <Fragment>
                         <p class={this.styles.title}>Description</p>
-                        <TextField text={this.state.relayInfo.description} />
+                        <TextField text={info.description} />
                     </Fragment>,
                 );
             }
-            if (this.state.relayInfo.software) {
+            if (info.software) {
                 nodes.push(
                     <Fragment>
                         <p class={this.styles.title}>Software</p>
-                        <TextField text={this.state.relayInfo.software} />
+                        <TextField text={info.software} />
                     </Fragment>,
                 );
             }
-            if (this.state.relayInfo.version) {
+            if (info.version) {
                 nodes.push(
                     <Fragment>
                         <p class={this.styles.title}>Version</p>
-                        <TextField text={this.state.relayInfo.version} />
+                        <TextField text={info.version} />
                     </Fragment>,
                 );
             }
-            if (this.state.relayInfo.supported_nips) {
+            if (info.supported_nips) {
                 nodes.push(
                     <Fragment>
                         <p class={this.styles.title}>Supported NIPs</p>
-                        <TextField text={this.state.relayInfo.supported_nips.join(", ")} />
+                        <TextField text={info.supported_nips.join(", ")} />
                     </Fragment>,
                 );
             }
@@ -196,17 +179,17 @@ export class RelayInformationComponent extends Component<Props, State> {
         return (
             <div class={this.styles.container}>
                 <p class={this.styles.header.container}>
-                    {this.state.relayInfo.icon
+                    {info.icon
                         ? (
                             <Avatar
                                 class="w-8 h-8 mr-2"
-                                picture={this.state.relayInfo.icon || robohash(this.props.relayUrl)}
+                                picture={info.icon || robohash(this.props.info.url)}
                             />
                         )
                         : undefined}
-                    {this.state.relayInfo.name}
+                    {info.name}
                     <div class="mx-2"></div>
-                    {this.props.relayUrl}
+                    {this.props.info.url}
                 </p>
                 {vNode}
             </div>

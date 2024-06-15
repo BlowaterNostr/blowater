@@ -204,15 +204,20 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
         // Setting
         //
         else if (event.type == "ViewRelayDetail") {
-            app.popOverInputChan.put({
-                children: (
-                    <SpaceSetting
-                        relayUrl={event.url}
-                        profileGetter={app.database}
-                        emit={app.eventBus.emit}
-                    />
-                ),
-            });
+            const relay = pool.getRelay(event.url);
+            if (relay) {
+                app.popOverInputChan.put({
+                    children: (
+                        <SpaceSetting
+                            profileGetter={app.database}
+                            emit={app.eventBus.emit}
+                            relay={relay}
+                        />
+                    ),
+                });
+            } else {
+                console.error(event.url, "is not in the pool");
+            }
         } else if (event.type == "ViewRecommendedRelaysList") {
             app.popOverInputChan.put({
                 children: (
