@@ -29,7 +29,7 @@ export interface ProfileSetter {
     setProfile(profileEvent: Profile_Nostr_Event, relayURL: string): void;
 }
 
-export type func_GetProfileByPublicKey = (pubkey: PublicKey) => Profile_Nostr_Event | undefined;
+export type func_GetProfileByPublicKey = (pubkey: PublicKey | string) => Profile_Nostr_Event | undefined;
 export type func_GetProfilesByText = (input: string) => Profile_Nostr_Event[];
 export interface ProfileGetter {
     getProfilesByText: func_GetProfilesByText;

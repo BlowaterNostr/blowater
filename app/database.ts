@@ -262,9 +262,12 @@ export class Database_View
         return result;
     };
 
-    getProfileByPublicKey = (pubkey: PublicKey): Profile_Nostr_Event | undefined => {
+    getProfileByPublicKey = (pubkey: PublicKey | string): Profile_Nostr_Event | undefined => {
         if (!this.profiles) return;
-        const profile = this.profiles.get(pubkey.hex);
+        if (pubkey instanceof PublicKey) {
+            pubkey = pubkey.hex;
+        }
+        const profile = this.profiles.get(pubkey);
         return profile;
     };
 

@@ -214,6 +214,7 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                             emit={app.eventBus.emit}
                             relay={relay}
                             getMemberSet={app.database.getMemberSet}
+                            getProfileByPublicKey={app.database.getProfileByPublicKey}
                         />
                     ),
                 });
