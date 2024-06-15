@@ -170,8 +170,3 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
         });
     };
 }
-
-function getSecondaryDomainName(url: string) {
-    const domain = new URL(url).hostname.split(".");
-    return domain[domain.length - 2];
-}

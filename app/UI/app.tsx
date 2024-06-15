@@ -42,7 +42,7 @@ export async function Start(database: DexieDatabase) {
     const installPrompt: InstallPrompt = {
         event: undefined,
     };
-    window.addEventListener("beforeinstallprompt", async (event) => {
+    globalThis.addEventListener("beforeinstallprompt", async (event) => {
         event.preventDefault();
         installPrompt.event = event;
     });
@@ -529,7 +529,7 @@ export function getFocusedContent(
     if (focusedContent instanceof PublicKey) {
         const profileData = profileGetter.getProfileByPublicKey(focusedContent)?.profile;
         return {
-            type: "ProfileData" as "ProfileData",
+            type: "ProfileData",
             data: profileData,
             pubkey: focusedContent,
         };

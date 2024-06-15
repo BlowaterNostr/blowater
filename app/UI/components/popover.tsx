@@ -36,12 +36,12 @@ export class Popover extends Component<{
     show = (children: ComponentChildren) => {
         this.children = children;
         this.setState({ show: true });
-        window.addEventListener("keydown", this.onEscKeyDown);
+        globalThis.addEventListener("keydown", this.onEscKeyDown);
     };
 
     hide = (onClose?: () => void) => {
         this.setState({ show: false });
-        window.removeEventListener("keydown", this.onEscKeyDown);
+        globalThis.removeEventListener("keydown", this.onEscKeyDown);
 
         if (onClose) {
             onClose();

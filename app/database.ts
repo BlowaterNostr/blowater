@@ -5,6 +5,7 @@ import { NostrEvent, NostrKind, Tag, verifyEvent } from "../libs/nostr.ts/nostr.
 import { PublicKey } from "../libs/nostr.ts/key.ts";
 import { ProfileGetter, ProfileSetter } from "./UI/search.tsx";
 import { NoteID } from "../libs/nostr.ts/nip19.ts";
+import { func_GetMemberSet } from "./UI/relay-detail.tsx";
 
 const buffer_size = 2000;
 export interface Indices {
@@ -61,7 +62,12 @@ export interface RelayRecordGetter {
     getRelayRecord: (eventID: string) => Set<string>;
 }
 
-export class Database_View implements ProfileSetter, ProfileGetter, EventRemover, RelayRecordGetter {
+interface MemberListGetter {
+    getMemberSet: func_GetMemberSet;
+}
+
+export class Database_View
+    implements ProfileSetter, ProfileGetter, EventRemover, RelayRecordGetter, MemberListGetter {
     private readonly sourceOfChange = csp.chan<{ event: Parsed_Event; relay?: string }>(buffer_size);
     private readonly caster = csp.multi<{ event: Parsed_Event; relay?: string }>(this.sourceOfChange);
     private readonly profiles = new Map<string, Profile_Nostr_Event>();
@@ -94,6 +100,16 @@ export class Database_View implements ProfileSetter, ProfileGetter, EventRemover
             resolve(undefined);
         });
     }
+    getMemberSet: func_GetMemberSet = (relay: string) => {
+        const members = new Set<string>();
+        for (const event of this.events.values()) {
+            const records = this.getRelayRecord(event.id);
+            if (records.has(relay)) {
+                members.add(event.pubkey);
+            }
+        }
+        return members;
+    };
 
     static async New(
         eventsAdapter: EventsAdapter,

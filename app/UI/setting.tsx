@@ -22,7 +22,7 @@ import {
 } from "./style/colors.ts";
 import { RelayIcon } from "./icons/relay-icon.tsx";
 import { DeleteIcon } from "./icons/delete-icon.tsx";
-import { default_blowater_relay, RelayConfig, RemoveBlowaterRelay } from "./relay-config.ts";
+import { default_blowater_relay, RelayConfig } from "./relay-config.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 import { emitFunc } from "../event-bus.ts";
 import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";

@@ -89,7 +89,7 @@ export class Editor extends Component<EditorProps, EditorState> {
         }
     }
 
-    render(props: EditorProps, state: EditorState) {
+    render(props: EditorProps, _state: EditorState) {
         const uploadFileInput = createRef();
 
         return (

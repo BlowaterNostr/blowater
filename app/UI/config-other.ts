@@ -1,4 +1,3 @@
-import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { prepareEncryptedNostrEvent } from "../../libs/nostr.ts/event.ts";
 import { NostrAccountContext, NostrEvent, NostrKind, verifyEvent } from "../../libs/nostr.ts/nostr.ts";
 import { parseJSON } from "../features/profile.ts";

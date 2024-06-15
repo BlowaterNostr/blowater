@@ -128,7 +128,7 @@ export function UserDetail(props: UserDetailProps) {
             <div
                 class="border inline-block select-none px-1 rounded-full
                 hover:text-[#D4D4D4] hover:cursor-pointer"
-                onClick={(e) => {
+                onClick={() => {
                     if (props.blocked) {
                         props.emit({
                             type: "UnblockUser",

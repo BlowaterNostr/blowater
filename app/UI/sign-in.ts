@@ -118,7 +118,7 @@ export class LocalPrivateKeyController {
             const private_hex = new TextDecoder().decode(decrypted);
             return PrivateKey.FromHex(private_hex);
         } catch (e) {
-            return new Error("wrong pin");
+            return e as Error;
         }
     }
 }

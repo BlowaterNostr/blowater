@@ -11,7 +11,6 @@ import {
 } from "./style/colors.ts";
 import { Avatar } from "./components/avatar.tsx";
 import { ProfileGetter } from "./search.tsx";
-import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { Loading } from "./components/loading.tsx";
 import { Profile_Nostr_Event } from "../nostr.ts";
 import { emitFunc } from "../event-bus.ts";
@@ -20,6 +19,7 @@ import { RelayInformation, robohash } from "../../libs/nostr.ts/nip11.ts";
 import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 import { setState } from "./_helper.ts";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { PublicKey } from "../../libs/nostr.ts/key.ts";
 
 type SpaceSettingState = {
     tab: tabs;
@@ -27,11 +27,15 @@ type SpaceSettingState = {
 };
 type tabs = "general" | "members";
 
+// return a set of public keys that participates in this relay
+export type func_GetMemberSet = (relay: string) => Set<string>;
+
 export class SpaceSetting extends Component<
     {
         emit: emitFunc<SelectConversation>;
         profileGetter: ProfileGetter;
         relay: SingleRelayConnection;
+        getMemberSet: func_GetMemberSet;
     },
     SpaceSettingState
 > {
@@ -75,7 +79,13 @@ export class SpaceSetting extends Component<
                             }}
                         />
                     )
-                    : <div>Member List</div>}
+                    : (
+                        <div>
+                            {Array.from(this.props.getMemberSet(this.props.relay.url)).map((p) => (
+                                <div>{p}</div>
+                            ))}
+                        </div>
+                    )}
             </div>
         );
     }
@@ -121,6 +131,8 @@ export class RelayInformationComponent extends Component<Props, State> {
             if (info.pubkey) {
                 const pubkey = PublicKey.FromString(info.pubkey);
                 if (pubkey instanceof Error) {
+                    // todo make a UI
+                    console.error(pubkey);
                 } else {
                     nodes.push(
                         <Fragment>

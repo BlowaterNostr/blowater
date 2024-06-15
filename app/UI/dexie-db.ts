@@ -24,7 +24,7 @@ export class DexieDatabase extends Dexie implements EventsAdapter, RelayRecorder
         });
     }
 
-    filter(f?: (e: NostrEvent) => boolean): Promise<NostrEvent[]> {
+    filter() {
         return this.events.toArray();
     }
     async get(keys: Indices) {

@@ -1,3 +1,4 @@
+/** @jsx h */
 import {
     Component,
     ComponentChildren,
@@ -582,7 +583,7 @@ function ReplyTo(
                         </div>
                     )
                     : (
-                        <>
+                        <Fragment>
                             <div
                                 class={`flex items-center gap-1 cursor-pointer`}
                                 onClick={() =>
@@ -602,7 +603,7 @@ function ReplyTo(
                             <div class="overflow-hidden whitespace-nowrap truncate text-overflow-ellipsis w-[90%]">
                                 {props.reply.content}
                             </div>
-                        </>
+                        </Fragment>
                     )}
             </div>
         </div>

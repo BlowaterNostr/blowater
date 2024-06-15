@@ -15,11 +15,15 @@
             ],
             "exclude": [
                 "prefer-const",
-                "no-unused-vars",
                 "no-inferrable-types",
-                "require-await"
+                "require-await",
+                "ban-ts-comment",
+                "no-async-promise-executor",
+                "no-case-declarations",
+                "no-window"
             ]
-        }
+        },
+        "exclude": ["app/UI/assets", "build-pwa", "libs"]
     },
     "fmt": {
         "exclude": [

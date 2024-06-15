@@ -17,7 +17,6 @@ import {
 import { EventSender } from "../../libs/nostr.ts/relay.interface.ts";
 
 import {
-    chan,
     Channel,
     Multicaster,
     PutToClosedChannelError,

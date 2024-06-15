@@ -1,3 +1,4 @@
+/** @jsx h */
 import { h } from "https://esm.sh/preact@10.17.1";
 import {
     Channel,
@@ -212,6 +213,7 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                             profileGetter={app.database}
                             emit={app.eventBus.emit}
                             relay={relay}
+                            getMemberSet={app.database.getMemberSet}
                         />
                     ),
                 });
