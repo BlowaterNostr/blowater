@@ -125,7 +125,7 @@ export class SpaceSetting extends Component<
                                     return (
                                         <div class="flex flex-row my-3 items-center">
                                             <Avatar
-                                                class={`w-8 h-8 mr-2`}
+                                                class={`w-8 h-8 mr-2 bg-neutral-600 rounded-full`}
                                                 picture={profile?.profile.picture || robohash(p)}
                                             >
                                             </Avatar>
