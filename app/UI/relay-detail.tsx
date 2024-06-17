@@ -65,9 +65,9 @@ export class SpaceSetting extends Component<
 
     render() {
         return (
-            <div class="mx-6 mt-6 text-[#FFFFFF]">
+            <div class="mx-6 mt-6 text-[#FFFFFF] h-full">
                 <div class="text-[1.8rem]">Space Settings</div>
-                <div class="flex flex-row">
+                <div class="flex flex-row h-full">
                     <div class="flex flex-col">
                         <div
                             class="flex flex-row p-2 hover:bg-[#737373] hover:rounded-lg mt-2 hover:cursor-pointer"
@@ -108,35 +108,38 @@ export class SpaceSetting extends Component<
                         </div>
                     </div>
                     <div class="mx-8"></div>
-                    {this.state.tab == "general"
-                        ? this.state.info == undefined ? <Loading /> : (
-                            <RelayInformationComponent
-                                {...this.props}
-                                info={{
-                                    ...this.state.info,
-                                    url: this.props.relay.url,
-                                }}
-                            />
-                        )
-                        : (
-                            <div>
-                                {Array.from(this.props.getMemberSet(this.props.relay.url)).map((p) => {
-                                    const profile = this.props.getProfileByPublicKey(p);
-                                    return (
-                                        <div class="flex flex-row my-3 items-center">
-                                            <Avatar
-                                                class={`w-8 h-8 mr-2 bg-neutral-600 rounded-full`}
-                                                picture={profile?.profile.picture || robohash(p)}
-                                            >
-                                            </Avatar>
-                                            <div>
-                                                {profile?.profile.name || profile?.profile.display_name || p}
+                    <div class="h-full overflow-scroll">
+                        {this.state.tab == "general"
+                            ? this.state.info == undefined ? <Loading /> : (
+                                <RelayInformationComponent
+                                    {...this.props}
+                                    info={{
+                                        ...this.state.info,
+                                        url: this.props.relay.url,
+                                    }}
+                                />
+                            )
+                            : (
+                                <Fragment>
+                                    {Array.from(this.props.getMemberSet(this.props.relay.url)).map((p) => {
+                                        const profile = this.props.getProfileByPublicKey(p);
+                                        return (
+                                            <div class="w-full flex items-center px-4 py-2 text-[#B8B9BF] hover:bg-[#404249] rounded cursor-pointer">
+                                                <Avatar
+                                                    class={`flex-shrink-0 w-8 h-8 mr-2 bg-neutral-600 rounded-full`}
+                                                    picture={profile?.profile.picture || robohash(p)}
+                                                >
+                                                </Avatar>
+                                                <div class="truncate">
+                                                    {profile?.profile.name || profile?.profile.display_name ||
+                                                        p}
+                                                </div>
                                             </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
+                                        );
+                                    })}
+                                </Fragment>
+                            )}
+                    </div>
                 </div>
             </div>
         );

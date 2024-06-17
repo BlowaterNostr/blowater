@@ -19,7 +19,7 @@ export class Popover extends Component<{
         container: `fixed inset-0 z-20`,
         backdrop: `fixed inset-0 z-[-1] backdrop-filter backdrop-blur cursor-pointer`,
         childrenContainer:
-            `h-[80%] absolute top-[20%] overflow-auto bg-[${SecondaryBackgroundColor}] w-full shadow-inner border-t`,
+            `h-[80%] absolute top-[20%] bg-[${SecondaryBackgroundColor}] w-full shadow-inner border-t`,
     };
     children: ComponentChildren = undefined;
 
