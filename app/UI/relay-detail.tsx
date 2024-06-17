@@ -20,6 +20,7 @@ import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 import { setState } from "./_helper.ts";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
+import { ViewUserDetail } from "./message-panel.tsx";
 
 type SpaceSettingState = {
     tab: tabs;
@@ -32,7 +33,7 @@ export type func_GetMemberSet = (relay: string) => Set<string>;
 
 export class SpaceSetting extends Component<
     {
-        emit: emitFunc<SelectConversation>;
+        emit: emitFunc<SelectConversation | ViewUserDetail>;
         profileGetter: ProfileGetter;
         relay: SingleRelayConnection;
         getMemberSet: func_GetMemberSet;
@@ -124,7 +125,10 @@ export class SpaceSetting extends Component<
                                     {Array.from(this.props.getMemberSet(this.props.relay.url)).map((p) => {
                                         const profile = this.props.getProfileByPublicKey(p);
                                         return (
-                                            <div class="w-full flex items-center px-4 py-2 text-[#B8B9BF] hover:bg-[#404249] rounded cursor-pointer">
+                                            <div
+                                                class="w-full flex items-center px-4 py-2 text-[#B8B9BF] hover:bg-[#404249] rounded-lg cursor-pointer"
+                                                onClick={this.clickSpaceMember(p)}
+                                            >
                                                 <Avatar
                                                     class={`flex-shrink-0 w-8 h-8 mr-2 bg-neutral-600 rounded-full`}
                                                     picture={profile?.profile.picture || robohash(p)}
@@ -148,6 +152,17 @@ export class SpaceSetting extends Component<
     changeTab = (tab: tabs) => () => {
         this.setState({
             tab,
+        });
+    };
+
+    clickSpaceMember = (pubkey: string) => () => {
+        const p = PublicKey.FromString(pubkey);
+        if (p instanceof Error) {
+            return console.error(p);
+        }
+        this.props.emit({
+            type: "ViewUserDetail",
+            pubkey: p,
         });
     };
 }
