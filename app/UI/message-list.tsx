@@ -1,3 +1,4 @@
+/** @jsx h */
 import {
     Component,
     ComponentChildren,
@@ -27,16 +28,16 @@ import { ProfileData } from "../features/profile.ts";
 import { isMobile, setState } from "./_helper.ts";
 import { Avatar } from "./components/avatar.tsx";
 import { AboutIcon } from "./icons/about-icon.tsx";
-import { BackgroundColor_MessagePanel, PrimaryTextColor } from "./style/colors.ts";
+import { BackgroundColor_MessagePanel } from "./style/colors.ts";
 import { Parsed_Event } from "../nostr.ts";
 import { NoteID } from "../../libs/nostr.ts/nip19.ts";
-import { RelayInformation, robohash } from "./relay-detail.tsx";
 import { ReplyIcon } from "./icons/reply-icon.tsx";
 import { ChatMessagesGetter } from "./app_update.tsx";
 import { NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { func_GetProfileByPublicKey } from "./search.tsx";
 import { DeleteIcon } from "./icons/delete-icon.tsx";
 import { ThumbsUpIcon } from "./icons/thumbs-up-icon.tsx";
+import { robohash } from "../../libs/nostr.ts/nip11.ts";
 
 export type func_IsAdmin = (pubkey: string) => boolean;
 
@@ -582,7 +583,7 @@ function ReplyTo(
                         </div>
                     )
                     : (
-                        <>
+                        <Fragment>
                             <div
                                 class={`flex items-center gap-1 cursor-pointer`}
                                 onClick={() =>
@@ -602,7 +603,7 @@ function ReplyTo(
                             <div class="overflow-hidden whitespace-nowrap truncate text-overflow-ellipsis w-[90%]">
                                 {props.reply.content}
                             </div>
-                        </>
+                        </Fragment>
                     )}
             </div>
         </div>

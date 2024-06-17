@@ -17,7 +17,6 @@ type Props = {
 
 export class EventDetail extends Component<Props> {
     styles = {
-        container: `py-6 px-4 bg-[${SecondaryBackgroundColor}]`,
         header: {
             container: `text-[${PrimaryTextColor}] text-xl flex`,
             icon: `w-8 h-8 mr-4 text-[${TitleIconColor}]`,
@@ -32,7 +31,7 @@ export class EventDetail extends Component<Props> {
 
     render() {
         return (
-            <div class={this.styles.container}>
+            <div class={`h-full overflow-auto py-6 px-4 bg-[${SecondaryBackgroundColor}]`}>
                 <p class={this.styles.header.container}>
                     <AboutIcon class={this.styles.header.icon} />
                     Details

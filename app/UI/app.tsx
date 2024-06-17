@@ -24,7 +24,6 @@ import { SecondaryBackgroundColor } from "./style/colors.ts";
 import { LamportTime } from "../time.ts";
 import { InstallPrompt, NavBar } from "./nav.tsx";
 import { Component } from "https://esm.sh/preact@10.17.1";
-import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 import { PublicMessageContainer } from "./public-message-container.tsx";
 import { ChatMessage } from "./message.ts";
 import { filter, forever, map } from "./_helper.ts";
@@ -34,8 +33,8 @@ import { getTags, Parsed_Event } from "../nostr.ts";
 import { Toast } from "./components/toast.tsx";
 import { ToastChannel } from "./components/toast.tsx";
 import { RightPanelChannel } from "./components/right-panel.tsx";
-import { getRelayInformation } from "./relay-detail.tsx";
 import { func_IsAdmin } from "./message-list.tsx";
+import { getRelayInformation } from "../../libs/nostr.ts/nip11.ts";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
@@ -43,7 +42,7 @@ export async function Start(database: DexieDatabase) {
     const installPrompt: InstallPrompt = {
         event: undefined,
     };
-    window.addEventListener("beforeinstallprompt", async (event) => {
+    globalThis.addEventListener("beforeinstallprompt", async (event) => {
         event.preventDefault();
         installPrompt.event = event;
     });
@@ -530,7 +529,7 @@ export function getFocusedContent(
     if (focusedContent instanceof PublicKey) {
         const profileData = profileGetter.getProfileByPublicKey(focusedContent)?.profile;
         return {
-            type: "ProfileData" as "ProfileData",
+            type: "ProfileData",
             data: profileData,
             pubkey: focusedContent,
         };

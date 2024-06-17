@@ -6,9 +6,9 @@ import { emitFunc } from "../event-bus.ts";
 import { RelayAvatar } from "./components/avatar.tsx";
 import { SelectRelay } from "./nav.tsx";
 import { NavigationUpdate } from "./nav.tsx";
-import { getRelayInformation, RelayInformation, robohash } from "./relay-detail.tsx";
 import { setState } from "./_helper.ts";
 import { AddIcon } from "./icons/add-icon.tsx";
+import { getRelayInformation, RelayInformation, robohash } from "../../libs/nostr.ts/nip11.ts";
 
 type RelaySwitchListProps = {
     pool: ConnectionPool;
@@ -87,7 +87,7 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
                                 />
                             </div>
                             <div
-                                class="flex flex-col overflow-y-auto overflow-x-hidde"
+                                class="flex flex-col overflow-y-auto overflow-x-hidden"
                                 style={{ maxHeight: "70vh" }}
                             >
                                 {relayList}
@@ -169,9 +169,4 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
             id: "Setting",
         });
     };
-}
-
-function getSecondaryDomainName(url: string) {
-    const domain = new URL(url).hostname.split(".");
-    return domain[domain.length - 2];
 }

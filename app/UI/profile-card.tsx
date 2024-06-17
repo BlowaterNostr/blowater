@@ -7,7 +7,7 @@ import { Avatar } from "./components/avatar.tsx";
 import { DividerClass } from "./components/tw.ts";
 import { ViewUserDetail } from "./message-panel.tsx";
 import { cardBackgroundColor, HintLinkColor, HintTextColor, LinkColor } from "./style/colors.ts";
-import { robohash } from "./relay-detail.tsx";
+import { robohash } from "../../libs/nostr.ts/nip11.ts";
 
 export function ProfileCard(props: {
     profileData?: ProfileData;

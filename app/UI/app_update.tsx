@@ -1,3 +1,4 @@
+/** @jsx h */
 import { h } from "https://esm.sh/preact@10.17.1";
 import {
     Channel,
@@ -41,7 +42,7 @@ import { DirectMessagePanelUpdate, SendReaction } from "./message-panel.tsx";
 import { ChatMessage, parseContent } from "./message.ts";
 import { InstallPrompt, NavigationModel, NavigationUpdate, SelectRelay } from "./nav.tsx";
 import { notify } from "./notification.ts";
-import { RelayInformationComponent } from "./relay-detail.tsx";
+import { SpaceSetting } from "./relay-detail.tsx";
 import { Search } from "./search.tsx";
 import { SearchUpdate, SelectConversation } from "./search_model.ts";
 import { RelayConfigChange, ViewRecommendedRelaysList, ViewRelayDetail } from "./setting.tsx";
@@ -204,15 +205,22 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
         // Setting
         //
         else if (event.type == "ViewRelayDetail") {
-            app.popOverInputChan.put({
-                children: (
-                    <RelayInformationComponent
-                        relayUrl={event.url}
-                        profileGetter={app.database}
-                        emit={app.eventBus.emit}
-                    />
-                ),
-            });
+            const relay = pool.getRelay(event.url);
+            if (relay) {
+                app.popOverInputChan.put({
+                    children: (
+                        <SpaceSetting
+                            profileGetter={app.database}
+                            emit={app.eventBus.emit}
+                            relay={relay}
+                            getMemberSet={app.database.getMemberSet}
+                            getProfileByPublicKey={app.database.getProfileByPublicKey}
+                        />
+                    ),
+                });
+            } else {
+                console.error(event.url, "is not in the pool");
+            }
         } else if (event.type == "ViewRecommendedRelaysList") {
             app.popOverInputChan.put({
                 children: (

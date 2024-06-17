@@ -1,3 +1,4 @@
+/* @jsx h */
 import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { h, render } from "https://esm.sh/preact@10.17.1";
 import { PublicMessageContainer } from "./public-message-container.tsx";
@@ -10,6 +11,7 @@ import { NewIndexedDB } from "./dexie-db.ts";
 import { Database_View } from "../database.ts";
 import { prepareEncryptedNostrEvent } from "../../libs/nostr.ts/event.ts";
 import { DM_List } from "./conversation-list.ts";
+import { DirectedMessageController } from "../features/dm.ts";
 
 const ctx = InMemoryAccountContext.Generate();
 
@@ -42,16 +44,20 @@ dm_list.addEvents(Array.from(database.getAllEvents()), true);
 
 render(
     <PublicMessageContainer
+        relay_url={relay.url}
         ctx={ctx}
-        relay={relay}
         bus={testEventBus}
         getters={{
             convoListRetriever: dm_list,
             newMessageChecker: dm_list,
-            profileGetter: database,
             relayRecordGetter: database,
             isUserBlocked: dm_list.isUserBlocked,
             getEventByID: database.getEventByID,
+            getProfileByPublicKey: database.getProfileByPublicKey,
+            getProfilesByText: database.getProfilesByText,
+            getReactionsByEventID: database.getReactionEvents,
+            isAdmin: () => true,
+            messageGetter: new DirectedMessageController(ctx),
         }}
         messages={[]}
         relaySelectedChannel={new Map()}

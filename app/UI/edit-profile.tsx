@@ -45,7 +45,7 @@ export class EditProfile extends Component<Props, State> {
         });
     }
 
-    render(props: Props, state: State) {
+    render(_props: Props, state: State) {
         return (
             <form class={`py-4 bg-[${SecondaryBackgroundColor}]`} onSubmit={this.onSubmit}>
                 <img

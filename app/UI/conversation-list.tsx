@@ -1,6 +1,5 @@
 /** @jsx h */
 import { Component, Fragment, h } from "https://esm.sh/preact@10.17.1";
-import { tw } from "https://esm.sh/twind@0.16.16";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { emitFunc, EventSubscriber } from "../event-bus.ts";
 import { ProfileData } from "../features/profile.ts";
@@ -14,12 +13,12 @@ import { ConversationSummary, sortUserInfo } from "./conversation-list.ts";
 import { ChatIcon } from "./icons/chat-icon.tsx";
 import { PinIcon } from "./icons/pin-icon.tsx";
 import { UnpinIcon } from "./icons/unpin-icon.tsx";
-import { func_GetProfileByPublicKey, func_GetProfilesByText, ProfileGetter } from "./search.tsx";
+import { func_GetProfileByPublicKey, func_GetProfilesByText } from "./search.tsx";
 import { SearchUpdate, SelectConversation } from "./search_model.ts";
 import { ErrorColor, PrimaryTextColor, SecondaryBackgroundColor } from "./style/colors.ts";
 import { ContactTag, ContactTags, TagSelected } from "./contact-tags.tsx";
 import { ViewUserDetail } from "./message-panel.tsx";
-import { robohash } from "./relay-detail.tsx";
+import { robohash } from "../../libs/nostr.ts/nip11.ts";
 
 export interface ConversationListRetriever {
     getContacts: () => Iterable<ConversationSummary>;

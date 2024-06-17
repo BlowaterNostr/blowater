@@ -5,7 +5,9 @@ type Props = {
     emit: emitFunc<FilterContent>;
 };
 
-export class Filter extends Component<Props, {}> {
+type Empty = Record<string | number | symbol, never>;
+
+export class Filter extends Component<Props, Empty> {
     render() {
         return (
             <div class="border flex flex-col items-center">

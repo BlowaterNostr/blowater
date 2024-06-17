@@ -1,4 +1,3 @@
-import { not_cancelled, sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { prepareNormalNostrEvent } from "../libs/nostr.ts/event.ts";
 import { PrivateKey } from "../libs/nostr.ts/key.ts";
 import { InMemoryAccountContext, NostrKind } from "../libs/nostr.ts/nostr.ts";

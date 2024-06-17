@@ -15,11 +15,16 @@
             ],
             "exclude": [
                 "prefer-const",
-                "no-unused-vars",
                 "no-inferrable-types",
-                "require-await"
+                "require-await",
+                "ban-ts-comment",
+                "no-async-promise-executor",
+                "no-case-declarations",
+                "no-window",
+                "no-unused-vars"
             ]
-        }
+        },
+        "exclude": ["app/UI/assets", "build-pwa", "libs", "*.test.*"]
     },
     "fmt": {
         "exclude": [
@@ -32,5 +37,8 @@
         ],
         "indentWidth": 4,
         "lineWidth": 110
+    },
+    "test": {
+        "exclude": ["libs/*"]
     }
 }

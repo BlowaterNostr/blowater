@@ -13,8 +13,8 @@ import { setSignInState } from "./sign-in.ts";
 import { SignInEvent } from "./sign-in.ts";
 import { SaveProfile } from "./edit-profile.tsx";
 import { setState } from "./_helper.ts";
-import { robohash } from "./relay-detail.tsx";
 import { Nip7ExtensionContext } from "./account-context.ts";
+import { robohash } from "../../libs/nostr.ts/nip11.ts";
 
 interface Props {
     emit: emitFunc<SaveProfile | SignInEvent>;

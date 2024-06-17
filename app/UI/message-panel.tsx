@@ -10,18 +10,12 @@ import { Parsed_Event, PinConversation, UnpinConversation } from "../nostr.ts";
 import { ChatMessagesGetter, UI_Interaction_Event } from "./app_update.tsx";
 import { Editor, EditorEvent } from "./editor.tsx";
 
-import { AboutIcon } from "./icons/about-icon.tsx";
 import { ChatMessage, parseContent, urlIsImage, urlIsVideo } from "./message.ts";
 import { NoteCard } from "./note-card.tsx";
 import { ProfileCard } from "./profile-card.tsx";
 import { func_GetProfilesByText } from "./search.tsx";
 import { SelectConversation } from "./search_model.ts";
-import {
-    BackgroundColor_MessagePanel,
-    DividerBackgroundColor,
-    ErrorColor,
-    LinkColor,
-} from "./style/colors.ts";
+import { BackgroundColor_MessagePanel, DividerBackgroundColor, LinkColor } from "./style/colors.ts";
 import { BlockUser, UnblockUser } from "./user-detail.tsx";
 import {
     DeleteEvent,
@@ -308,19 +302,4 @@ function Card(
         case NostrKind.Long_Form:
             return <NoteCard emit={emit} event={event} profileData={authorProfile} publicKey={publicKey} />;
     }
-}
-
-function ReSent() {
-    const styles = {
-        container: `flex items-center cursor-pointer`,
-        icon: `w-2 h-2 text-[${ErrorColor}] fill-current mr-2`,
-        text: `text-xs text-[${ErrorColor}]`,
-    };
-
-    return (
-        <div class={styles.container}>
-            <AboutIcon class={styles.icon} />
-            <p class={styles.text}>Failed to send message</p>
-        </div>
-    );
 }

@@ -8,9 +8,9 @@ export const testEventBus = new EventBus<UI_Interaction_Event>();
 export async function test_db_view() {
     const data = new Map();
     const testEventsAdapter: EventsAdapter = {
-        filter: async (f) => {
+        filter: async () => {
             const events = [];
-            for (const [k, v] of data) {
+            for (const v of data.values()) {
                 events.push(v);
             }
             return events;

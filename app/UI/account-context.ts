@@ -1,5 +1,5 @@
-import { chan, closed, sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { PrivateKey, PublicKey } from "../../libs/nostr.ts/key.ts";
+import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import {
     InMemoryAccountContext,
     NostrAccountContext,

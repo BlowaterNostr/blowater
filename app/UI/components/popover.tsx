@@ -19,7 +19,7 @@ export class Popover extends Component<{
         container: `fixed inset-0 z-20`,
         backdrop: `fixed inset-0 z-[-1] backdrop-filter backdrop-blur cursor-pointer`,
         childrenContainer:
-            `h-[80%] absolute top-[20%] overflow-auto bg-[${SecondaryBackgroundColor}] w-full shadow-inner border-t`,
+            `h-[80%] absolute top-[20%] bg-[${SecondaryBackgroundColor}] w-full shadow-inner border-t`,
     };
     children: ComponentChildren = undefined;
 
@@ -36,12 +36,12 @@ export class Popover extends Component<{
     show = (children: ComponentChildren) => {
         this.children = children;
         this.setState({ show: true });
-        window.addEventListener("keydown", this.onEscKeyDown);
+        globalThis.addEventListener("keydown", this.onEscKeyDown);
     };
 
     hide = (onClose?: () => void) => {
         this.setState({ show: false });
-        window.removeEventListener("keydown", this.onEscKeyDown);
+        globalThis.removeEventListener("keydown", this.onEscKeyDown);
 
         if (onClose) {
             onClose();
