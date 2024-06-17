@@ -41,7 +41,7 @@ export class RelayRecommendList extends Component<RelayRecommendListProps> {
 
     render() {
         return (
-            <div class={`text-[${PrimaryTextColor}] text-center`}>
+            <div class={`text-[${PrimaryTextColor}] text-center h-full overflow-auto`}>
                 <div class={`text-lg mt-4`}>
                     Recommend Relays
                 </div>
