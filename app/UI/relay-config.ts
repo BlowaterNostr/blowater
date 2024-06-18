@@ -5,22 +5,6 @@ import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 
 export const default_blowater_relay = "wss://blowater.nostr1.com";
 
-export const recommendedRelays = [
-    default_blowater_relay,
-    "wss://nos.lol",
-    "wss://relay.damus.io",
-    "wss://relay.nostr.wirednet.jp",
-    "wss://yabu.me",
-    "wss://relay.nostr.band",
-    "wss://bevo.nostr1.com",
-    "wss://island.nostr1.com",
-    "wss://vitor.nostr1.com",
-    "wss://frens.nostr1.com",
-    "wss://shawn.nostr1.com",
-    "wss://fiatjaf.nostr1.com",
-    "wss://nostrdevs.nostr1.com",
-];
-
 export class RelayConfig {
     private readonly ctx: NostrAccountContext;
     private readonly relayPool: ConnectionPool;

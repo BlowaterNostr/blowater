@@ -5,7 +5,6 @@ import { emitFunc } from "../event-bus.ts";
 import { CopyButton } from "./components/copy-button.tsx";
 import { CenterClass, InputClass } from "./components/tw.ts";
 import { DividerBackgroundColor, PrimaryTextColor, SecondaryTextColor } from "./style/colors.ts";
-import { SecondaryBackgroundColor } from "./style/colors.ts";
 import { LocalPrivateKeyController } from "./sign-in.ts";
 import { PlaceholderColor } from "./style/colors.ts";
 import { PrivateKey } from "../../libs/nostr.ts/key.ts";
@@ -53,12 +52,9 @@ export class SignIn extends Component<Props, State> {
     render() {
         return (
             <div
-                class={`flex flex-col justify-start items-center w-full h-screen bg-[${SecondaryBackgroundColor}] text-[${PrimaryTextColor}]`}
+                class={`flex flex-col justify-start items-center w-full h-screen bg-neutral-900 text-[${PrimaryTextColor}]`}
             >
                 <div class="flex flex-col w-full max-w-md py-8 px-5 m-auto">
-                    <div class="flex justify-center items-center w-full">
-                        <img src="logo.webp" alt="Blowater Logo" class="w-32 h-32" />
-                    </div>
                     {this.renderStep()}
                     <div class="h-16" />
                 </div>
@@ -70,47 +66,29 @@ export class SignIn extends Component<Props, State> {
         const { step } = this.state;
         switch (step.type) {
             case "onboarding":
-                return this.setpOnboarding();
+                return this.setp_Onboarding();
             case "signin":
-                return this.stepSignIn(step.private_key);
+                return this.step_SignInWithPrivateKey(step.private_key);
             case "name":
-                return this.stepName(step.name);
+                return this.step_Name(step.name);
             case "backup":
-                return this.stepBackup(step.new_private_key, step.name);
+                return this.step_Backup(step.new_private_key, step.name);
             case "verify":
-                return this.stepVerify(step.new_private_key, step.last_4_digits_of_private_key, step.name);
+                return this.step_Verify(step.new_private_key, step.last_4_digits_of_private_key, step.name);
         }
     }
 
-    setpOnboarding = () => {
+    setp_Onboarding = () => {
         return (
-            <Fragment>
-                <div class={`text-4xl w-full text-center font-bold`}>Blowater</div>
-                <div class={`text-md w-full text-center ${SecondaryTextColor} mb-5`}>
-                    A delightful Nostr client that focuses on DM
-                </div>
-                <button
-                    onClick={() =>
-                        this.setState({
-                            step: {
-                                type: "name",
-                                name: "",
-                            },
-                        })}
-                    class={`w-full p-3 rounded-lg  flex items-center justify-center bg-[#5764f2] hover:bg-[#4751c4]`}
-                >
-                    Create account
-                </button>
-                <div class="w-full flex flex-row gap-4 justify-center items-center py-2">
-                    <div class={`h-[2px] w-[45%] bg-white`} />
-                    <p class={`text-white`}>OR</p>
-                    <div class={`h-[2px] w-[45%] bg-white`} />
+            <div class="text-neutral-600">
+                <div class={`text-2xl w-full text-white text-center font-bold mb-6`}>
+                    Get Started with Space Chat!
                 </div>
                 <button
                     onClick={() => this.setState({ step: { type: "signin", private_key: "" } })}
-                    class={`w-full p-3 rounded-lg  flex items-center justify-center bg-[#4d4f57] hover:bg-[#6c6f77]`}
+                    class={`w-full p-3 rounded-lg  flex items-center justify-center bg-white hover:bg-blue-600 hover:text-white`}
                 >
-                    Login with private key
+                    Sign in with private key
                 </button>
                 <div class="my-1"></div>
                 <button
@@ -126,24 +104,38 @@ export class SignIn extends Component<Props, State> {
                         });
                         setSignInState("nip07");
                     }}
-                    class={`w-full p-3 rounded-lg  flex items-center justify-center bg-[#4d4f57] hover:bg-[#6c6f77]`}
+                    class={`w-full p-3 rounded-lg  flex items-center justify-center bg-white hover:bg-blue-600 hover:text-white`}
                 >
-                    Login with NIP-07 extensions
+                    Sign in with extensions
                 </button>
-            </Fragment>
+                <div class="flex justify-center">
+                    <p class={`text-neutral-400 font-semibold my-4`}>OR</p>
+                </div>
+                <button
+                    onClick={() =>
+                        this.setState({
+                            step: {
+                                type: "name",
+                                name: "",
+                            },
+                        })}
+                    class={`w-full p-3 rounded-lg  flex items-center justify-center bg-white hover:bg-blue-600 hover:text-white`}
+                >
+                    Create account
+                </button>
+            </div>
         );
     };
 
-    stepSignIn = (private_key: string) => {
+    step_SignInWithPrivateKey = (private_key: string) => {
         return (
             <Fragment>
-                <div class={`text-4xl w-full text-center font-bold`}>Sign In</div>
                 <div class={`text-md w-full text-center ${SecondaryTextColor} mb-5`}>
-                    Please enter your private key
+                    Enter your private key
                 </div>
                 <input
                     class={`w-full px-4 py-3 mb-5 rounded-lg resize-y bg-transparent focus:outline-none focus-visible:outline-none border-[2px] border-[${DividerBackgroundColor}] placeholder-[${PlaceholderColor}]`}
-                    placeholder="nsec1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                    placeholder="nsec..."
                     type="password"
                     autofocus
                     onInput={(e) => {
@@ -158,14 +150,14 @@ export class SignIn extends Component<Props, State> {
                 />
                 <button
                     onClick={() => this.signInWithPrivateKey(private_key)}
-                    class={`w-full p-3 rounded-lg  flex items-center justify-center bg-[#5764f2] hover:bg-[#4751c4]
+                    class={`w-full p-3 rounded-lg flex items-center justify-center bg-[#5764f2] hover:bg-[#4751c4]
                     ${
                         PrivateKey.FromString(private_key) instanceof Error
                             ? "opacity-50 cursor-not-allowed"
                             : ""
                     }`}
                 >
-                    Sign In
+                    Continue
                 </button>
                 <button
                     onClick={() =>
@@ -182,7 +174,7 @@ export class SignIn extends Component<Props, State> {
         );
     };
 
-    stepName = (name: string) => {
+    step_Name = (name: string) => {
         return (
             <Fragment>
                 <div class={`text-4xl w-full text-center font-bold`}>Create account</div>
@@ -240,7 +232,7 @@ export class SignIn extends Component<Props, State> {
         );
     };
 
-    stepBackup = (new_private_key: PrivateKey, name: string) => {
+    step_Backup = (new_private_key: PrivateKey, name: string) => {
         return (
             <Fragment>
                 <div class={`text-4xl w-full text-center font-bold`}>Backup your keys</div>
@@ -298,7 +290,7 @@ export class SignIn extends Component<Props, State> {
         );
     };
 
-    stepVerify = (new_private_key: PrivateKey, last_4_digits_of_private_key: string, name: string) => {
+    step_Verify = (new_private_key: PrivateKey, last_4_digits_of_private_key: string, name: string) => {
         return (
             <Fragment>
                 <div class={`text-4xl w-full text-center font-bold mb-5`}>Confirm secret key</div>
