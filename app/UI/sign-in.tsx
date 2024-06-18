@@ -67,19 +67,19 @@ export class SignIn extends Component<Props, State> {
         const { step } = this.state;
         switch (step.type) {
             case "onboarding":
-                return this.setpOnboarding();
+                return this.setp_Onboarding();
             case "signin":
-                return this.stepSignIn(step.private_key);
+                return this.step_SignInWithPrivateKey(step.private_key);
             case "name":
-                return this.stepName(step.name);
+                return this.step_Name(step.name);
             case "backup":
-                return this.stepBackup(step.new_private_key, step.name);
+                return this.step_Backup(step.new_private_key, step.name);
             case "verify":
-                return this.stepVerify(step.new_private_key, step.last_4_digits_of_private_key, step.name);
+                return this.step_Verify(step.new_private_key, step.last_4_digits_of_private_key, step.name);
         }
     }
 
-    setpOnboarding = () => {
+    setp_Onboarding = () => {
         return (
             <div class="text-neutral-600">
                 <div class={`text-2xl w-full text-white text-center font-bold mb-6`}>
@@ -128,7 +128,7 @@ export class SignIn extends Component<Props, State> {
         );
     };
 
-    stepSignIn = (private_key: string) => {
+    step_SignInWithPrivateKey = (private_key: string) => {
         return (
             <Fragment>
                 <div class={`text-md w-full text-center ${SecondaryTextColor} mb-5`}>
@@ -175,7 +175,7 @@ export class SignIn extends Component<Props, State> {
         );
     };
 
-    stepName = (name: string) => {
+    step_Name = (name: string) => {
         return (
             <Fragment>
                 <div class={`text-4xl w-full text-center font-bold`}>Create account</div>
@@ -233,7 +233,7 @@ export class SignIn extends Component<Props, State> {
         );
     };
 
-    stepBackup = (new_private_key: PrivateKey, name: string) => {
+    step_Backup = (new_private_key: PrivateKey, name: string) => {
         return (
             <Fragment>
                 <div class={`text-4xl w-full text-center font-bold`}>Backup your keys</div>
@@ -291,7 +291,7 @@ export class SignIn extends Component<Props, State> {
         );
     };
 
-    stepVerify = (new_private_key: PrivateKey, last_4_digits_of_private_key: string, name: string) => {
+    step_Verify = (new_private_key: PrivateKey, last_4_digits_of_private_key: string, name: string) => {
         return (
             <Fragment>
                 <div class={`text-4xl w-full text-center font-bold mb-5`}>Confirm secret key</div>
