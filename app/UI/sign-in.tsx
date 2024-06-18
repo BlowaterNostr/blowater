@@ -5,7 +5,6 @@ import { emitFunc } from "../event-bus.ts";
 import { CopyButton } from "./components/copy-button.tsx";
 import { CenterClass, InputClass } from "./components/tw.ts";
 import { DividerBackgroundColor, PrimaryTextColor, SecondaryTextColor } from "./style/colors.ts";
-import { SecondaryBackgroundColor } from "./style/colors.ts";
 import { LocalPrivateKeyController } from "./sign-in.ts";
 import { PlaceholderColor } from "./style/colors.ts";
 import { PrivateKey } from "../../libs/nostr.ts/key.ts";

@@ -6,6 +6,7 @@ import { PublicKey } from "../libs/nostr.ts/key.ts";
 import { ProfileGetter, ProfileSetter } from "./UI/search.tsx";
 import { NoteID } from "../libs/nostr.ts/nip19.ts";
 import { func_GetMemberSet } from "./UI/relay-detail.tsx";
+import { func_GetRelayRecommendations } from "./UI/relay-recommend-list.tsx";
 
 const buffer_size = 2000;
 export interface Indices {
@@ -66,8 +67,18 @@ interface MemberListGetter {
     getMemberSet: func_GetMemberSet;
 }
 
+interface RelayRecommendationsGetter {
+    getRelayRecommendations: func_GetRelayRecommendations;
+}
+
 export class Database_View
-    implements ProfileSetter, ProfileGetter, EventRemover, RelayRecordGetter, MemberListGetter {
+    implements
+        ProfileSetter,
+        ProfileGetter,
+        EventRemover,
+        RelayRecordGetter,
+        MemberListGetter,
+        RelayRecommendationsGetter {
     private readonly sourceOfChange = csp.chan<{ event: Parsed_Event; relay?: string }>(buffer_size);
     private readonly caster = csp.multi<{ event: Parsed_Event; relay?: string }>(this.sourceOfChange);
     private readonly profiles = new Map<string, Profile_Nostr_Event>();
@@ -100,6 +111,15 @@ export class Database_View
             resolve(undefined);
         });
     }
+
+    getRelayRecommendations: func_GetRelayRecommendations = () => {
+        let set = new Set<string>();
+        for (const s of this.relayRecords.values()) {
+            set = set.union(s);
+        }
+        return set;
+    };
+
     getMemberSet: func_GetMemberSet = (relay: string) => {
         const members = new Set<string>();
         for (const event of this.events.values()) {

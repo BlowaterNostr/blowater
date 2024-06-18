@@ -227,6 +227,7 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                     <RelayRecommendList
                         relayConfig={app.relayConfig}
                         emit={eventBus.emit}
+                        getRelayRecommendations={app.database.getRelayRecommendations}
                     />
                 ),
             });
