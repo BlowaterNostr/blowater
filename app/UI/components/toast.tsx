@@ -5,7 +5,7 @@ import { LinkColor, PrimaryBackgroundColor, PrimaryTextColor } from "../style/co
 import { Channel, sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { setState } from "../_helper.ts";
 import { emitFunc } from "../../event-bus.ts";
-import { ViewRelayDetail } from "../setting.tsx";
+import { ViewSpaceSettings } from "../setting.tsx";
 
 export type ToastChannel = Channel<() => ComponentChildren>;
 
@@ -47,23 +47,24 @@ export class Toast extends Component<Props, State> {
     }
 }
 
-export const SendingEventRejection = (emit: emitFunc<ViewRelayDetail>, url: string, reason: string) => () => (
-    <div
-        class="hover:cursor-pointer"
-        onClick={() => {
-            emit({
-                type: "ViewRelayDetail",
-                url: url,
-            });
-        }}
-    >
-        sending message is rejected
-        <div>reason: {reason}</div>
-        <div>please contact the admin of relay</div>
+export const SendingEventRejection =
+    (emit: emitFunc<ViewSpaceSettings>, url: string, reason: string) => () => (
         <div
-            class={`text-[${LinkColor}] hover:underline`}
+            class="hover:cursor-pointer"
+            onClick={() => {
+                emit({
+                    type: "ViewSpaceSettings",
+                    url: url,
+                });
+            }}
         >
-            {url}
+            sending message is rejected
+            <div>reason: {reason}</div>
+            <div>please contact the admin of relay</div>
+            <div
+                class={`text-[${LinkColor}] hover:underline`}
+            >
+                {url}
+            </div>
         </div>
-    </div>
-);
+    );

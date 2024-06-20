@@ -8,10 +8,11 @@ import { NavigationUpdate } from "./nav.tsx";
 import { setState } from "./_helper.ts";
 import { AddIcon } from "./icons/add-icon.tsx";
 import { getRelayInformation, RelayInformation, robohash } from "../../libs/nostr.ts/nip11.ts";
+import { ViewSpaceSettings } from "./setting.tsx";
 
 type SpaceDropDownPanelProps = {
     spaceList: Set<string>;
-    emit: emitFunc<SelectSpace | NavigationUpdate>;
+    emit: emitFunc<SelectSpace | NavigationUpdate | ViewSpaceSettings>;
     currentRelay: string;
 };
 
@@ -88,7 +89,7 @@ export class SpaceDropDownPanel extends Component<SpaceDropDownPanelProps, Relay
         return (
             <div class="absolute z-10 min-w-64 rounded-lg bg-neutral-700 text-white p-3">
                 {this.SettingsButton()}
-                {this.InviteButton()}
+                {/* {this.InviteButton()} */}
                 <div class="border border-neutral-600 my-3"></div>
                 <div class="w-full flex">
                     <input
@@ -138,6 +139,12 @@ export class SpaceDropDownPanel extends Component<SpaceDropDownPanelProps, Relay
         <div
             class={"flex flex-row items-center p-2 rounded-lg" +
                 " hover:bg-neutral-500 hover:cursor-pointer"}
+            onClick={() => {
+                this.props.emit({
+                    type: "ViewSpaceSettings",
+                    url: this.props.currentRelay,
+                });
+            }}
         >
             <svg
                 class="w-6 h-6 mr-2"

@@ -23,6 +23,7 @@ import { SpaceDropDownPanel } from "./space-drop-down-panel.tsx";
 import { SocialIcon } from "./icons/social-icon.tsx";
 import { SearchIcon } from "./icons/search-icon.tsx";
 import { StartSearch } from "./search_model.ts";
+import { ViewSpaceSettings } from "./setting.tsx";
 
 export type InstallPrompt = {
     event: Event | undefined;
@@ -45,7 +46,7 @@ export type NavigationModel = {
 type Props = {
     publicKey: PublicKey;
     profile: Profile_Nostr_Event | undefined;
-    emit: emitFunc<NavigationUpdate | SelectSpace | StartSearch>;
+    emit: emitFunc<NavigationUpdate | SelectSpace | StartSearch | ViewSpaceSettings>;
     installPrompt: InstallPrompt;
     pool: ConnectionPool;
     activeNav: NavTabID;
