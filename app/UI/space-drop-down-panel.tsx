@@ -87,14 +87,14 @@ export class SpaceDropDownPanel extends Component<SpaceDropDownPanelProps, Relay
 
     DropDown = (spaceList: h.JSX.Element[]) => {
         return (
-            <div class="absolute z-10 min-w-64 rounded-lg bg-neutral-700 text-white p-3">
+            <div class="absolute z-10 min-w-64 rounded-lg bg-neutral-700 text-white p-4">
                 {this.SettingsButton()}
                 {/* {this.InviteButton()} */}
                 <div class="border border-neutral-600 my-3"></div>
-                <div class="w-full flex">
+                <div class="w-full flex mb-3">
                     <input
                         type="text"
-                        class="flex-grow border rounded-lg mx-2 mb-1 px-2"
+                        class="flex-grow border rounded-lg px-2 text-neutral-700"
                         placeholder="filter relays"
                         value={this.state.searchRelayValue}
                         onInput={this.handleSearchRelayInput}
@@ -115,7 +115,7 @@ export class SpaceDropDownPanel extends Component<SpaceDropDownPanelProps, Relay
         const selected = isCurrentRelay ? " border-[#000] border" : "";
         return (
             <div
-                class={"flex flex-row my-1 hover:bg-neutral-500" +
+                class={"flex flex-row mb-2 hover:bg-neutral-500" +
                     " hover:cursor-pointer items-center rounded"}
                 onClick={this.onSpaceSelected(spaceURL)}
             >
@@ -127,7 +127,7 @@ export class SpaceDropDownPanel extends Component<SpaceDropDownPanelProps, Relay
                         />
                     </div>
                 </div>
-                <div class="px-1">
+                <div class="px-2">
                     <div>{this.state.relayInformation.get(spaceURL)?.name}</div>
                     <div class="text-sm font-light">{new URL(spaceURL).hostname}</div>
                 </div>
@@ -190,7 +190,7 @@ export class SpaceDropDownPanel extends Component<SpaceDropDownPanelProps, Relay
     NewSpaceButton = () => {
         return (
             <div
-                class={"flex flex-row mx-1 my-1 py-1" +
+                class={"flex flex-row my-1 py-1" +
                     " bg-neutral-600" +
                     " hover:bg-neutral-500" +
                     " hover:cursor-pointer items-center rounded-lg justify-center" +
