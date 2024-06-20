@@ -16,7 +16,7 @@ type SpaceDropDownPanelProps = {
 };
 
 type RelaySwitchListState = {
-    showRelayList: boolean;
+    showDropDown: boolean;
     relayInformation: Map<string, RelayInformation>;
     searchRelayValue: string;
 };
@@ -24,7 +24,7 @@ type RelaySwitchListState = {
 export class SpaceDropDownPanel extends Component<SpaceDropDownPanelProps, RelaySwitchListState> {
     state: Readonly<RelaySwitchListState> = {
         relayInformation: new Map(),
-        showRelayList: false,
+        showDropDown: false,
         searchRelayValue: "",
     };
 
@@ -60,75 +60,63 @@ export class SpaceDropDownPanel extends Component<SpaceDropDownPanelProps, Relay
         }
         return (
             <div class="">
-                <div
-                    class="bg-white w-10 h-10 border rounded-lg hover:hover:cursor-pointer mb-1"
-                    onClick={this.toggleRelayList}
-                >
-                    {this.props.currentRelay
-                        ? (
-                            <RelayAvatar
-                                icon={this.state.relayInformation.get(this.props.currentRelay)?.icon ||
-                                    robohash(this.props.currentRelay)}
-                            />
-                        )
-                        : <RelayAvatar icon="logo.webp" />}
-                </div>
-                {this.state.showRelayList
-                    ? (
-                        <div class="absolute z-10 border min-w-64 rounded-lg bg-white py-1">
-                            <div class="w-full flex">
-                                <input
-                                    type="text"
-                                    class="flex-grow border rounded-lg mx-2 my-1 px-2"
-                                    placeholder="filter relays"
-                                    value={this.state.searchRelayValue}
-                                    onInput={this.handleSearchRelayInput}
-                                />
-                            </div>
-                            <div
-                                class="flex flex-col overflow-y-auto overflow-x-hidden"
-                                style={{ maxHeight: "70vh" }}
-                            >
-                                {relayList}
-                            </div>
-                            <div
-                                class={`flex flex-row mx-1 my-1 hover:bg-[rgb(244,244,244)] hover:cursor-pointer items-center rounded`}
-                                onClick={this.onAddRelay}
-                            >
-                                <div
-                                    class={`flex justify-center items-center w-12 h-12 rounded-md border-none`}
-                                >
-                                    <div
-                                        class={`flex justify-center items-center w-10 h-10 border rounded-md bg-[#F2F2F2]`}
-                                    >
-                                        <AddIcon
-                                            style={{
-                                                width: "60%",
-                                                height: "60%",
-                                            }}
-                                        />
-                                    </div>
-                                </div>
-                                <div class="px-1 font-light">
-                                    Add a relay
-                                </div>
-                            </div>
-                        </div>
-                    )
-                    : undefined}
+                {this.TopIconButton()}
+                {this.state.showDropDown ? this.DropDown(relayList) : undefined}
             </div>
         );
     }
 
-    SpaceListItem(spaceURL: string, isCurrentRelay: boolean) {
-        const selected = isCurrentRelay ? " border-[#000] border-2" : "";
+    TopIconButton = () => {
         return (
             <div
-                class={`flex flex-row mx-1 my-1 hover:bg-[rgb(244,244,244)] hover:cursor-pointer items-center rounded`}
+                class="bg-white w-10 h-10 border rounded-lg hover:hover:cursor-pointer mb-1"
+                onClick={this.toggleRelayList}
+            >
+                {this.props.currentRelay
+                    ? (
+                        <RelayAvatar
+                            icon={this.state.relayInformation.get(this.props.currentRelay)?.icon ||
+                                robohash(this.props.currentRelay)}
+                        />
+                    )
+                    : <RelayAvatar icon="logo.webp" />}
+            </div>
+        );
+    };
+
+    DropDown = (spaceList: h.JSX.Element[]) => {
+        return (
+            <div class="absolute z-10 min-w-64 rounded-lg bg-neutral-700 p-3">
+                <div class="w-full flex">
+                    <input
+                        type="text"
+                        class="flex-grow border rounded-lg mx-2 my-1 px-2"
+                        placeholder="filter relays"
+                        value={this.state.searchRelayValue}
+                        onInput={this.handleSearchRelayInput}
+                    />
+                </div>
+                <div
+                    class="flex flex-col overflow-y-auto overflow-x-hidden"
+                    style={{ maxHeight: "70vh" }}
+                >
+                    {spaceList}
+                </div>
+                {this.NewSpaceButton()}
+            </div>
+        );
+    };
+
+    SpaceListItem(spaceURL: string, isCurrentRelay: boolean) {
+        const selected = isCurrentRelay ? " border-[#000] border" : "";
+        return (
+            <div
+                class={"flex flex-row mx-1 my-1 hover:bg-neutral-500" +
+                    " hover:cursor-pointer items-center rounded"}
                 onClick={this.onSpaceSelected(spaceURL)}
             >
                 <div class={`flex justify-center items-center w-12 h-12 rounded-md ${selected}`}>
-                    <div class={`w-10 h-10 border rounded-md `}>
+                    <div class={`w-10 h-10 bg-neutral-600 rounded-md `}>
                         <RelayAvatar
                             icon={this.state.relayInformation.get(spaceURL)?.icon ||
                                 robohash(spaceURL)}
@@ -143,15 +131,30 @@ export class SpaceDropDownPanel extends Component<SpaceDropDownPanelProps, Relay
         );
     }
 
+    NewSpaceButton = () => {
+        return (
+            <div
+                class={"flex flex-row mx-1 my-1 py-1" +
+                    " bg-neutral-600" +
+                    " hover:bg-neutral-500" +
+                    " hover:cursor-pointer items-center rounded-lg justify-center" +
+                    " text-white font-semibold"}
+                onClick={this.onAddRelay}
+            >
+                New Space
+            </div>
+        );
+    };
+
     toggleRelayList = async () => {
         await setState(this, {
-            showRelayList: !this.state.showRelayList,
+            showDropDown: !this.state.showDropDown,
         });
     };
 
     onSpaceSelected = (spaceURL: string) => async () => {
         await setState(this, {
-            showRelayList: false,
+            showDropDown: false,
         });
         this.props.emit({
             type: "SelectSpace",
@@ -161,7 +164,7 @@ export class SpaceDropDownPanel extends Component<SpaceDropDownPanelProps, Relay
 
     onAddRelay = async () => {
         await setState(this, {
-            showRelayList: false,
+            showDropDown: false,
         });
         this.props.emit({
             type: "ChangeNavigation",
