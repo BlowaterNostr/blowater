@@ -1,18 +1,17 @@
 /** @jsx h */
 import { Component, h } from "https://esm.sh/preact@10.17.1";
-import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 import { emitFunc } from "../event-bus.ts";
 import { RelayAvatar } from "./components/avatar.tsx";
-import { SelectRelay } from "./nav.tsx";
+import { SelectSpace } from "./nav.tsx";
 import { NavigationUpdate } from "./nav.tsx";
 import { setState } from "./_helper.ts";
 import { AddIcon } from "./icons/add-icon.tsx";
 import { getRelayInformation, RelayInformation, robohash } from "../../libs/nostr.ts/nip11.ts";
 
-type RelaySwitchListProps = {
-    pool: ConnectionPool;
-    emit: emitFunc<SelectRelay | NavigationUpdate>;
+type SpaceDropDownPanelProps = {
+    spaceList: Set<string>;
+    emit: emitFunc<SelectSpace | NavigationUpdate>;
     currentRelay: string;
 };
 
@@ -22,7 +21,7 @@ type RelaySwitchListState = {
     searchRelayValue: string;
 };
 
-export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitchListState> {
+export class SpaceDropDownPanel extends Component<SpaceDropDownPanelProps, RelaySwitchListState> {
     state: Readonly<RelaySwitchListState> = {
         relayInformation: new Map(),
         showRelayList: false,
@@ -30,14 +29,14 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
     };
 
     async componentDidMount() {
-        for (const relay of this.props.pool.getRelays()) {
-            getRelayInformation(relay.url).then((info) => {
+        for (const url of this.props.spaceList) {
+            getRelayInformation(url).then((info) => {
                 if (info instanceof Error) {
                     console.error(info);
                     return;
                 }
                 setState(this, {
-                    relayInformation: this.state.relayInformation.set(relay.url, info),
+                    relayInformation: this.state.relayInformation.set(url, info),
                 });
             });
         }
@@ -51,12 +50,12 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
 
     render() {
         const relayList = [];
-        for (const relay of this.props.pool.getRelays()) {
-            if (!relay.url.includes(this.state.searchRelayValue)) {
+        for (const url of this.props.spaceList) {
+            if (!url.includes(this.state.searchRelayValue)) {
                 continue;
             }
             relayList.push(
-                this.RelayListItem(relay, this.props.currentRelay == relay.url),
+                this.SpaceListItem(url, this.props.currentRelay == url),
             );
         }
         return (
@@ -121,24 +120,24 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
         );
     }
 
-    RelayListItem(relay: SingleRelayConnection, isCurrentRelay: boolean) {
+    SpaceListItem(spaceURL: string, isCurrentRelay: boolean) {
         const selected = isCurrentRelay ? " border-[#000] border-2" : "";
         return (
             <div
                 class={`flex flex-row mx-1 my-1 hover:bg-[rgb(244,244,244)] hover:cursor-pointer items-center rounded`}
-                onClick={this.onRelaySelected(relay)}
+                onClick={this.onSpaceSelected(spaceURL)}
             >
                 <div class={`flex justify-center items-center w-12 h-12 rounded-md ${selected}`}>
                     <div class={`w-10 h-10 border rounded-md `}>
                         <RelayAvatar
-                            icon={this.state.relayInformation.get(relay.url)?.icon ||
-                                robohash(relay.url)}
+                            icon={this.state.relayInformation.get(spaceURL)?.icon ||
+                                robohash(spaceURL)}
                         />
                     </div>
                 </div>
                 <div class="px-1">
-                    <div>{this.state.relayInformation.get(relay.url)?.name}</div>
-                    <div class="text-sm font-light">{new URL(relay.url).hostname}</div>
+                    <div>{this.state.relayInformation.get(spaceURL)?.name}</div>
+                    <div class="text-sm font-light">{new URL(spaceURL).hostname}</div>
                 </div>
             </div>
         );
@@ -150,13 +149,13 @@ export class RelaySwitchList extends Component<RelaySwitchListProps, RelaySwitch
         });
     };
 
-    onRelaySelected = (relay: SingleRelayConnection) => async () => {
+    onSpaceSelected = (spaceURL: string) => async () => {
         await setState(this, {
             showRelayList: false,
         });
         this.props.emit({
-            type: "SelectRelay",
-            relay,
+            type: "SelectSpace",
+            spaceURL,
         });
     };
 

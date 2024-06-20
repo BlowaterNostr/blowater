@@ -40,7 +40,7 @@ import { EventDetail, EventDetailItem } from "./event-detail.tsx";
 
 import { DirectMessagePanelUpdate, SendReaction } from "./message-panel.tsx";
 import { ChatMessage, parseContent } from "./message.ts";
-import { InstallPrompt, NavigationModel, NavigationUpdate, SelectRelay } from "./nav.tsx";
+import { InstallPrompt, NavigationModel, NavigationUpdate, SelectSpace } from "./nav.tsx";
 import { notify } from "./notification.ts";
 import { SpaceSetting } from "./relay-detail.tsx";
 import { Search } from "./search.tsx";
@@ -83,7 +83,7 @@ export type UI_Interaction_Event =
     | TagSelected
     | BlockUser
     | UnblockUser
-    | SelectRelay
+    | SelectSpace
     | HidePopOver
     | SyncEvent
     | FilterContent
@@ -180,9 +180,9 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
         }
 
         // All events below are only valid after signning in
-        if (event.type == "SelectRelay") {
-            rememberCurrentRelay(event.relay.url);
-            model.currentRelay = event.relay.url;
+        if (event.type == "SelectSpace") {
+            rememberCurrentRelay(event.spaceURL);
+            model.currentRelay = event.spaceURL;
         } //
         // Searchx
         //

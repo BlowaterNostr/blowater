@@ -341,7 +341,7 @@ export class AppComponent extends Component<AppProps, {
     async componentDidMount() {
         await this.updateAdminState();
         for await (const update of this.props.eventBus.onChange()) {
-            if (update.type == "SelectRelay") {
+            if (update.type == "SelectSpace") {
                 this.updateAdminState();
             }
         }
