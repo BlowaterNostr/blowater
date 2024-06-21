@@ -13,7 +13,6 @@ import { SignInEvent } from "./sign-in.ts";
 import { SaveProfile } from "./edit-profile.tsx";
 import { setState } from "./_helper.ts";
 import { Nip7ExtensionContext } from "./account-context.ts";
-import { robohash } from "../../libs/nostr.ts/nip11.ts";
 
 interface Props {
     emit: emitFunc<SaveProfile | SignInEvent>;
@@ -26,15 +25,10 @@ interface State {
         type: "signin";
         private_key: string;
     } | {
-        type: "name";
-        name: string;
-    } | {
-        type: "backup";
-        name: string;
+        type: "create-key";
         new_private_key: PrivateKey;
     } | {
         type: "verify";
-        name: string;
         new_private_key: PrivateKey;
         last_4_digits_of_private_key: string;
     };
@@ -69,12 +63,10 @@ export class SignIn extends Component<Props, State> {
                 return this.setp_Onboarding();
             case "signin":
                 return this.step_SignInWithPrivateKey(step.private_key);
-            case "name":
-                return this.step_Name(step.name);
-            case "backup":
-                return this.step_Backup(step.new_private_key, step.name);
+            case "create-key":
+                return this.step_CreateKey(step.new_private_key);
             case "verify":
-                return this.step_Verify(step.new_private_key, step.last_4_digits_of_private_key, step.name);
+                return this.step_Verify(step.new_private_key, step.last_4_digits_of_private_key);
         }
     }
 
@@ -112,13 +104,14 @@ export class SignIn extends Component<Props, State> {
                     <p class={`text-neutral-400 font-semibold my-4`}>OR</p>
                 </div>
                 <button
-                    onClick={() =>
+                    onClick={() => {
                         this.setState({
                             step: {
-                                type: "name",
-                                name: "",
+                                type: "create-key",
+                                new_private_key: PrivateKey.Generate(),
                             },
-                        })}
+                        });
+                    }}
                     class={`w-full p-3 rounded-lg  flex items-center justify-center bg-white hover:bg-blue-600 hover:text-white`}
                 >
                     Create account
@@ -174,65 +167,7 @@ export class SignIn extends Component<Props, State> {
         );
     };
 
-    step_Name = (name: string) => {
-        return (
-            <Fragment>
-                <div class={`text-4xl w-full text-center font-bold`}>Create account</div>
-                <div class={`text-md w-full text-center ${SecondaryTextColor} mb-5`}>
-                    What should we call you?
-                </div>
-                <input
-                    class={`w-full px-4 py-3 rounded-lg resize-y bg-transparent focus:outline-none focus-visible:outline-none border-[2px] border-[${DividerBackgroundColor}] placeholder-[${PlaceholderColor}]`}
-                    placeholder="name"
-                    type="text"
-                    value={name}
-                    onInput={(event: h.JSX.TargetedEvent<HTMLInputElement, Event>) => {
-                        this.setState({
-                            step: {
-                                type: "name",
-                                name: event.currentTarget.value,
-                            },
-                        });
-                    }}
-                />
-                <div class={`text-red-500 h-5 my-1`}>{this.state.errorPrompt}</div>
-                <button
-                    onClick={() => {
-                        if (name.length > 0) {
-                            this.setState({
-                                step: {
-                                    type: "backup",
-                                    name: name,
-                                    new_private_key: PrivateKey.Generate(),
-                                },
-                                errorPrompt: "",
-                            });
-                        } else {
-                            this.setState({ errorPrompt: "Name is required" });
-                        }
-                    }}
-                    class={`w-full p-3 rounded-lg  flex items-center justify-center bg-[#5764f2] hover:bg-[#4751c4] ${
-                        name.length > 0 ? "" : "opacity-50 cursor-not-allowed"
-                    }`}
-                >
-                    Next
-                </button>
-                <button
-                    onClick={() =>
-                        this.setState({
-                            step: {
-                                type: "onboarding",
-                            },
-                        })}
-                    class={`border-none bg-transparent text-[#5764f2] mt-2 focus:outline-none focus-visible:outline-none hover:underline hover:text-[#F8F5F1]`}
-                >
-                    Go back
-                </button>
-            </Fragment>
-        );
-    };
-
-    step_Backup = (new_private_key: PrivateKey, name: string) => {
+    step_CreateKey = (new_private_key: PrivateKey) => {
         return (
             <Fragment>
                 <div class={`text-4xl w-full text-center font-bold`}>Backup your keys</div>
@@ -264,7 +199,6 @@ export class SignIn extends Component<Props, State> {
                         this.setState({
                             step: {
                                 type: "verify",
-                                name: name,
                                 new_private_key,
                                 last_4_digits_of_private_key: "",
                             },
@@ -275,13 +209,13 @@ export class SignIn extends Component<Props, State> {
                     I have saved my secret key
                 </button>
                 <button
-                    onClick={() =>
+                    onClick={() => {
                         this.setState({
                             step: {
-                                type: "name",
-                                name,
+                                type: "onboarding",
                             },
-                        })}
+                        });
+                    }}
                     class={`border-none bg-transparent text-[#5764f2] mt-2 focus:outline-none focus-visible:outline-none  hover:underline hover:text-[#F8F5F1]`}
                 >
                     Go back
@@ -290,7 +224,7 @@ export class SignIn extends Component<Props, State> {
         );
     };
 
-    step_Verify = (new_private_key: PrivateKey, last_4_digits_of_private_key: string, name: string) => {
+    step_Verify = (new_private_key: PrivateKey, last_4_digits_of_private_key: string) => {
         return (
             <Fragment>
                 <div class={`text-4xl w-full text-center font-bold mb-5`}>Confirm secret key</div>
@@ -308,7 +242,6 @@ export class SignIn extends Component<Props, State> {
                                 step: {
                                     type: "verify",
                                     last_4_digits_of_private_key: e.currentTarget.value,
-                                    name,
                                     new_private_key: new_private_key,
                                 },
                             });
@@ -322,7 +255,7 @@ export class SignIn extends Component<Props, State> {
                 <button
                     onClick={() =>
                         this.checkSecretKeyComplete(last_4_digits_of_private_key, new_private_key)
-                            ? signInWithNewPrivateKey(name, new_private_key, this.props.emit)
+                            ? signInWithNewPrivateKey(new_private_key, this.props.emit)
                             : this.setState({ errorPrompt: "Last 4 digits of secret key is incorrect" })}
                     class={`w-full p-3 rounded-lg  flex items-center justify-center bg-[#5764f2] hover:bg-[#4751c4] ${
                         this.checkSecretKeyComplete(last_4_digits_of_private_key, new_private_key)
@@ -336,8 +269,7 @@ export class SignIn extends Component<Props, State> {
                     onClick={() =>
                         this.setState({
                             step: {
-                                type: "backup",
-                                name,
+                                type: "create-key",
                                 new_private_key: new_private_key,
                             },
                             errorPrompt: "",
@@ -399,21 +331,12 @@ function TextField(props: {
 }
 
 async function signInWithNewPrivateKey(
-    name: string,
     signUpSecretKey: PrivateKey,
     emit: emitFunc<SignInEvent | SaveProfile>,
 ) {
     await emit({
         type: "SignInEvent",
         ctx: InMemoryAccountContext.New(signUpSecretKey),
-    });
-    await emit({
-        type: "SaveProfile",
-        ctx: InMemoryAccountContext.New(signUpSecretKey),
-        profile: {
-            name,
-            picture: robohash(name),
-        },
     });
     setSignInState("local");
     await LocalPrivateKeyController.setKey("blowater", signUpSecretKey);

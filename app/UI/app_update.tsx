@@ -40,12 +40,12 @@ import { EventDetail, EventDetailItem } from "./event-detail.tsx";
 
 import { DirectMessagePanelUpdate, SendReaction } from "./message-panel.tsx";
 import { ChatMessage, parseContent } from "./message.ts";
-import { InstallPrompt, NavigationModel, NavigationUpdate, SelectRelay } from "./nav.tsx";
+import { InstallPrompt, NavigationModel, NavigationUpdate, SelectSpace } from "./nav.tsx";
 import { notify } from "./notification.ts";
 import { SpaceSetting } from "./relay-detail.tsx";
 import { Search } from "./search.tsx";
 import { SearchUpdate, SelectConversation } from "./search_model.ts";
-import { RelayConfigChange, ViewRecommendedRelaysList, ViewRelayDetail } from "./setting.tsx";
+import { RelayConfigChange, ViewRecommendedRelaysList, ViewSpaceSettings } from "./setting.tsx";
 import { SignInEvent } from "./sign-in.ts";
 import { TagSelected } from "./contact-tags.tsx";
 import { BlockUser, UnblockUser, UserDetail } from "./user-detail.tsx";
@@ -78,12 +78,12 @@ export type UI_Interaction_Event =
     | SignInEvent
     | RelayConfigChange
     | StartInvite
-    | ViewRelayDetail
+    | ViewSpaceSettings
     | ViewRecommendedRelaysList
     | TagSelected
     | BlockUser
     | UnblockUser
-    | SelectRelay
+    | SelectSpace
     | HidePopOver
     | SyncEvent
     | FilterContent
@@ -180,9 +180,9 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
         }
 
         // All events below are only valid after signning in
-        if (event.type == "SelectRelay") {
-            rememberCurrentRelay(event.relay.url);
-            model.currentRelay = event.relay.url;
+        if (event.type == "SelectSpace") {
+            rememberCurrentRelay(event.spaceURL);
+            model.currentRelay = event.spaceURL;
         } //
         // Searchx
         //
@@ -204,7 +204,7 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
         //
         // Setting
         //
-        else if (event.type == "ViewRelayDetail") {
+        else if (event.type == "ViewSpaceSettings") {
             const relay = pool.getRelay(event.url);
             if (relay) {
                 app.popOverInputChan.put({

@@ -34,7 +34,7 @@ export interface SettingProps {
     relayConfig: RelayConfig;
     relayPool: ConnectionPool;
     myAccountContext: NostrAccountContext;
-    emit: emitFunc<RelayConfigChange | ViewRelayDetail | ViewRecommendedRelaysList>;
+    emit: emitFunc<RelayConfigChange | ViewSpaceSettings | ViewRecommendedRelaysList>;
     show: boolean;
 }
 
@@ -95,8 +95,8 @@ export type RelayConfigChange = {
     url: string;
 };
 
-export type ViewRelayDetail = {
-    type: "ViewRelayDetail";
+export type ViewSpaceSettings = {
+    type: "ViewSpaceSettings";
     url: string;
 };
 
@@ -109,7 +109,7 @@ export type func_GetRelayURLs = () => Set<string>;
 type RelaySettingProp = {
     getRelayURLs: func_GetRelayURLs;
     relayPool: ConnectionPool;
-    emit: emitFunc<RelayConfigChange | ViewRelayDetail | ViewRecommendedRelaysList>;
+    emit: emitFunc<RelayConfigChange | ViewSpaceSettings | ViewRecommendedRelaysList>;
 };
 
 type RelaySettingState = {
@@ -156,9 +156,9 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
         return _relayStatus;
     }
 
-    showRelayDetail = (url: string) => {
+    viewSpaceSettings = (url: string) => {
         this.props.emit({
-            type: "ViewRelayDetail",
+            type: "ViewSpaceSettings",
             url: url,
         });
     };
@@ -228,7 +228,7 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
                     {relayStatus.map((r) => {
                         return (
                             <li
-                                onClick={() => this.showRelayDetail(r.url)}
+                                onClick={() => this.viewSpaceSettings(r.url)}
                                 class={`w-full px-[1rem] py-[0.75rem] rounded-lg bg-[${DividerBackgroundColor}80] mb-[0.5rem]  flex items-center justify-between cursor-pointer hover:bg-[${HoverButtonBackgroundColor}]`}
                             >
                                 <div class={`flex items-center flex-1 overflow-hidden`}>

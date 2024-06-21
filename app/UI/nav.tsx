@@ -19,10 +19,11 @@ import { DownloadIcon } from "./icons/download-icon.tsx";
 import { Profile_Nostr_Event } from "../nostr.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
-import { RelaySwitchList } from "./relay-switch-list.tsx";
+import { SpaceDropDownPanel } from "./space-drop-down-panel.tsx";
 import { SocialIcon } from "./icons/social-icon.tsx";
 import { SearchIcon } from "./icons/search-icon.tsx";
 import { StartSearch } from "./search_model.ts";
+import { ViewSpaceSettings } from "./setting.tsx";
 
 export type InstallPrompt = {
     event: Event | undefined;
@@ -33,9 +34,9 @@ export type NavigationUpdate = {
     id: NavTabID;
 };
 
-export type SelectRelay = {
-    type: "SelectRelay";
-    relay: SingleRelayConnection;
+export type SelectSpace = {
+    type: "SelectSpace";
+    spaceURL: string;
 };
 
 export type NavigationModel = {
@@ -45,7 +46,7 @@ export type NavigationModel = {
 type Props = {
     publicKey: PublicKey;
     profile: Profile_Nostr_Event | undefined;
-    emit: emitFunc<NavigationUpdate | SelectRelay | StartSearch>;
+    emit: emitFunc<NavigationUpdate | SelectSpace | StartSearch | ViewSpaceSettings>;
     installPrompt: InstallPrompt;
     pool: ConnectionPool;
     activeNav: NavTabID;
@@ -140,9 +141,9 @@ export class NavBar extends Component<Props, State> {
         return (
             <div class={this.styles.container}>
                 {
-                    <RelaySwitchList
+                    <SpaceDropDownPanel
                         emit={props.emit}
-                        pool={props.pool}
+                        spaceList={new Set(Array.from(props.pool.getRelays()).map((r) => r.url))}
                         currentRelay={props.currentRelay}
                     />
                 }

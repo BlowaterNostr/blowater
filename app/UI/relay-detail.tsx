@@ -202,6 +202,7 @@ export class RelayInformationComponent extends Component<Props, State> {
                 const pubkey = PublicKey.FromString(info.pubkey);
                 if (pubkey instanceof Error) {
                     // todo make a UI
+                    console.log(info);
                     console.error(pubkey);
                 } else {
                     nodes.push(
