@@ -16,39 +16,46 @@ import { Profile_Nostr_Event } from "../nostr.ts";
 import { emitFunc } from "../event-bus.ts";
 import { SelectConversation } from "./search_model.ts";
 import { RelayInformation, robohash } from "../../libs/nostr.ts/nip11.ts";
-import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 import { setState } from "./_helper.ts";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { ViewUserDetail } from "./message-panel.tsx";
+import { SpaceMember } from "../../libs/nostr.ts/nostr.ts";
+
+type SpaceSettingProps = {
+    spaceUrl: string;
+    emit: emitFunc<SelectConversation | ViewUserDetail>;
+    profileGetter: ProfileGetter;
+    getMemberSet: func_GetMemberSet;
+    getProfileByPublicKey: func_GetProfileByPublicKey;
+    getSpaceInformationChan: func_GetSpaceInformationChan;
+    getSpaceMembersChan: func_GetSpaceMembersChan;
+};
 
 type SpaceSettingState = {
     tab: tabs;
     info: RelayInformation | undefined;
+    isRelayed: boolean;
 };
+
 type tabs = "general" | "members";
 
 // return a set of public keys that participates in this relay
-export type func_GetMemberSet = (relay: string) => Set<string>;
+export type func_GetMemberSet = (relay: string) => () => Set<string>;
 
-export class SpaceSetting extends Component<
-    {
-        emit: emitFunc<SelectConversation | ViewUserDetail>;
-        profileGetter: ProfileGetter;
-        relay: SingleRelayConnection;
-        getMemberSet: func_GetMemberSet;
-        getProfileByPublicKey: func_GetProfileByPublicKey;
-    },
-    SpaceSettingState
-> {
+export type func_GetSpaceInformationChan = () => Promise<Channel<RelayInformation | Error>>;
+export type func_GetSpaceMembersChan = () => Promise<Channel<SpaceMember[] | Error>>;
+
+export class SpaceSetting extends Component<SpaceSettingProps, SpaceSettingState> {
     infoStream: Channel<RelayInformation | Error> | undefined;
     state: SpaceSettingState = {
         tab: "general",
         info: undefined,
+        isRelayed: false,
     };
 
     async componentDidMount() {
-        this.infoStream = await this.props.relay.getRelayInformationStream();
+        this.infoStream = await this.props.getSpaceInformationChan();
         for await (const info of this.infoStream) {
             if (info instanceof Error) {
                 console.error(info.message, info.cause);
@@ -56,11 +63,14 @@ export class SpaceSetting extends Component<
                 await setState(this, {
                     info,
                 });
+                if (info.software === "https://github.com/BlowaterNostr/relayed") {
+                    await setState(this, { isRelayed: true });
+                }
             }
         }
     }
 
-    async componentWillUnmount() {
+    componentWillUnmount() {
         this.infoStream?.close();
     }
 
@@ -116,32 +126,18 @@ export class SpaceSetting extends Component<
                                     {...this.props}
                                     info={{
                                         ...this.state.info,
-                                        url: this.props.relay.url,
+                                        url: this.props.spaceUrl,
                                     }}
                                 />
                             )
                             : (
-                                <Fragment>
-                                    {Array.from(this.props.getMemberSet(this.props.relay.url)).map((p) => {
-                                        const profile = this.props.getProfileByPublicKey(p);
-                                        return (
-                                            <div
-                                                class="w-full flex items-center px-4 py-2 text-[#B8B9BF] hover:bg-[#404249] rounded-lg cursor-pointer"
-                                                onClick={this.clickSpaceMember(p)}
-                                            >
-                                                <Avatar
-                                                    class={`flex-shrink-0 w-8 h-8 mr-2 bg-neutral-600 rounded-full`}
-                                                    picture={profile?.profile.picture || robohash(p)}
-                                                >
-                                                </Avatar>
-                                                <div class="truncate">
-                                                    {profile?.profile.name || profile?.profile.display_name ||
-                                                        p}
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </Fragment>
+                                <MemberList
+                                    getProfileByPublicKey={this.props.getProfileByPublicKey}
+                                    emit={this.props.emit}
+                                    getSpaceMembersChan={this.props.getSpaceMembersChan}
+                                    isRelayed={this.state.isRelayed}
+                                    getMemberSet={this.props.getMemberSet(this.props.spaceUrl)}
+                                />
                             )}
                     </div>
                 </div>
@@ -152,17 +148,6 @@ export class SpaceSetting extends Component<
     changeTab = (tab: tabs) => () => {
         this.setState({
             tab,
-        });
-    };
-
-    clickSpaceMember = (pubkey: string) => () => {
-        const p = PublicKey.FromString(pubkey);
-        if (p instanceof Error) {
-            return console.error(p);
-        }
-        this.props.emit({
-            type: "ViewUserDetail",
-            pubkey: p,
         });
     };
 }
@@ -281,6 +266,82 @@ export class RelayInformationComponent extends Component<Props, State> {
                 </p>
                 {vNode}
             </div>
+        );
+    }
+}
+
+type MemberListProps = {
+    getProfileByPublicKey: func_GetProfileByPublicKey;
+    getSpaceMembersChan: func_GetSpaceMembersChan;
+    emit: emitFunc<SelectConversation | ViewUserDetail>;
+    isRelayed: boolean;
+    getMemberSet: () => Set<string>;
+};
+
+type MemberListState = {
+    members: Set<string> | undefined;
+};
+
+export class MemberList extends Component<MemberListProps, MemberListState> {
+    state: MemberListState = {
+        members: undefined,
+    };
+    membersStream: Channel<SpaceMember[] | Error> | undefined;
+
+    async componentDidMount() {
+        if (this.props.isRelayed) {
+            this.membersStream = await this.props.getSpaceMembersChan();
+            for await (const members of this.membersStream) {
+                if (members instanceof Error) {
+                    console.error(members.message, members.cause);
+                } else {
+                    const pubkeys = members.map((event) => event.member);
+                    await setState(this, { members: new Set<string>(pubkeys) });
+                }
+            }
+        } else {
+            await setState(this, { members: this.props.getMemberSet() });
+        }
+    }
+
+    componentWillUnmount() {
+        this.membersStream?.close();
+    }
+
+    clickSpaceMember = (pubkey: string) => () => {
+        const p = PublicKey.FromString(pubkey);
+        if (p instanceof Error) {
+            return console.error(p);
+        }
+        this.props.emit({
+            type: "ViewUserDetail",
+            pubkey: p,
+        });
+    };
+
+    render(props: MemberListProps, state: MemberListState) {
+        return (
+            <>
+                {state.members && Array.from(state.members).map((member) => {
+                    const profile = props.getProfileByPublicKey(member);
+                    return (
+                        <div
+                            class="w-full flex items-center px-4 py-2 text-[#B8B9BF] hover:bg-[#404249] rounded-lg cursor-pointer"
+                            onClick={this.clickSpaceMember(member)}
+                        >
+                            <Avatar
+                                class={`flex-shrink-0 w-8 h-8 mr-2 bg-neutral-600 rounded-full`}
+                                picture={profile?.profile.picture || robohash(member)}
+                            >
+                            </Avatar>
+                            <div class="truncate">
+                                {profile?.profile.name || profile?.profile.display_name ||
+                                    member}
+                            </div>
+                        </div>
+                    );
+                })}
+            </>
         );
     }
 }

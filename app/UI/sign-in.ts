@@ -1,10 +1,10 @@
 import { GetLocalStorageAccountContext, Nip7ExtensionContext } from "./account-context.ts";
 import { PrivateKey } from "../../libs/nostr.ts/key.ts";
-import { NostrAccountContext } from "../../libs/nostr.ts/nostr.ts";
+import { InMemoryAccountContext, NostrAccountContext } from "../../libs/nostr.ts/nostr.ts";
 
 export type SignInEvent = {
     type: "SignInEvent";
-    ctx: NostrAccountContext;
+    ctx: NostrAccountContext | InMemoryAccountContext;
 };
 
 type SignInState = "none" | "nip07" | "local";

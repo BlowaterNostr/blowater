@@ -11,7 +11,12 @@ import { prepareReactionEvent } from "../../libs/nostr.ts/nip25.ts";
 import { prepareReplyEvent } from "../nostr.ts";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { NoteID } from "../../libs/nostr.ts/nip19.ts";
-import { NostrAccountContext, NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
+import {
+    InMemoryAccountContext,
+    NostrAccountContext,
+    NostrEvent,
+    NostrKind,
+} from "../../libs/nostr.ts/nostr.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 import { Database_View } from "../database.ts";
 import { emitFunc, EventBus } from "../event-bus.ts";
@@ -143,12 +148,15 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                 ctx,
                 args.lamport,
             );
+            const pool = ctx instanceof InMemoryAccountContext
+                ? new ConnectionPool({ signer: ctx, signer_v2: ctx }) // sign in by private key
+                : new ConnectionPool({ signer: ctx }); // sign in by browser extension
             const app = await App.Start({
                 database: dbView,
                 model,
                 ctx,
                 eventBus,
-                pool: new ConnectionPool({ signer: ctx }),
+                pool,
                 popOverInputChan: args.popOver,
                 rightPanelInputChan: args.rightPanel,
                 otherConfig,
@@ -212,7 +220,9 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                         <SpaceSetting
                             profileGetter={app.database}
                             emit={app.eventBus.emit}
-                            relay={relay}
+                            getSpaceInformationChan={relay.getRelayInformationStream}
+                            getSpaceMembersChan={relay.getSpaceMembersStream}
+                            spaceUrl={relay.url}
                             getMemberSet={app.database.getMemberSet}
                             getProfileByPublicKey={app.database.getProfileByPublicKey}
                         />

@@ -29,7 +29,7 @@ export class RelayConfig {
         return config;
     }
 
-    // The the relay config of this account from local storage
+    // The relay config of this account from local storage
     static async FromLocalStorage(args: {
         ctx: NostrAccountContext;
         relayPool: ConnectionPool;

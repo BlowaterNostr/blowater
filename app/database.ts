@@ -120,7 +120,7 @@ export class Database_View
         return set;
     };
 
-    getMemberSet: func_GetMemberSet = (relay: string) => {
+    getMemberSet: func_GetMemberSet = (relay: string) => () => {
         const members = new Set<string>();
         for (const event of this.events.values()) {
             const records = this.getRelayRecord(event.id);
