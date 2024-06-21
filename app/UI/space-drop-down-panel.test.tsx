@@ -5,9 +5,9 @@ import { testEventBus } from "./_setup.test.ts";
 
 render(
     <SpaceDropDownPanel
-        currentRelay="123"
+        currentRelay="wss://deno.blowater.app"
         emit={testEventBus.emit}
-        spaceList={new Set(["relay.blowater.app", "nos.lol", "relay.damus.io", "nostr.wine"])}
+        spaceList={new Set(["wss://nos.lol", "wss://relay.damus.io", "wss://nostr.wine"])}
     />,
     document.body,
 );
