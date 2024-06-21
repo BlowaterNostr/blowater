@@ -1,12 +1,10 @@
 /** @jsx h */
 import { Component, h } from "https://esm.sh/preact@10.17.1";
-import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 import { emitFunc } from "../event-bus.ts";
 import { RelayAvatar } from "./components/avatar.tsx";
 import { SelectSpace } from "./nav.tsx";
 import { NavigationUpdate } from "./nav.tsx";
 import { setState } from "./_helper.ts";
-import { AddIcon } from "./icons/add-icon.tsx";
 import { getRelayInformation, RelayInformation, robohash } from "../../libs/nostr.ts/nip11.ts";
 import { ViewSpaceSettings } from "./setting.tsx";
 
