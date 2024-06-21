@@ -94,8 +94,8 @@ export class SpaceDropDownPanel extends Component<SpaceDropDownPanelProps, Relay
                 <div class="w-full flex mb-3">
                     <input
                         type="text"
-                        class="flex-grow border rounded-lg px-2 text-neutral-700"
-                        placeholder="filter relays"
+                        class="flex-grow rounded-lg px-2 py-1 text-white bg-neutral-600 focus:outline-none focus:border-white"
+                        placeholder="filter spaces"
                         value={this.state.searchRelayValue}
                         onInput={this.handleSearchRelayInput}
                     />
