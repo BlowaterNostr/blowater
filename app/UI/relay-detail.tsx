@@ -43,8 +43,8 @@ type tabs = "general" | "members";
 // return a set of public keys that participates in this relay
 export type func_GetMemberSet = (relay: string) => () => Set<string>;
 
-export type func_GetSpaceInformationChan = () => Promise<Channel<RelayInformation | Error>>;
-export type func_GetSpaceMembersChan = () => Promise<Channel<SpaceMember[] | Error>>;
+export type func_GetSpaceInformationChan = () => Channel<RelayInformation | Error>;
+export type func_GetSpaceMembersChan = () => Channel<SpaceMember[] | Error>;
 
 export class SpaceSetting extends Component<SpaceSettingProps, SpaceSettingState> {
     infoStream: Channel<RelayInformation | Error> | undefined;
@@ -55,7 +55,7 @@ export class SpaceSetting extends Component<SpaceSettingProps, SpaceSettingState
     };
 
     async componentDidMount() {
-        this.infoStream = await this.props.getSpaceInformationChan();
+        this.infoStream = this.props.getSpaceInformationChan();
         for await (const info of this.infoStream) {
             if (info instanceof Error) {
                 console.error(info.message, info.cause);
@@ -290,7 +290,7 @@ export class MemberList extends Component<MemberListProps, MemberListState> {
 
     async componentDidMount() {
         if (this.props.isRelayed) {
-            this.membersStream = await this.props.getSpaceMembersChan();
+            this.membersStream = this.props.getSpaceMembersChan();
             for await (const members of this.membersStream) {
                 if (members instanceof Error) {
                     console.error(members.message, members.cause);
