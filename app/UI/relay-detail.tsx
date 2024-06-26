@@ -20,38 +20,36 @@ import { setState } from "./_helper.ts";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { ViewUserDetail } from "./message-panel.tsx";
-import { SpaceMember } from "../../libs/nostr.ts/nostr.ts";
 
 type SpaceSettingProps = {
     spaceUrl: string;
     emit: emitFunc<SelectConversation | ViewUserDetail>;
     profileGetter: ProfileGetter;
-    getMemberSet: func_GetMemberSet;
     getProfileByPublicKey: func_GetProfileByPublicKey;
     getSpaceInformationChan: func_GetSpaceInformationChan;
-    getSpaceMembersChan: func_GetSpaceMembersChan;
+    getMemberSetChan: func_GetMemberSetChan;
 };
 
 type SpaceSettingState = {
     tab: tabs;
     info: RelayInformation | undefined;
-    isRelayed: boolean;
 };
 
 type tabs = "general" | "members";
 
 // return a set of public keys that participates in this relay
 export type func_GetMemberSet = (relay: string) => () => Set<string>;
+export type func_GetMemberSetChan = (
+    isRelayed: boolean,
+) => () => Channel<Set<string> | Error>;
 
 export type func_GetSpaceInformationChan = () => Channel<RelayInformation | Error>;
-export type func_GetSpaceMembersChan = () => Channel<SpaceMember[] | Error>;
 
 export class SpaceSetting extends Component<SpaceSettingProps, SpaceSettingState> {
     infoStream: Channel<RelayInformation | Error> | undefined;
     state: SpaceSettingState = {
         tab: "general",
         info: undefined,
-        isRelayed: false,
     };
 
     async componentDidMount() {
@@ -60,18 +58,13 @@ export class SpaceSetting extends Component<SpaceSettingProps, SpaceSettingState
             if (info instanceof Error) {
                 console.error(info.message, info.cause);
             } else {
-                await setState(this, {
-                    info,
-                });
-                if (info.software === "https://github.com/BlowaterNostr/relayed") {
-                    await setState(this, { isRelayed: true });
-                }
+                await setState(this, { info });
             }
         }
     }
 
-    componentWillUnmount() {
-        this.infoStream?.close();
+    async componentWillUnmount() {
+        await this.infoStream?.close();
     }
 
     render() {
@@ -134,9 +127,10 @@ export class SpaceSetting extends Component<SpaceSettingProps, SpaceSettingState
                                 <MemberList
                                     getProfileByPublicKey={this.props.getProfileByPublicKey}
                                     emit={this.props.emit}
-                                    getSpaceMembersChan={this.props.getSpaceMembersChan}
-                                    isRelayed={this.state.isRelayed}
-                                    getMemberSet={this.props.getMemberSet(this.props.spaceUrl)}
+                                    getMemberSetChan={this.props.getMemberSetChan(
+                                        this.state.info?.software ==
+                                            "https://github.com/BlowaterNostr/relayed",
+                                    )}
                                 />
                             )}
                     </div>
@@ -272,10 +266,8 @@ export class RelayInformationComponent extends Component<Props, State> {
 
 type MemberListProps = {
     getProfileByPublicKey: func_GetProfileByPublicKey;
-    getSpaceMembersChan: func_GetSpaceMembersChan;
     emit: emitFunc<SelectConversation | ViewUserDetail>;
-    isRelayed: boolean;
-    getMemberSet: () => Set<string>;
+    getMemberSetChan: () => Channel<Set<string> | Error>;
 };
 
 type MemberListState = {
@@ -286,26 +278,21 @@ export class MemberList extends Component<MemberListProps, MemberListState> {
     state: MemberListState = {
         members: undefined,
     };
-    membersStream: Channel<SpaceMember[] | Error> | undefined;
+    membersStream: Channel<Set<string> | Error> | undefined;
 
     async componentDidMount() {
-        if (this.props.isRelayed) {
-            this.membersStream = this.props.getSpaceMembersChan();
-            for await (const members of this.membersStream) {
-                if (members instanceof Error) {
-                    console.error(members.message, members.cause);
-                } else {
-                    const pubkeys = members.map((event) => event.member);
-                    await setState(this, { members: new Set<string>(pubkeys) });
-                }
+        this.membersStream = this.props.getMemberSetChan();
+        for await (const members of this.membersStream) {
+            if (members instanceof Error) {
+                console.error(members.message, members.cause);
+            } else {
+                await setState(this, { members });
             }
-        } else {
-            await setState(this, { members: this.props.getMemberSet() });
         }
     }
 
-    componentWillUnmount() {
-        this.membersStream?.close();
+    async componentWillUnmount() {
+        await this.membersStream?.close();
     }
 
     clickSpaceMember = (pubkey: string) => () => {

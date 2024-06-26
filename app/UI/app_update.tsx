@@ -16,6 +16,7 @@ import {
     NostrAccountContext,
     NostrEvent,
     NostrKind,
+    SpaceMember,
 } from "../../libs/nostr.ts/nostr.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 import { Database_View } from "../database.ts";
@@ -47,7 +48,7 @@ import { DirectMessagePanelUpdate, SendReaction } from "./message-panel.tsx";
 import { ChatMessage, parseContent } from "./message.ts";
 import { InstallPrompt, NavigationModel, NavigationUpdate, SelectSpace } from "./nav.tsx";
 import { notify } from "./notification.ts";
-import { SpaceSetting } from "./relay-detail.tsx";
+import { func_GetMemberSetChan, SpaceSetting } from "./relay-detail.tsx";
 import { Search } from "./search.tsx";
 import { SearchUpdate, SelectConversation } from "./search_model.ts";
 import { RelayConfigChange, ViewRecommendedRelaysList, ViewSpaceSettings } from "./setting.tsx";
@@ -61,7 +62,7 @@ import { SyncEvent } from "./message-panel.tsx";
 import { SendingEventRejection, ToastChannel } from "./components/toast.tsx";
 import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 import { default_blowater_relay } from "./relay-config.ts";
-import { forever } from "./_helper.ts";
+import { forever, setState } from "./_helper.ts";
 import { DeleteEvent, func_GetEventByID } from "./message-list.tsx";
 import { FilterContent } from "./filter.tsx";
 import { CloseRightPanel } from "./components/right-panel.tsx";
@@ -69,6 +70,7 @@ import { RightPanelChannel } from "./components/right-panel.tsx";
 import { ReplyToMessage } from "./message-list.tsx";
 import { EditorSelectProfile } from "./editor.tsx";
 import { uploadFile } from "../../libs/nostr.ts/nip96.ts";
+import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -214,23 +216,44 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
         //
         else if (event.type == "ViewSpaceSettings") {
             const relay = pool.getRelay(event.url);
-            if (relay) {
-                app.popOverInputChan.put({
-                    children: (
-                        <SpaceSetting
-                            profileGetter={app.database}
-                            emit={app.eventBus.emit}
-                            getSpaceInformationChan={relay.getRelayInformationStream}
-                            getSpaceMembersChan={relay.getSpaceMembersStream}
-                            spaceUrl={relay.url}
-                            getMemberSet={app.database.getMemberSet}
-                            getProfileByPublicKey={app.database.getProfileByPublicKey}
-                        />
-                    ),
-                });
-            } else {
+            if (!relay) {
                 console.error(event.url, "is not in the pool");
+                continue;
             }
+            const getMemberSetChan: func_GetMemberSetChan = (isRelayed) => () => {
+                const chan = csp.chan<Set<string> | Error>();
+                (async () => {
+                    if (!isRelayed) {
+                        await chan.put(app.database.getMemberSet(relay.url)());
+                        await chan.close();
+                        return;
+                    }
+                    const membersStream = relay.getSpaceMembersStream();
+                    for await (const members of membersStream) {
+                        if (members instanceof Error) {
+                            await chan.put(members);
+                        } else {
+                            const pubkeys = new Set(
+                                members.map((event: SpaceMember) => event.member),
+                            );
+                            await chan.put(pubkeys);
+                        }
+                    }
+                })();
+                return chan;
+            };
+            await app.popOverInputChan.put({
+                children: (
+                    <SpaceSetting
+                        profileGetter={app.database}
+                        emit={app.eventBus.emit}
+                        getSpaceInformationChan={relay.getRelayInformationStream}
+                        getMemberSetChan={getMemberSetChan}
+                        spaceUrl={relay.url}
+                        getProfileByPublicKey={app.database.getProfileByPublicKey}
+                    />
+                ),
+            });
         } else if (event.type == "ViewRecommendedRelaysList") {
             app.popOverInputChan.put({
                 children: (
