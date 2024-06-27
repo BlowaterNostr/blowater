@@ -10,7 +10,7 @@ import {
     SecondaryBackgroundColor,
 } from "./style/colors.ts";
 import { Avatar } from "./components/avatar.tsx";
-import { func_GetProfileByPublicKey, ProfileGetter } from "./search.tsx";
+import { func_GetProfileByPublicKey } from "./search.tsx";
 import { Loading } from "./components/loading.tsx";
 import { Profile_Nostr_Event } from "../nostr.ts";
 import { emitFunc } from "../event-bus.ts";
@@ -24,7 +24,6 @@ import { ViewUserDetail } from "./message-panel.tsx";
 type SpaceSettingProps = {
     spaceUrl: string;
     emit: emitFunc<SelectConversation | ViewUserDetail>;
-    profileGetter: ProfileGetter;
     getProfileByPublicKey: func_GetProfileByPublicKey;
     getSpaceInformationChan: func_GetSpaceInformationChan;
     getMemberSetChan: func_GetMemberSetChan;
@@ -151,7 +150,7 @@ type State = {
 };
 
 type Props = {
-    profileGetter: ProfileGetter;
+    getProfileByPublicKey: func_GetProfileByPublicKey;
     emit: emitFunc<SelectConversation>;
     info: RelayInformation & { url: string };
 };
@@ -189,7 +188,7 @@ export class RelayInformationComponent extends Component<Props, State> {
                             <p class={this.styles.title}>Admin</p>
                             <AuthorField
                                 publicKey={pubkey}
-                                profileData={this.props.profileGetter.getProfileByPublicKey(pubkey)}
+                                profileData={this.props.getProfileByPublicKey(pubkey)}
                                 emit={this.props.emit}
                             />
                         </Fragment>,

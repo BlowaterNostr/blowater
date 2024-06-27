@@ -245,7 +245,6 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
             await app.popOverInputChan.put({
                 children: (
                     <SpaceSetting
-                        profileGetter={app.database}
                         emit={app.eventBus.emit}
                         getSpaceInformationChan={relay.getRelayInformationStream}
                         getMemberSetChan={getMemberSetChan}
