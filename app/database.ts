@@ -1,7 +1,7 @@
 import { getTags, Parsed_Event, Profile_Nostr_Event } from "./nostr.ts";
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { parseJSON, ProfileData } from "./features/profile.ts";
-import { Event_V2, NostrEvent, NostrKind, Tag, verifyEvent } from "../libs/nostr.ts/nostr.ts";
+import { Event_V2, Kind_V2, NostrEvent, NostrKind, Tag, verifyEvent } from "../libs/nostr.ts/nostr.ts";
 import { PublicKey } from "../libs/nostr.ts/key.ts";
 import { ProfileGetter, ProfileSetter } from "./UI/search.tsx";
 import { NoteID } from "../libs/nostr.ts/nip19.ts";
@@ -123,10 +123,12 @@ export class Database_View
 
     getMemberSet = (relay: string) => {
         const members = new Set<string>();
-        for (const event of this.events.values()) {
-            const records = this.getRelayRecord(event.id);
-            if (records.has(relay)) {
-                members.add(event.pubkey);
+        for (const event of this.events_v2.values()) {
+            if (event.kind == Kind_V2.SpaceMember) {
+                const records = this.getRelayRecord(event.id);
+                if (records.has(relay)) {
+                    members.add(event.pubkey);
+                }
             }
         }
         return members;
