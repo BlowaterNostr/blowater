@@ -38,10 +38,7 @@ type tabs = "general" | "members";
 
 // return a set of public keys that participates in this relay
 export type func_GetMemberSet = (relay: string) => () => Set<string>;
-export type func_GetMemberSetChan = (
-    isRelayed: boolean,
-) => () => Channel<Set<string> | Error>;
-
+export type func_GetMemberSetChan = () => Channel<Set<string> | Error>;
 export type func_GetSpaceInformationChan = () => Channel<RelayInformation | Error>;
 
 export class SpaceSetting extends Component<SpaceSettingProps, SpaceSettingState> {
@@ -126,10 +123,7 @@ export class SpaceSetting extends Component<SpaceSettingProps, SpaceSettingState
                                 <MemberList
                                     getProfileByPublicKey={this.props.getProfileByPublicKey}
                                     emit={this.props.emit}
-                                    getMemberSetChan={this.props.getMemberSetChan(
-                                        this.state.info?.software ==
-                                            "https://github.com/BlowaterNostr/relayed",
-                                    )}
+                                    getMemberSetChan={this.props.getMemberSetChan}
                                 />
                             )}
                     </div>
