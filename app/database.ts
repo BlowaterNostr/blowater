@@ -121,12 +121,18 @@ export class Database_View
         return set;
     };
 
-    getMemberSet = (relay: string) => {
+    getMemberSet = (relay: URL | string) => {
+        let url;
+        try {
+            url = (new URL(relay)).toString();
+        } catch (e) {
+            return e as TypeError;
+        }
         const members = new Set<string>();
         for (const event of this.events_v2.values()) {
             if (event.kind == Kind_V2.SpaceMember) {
                 const records = this.getRelayRecord(event.id);
-                if (records.has(relay)) {
+                if (records.has(url)) {
                     members.add(event.pubkey);
                 }
             }

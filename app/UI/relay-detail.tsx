@@ -16,7 +16,7 @@ import { Profile_Nostr_Event } from "../nostr.ts";
 import { emitFunc } from "../event-bus.ts";
 import { SelectConversation } from "./search_model.ts";
 import { RelayInformation, robohash } from "../../libs/nostr.ts/nip11.ts";
-import { Empty, setState } from "./_helper.ts";
+import { setState } from "./_helper.ts";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { ViewUserDetail } from "./message-panel.tsx";
@@ -37,7 +37,7 @@ type SpaceSettingState = {
 type tabs = "general" | "members";
 
 // return a set of public keys that participates in this relay
-export type func_GetMemberSet = (relay_url: string) => Set<string>;
+export type func_GetMemberSet = (relay_url: URL | string) => Set<string> | TypeError;
 export type func_GetMemberSetChan = () => Channel<Set<string> | Error>;
 export type func_GetSpaceInformationChan = () => Channel<RelayInformation | Error>;
 
@@ -269,7 +269,7 @@ type MemberListProps = {
 //     members: Set<string> | undefined;
 // };
 
-export class MemberList extends Component<MemberListProps, Empty> {
+export class MemberList extends Component<MemberListProps> {
     clickSpaceMember = (pubkey: string) => () => {
         const p = PublicKey.FromString(pubkey);
         if (p instanceof Error) {
@@ -282,7 +282,11 @@ export class MemberList extends Component<MemberListProps, Empty> {
     };
 
     render(props: MemberListProps) {
-        const members = props.getMemberSet(props.space_url.toString());
+        const members = props.getMemberSet(props.space_url);
+        if (members instanceof Error) {
+            console.error(members);
+            return;
+        }
         return (
             <>
                 {Array.from(members).map((member) => {
