@@ -229,6 +229,15 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                         return;
                     }
                     const membersStream = relay.getSpaceMembersStream();
+                    (async () => {
+                        for (;;) {
+                            if (chan.closed()) {
+                                await membersStream.close();
+                                return;
+                            }
+                            await sleep(3000);
+                        }
+                    })();
                     for await (const members of membersStream) {
                         if (members instanceof Error) {
                             await chan.put(members);
