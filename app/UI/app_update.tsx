@@ -220,36 +220,36 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                 console.error(event.url, "is not in the pool");
                 continue;
             }
-            let is_relayed = false;
-            const info = await relay.getSpaceInformation();
-            if (!(info instanceof Error)) {
-                is_relayed = info.software == "https://github.com/BlowaterNostr/relayed";
-            }
-            if (is_relayed) {
-                await app.popOverInputChan.put({
-                    children: (
-                        <SpaceSetting
-                            emit={app.eventBus.emit}
-                            getSpaceInformationChan={relay.getRelayInformationStream}
-                            getMemberSetChan={getMemberSetChan_relayed(relay)}
-                            spaceUrl={relay.url}
-                            getProfileByPublicKey={app.database.getProfileByPublicKey}
-                        />
-                    ),
-                });
-            } else {
-                await app.popOverInputChan.put({
-                    children: (
-                        <SpaceSetting
-                            emit={app.eventBus.emit}
-                            getSpaceInformationChan={relay.getRelayInformationStream}
-                            getMemberSetChan={getMemberSetChan_local(app, relay.url)}
-                            spaceUrl={relay.url}
-                            getProfileByPublicKey={app.database.getProfileByPublicKey}
-                        />
-                    ),
-                });
-            }
+            // let is_relayed = false;
+            // const info = await relay.getSpaceInformation();
+            // if (!(info instanceof Error)) {
+            //     is_relayed = info.software == "https://github.com/BlowaterNostr/relayed";
+            // }
+            // if (is_relayed) {
+            await app.popOverInputChan.put({
+                children: (
+                    <SpaceSetting
+                        emit={app.eventBus.emit}
+                        getSpaceInformationChan={relay.getRelayInformationStream}
+                        getMemberSet={app.database.getMemberSet}
+                        spaceUrl={relay.url}
+                        getProfileByPublicKey={app.database.getProfileByPublicKey}
+                    />
+                ),
+            });
+            // } else {
+            //     await app.popOverInputChan.put({
+            //         children: (
+            //             <SpaceSetting
+            //                 emit={app.eventBus.emit}
+            //                 getSpaceInformationChan={relay.getRelayInformationStream}
+            //                 getMemberSetChan={getMemberSetChan_local(app, relay.url)}
+            //                 spaceUrl={relay.url}
+            //                 getProfileByPublicKey={app.database.getProfileByPublicKey}
+            //             />
+            //         ),
+            //     });
+            // }
         } else if (event.type == "ViewRecommendedRelaysList") {
             app.popOverInputChan.put({
                 children: (
@@ -788,41 +788,41 @@ async function sync_user_detail_data(
     await args.pool.closeSub(args.pubkey.bech32());
 }
 
-const getMemberSetChan_relayed = (relay: SingleRelayConnection) => () => {
-    const chan = csp.chan<Set<string> | Error>();
-    const membersStream = relay.getSpaceMembersStream();
-    (async () => {
-        for (;;) {
-            const result = await chan.ready();
-            if (result.closed()) {
-                await membersStream.close();
-                return;
-            }
-        }
-    })();
-    (async () => {
-        for await (const members of membersStream) {
-            if (chan.closed()) {
-                await membersStream.close();
-            }
-            if (members instanceof Error) {
-                await chan.put(members);
-            } else {
-                const pubkeys = new Set(
-                    members.map((event: SpaceMember) => event.member),
-                );
-                await chan.put(pubkeys);
-            }
-        }
-    })();
-    return chan;
-};
+// const getMemberSetChan_relayed = (relay: SingleRelayConnection) => () => {
+//     const chan = csp.chan<Set<string> | Error>();
+//     const membersStream = relay.getSpaceMembersStream();
+//     (async () => {
+//         for (;;) {
+//             const result = await chan.ready();
+//             if (result.closed()) {
+//                 await membersStream.close();
+//                 return;
+//             }
+//         }
+//     })();
+//     (async () => {
+//         for await (const members of membersStream) {
+//             if (chan.closed()) {
+//                 await membersStream.close();
+//             }
+//             if (members instanceof Error) {
+//                 await chan.put(members);
+//             } else {
+//                 const pubkeys = new Set(
+//                     members.map((event: SpaceMember) => event.member),
+//                 );
+//                 await chan.put(pubkeys);
+//             }
+//         }
+//     })();
+//     return chan;
+// };
 
-const getMemberSetChan_local = (app: App, relay_url: string) => () => {
-    const chan = new Channel<Set<string> | Error>();
-    (async () => {
-        await chan.put(app.database.getMemberSet(relay_url)());
-        await chan.close();
-    })();
-    return chan;
-};
+// const getMemberSetChan_local = (app: App, relay_url: string) => () => {
+//     const chan = new Channel<Set<string> | Error>();
+//     (async () => {
+//         await chan.put(app.database.getMemberSet(relay_url)());
+//         await chan.close();
+//     })();
+//     return chan;
+// };

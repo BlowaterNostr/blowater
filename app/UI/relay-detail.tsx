@@ -16,7 +16,7 @@ import { Profile_Nostr_Event } from "../nostr.ts";
 import { emitFunc } from "../event-bus.ts";
 import { SelectConversation } from "./search_model.ts";
 import { RelayInformation, robohash } from "../../libs/nostr.ts/nip11.ts";
-import { setState } from "./_helper.ts";
+import { Empty, setState } from "./_helper.ts";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { ViewUserDetail } from "./message-panel.tsx";
@@ -26,7 +26,7 @@ type SpaceSettingProps = {
     emit: emitFunc<SelectConversation | ViewUserDetail>;
     getProfileByPublicKey: func_GetProfileByPublicKey;
     getSpaceInformationChan: func_GetSpaceInformationChan;
-    getMemberSetChan: func_GetMemberSetChan;
+    getMemberSet: func_GetMemberSet;
 };
 
 type SpaceSettingState = {
@@ -37,7 +37,7 @@ type SpaceSettingState = {
 type tabs = "general" | "members";
 
 // return a set of public keys that participates in this relay
-export type func_GetMemberSet = (relay: string) => () => Set<string>;
+export type func_GetMemberSet = (relay_url: string) => Set<string>;
 export type func_GetMemberSetChan = () => Channel<Set<string> | Error>;
 export type func_GetSpaceInformationChan = () => Channel<RelayInformation | Error>;
 
@@ -123,7 +123,8 @@ export class SpaceSetting extends Component<SpaceSettingProps, SpaceSettingState
                                 <MemberList
                                     getProfileByPublicKey={this.props.getProfileByPublicKey}
                                     emit={this.props.emit}
-                                    getMemberSetChan={this.props.getMemberSetChan}
+                                    getMemberSet={this.props.getMemberSet}
+                                    space_url={this.props.spaceUrl}
                                 />
                             )}
                     </div>
@@ -260,34 +261,15 @@ export class RelayInformationComponent extends Component<Props, State> {
 type MemberListProps = {
     getProfileByPublicKey: func_GetProfileByPublicKey;
     emit: emitFunc<SelectConversation | ViewUserDetail>;
-    getMemberSetChan: () => Channel<Set<string> | Error>;
+    getMemberSet: func_GetMemberSet;
+    space_url: string;
 };
 
-type MemberListState = {
-    members: Set<string> | undefined;
-};
+// type MemberListState = {
+//     members: Set<string> | undefined;
+// };
 
-export class MemberList extends Component<MemberListProps, MemberListState> {
-    state: MemberListState = {
-        members: undefined,
-    };
-    membersStream: Channel<Set<string> | Error> | undefined;
-
-    async componentDidMount() {
-        this.membersStream = this.props.getMemberSetChan();
-        for await (const members of this.membersStream) {
-            if (members instanceof Error) {
-                console.error(members.message, members.cause);
-            } else {
-                await setState(this, { members });
-            }
-        }
-    }
-
-    async componentWillUnmount() {
-        await this.membersStream?.close();
-    }
-
+export class MemberList extends Component<MemberListProps, Empty> {
     clickSpaceMember = (pubkey: string) => () => {
         const p = PublicKey.FromString(pubkey);
         if (p instanceof Error) {
@@ -299,10 +281,11 @@ export class MemberList extends Component<MemberListProps, MemberListState> {
         });
     };
 
-    render(props: MemberListProps, state: MemberListState) {
+    render(props: MemberListProps) {
+        const members = props.getMemberSet(props.space_url.toString());
         return (
             <>
-                {state.members && Array.from(state.members).map((member) => {
+                {Array.from(members).map((member) => {
                     const profile = props.getProfileByPublicKey(member);
                     return (
                         <div
