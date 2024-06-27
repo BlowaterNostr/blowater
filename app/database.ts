@@ -377,6 +377,7 @@ export class Database_View
     }
 
     async addEvent_v2(event: Event_V2, url: URL) {
+        console.log(event, url);
         this.events_v2.set(event.id, event);
         await this.recordRelay(event.id, url.toString());
     }
