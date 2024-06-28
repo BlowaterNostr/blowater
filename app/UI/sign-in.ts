@@ -4,7 +4,7 @@ import { InMemoryAccountContext, NostrAccountContext } from "../../libs/nostr.ts
 
 export type SignInEvent = {
     type: "SignInEvent";
-    ctx: NostrAccountContext | InMemoryAccountContext;
+    ctx: NostrAccountContext;
 };
 
 type SignInState = "none" | "nip07" | "local";

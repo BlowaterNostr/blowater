@@ -711,7 +711,6 @@ const sync_space_members = async (
         forever((async () => {
             const chan = relay.getSpaceMembersStream();
             for await (const spaceMembers of chan) {
-                console.log(spaceMembers, relay.url);
                 if (spaceMembers instanceof Error) {
                     console.error(spaceMembers);
                 } else {
