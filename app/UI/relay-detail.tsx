@@ -22,7 +22,7 @@ import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { ViewUserDetail } from "./message-panel.tsx";
 
 type SpaceSettingProps = {
-    spaceUrl: string;
+    spaceUrl: URL;
     emit: emitFunc<SelectConversation | ViewUserDetail>;
     getProfileByPublicKey: func_GetProfileByPublicKey;
     getSpaceInformationChan: func_GetSpaceInformationChan;
@@ -37,7 +37,7 @@ type SpaceSettingState = {
 type tabs = "general" | "members";
 
 // return a set of public keys that participates in this relay
-export type func_GetMemberSet = (relay_url: URL | string) => Set<string> | TypeError;
+export type func_GetMemberSet = (space_url: URL) => Set<string>;
 export type func_GetMemberSetChan = () => Channel<Set<string> | Error>;
 export type func_GetSpaceInformationChan = () => Channel<RelayInformation | Error>;
 
@@ -115,7 +115,7 @@ export class SpaceSetting extends Component<SpaceSettingProps, SpaceSettingState
                                     {...this.props}
                                     info={{
                                         ...this.state.info,
-                                        url: this.props.spaceUrl,
+                                        url: this.props.spaceUrl.toString(),
                                     }}
                                 />
                             )
@@ -262,12 +262,8 @@ type MemberListProps = {
     getProfileByPublicKey: func_GetProfileByPublicKey;
     emit: emitFunc<SelectConversation | ViewUserDetail>;
     getMemberSet: func_GetMemberSet;
-    space_url: string;
+    space_url: URL;
 };
-
-// type MemberListState = {
-//     members: Set<string> | undefined;
-// };
 
 export class MemberList extends Component<MemberListProps> {
     clickSpaceMember = (pubkey: string) => () => {
@@ -283,10 +279,6 @@ export class MemberList extends Component<MemberListProps> {
 
     render(props: MemberListProps) {
         const members = props.getMemberSet(props.space_url);
-        if (members instanceof Error) {
-            console.error(members);
-            return;
-        }
         return (
             <>
                 {Array.from(members).map((member) => {

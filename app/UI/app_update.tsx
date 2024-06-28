@@ -220,36 +220,24 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                 console.error(event.url, "is not in the pool");
                 continue;
             }
-            // let is_relayed = false;
-            // const info = await relay.getSpaceInformation();
-            // if (!(info instanceof Error)) {
-            //     is_relayed = info.software == "https://github.com/BlowaterNostr/relayed";
-            // }
-            // if (is_relayed) {
+            let spaceUrl;
+            try {
+                spaceUrl = new URL(relay.url);
+            } catch (e) {
+                console.error(e);
+                continue;
+            }
             await app.popOverInputChan.put({
                 children: (
                     <SpaceSetting
                         emit={app.eventBus.emit}
                         getSpaceInformationChan={relay.getRelayInformationStream}
                         getMemberSet={app.database.getMemberSet}
-                        spaceUrl={relay.url}
+                        spaceUrl={spaceUrl}
                         getProfileByPublicKey={app.database.getProfileByPublicKey}
                     />
                 ),
             });
-            // } else {
-            //     await app.popOverInputChan.put({
-            //         children: (
-            //             <SpaceSetting
-            //                 emit={app.eventBus.emit}
-            //                 getSpaceInformationChan={relay.getRelayInformationStream}
-            //                 getMemberSetChan={getMemberSetChan_local(app, relay.url)}
-            //                 spaceUrl={relay.url}
-            //                 getProfileByPublicKey={app.database.getProfileByPublicKey}
-            //             />
-            //         ),
-            //     });
-            // }
         } else if (event.type == "ViewRecommendedRelaysList") {
             app.popOverInputChan.put({
                 children: (

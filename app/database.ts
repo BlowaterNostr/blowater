@@ -121,18 +121,12 @@ export class Database_View
         return set;
     };
 
-    getMemberSet = (relay: URL | string) => {
-        let url;
-        try {
-            url = (new URL(relay)).toString();
-        } catch (e) {
-            return e as TypeError;
-        }
+    getMemberSet: func_GetMemberSet = (relay: URL) => {
         const members = new Set<string>();
         for (const event of this.events_v2.values()) {
             if (event.kind == Kind_V2.SpaceMember) {
                 const records = this.getRelayRecord(event.id);
-                if (records.has(url)) {
+                if (records.has(relay.origin + relay.pathname)) {
                     members.add(event.pubkey);
                 }
             }
@@ -383,9 +377,9 @@ export class Database_View
     }
 
     async addEvent_v2(event: Event_V2, url: URL) {
-        console.log(event, url);
         this.events_v2.set(event.id, event);
-        await this.recordRelay(event.id, url.toString());
+        // some space urls hava a pathname, example: wss://example.com/nostr/space
+        await this.recordRelay(event.id, url.origin + url.pathname);
     }
 
     //////////////////
