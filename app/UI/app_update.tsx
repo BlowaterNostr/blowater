@@ -217,6 +217,7 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
         } else if (event.type == "HideModal") {
             await app.modalInputChan.put({
                 children: undefined,
+                onClose: event.onClose,
             });
         } //
         //

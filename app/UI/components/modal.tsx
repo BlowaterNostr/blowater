@@ -4,6 +4,7 @@ import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/mas
 
 export type HideModal = {
     type: "HideModal";
+    onClose?: () => void;
 };
 
 type State = {
@@ -16,19 +17,21 @@ export class Modal extends Component<{
 }, State> {
     state: State = { show: false };
     children: ComponentChildren = undefined;
+    onClose?: () => void;
 
     async componentDidMount() {
         for await (const { children, onClose } of this.props.inputChan) {
             if (children) {
-                this.show(children);
+                this.show(children, onClose);
             } else {
                 this.hide(onClose);
             }
         }
     }
 
-    show = (children: ComponentChildren) => {
+    show = (children: ComponentChildren, onClose?: () => void) => {
         this.children = children;
+        this.onClose = onClose;
         this.setState({ show: true });
     };
 
@@ -40,7 +43,7 @@ export class Modal extends Component<{
     };
 
     onBackdropClick = () => {
-        this.hide();
+        this.hide(this.onClose);
     };
 
     render() {

@@ -1,13 +1,16 @@
 /** @jsx h */
 import { h, render } from "https://esm.sh/preact@10.17.1";
-import { Modal, ModalInputChannel } from "./modal.tsx";
+import { HideModal, Modal, ModalInputChannel } from "./modal.tsx";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { CenterClass } from "./tw.ts";
 import { testEventBus } from "../_setup.test.ts";
+import { emitFunc } from "../../event-bus.ts";
 
 const modalChan: ModalInputChannel = new Channel();
 
-function ModalTest() {
+function ModalTest(props: {
+    emit: emitFunc<HideModal>;
+}) {
     return (
         <div class={`${CenterClass} w-screen h-screen text-white`}>
             <button
@@ -22,18 +25,21 @@ function ModalTest() {
                                 <button
                                     class="rounded bg-[#007FFF] px-4 py2"
                                     onClick={async () => {
-                                        await modalChan.put({
-                                            children: undefined,
+                                        await props.emit({
+                                            type: "HideModal",
                                             onClose() {
-                                                console.log("modal closed");
+                                                console.log("close the modal by HideModal");
                                             },
                                         });
                                     }}
                                 >
-                                    Close
+                                    close
                                 </button>
                             </div>
                         ),
+                        onClose() {
+                            console.log("close the modal by click");
+                        },
                     });
                 }}
             >
@@ -44,10 +50,10 @@ function ModalTest() {
     );
 }
 
-render(<ModalTest />, document.body);
+render(<ModalTest emit={testEventBus.emit} />, document.body);
 
 for await (const event of testEventBus.onChange()) {
     if (event.type === "HideModal") {
-        await modalChan.put({ children: undefined });
+        await modalChan.put({ children: undefined, onClose: event.onClose });
     }
 }
