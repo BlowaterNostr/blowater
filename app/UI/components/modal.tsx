@@ -30,21 +30,12 @@ export class Modal extends Component<{
     show = (children: ComponentChildren) => {
         this.children = children;
         this.setState({ show: true });
-        globalThis.addEventListener("keydown", this.onEscKeyDown);
     };
 
     hide = (onClose?: () => void) => {
         this.setState({ show: false });
-        globalThis.removeEventListener("keydown", this.onEscKeyDown);
-
         if (onClose) {
             onClose();
-        }
-    };
-
-    onEscKeyDown = (e: KeyboardEvent) => {
-        if (e.code == "Escape") {
-            this.hide();
         }
     };
 
