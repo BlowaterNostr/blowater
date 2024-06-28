@@ -48,7 +48,7 @@ import { DirectMessagePanelUpdate, SendReaction } from "./message-panel.tsx";
 import { ChatMessage, parseContent } from "./message.ts";
 import { InstallPrompt, NavigationModel, NavigationUpdate, SelectSpace } from "./nav.tsx";
 import { notify } from "./notification.ts";
-import { func_GetMemberSetChan, SpaceSetting } from "./relay-detail.tsx";
+import { SpaceSetting } from "./relay-detail.tsx";
 import { Search } from "./search.tsx";
 import { SearchUpdate, SelectConversation } from "./search_model.ts";
 import { RelayConfigChange, ViewRecommendedRelaysList, ViewSpaceSettings } from "./setting.tsx";

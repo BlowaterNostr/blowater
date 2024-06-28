@@ -38,7 +38,6 @@ type tabs = "general" | "members";
 
 // return a set of public keys that participates in this relay
 export type func_GetMemberSet = (space_url: URL) => Set<string>;
-export type func_GetMemberSetChan = () => Channel<Set<string> | Error>;
 export type func_GetSpaceInformationChan = () => Channel<RelayInformation | Error>;
 
 export class SpaceSetting extends Component<SpaceSettingProps, SpaceSettingState> {
