@@ -90,13 +90,13 @@ Deno.test("Relay Record", async () => {
     await db.addEvent(event_to_add_2, "wss://relay.blowater.app"); // receiver from relay
     assertEquals(db.getRelayRecord(event_to_add_2.id), new Set(["wss://relay.blowater.app"]));
 
-    await db.addEvent(event_to_add_2, "wss://relay.test.app");
+    await db.addEvent(event_to_add_2, "wss://relay.test.app/nostr/space");
     assertEquals(
         db.getRelayRecord(event_to_add_2.id),
         new Set(
             [
                 "wss://relay.blowater.app",
-                "wss://relay.test.app",
+                "wss://relay.test.app/nostr/space",
             ],
         ),
     );

@@ -34,3 +34,5 @@ export async function forever(f: Promise<Error | undefined | void>) {
     }
     throw r;
 }
+
+export type Empty = Record<string | number | symbol, never>;

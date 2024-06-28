@@ -236,6 +236,7 @@ export class App {
                 database: args.database,
                 since: latestReaction ? hours_ago(latestReaction.created_at, 48) : undefined,
             }));
+            sync_space_members(args.pool, args.database);
         }
 
         const app = new App(
@@ -701,3 +702,23 @@ const sync_reaction_events = async (
 export function hours_ago(time: number, hours: number) {
     return time - hours * 60 * 60;
 }
+
+const sync_space_members = async (
+    pool: ConnectionPool,
+    database: Database_View,
+) => {
+    for (const relay of pool.getRelays()) {
+        forever((async () => {
+            const chan = relay.getSpaceMembersStream();
+            for await (const spaceMembers of chan) {
+                if (spaceMembers instanceof Error) {
+                    console.error(spaceMembers);
+                } else {
+                    for (const spaceMember of spaceMembers) {
+                        await database.addEvent_v2(spaceMember, new URL(relay.url));
+                    }
+                }
+            }
+        })());
+    }
+};

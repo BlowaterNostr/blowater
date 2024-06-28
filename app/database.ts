@@ -1,7 +1,7 @@
 import { getTags, Parsed_Event, Profile_Nostr_Event } from "./nostr.ts";
 import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { parseJSON, ProfileData } from "./features/profile.ts";
-import { NostrEvent, NostrKind, Tag, verifyEvent } from "../libs/nostr.ts/nostr.ts";
+import { Event_V2, Kind_V2, NostrEvent, NostrKind, Tag, verifyEvent } from "../libs/nostr.ts/nostr.ts";
 import { PublicKey } from "../libs/nostr.ts/key.ts";
 import { ProfileGetter, ProfileSetter } from "./UI/search.tsx";
 import { NoteID } from "../libs/nostr.ts/nip19.ts";
@@ -88,6 +88,7 @@ export class Database_View
         /* reaction events */ Set<Parsed_Event>
     >();
     private readonly latestEvents = new Map<NostrKind, Parsed_Event>();
+    private readonly events_v2 = new Map<string, /* id */ Event_V2>();
 
     private constructor(
         private readonly eventsAdapter: EventsAdapter,
@@ -120,12 +121,23 @@ export class Database_View
         return set;
     };
 
-    getMemberSet: func_GetMemberSet = (relay: string) => {
+    getMemberSet: func_GetMemberSet = (relay: URL) => {
         const members = new Set<string>();
-        for (const event of this.events.values()) {
-            const records = this.getRelayRecord(event.id);
-            if (records.has(relay)) {
-                members.add(event.pubkey);
+        const urlString = relay.origin + (relay.pathname === "/" ? "" : relay.pathname);
+        for (const event of this.events_v2.values()) {
+            if (event.kind == Kind_V2.SpaceMember) {
+                const records = this.getRelayRecord(event.id);
+                if (records.has(urlString)) {
+                    members.add(event.pubkey);
+                }
+            }
+        }
+        if (members.size === 0) {
+            for (const event of this.events.values()) {
+                const records = this.getRelayRecord(event.id);
+                if (records.has(urlString)) {
+                    members.add(event.pubkey);
+                }
             }
         }
         return members;
@@ -254,15 +266,17 @@ export class Database_View
         return relays;
     }
 
-    private async recordRelay(eventID: string, url: string) {
-        await this.relayRecorder.setRelayRecord(eventID, url);
+    private async recordRelay(eventID: string, url: URL) {
+        // some space urls hava a pathname, example: wss://example.com/nostr/space
+        const urlString = url.origin + (url.pathname === "/" ? "" : url.pathname);
+        await this.relayRecorder.setRelayRecord(eventID, urlString);
         const records = this.relayRecords.get(eventID);
         if (records) {
             const size = records.size;
-            records.add(url);
+            records.add(urlString);
             return records.size > size;
         } else {
-            this.relayRecords.set(eventID, new Set([url]));
+            this.relayRecords.set(eventID, new Set([urlString]));
             return true;
         }
     }
@@ -320,7 +334,7 @@ export class Database_View
 
         let new_relay_record = false;
         if (url) {
-            new_relay_record = await this.recordRelay(event.id, url);
+            new_relay_record = await this.recordRelay(event.id, new URL(url));
         }
 
         // parse the event to desired format
@@ -371,6 +385,11 @@ export class Database_View
         await this.eventsAdapter.put(event);
         /* not await */ this.sourceOfChange.put({ event: parsedEvent, relay: url });
         return parsedEvent;
+    }
+
+    async addEvent_v2(event: Event_V2, url: URL) {
+        this.events_v2.set(event.id, event);
+        await this.recordRelay(event.id, url);
     }
 
     //////////////////

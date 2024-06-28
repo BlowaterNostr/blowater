@@ -11,7 +11,13 @@ import { prepareReactionEvent } from "../../libs/nostr.ts/nip25.ts";
 import { prepareReplyEvent } from "../nostr.ts";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { NoteID } from "../../libs/nostr.ts/nip19.ts";
-import { NostrAccountContext, NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
+import {
+    InMemoryAccountContext,
+    NostrAccountContext,
+    NostrEvent,
+    NostrKind,
+    SpaceMember,
+} from "../../libs/nostr.ts/nostr.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 import { Database_View } from "../database.ts";
 import { emitFunc, EventBus } from "../event-bus.ts";
@@ -56,7 +62,7 @@ import { SyncEvent } from "./message-panel.tsx";
 import { SendingEventRejection, ToastChannel } from "./components/toast.tsx";
 import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 import { default_blowater_relay } from "./relay-config.ts";
-import { forever } from "./_helper.ts";
+import { forever, setState } from "./_helper.ts";
 import { DeleteEvent, func_GetEventByID } from "./message-list.tsx";
 import { FilterContent } from "./filter.tsx";
 import { CloseRightPanel } from "./components/right-panel.tsx";
@@ -64,6 +70,7 @@ import { RightPanelChannel } from "./components/right-panel.tsx";
 import { ReplyToMessage } from "./message-list.tsx";
 import { EditorSelectProfile } from "./editor.tsx";
 import { uploadFile } from "../../libs/nostr.ts/nip96.ts";
+import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -143,12 +150,15 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                 ctx,
                 args.lamport,
             );
+            const pool = ctx instanceof InMemoryAccountContext
+                ? new ConnectionPool({ signer: ctx, signer_v2: ctx }) // sign in by private key
+                : new ConnectionPool({ signer: ctx }); // sign in by browser extension
             const app = await App.Start({
                 database: dbView,
                 model,
                 ctx,
                 eventBus,
-                pool: new ConnectionPool({ signer: ctx }),
+                pool,
                 popOverInputChan: args.popOver,
                 rightPanelInputChan: args.rightPanel,
                 otherConfig,
@@ -206,21 +216,28 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
         //
         else if (event.type == "ViewSpaceSettings") {
             const relay = pool.getRelay(event.url);
-            if (relay) {
-                app.popOverInputChan.put({
-                    children: (
-                        <SpaceSetting
-                            profileGetter={app.database}
-                            emit={app.eventBus.emit}
-                            relay={relay}
-                            getMemberSet={app.database.getMemberSet}
-                            getProfileByPublicKey={app.database.getProfileByPublicKey}
-                        />
-                    ),
-                });
-            } else {
+            if (!relay) {
                 console.error(event.url, "is not in the pool");
+                continue;
             }
+            let spaceUrl;
+            try {
+                spaceUrl = new URL(relay.url);
+            } catch (e) {
+                console.error(e);
+                continue;
+            }
+            await app.popOverInputChan.put({
+                children: (
+                    <SpaceSetting
+                        emit={app.eventBus.emit}
+                        getSpaceInformationChan={relay.getRelayInformationStream}
+                        getMemberSet={app.database.getMemberSet}
+                        spaceUrl={spaceUrl}
+                        getProfileByPublicKey={app.database.getProfileByPublicKey}
+                    />
+                ),
+            });
         } else if (event.type == "ViewRecommendedRelaysList") {
             app.popOverInputChan.put({
                 children: (
