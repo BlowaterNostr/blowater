@@ -23,10 +23,10 @@ const spaceInformationChan = () => {
             pubkey: ctx.publicKey.hex,
             contact: "test contact",
             supported_nips: [1, 2, 3],
-            // software: "test software",
-            // version: "test version",
-            // icon:
-            //     "https://image.nostr.build/655007ae74f24ea1c611889f48b25cb485b83ab67408daddd98f95782f47e1b5.jpg",
+            software: "test software",
+            version: "test version",
+            icon:
+                "https://image.nostr.build/655007ae74f24ea1c611889f48b25cb485b83ab67408daddd98f95782f47e1b5.jpg",
         };
         for (;;) {
             if (chan.closed()) return;
