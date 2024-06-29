@@ -1,6 +1,7 @@
 /** @jsx h */
 import { Component, ComponentChildren, h } from "https://esm.sh/preact@10.17.1";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { setState } from "../_helper.ts";
 
 export type HideModal = {
     type: "HideModal";
@@ -21,46 +22,38 @@ export class Modal extends Component<{
 
     async componentDidMount() {
         for await (const { children, onClose } of this.props.inputChan) {
+            this.onClose = onClose;
             if (children) {
-                this.show(children, onClose);
+                await this.show(children);
             } else {
-                this.hide(onClose);
+                await this.hide();
             }
         }
     }
 
-    show = (children: ComponentChildren, onClose?: () => void) => {
+    show = async (children: ComponentChildren) => {
         this.children = children;
-        this.onClose = onClose;
-        this.setState({ show: true });
+        await setState(this, { show: true });
     };
 
-    hide = (onClose?: () => void) => {
-        this.setState({ show: false });
-        if (onClose) {
-            onClose();
-        }
-    };
-
-    onBackdropClick = () => {
-        this.hide(this.onClose);
+    hide = async () => {
+        await setState(this, { show: false });
+        if (this.onClose) this.onClose();
     };
 
     render() {
+        if (!this.state.show) return;
         return (
-            this.state.show &&
-            (
-                <div class="fixed inset-0 flex items-center justify-center z-30">
-                    <div
-                        class="fixed inset-0 z-[-1] bg-[#0A0A0A] bg-opacity-50 cursor-pointer"
-                        onClick={this.onBackdropClick}
-                    >
-                    </div>
-                    <div class={`absolute`}>
-                        {this.children}
-                    </div>
+            <div className="fixed inset-0 flex items-center justify-center z-30">
+                <div
+                    className="fixed inset-0 z-[-1] bg-[#0A0A0A] bg-opacity-50 cursor-pointer"
+                    onClick={this.hide}
+                >
                 </div>
-            )
+                <div className={`absolute`}>
+                    {this.children}
+                </div>
+            </div>
         );
     }
 }
