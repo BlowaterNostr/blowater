@@ -44,15 +44,12 @@ export class Modal extends Component<{
     render() {
         if (!this.state.show) return;
         return (
-            <div className="fixed inset-0 flex items-center justify-center z-30">
+            <div className="fixed inset-0 flex items-center justify-center z-15">
                 <div
                     className="fixed inset-0 z-[-1] bg-[#0A0A0A] bg-opacity-50 cursor-pointer"
                     onClick={this.hide}
-                >
-                </div>
-                <div className={`absolute`}>
-                    {this.children}
-                </div>
+                />
+                {this.children}
             </div>
         );
     }
