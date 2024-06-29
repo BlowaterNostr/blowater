@@ -48,11 +48,8 @@ export class Modal extends Component<{
                 <div
                     className="fixed inset-0 z-[-1] bg-[#0A0A0A] bg-opacity-50 cursor-pointer"
                     onClick={this.hide}
-                >
-                </div>
-                <div className={`absolute`}>
-                    {this.children}
-                </div>
+                />
+                {this.children}
             </div>
         );
     }
