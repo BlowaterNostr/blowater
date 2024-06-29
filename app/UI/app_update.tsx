@@ -62,7 +62,7 @@ import { SyncEvent } from "./message-panel.tsx";
 import { SendingEventRejection, ToastChannel } from "./components/toast.tsx";
 import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 import { default_blowater_relay } from "./relay-config.ts";
-import { forever, setState } from "./_helper.ts";
+import { forever } from "./_helper.ts";
 import { DeleteEvent, func_GetEventByID } from "./message-list.tsx";
 import { FilterContent } from "./filter.tsx";
 import { CloseRightPanel } from "./components/right-panel.tsx";
@@ -70,7 +70,7 @@ import { RightPanelChannel } from "./components/right-panel.tsx";
 import { ReplyToMessage } from "./message-list.tsx";
 import { EditorSelectProfile } from "./editor.tsx";
 import { uploadFile } from "../../libs/nostr.ts/nip96.ts";
-import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { HideModal, ModalInputChannel } from "./components/modal.tsx";
 
 export type UI_Interaction_Event =
     | SearchUpdate
@@ -92,6 +92,7 @@ export type UI_Interaction_Event =
     | UnblockUser
     | SelectSpace
     | HidePopOver
+    | HideModal
     | SyncEvent
     | FilterContent
     | CloseRightPanel
@@ -121,6 +122,7 @@ export function UI_Interaction_Update(args: {
     dbView: Database_View;
     popOver: PopOverInputChannel;
     rightPanel: RightPanelChannel;
+    modal: ModalInputChannel;
     lamport: LamportTime;
     installPrompt: InstallPrompt;
     toastInputChan: ToastChannel;
@@ -136,6 +138,7 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
     dbView: Database_View;
     popOver: PopOverInputChannel;
     rightPanel: RightPanelChannel;
+    modal: ModalInputChannel;
     lamport: LamportTime;
     installPrompt: InstallPrompt;
     toastInputChan: ToastChannel;
@@ -161,6 +164,7 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                 pool,
                 popOverInputChan: args.popOver,
                 rightPanelInputChan: args.rightPanel,
+                modalInputChan: args.modal,
                 otherConfig,
                 lamport: args.lamport,
                 installPrompt,
@@ -210,6 +214,11 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                 />
             );
             args.popOver.put({ children: search });
+        } else if (event.type == "HideModal") {
+            await app.modalInputChan.put({
+                children: undefined,
+                onClose: event.onClose,
+            });
         } //
         //
         // Setting

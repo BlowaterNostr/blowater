@@ -33,6 +33,7 @@ import { getTags, Parsed_Event } from "../nostr.ts";
 import { Toast } from "./components/toast.tsx";
 import { ToastChannel } from "./components/toast.tsx";
 import { RightPanelChannel } from "./components/right-panel.tsx";
+import { Modal, ModalInputChannel } from "./components/modal.tsx";
 import { func_IsAdmin } from "./message-list.tsx";
 import { getRelayInformation } from "../../libs/nostr.ts/nip11.ts";
 
@@ -52,6 +53,7 @@ export async function Start(database: DexieDatabase) {
     const eventBus = new EventBus<UI_Interaction_Event>();
     const popOverInputChan: PopOverInputChannel = new Channel();
     const rightPanelInputChan: RightPanelChannel = new Channel();
+    const modalInputChan: ModalInputChannel = new Channel();
     const toastInputChan: ToastChannel = new Channel();
     const dbView = await Database_View.New(database, database, database);
 
@@ -74,6 +76,7 @@ export async function Start(database: DexieDatabase) {
                     pool: new ConnectionPool({ signer: ctx }),
                     popOverInputChan,
                     rightPanelInputChan,
+                    modalInputChan,
                     otherConfig,
                     lamport,
                     installPrompt,
@@ -91,6 +94,7 @@ export async function Start(database: DexieDatabase) {
             model={model}
             popOverInputChan={popOverInputChan}
             rightPanelInputChan={rightPanelInputChan}
+            modalInputChan={modalInputChan}
             installPrompt={installPrompt}
             toastInputChan={toastInputChan}
         />,
@@ -104,6 +108,7 @@ export async function Start(database: DexieDatabase) {
             dbView: dbView,
             popOver: popOverInputChan,
             rightPanel: rightPanelInputChan,
+            modal: modalInputChan,
             lamport,
             installPrompt,
             toastInputChan: toastInputChan,
@@ -117,6 +122,7 @@ export async function Start(database: DexieDatabase) {
                     model={model}
                     popOverInputChan={popOverInputChan}
                     rightPanelInputChan={rightPanelInputChan}
+                    modalInputChan={modalInputChan}
                     installPrompt={installPrompt}
                     toastInputChan={toastInputChan}
                 />,
@@ -136,6 +142,7 @@ export class App {
         public readonly pool: ConnectionPool,
         public readonly popOverInputChan: PopOverInputChannel,
         public readonly rightPanelInputChan: RightPanelChannel,
+        public readonly modalInputChan: ModalInputChannel,
         public readonly otherConfig: OtherConfig,
         public readonly conversationLists: DM_List,
         public readonly relayConfig: RelayConfig,
@@ -152,6 +159,7 @@ export class App {
         pool: ConnectionPool;
         popOverInputChan: PopOverInputChannel;
         rightPanelInputChan: RightPanelChannel;
+        modalInputChan: ModalInputChannel;
         otherConfig: OtherConfig;
         lamport: LamportTime;
         installPrompt: InstallPrompt;
@@ -247,6 +255,7 @@ export class App {
             args.pool,
             args.popOverInputChan,
             args.rightPanelInputChan,
+            args.modalInputChan,
             args.otherConfig,
             conversationLists,
             relayConfig,
@@ -274,6 +283,7 @@ export class App {
                     model={this.model}
                     popOverInputChan={this.popOverInputChan}
                     rightPanelInputChan={this.rightPanelInputChan}
+                    modalInputChan={this.modalInputChan}
                     installPrompt={installPrompt}
                     toastInputChan={this.toastInputChan}
                 />,
@@ -305,6 +315,7 @@ export class App {
                         model={this.model}
                         popOverInputChan={this.popOverInputChan}
                         rightPanelInputChan={this.rightPanelInputChan}
+                        modalInputChan={this.modalInputChan}
                         installPrompt={installPrompt}
                         toastInputChan={this.toastInputChan}
                     />,
@@ -326,6 +337,7 @@ type AppProps = {
     eventBus: AppEventBus;
     popOverInputChan: PopOverInputChannel;
     rightPanelInputChan: RightPanelChannel;
+    modalInputChan: ModalInputChannel;
     toastInputChan: ToastChannel;
     installPrompt: InstallPrompt;
 };
@@ -495,6 +507,7 @@ export class AppComponent extends Component<AppProps, {
                     inputChan={props.rightPanelInputChan}
                 />
                 <Toast inputChan={props.toastInputChan} />
+                <Modal inputChan={props.modalInputChan} />
             </div>
         );
 
