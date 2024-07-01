@@ -57,8 +57,8 @@ jobs:
       - name: Clone repository
         uses: actions/checkout@v3
         with:
-          token: "${{ secrets.ACCESS }}"
-          submodules: 'true'
+          token: ${{ secrets.ACCESS }}
+          submodules: true
 
       - name: Setup Deno
         uses: denoland/setup-deno@v1
