@@ -15,10 +15,9 @@ import { Loading } from "./components/loading.tsx";
 import { Profile_Nostr_Event } from "../nostr.ts";
 import { emitFunc } from "../event-bus.ts";
 import { SelectConversation } from "./search_model.ts";
-import { RelayInformation, robohash } from "../../libs/nostr.ts/nip11.ts";
+import { PublicKey, RelayInformation, robohash } from "@blowater/nostr-sdk";
 import { setState } from "./_helper.ts";
 import { Channel } from "@blowater/csp";
-import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { ViewUserDetail } from "./message-panel.tsx";
 
 type SpaceSettingProps = {

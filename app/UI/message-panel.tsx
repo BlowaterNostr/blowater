@@ -1,8 +1,8 @@
 /** @jsx h */
 import { Component, h } from "https://esm.sh/preact@10.17.1";
-import { PublicKey } from "../../libs/nostr.ts/key.ts";
-import { NoteID } from "../../libs/nostr.ts/nip19.ts";
-import { NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
+import { PublicKey } from "@blowater/nostr-sdk";
+import { NoteID } from "@blowater/nostr-sdk";
+import { NostrEvent, NostrKind } from "@blowater/nostr-sdk";
 import { RelayRecordGetter } from "../database.ts";
 import { emitFunc, EventSubscriber } from "../event-bus.ts";
 import { ProfileData } from "../features/profile.ts";

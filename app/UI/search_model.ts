@@ -1,4 +1,4 @@
-import { PublicKey } from "../../libs/nostr.ts/key.ts";
+import { PublicKey } from "@blowater/nostr-sdk";
 
 export type SearchUpdate = SelectConversation | StartSearch;
 export type StartSearch = {

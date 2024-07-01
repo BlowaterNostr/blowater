@@ -2,10 +2,10 @@
 import { h, render } from "https://esm.sh/preact@10.17.1";
 import { Editor } from "./editor.tsx";
 import { testEventBus } from "./_setup.test.ts";
-import { InMemoryAccountContext, NostrKind } from "../../libs/nostr.ts/nostr.ts";
-import { prepareEncryptedNostrEvent, prepareNormalNostrEvent } from "../../libs/nostr.ts/event.ts";
+import { InMemoryAccountContext, NostrKind } from "@blowater/nostr-sdk";
+import { prepareEncryptedNostrEvent, prepareNormalNostrEvent } from "@blowater/nostr-sdkevent.ts";
 import { getTags, Parsed_Event, Profile_Nostr_Event } from "../nostr.ts";
-import { NostrEvent } from "../../libs/nostr.ts/nostr.ts";
+import { NostrEvent } from "@blowater/nostr-sdk";
 
 const author = InMemoryAccountContext.Generate();
 

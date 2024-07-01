@@ -1,12 +1,20 @@
 import { getTags, Parsed_Event, Profile_Nostr_Event } from "./nostr.ts";
 import * as csp from "@blowater/csp";
 import { parseJSON, ProfileData } from "./features/profile.ts";
-import { Event_V2, Kind_V2, NostrEvent, NostrKind, Tag, verifyEvent } from "../libs/nostr.ts/nostr.ts";
-import { PublicKey } from "../libs/nostr.ts/key.ts";
 import { ProfileGetter, ProfileSetter } from "./UI/search.tsx";
-import { NoteID } from "../libs/nostr.ts/nip19.ts";
+
 import { func_GetMemberSet } from "./UI/relay-detail.tsx";
 import { func_GetRelayRecommendations } from "./UI/relay-recommend-list.tsx";
+import {
+    Event_V2,
+    Kind_V2,
+    NostrEvent,
+    NostrKind,
+    NoteID,
+    PublicKey,
+    Tag,
+    verifyEvent,
+} from "@blowater/nostr-sdk";
 
 const buffer_size = 2000;
 export interface Indices {

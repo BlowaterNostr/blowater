@@ -1,5 +1,5 @@
 import { Component, Fragment, h } from "https://esm.sh/preact@10.17.1";
-import { InMemoryAccountContext } from "../../libs/nostr.ts/nostr.ts";
+import { InMemoryAccountContext } from "@blowater/nostr-sdk";
 
 import { emitFunc } from "../event-bus.ts";
 import { CopyButton } from "./components/copy-button.tsx";
@@ -7,7 +7,7 @@ import { CenterClass, InputClass } from "./components/tw.ts";
 import { DividerBackgroundColor, PrimaryTextColor, SecondaryTextColor } from "./style/colors.ts";
 import { LocalPrivateKeyController } from "./sign-in.ts";
 import { PlaceholderColor } from "./style/colors.ts";
-import { PrivateKey } from "../../libs/nostr.ts/key.ts";
+import { PrivateKey } from "@blowater/nostr-sdk";
 import { setSignInState } from "./sign-in.ts";
 import { SignInEvent } from "./sign-in.ts";
 import { SaveProfile } from "./edit-profile.tsx";

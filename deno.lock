@@ -3,6 +3,7 @@
   "packages": {
     "specifiers": {
       "jsr:@blowater/csp@^1.0.0": "jsr:@blowater/csp@1.0.0",
+      "jsr:@blowater/nostr-sdk@^0.0.1-rc2": "jsr:@blowater/nostr-sdk@0.0.1-rc2",
       "jsr:@std/assert@^0.226.0": "jsr:@std/assert@0.226.0",
       "jsr:@std/datetime@^0.224.1": "jsr:@std/datetime@0.224.1",
       "jsr:@std/encoding@^0.224.3": "jsr:@std/encoding@0.224.3",
@@ -19,6 +20,21 @@
     "jsr": {
       "@blowater/csp@1.0.0": {
         "integrity": "415d4e8bf1656e4a508997fb8e725e9372e1e39b2b714afa76e86efd733f8c4c"
+      },
+      "@blowater/nostr-sdk@0.0.1-rc2": {
+        "integrity": "36f8ee0f018e501ffc46b6d449305588e198f8df3ad382c6741ee8700cd30566",
+        "dependencies": [
+          "jsr:@std/datetime@^0.224.1",
+          "jsr:@std/encoding@^0.224.3",
+          "npm:@noble/ciphers@0.4.1",
+          "npm:@noble/curves@1.3.0",
+          "npm:@noble/hashes@1.3.3",
+          "npm:@scure/base@1.1.5",
+          "npm:@scure/bip32@1.3.2",
+          "npm:@scure/bip39@1.2.1",
+          "npm:json-stable-stringify@1.1.1",
+          "npm:zod@3.23.8"
+        ]
       },
       "@std/assert@0.226.0": {
         "integrity": "0dfb5f7c7723c18cec118e080fec76ce15b4c31154b15ad2bd74822603ef75b3",
@@ -337,6 +353,7 @@
   "workspace": {
     "dependencies": [
       "jsr:@blowater/csp@^1.0.0",
+      "jsr:@blowater/nostr-sdk@^0.0.1-rc2",
       "jsr:@std/assert@^0.226.0",
       "jsr:@std/datetime@^0.224.1",
       "jsr:@std/encoding@^0.224.3"

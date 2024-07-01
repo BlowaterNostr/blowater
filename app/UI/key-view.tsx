@@ -1,6 +1,6 @@
 /** @jsx h */
 import { Fragment, h } from "https://esm.sh/preact@10.17.1";
-import { PrivateKey, PublicKey } from "../../libs/nostr.ts/key.ts";
+import { PrivateKey, PublicKey } from "@blowater/nostr-sdk";
 import { InputClass } from "./components/tw.ts";
 import { PrimaryTextColor, TitleIconColor, WarnColor } from "./style/colors.ts";
 import { KeyIcon } from "./icons/key-icon.tsx";

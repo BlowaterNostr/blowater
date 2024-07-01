@@ -1,8 +1,10 @@
+import {
+    NostrAccountContext,
+    NostrKind,
+    prepareNormalNostrEvent,
+    SingleRelayConnection,
+} from "@blowater/nostr-sdk";
 import { Parsed_Event, Profile_Nostr_Event } from "../nostr.ts";
-import { prepareNormalNostrEvent } from "../../libs/nostr.ts/event.ts";
-
-import { NostrAccountContext, NostrKind } from "../../libs/nostr.ts/nostr.ts";
-import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 
 export async function saveProfile(
     profile: ProfileData,

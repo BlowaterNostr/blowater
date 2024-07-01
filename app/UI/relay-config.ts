@@ -1,7 +1,5 @@
-import { NostrAccountContext } from "../../libs/nostr.ts/nostr.ts";
-import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
+import { ConnectionPool, NostrAccountContext, SingleRelayConnection } from "@blowater/nostr-sdk";
 import { parseJSON } from "../features/profile.ts";
-import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
 
 export const default_blowater_relay = "wss://blowater.nostr1.com";
 

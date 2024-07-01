@@ -10,8 +10,8 @@ import {
 } from "./style/colors.ts";
 import { emitFunc } from "../event-bus.ts";
 import { OpenNote, ViewUserDetail } from "./message-panel.tsx";
-import { NostrEvent } from "../../libs/nostr.ts/nostr.ts";
-import { PublicKey } from "../../libs/nostr.ts/key.ts";
+import { NostrEvent } from "@blowater/nostr-sdk";
+import { PublicKey } from "@blowater/nostr-sdk";
 
 export function NoteCard(props: {
     profileData?: ProfileData;

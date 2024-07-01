@@ -1,5 +1,5 @@
 import { Dexie, Table } from "https://esm.sh/v135/dexie@3.2.4/dist/dexie.js";
-import { NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
+import { NostrEvent, NostrKind } from "@blowater/nostr-sdk";
 import { EventMark, EventMarker, EventRemover, EventsAdapter, Indices, RelayRecorder } from "../database.ts";
 import { Tag } from "../nostr.ts";
 

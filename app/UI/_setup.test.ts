@@ -1,6 +1,6 @@
 import { Database_View, EventMark, EventMarker, EventsAdapter, Indices, RelayRecorder } from "../database.ts";
 import { EventBus } from "../event-bus.ts";
-import { NostrEvent } from "../../libs/nostr.ts/nostr.ts";
+import { NostrEvent } from "@blowater/nostr-sdk";
 import { UI_Interaction_Event } from "./app_update.tsx";
 
 export const testEventBus = new EventBus<UI_Interaction_Event>();

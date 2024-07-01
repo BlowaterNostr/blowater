@@ -14,8 +14,7 @@ import { Channel } from "@blowater/csp";
 import { emitFunc } from "../event-bus.ts";
 import { SearchUpdate } from "./search_model.ts";
 import { Profile_Nostr_Event } from "../nostr.ts";
-import { PublicKey } from "../../libs/nostr.ts/key.ts";
-import { robohash } from "../../libs/nostr.ts/nip11.ts";
+import { PublicKey, robohash } from "@blowater/nostr-sdk";
 
 export type SearchResultChannel = Channel<SearchResult[]>;
 

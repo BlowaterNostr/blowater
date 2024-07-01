@@ -2,12 +2,12 @@
 import { h } from "https://esm.sh/preact@10.17.1";
 import { emitFunc } from "../event-bus.ts";
 import { ProfileData } from "../features/profile.ts";
-import { PublicKey } from "../../libs/nostr.ts/key.ts";
+import { PublicKey } from "@blowater/nostr-sdk";
 import { Avatar } from "./components/avatar.tsx";
 import { DividerClass } from "./components/tw.ts";
 import { ViewUserDetail } from "./message-panel.tsx";
 import { cardBackgroundColor, HintLinkColor, HintTextColor, LinkColor } from "./style/colors.ts";
-import { robohash } from "../../libs/nostr.ts/nip11.ts";
+import { robohash } from "@blowater/nostr-sdk";
 
 export function ProfileCard(props: {
     profileData?: ProfileData;

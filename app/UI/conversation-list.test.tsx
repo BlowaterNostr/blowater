@@ -1,10 +1,10 @@
 /** @jsx h */
 import { h, render } from "https://esm.sh/preact@10.17.1";
-import { InMemoryAccountContext, NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
+import { InMemoryAccountContext, NostrEvent, NostrKind } from "@blowater/nostr-sdk";
 import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { Channel } from "@blowater/csp";
-import { prepareEncryptedNostrEvent } from "../../libs/nostr.ts/event.ts";
-import { PrivateKey } from "../../libs/nostr.ts/key.ts";
+import { prepareEncryptedNostrEvent } from "@blowater/nostr-sdk";
+import { PrivateKey } from "@blowater/nostr-sdk";
 import { Database_View } from "../database.ts";
 import { LamportTime } from "../time.ts";
 import { testEventBus } from "./_setup.test.ts";
@@ -37,7 +37,7 @@ for (let i = 0; i < 20; i++) {
     }
 }
 
-const otherConfig = OtherConfig.Empty(new Channel(), ctx, new LamportTime());
+const otherConfig = OtherConfig.Empty(ctx, new LamportTime());
 
 const view = () =>
     render(
@@ -46,7 +46,8 @@ const view = () =>
                 convoListRetriever: dm_list,
                 newMessageChecker: dm_list,
                 pinListGetter: otherConfig,
-                profileGetter: database,
+                getProfileByPublicKey: database.getProfileByPublicKey,
+                getProfilesByText: database.getProfilesByText,
             }}
             eventSub={testEventBus}
             emit={testEventBus.emit}

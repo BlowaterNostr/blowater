@@ -1,12 +1,12 @@
 import { sleep } from "@blowater/csp";
-import { PublicKey } from "../../libs/nostr.ts/key.ts";
+import { PublicKey } from "@blowater/nostr-sdk";
 import {
     InMemoryAccountContext,
     NostrAccountContext,
     NostrEvent,
     NostrKind,
     UnsignedNostrEvent,
-} from "../../libs/nostr.ts/nostr.ts";
+} from "@blowater/nostr-sdk";
 import { LocalPrivateKeyController } from "./sign-in.ts";
 
 type NIP07 = {

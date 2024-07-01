@@ -1,7 +1,7 @@
 /** @jsx h */
 import { h } from "https://esm.sh/preact@10.17.1";
 import { Avatar } from "./components/avatar.tsx";
-import { PublicKey } from "../../libs/nostr.ts/key.ts";
+import { PublicKey } from "@blowater/nostr-sdk";
 import { ProfileData } from "../features/profile.ts";
 import { emitFunc } from "../event-bus.ts";
 import { DirectMessagePanelUpdate } from "./message-panel.tsx";
@@ -13,7 +13,7 @@ import { LinkColor } from "./style/colors.ts";
 import { findUrlInString } from "./message.ts";
 import { SelectConversation } from "./search_model.ts";
 import { CloseRightPanel } from "./components/right-panel.tsx";
-import { robohash } from "../../libs/nostr.ts/nip11.ts";
+import { robohash } from "@blowater/nostr-sdk";
 
 export type BlockUser = {
     type: "BlockUser";

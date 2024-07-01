@@ -2,14 +2,14 @@
 import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { h, render } from "https://esm.sh/preact@10.17.1";
 import { PublicMessageContainer } from "./public-message-container.tsx";
-import { relays } from "../../libs/nostr.ts/relay-list.test.ts";
-import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
+import { relays } from "@blowater/nostr-sdkrelay-list.test.ts";
+import { ConnectionPool } from "@blowater/nostr-sdkrelay-pool.ts";
 import { testEventBus } from "./_setup.test.ts";
-import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
-import { InMemoryAccountContext, NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
+import { SingleRelayConnection } from "@blowater/nostr-sdkrelay-single.ts";
+import { InMemoryAccountContext, NostrEvent, NostrKind } from "@blowater/nostr-sdk";
 import { NewIndexedDB } from "./dexie-db.ts";
 import { Database_View } from "../database.ts";
-import { prepareEncryptedNostrEvent } from "../../libs/nostr.ts/event.ts";
+import { prepareEncryptedNostrEvent } from "@blowater/nostr-sdkevent.ts";
 import { DM_List } from "./conversation-list.ts";
 import { DirectedMessageController } from "../features/dm.ts";
 

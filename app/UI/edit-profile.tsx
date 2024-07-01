@@ -10,7 +10,7 @@ import {
 } from "./style/colors.ts";
 import { Component } from "https://esm.sh/preact@10.11.3";
 import { emitFunc } from "../event-bus.ts";
-import { NostrAccountContext } from "../../libs/nostr.ts/nostr.ts";
+import { NostrAccountContext } from "@blowater/nostr-sdk";
 import { UserIcon } from "./icons/user-icon.tsx";
 
 export type SaveProfile = {

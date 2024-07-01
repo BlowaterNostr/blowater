@@ -2,10 +2,10 @@
 import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { h, render } from "https://esm.sh/preact@10.17.1";
 import { Channel } from "@blowater/csp";
-import { prepareEncryptedNostrEvent } from "../../libs/nostr.ts/event.ts";
-import { InMemoryAccountContext, NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
-import { relays } from "../../libs/nostr.ts/relay-list.test.ts";
-import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
+import { prepareEncryptedNostrEvent } from "@blowater/nostr-sdkevent.ts";
+import { InMemoryAccountContext, NostrEvent, NostrKind } from "@blowater/nostr-sdk";
+import { relays } from "@blowater/nostr-sdkrelay-list.test.ts";
+import { ConnectionPool } from "@blowater/nostr-sdkrelay-pool.ts";
 import { Database_View } from "../database.ts";
 import { DirectedMessageController } from "../features/dm.ts";
 import { LamportTime } from "../time.ts";

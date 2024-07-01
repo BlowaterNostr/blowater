@@ -1,5 +1,5 @@
-import { PublicKey } from "../../libs/nostr.ts/key.ts";
-import { NostrAccountContext, NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
+import { PublicKey } from "@blowater/nostr-sdk";
+import { NostrAccountContext, NostrEvent, NostrKind } from "@blowater/nostr-sdk";
 import { InvalidEvent } from "../features/dm.ts";
 import { getTags } from "../nostr.ts";
 import { UserBlocker } from "./app_update.tsx";

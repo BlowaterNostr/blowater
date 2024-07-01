@@ -1,5 +1,5 @@
-import { prepareEncryptedNostrEvent } from "../../libs/nostr.ts/event.ts";
-import { NostrAccountContext, NostrEvent, NostrKind, verifyEvent } from "../../libs/nostr.ts/nostr.ts";
+import { prepareEncryptedNostrEvent } from "@blowater/nostr-sdk";
+import { NostrAccountContext, NostrEvent, NostrKind, verifyEvent } from "@blowater/nostr-sdk";
 import { parseJSON } from "../features/profile.ts";
 import { PinConversationRelay, UnpinConversationRelay } from "../nostr.ts";
 import { LamportTime } from "../time.ts";

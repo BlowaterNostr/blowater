@@ -1,9 +1,9 @@
 /** @jsx h */
 import { h, render } from "https://esm.sh/preact@10.17.1";
-import { prepareNormalNostrEvent } from "../../libs/nostr.ts/event.ts";
-import { PrivateKey, PublicKey } from "../../libs/nostr.ts/key.ts";
-import { NoteID } from "../../libs/nostr.ts/nip19.ts";
-import { InMemoryAccountContext, NostrKind } from "../../libs/nostr.ts/nostr.ts";
+import { prepareNormalNostrEvent } from "@blowater/nostr-sdkevent.ts";
+import { PrivateKey, PublicKey } from "@blowater/nostr-sdk";
+import { NoteID } from "@blowater/nostr-sdknip19.ts";
+import { InMemoryAccountContext, NostrKind } from "@blowater/nostr-sdk";
 import { EventDetail, EventDetailItem } from "./event-detail.tsx";
 
 const ctx = InMemoryAccountContext.New(PrivateKey.Generate());

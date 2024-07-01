@@ -1,7 +1,13 @@
-import { prepareEncryptedNostrEvent } from "../../libs/nostr.ts/event.ts";
-import { InvalidKey, PublicKey } from "../../libs/nostr.ts/key.ts";
-import { NostrAccountContext, NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
-import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
+import {
+    ConnectionPool,
+    EventSender,
+    InvalidKey,
+    NostrAccountContext,
+    NostrEvent,
+    NostrKind,
+    prepareEncryptedNostrEvent,
+    PublicKey,
+} from "@blowater/nostr-sdk";
 import { DirectMessageGetter } from "../UI/app_update.tsx";
 import { ChatMessage } from "../UI/message.ts";
 import {
@@ -14,14 +20,8 @@ import {
     Tag,
     Tags,
 } from "../nostr.ts";
-import { EventSender } from "../../libs/nostr.ts/relay.interface.ts";
 
-import {
-    Channel,
-    Multicaster,
-    PutToClosedChannelError,
-} from "@blowater/csp";
-import * as nostr from "../../libs/nostr.ts/nostr.ts";
+import { Channel, Multicaster, PutToClosedChannelError } from "@blowater/csp";
 
 export async function sendDirectMessages(args: {
     sender: NostrAccountContext;
@@ -30,7 +30,7 @@ export async function sendDirectMessages(args: {
     files: Blob[];
     lamport_timestamp: number;
     eventSender: EventSender;
-    targetEvent?: nostr.NostrEvent;
+    targetEvent?: NostrEvent;
 }) {
     const {
         sender,

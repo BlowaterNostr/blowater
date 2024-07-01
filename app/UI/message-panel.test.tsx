@@ -1,10 +1,10 @@
 /** @jsx h */
 import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { h, render } from "https://esm.sh/preact@10.17.1";
-import { prepareEncryptedNostrEvent } from "../../libs/nostr.ts/event.ts";
-import { InMemoryAccountContext, NostrKind } from "../../libs/nostr.ts/nostr.ts";
-import { relays } from "../../libs/nostr.ts/relay-list.test.ts";
-import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
+import { prepareEncryptedNostrEvent } from "@blowater/nostr-sdkevent.ts";
+import { InMemoryAccountContext, NostrKind } from "@blowater/nostr-sdk";
+import { relays } from "@blowater/nostr-sdkrelay-list.test.ts";
+import { ConnectionPool } from "@blowater/nostr-sdkrelay-pool.ts";
 import { test_db_view, testEventBus } from "./_setup.test.ts";
 import { DirectedMessageController } from "../features/dm.ts";
 import { DM_List } from "./conversation-list.ts";
