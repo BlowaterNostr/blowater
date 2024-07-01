@@ -25,7 +25,7 @@ import { DeleteIcon } from "./icons/delete-icon.tsx";
 import { default_blowater_relay, RelayConfig } from "./relay-config.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 import { emitFunc } from "../event-bus.ts";
-import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { sleep } from "@blowater/csp";
 import { InMemoryAccountContext, NostrAccountContext } from "../../libs/nostr.ts/nostr.ts";
 import { PrivateKey } from "../../libs/nostr.ts/key.ts";
 

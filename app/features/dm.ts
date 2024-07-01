@@ -20,7 +20,7 @@ import {
     Channel,
     Multicaster,
     PutToClosedChannelError,
-} from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+} from "@blowater/csp";
 import * as nostr from "../../libs/nostr.ts/nostr.ts";
 
 export async function sendDirectMessages(args: {

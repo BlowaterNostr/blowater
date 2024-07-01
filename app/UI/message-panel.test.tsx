@@ -9,7 +9,7 @@ import { test_db_view, testEventBus } from "./_setup.test.ts";
 import { DirectedMessageController } from "../features/dm.ts";
 import { DM_List } from "./conversation-list.ts";
 import { MessagePanel } from "./message-panel.tsx";
-import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { sleep } from "@blowater/csp";
 
 const pool = new ConnectionPool();
 pool.addRelayURL(relays[2]);

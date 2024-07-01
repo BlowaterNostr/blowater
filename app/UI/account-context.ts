@@ -1,4 +1,4 @@
-import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { sleep } from "@blowater/csp";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import {
     InMemoryAccountContext,

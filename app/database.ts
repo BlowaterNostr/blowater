@@ -1,5 +1,5 @@
 import { getTags, Parsed_Event, Profile_Nostr_Event } from "./nostr.ts";
-import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import * as csp from "@blowater/csp";
 import { parseJSON, ProfileData } from "./features/profile.ts";
 import { Event_V2, Kind_V2, NostrEvent, NostrKind, Tag, verifyEvent } from "../libs/nostr.ts/nostr.ts";
 import { PublicKey } from "../libs/nostr.ts/key.ts";

@@ -106,6 +106,6 @@
     "https://esm.sh/v135/twind@0.16.16/denonext/twind.mjs": "857319af660b8bae96d20737a4f9a9b4ce909fcb47e0552abd559216824fe795",
     "https://esm.sh/v135/zod@3.22.4/denonext/zod.mjs": "660128af5d1e921745c4d452472d103d9f2fc5afa508bbf233b83d35a272ad67",
     "https://esm.sh/zod@3.22.4": "f7bfaf7e78bc8fa39e67e07c0dacd651925e889f5a4ef02b3ef6bab3925a8384",
-    "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts": "4469313196bb1385ad38d13b72db0dbaf09a512c78d821144bc72b96c807417b"
+    "@blowater/csp": "4469313196bb1385ad38d13b72db0dbaf09a512c78d821144bc72b96c807417b"
   }
 }

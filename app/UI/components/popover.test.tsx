@@ -1,7 +1,7 @@
 /** @jsx h */
 import { h, render } from "https://esm.sh/preact@10.17.1";
 import { Popover, PopOverInputChannel } from "./popover.tsx";
-import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { Channel } from "@blowater/csp";
 import { CenterClass } from "./tw.ts";
 
 const popoverChan: PopOverInputChannel = new Channel();

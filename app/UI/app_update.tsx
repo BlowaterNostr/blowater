@@ -5,7 +5,7 @@ import {
     closed,
     PutChannel,
     sleep,
-} from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+} from "@blowater/csp";
 import { prepareDeletionEvent, prepareNormalNostrEvent } from "../../libs/nostr.ts/event.ts";
 import { prepareReactionEvent } from "../../libs/nostr.ts/nip25.ts";
 import { prepareReplyEvent } from "../nostr.ts";
@@ -71,6 +71,7 @@ import { ReplyToMessage } from "./message-list.tsx";
 import { EditorSelectProfile } from "./editor.tsx";
 import { uploadFile } from "../../libs/nostr.ts/nip96.ts";
 import { HideModal, ModalInputChannel } from "./components/modal.tsx";
+
 
 export type UI_Interaction_Event =
     | SearchUpdate

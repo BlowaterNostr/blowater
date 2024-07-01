@@ -1,6 +1,6 @@
 /** @jsx h */
 import { Component, ComponentChildren, h } from "https://esm.sh/preact@10.17.1";
-import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { Channel } from "@blowater/csp";
 import { setState } from "../_helper.ts";
 
 export type HideModal = {

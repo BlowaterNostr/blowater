@@ -23,7 +23,7 @@ import {
 } from "./message-panel.tsx";
 import { ChatMessage, groupContinuousMessages, sortMessage } from "./message.ts";
 import { SelectConversation } from "./search_model.ts";
-import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { sleep } from "@blowater/csp";
 import { ProfileData } from "../features/profile.ts";
 import { isMobile, setState } from "./_helper.ts";
 import { Avatar } from "./components/avatar.tsx";

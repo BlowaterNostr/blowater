@@ -1,4 +1,4 @@
-import { chan, Channel, multi } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { chan, Channel, multi } from "@blowater/csp";
 
 export class EventBus<T> implements EventEmitter<T>, EventSubscriber<T> {
     private readonly c = chan<T>();

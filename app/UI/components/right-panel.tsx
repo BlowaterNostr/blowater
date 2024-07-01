@@ -3,7 +3,7 @@ import { Component, h } from "https://esm.sh/preact@10.17.1";
 import { IconButtonClass } from "./tw.ts";
 import { CloseIcon } from "../icons/close-icon.tsx";
 import { ComponentChildren } from "https://esm.sh/preact@10.17.1";
-import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { Channel } from "@blowater/csp";
 
 export type RightPanelChannel = Channel<(() => ComponentChildren) | undefined>;
 

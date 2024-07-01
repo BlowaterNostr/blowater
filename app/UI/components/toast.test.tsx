@@ -1,7 +1,7 @@
 /** @jsx h */
 import { createRef, h, render } from "https://esm.sh/preact@10.17.1";
 import { Toast, ToastChannel } from "./toast.tsx";
-import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { Channel } from "@blowater/csp";
 import { CenterClass, inputBorderClass } from "./tw.ts";
 
 const toastChannel: ToastChannel = new Channel();

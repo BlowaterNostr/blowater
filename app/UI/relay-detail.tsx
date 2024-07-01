@@ -17,7 +17,7 @@ import { emitFunc } from "../event-bus.ts";
 import { SelectConversation } from "./search_model.ts";
 import { RelayInformation, robohash } from "../../libs/nostr.ts/nip11.ts";
 import { setState } from "./_helper.ts";
-import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { Channel } from "@blowater/csp";
 import { PublicKey } from "../../libs/nostr.ts/key.ts";
 import { ViewUserDetail } from "./message-panel.tsx";
 

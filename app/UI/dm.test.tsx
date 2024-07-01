@@ -1,7 +1,7 @@
 /** @jsx h */
 import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { h, render } from "https://esm.sh/preact@10.17.1";
-import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { Channel } from "@blowater/csp";
 import { prepareEncryptedNostrEvent } from "../../libs/nostr.ts/event.ts";
 import { InMemoryAccountContext, NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { relays } from "../../libs/nostr.ts/relay-list.test.ts";

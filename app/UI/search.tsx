@@ -10,7 +10,7 @@ import {
     TextColor_Primary,
 } from "./style/colors.ts";
 import { Component } from "https://esm.sh/preact@10.17.1";
-import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { Channel } from "@blowater/csp";
 import { emitFunc } from "../event-bus.ts";
 import { SearchUpdate } from "./search_model.ts";
 import { Profile_Nostr_Event } from "../nostr.ts";

@@ -1,7 +1,7 @@
 import { assertEquals, fail } from "https://deno.land/std@0.202.0/testing/asserts.ts";
 import { OtherConfig } from "./config-other.ts";
 import { InMemoryAccountContext, NostrEvent } from "../../libs/nostr.ts/nostr.ts";
-import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { Channel } from "@blowater/csp";
 import { LamportTime } from "../time.ts";
 
 Deno.test("Pin List", async () => {

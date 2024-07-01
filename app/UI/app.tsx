@@ -1,6 +1,6 @@
 /** @jsx h */
 import { h, render, VNode } from "https://esm.sh/preact@10.17.1";
-import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { Channel } from "@blowater/csp";
 import { InvalidKey, PublicKey } from "../../libs/nostr.ts/key.ts";
 import { NostrAccountContext, NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
 import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
