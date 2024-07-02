@@ -1,16 +1,18 @@
 /* @jsx h */
-import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { h, render } from "preact";
 import { PublicMessageContainer } from "./public-message-container.tsx";
-import { prepareEncryptedNostrEvent } from "https://jsr.io/@blowater/nostr-sdk/0.0.1-rc3/event.ts";
-import { InMemoryAccountContext, NostrEvent, NostrKind } from "@blowater/nostr-sdk";
-import { ConnectionPool } from "https://jsr.io/@blowater/nostr-sdk/0.0.1-rc3/relay-pool.ts";
-import { SingleRelayConnection } from "https://jsr.io/@blowater/nostr-sdk/0.0.1-rc3/relay-single.ts";
 import { Database_View } from "../database.ts";
 import { DirectedMessageController } from "../features/dm.ts";
 import { testEventBus } from "./_setup.test.ts";
 import { DM_List } from "./conversation-list.ts";
 import { NewIndexedDB } from "./dexie-db.ts";
+import {
+    InMemoryAccountContext,
+    NostrEvent,
+    NostrKind,
+    prepareEncryptedNostrEvent,
+} from "@blowater/nostr-sdk";
+import { fail } from "@std/assert";
 
 const ctx = InMemoryAccountContext.Generate();
 
