@@ -22,6 +22,7 @@
       "jsr:@std/jsonc@0.213": "jsr:@std/jsonc@0.213.1",
       "jsr:@std/path@0.213": "jsr:@std/path@0.213.1",
       "jsr:@std/path@^0.218.2": "jsr:@std/path@0.218.2",
+      "jsr:@std/path@^0.225.2": "jsr:@std/path@0.225.2",
       "npm:@noble/ciphers@0.4.1": "npm:@noble/ciphers@0.4.1",
       "npm:@noble/curves@1.3.0": "npm:@noble/curves@1.3.0",
       "npm:@noble/hashes@1.3.3": "npm:@noble/hashes@1.3.3",
@@ -133,6 +134,12 @@
         "integrity": "b568fd923d9e53ad76d17c513e7310bda8e755a3e825e6289a0ce536404e2662",
         "dependencies": [
           "jsr:@std/assert@^0.218.2"
+        ]
+      },
+      "@std/path@0.225.2": {
+        "integrity": "0f2db41d36b50ef048dcb0399aac720a5348638dd3cb5bf80685bf2a745aa506",
+        "dependencies": [
+          "jsr:@std/assert@^0.226.0"
         ]
       }
     },
@@ -613,7 +620,8 @@
       "jsr:@blowater/nostr-sdk@0.0.1-rc3",
       "jsr:@std/assert@^0.226.0",
       "jsr:@std/datetime@^0.224.1",
-      "jsr:@std/encoding@^0.224.3"
+      "jsr:@std/encoding@^0.224.3",
+      "jsr:@std/path@^0.225.2"
     ]
   }
 }

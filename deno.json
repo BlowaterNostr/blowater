@@ -32,7 +32,8 @@
             "*cov_profile*",
             "*tauri*",
             "app/UI/assets/",
-            "*/tailwind.js"
+            "*/tailwind.js",
+            "build-pwa/"
         ],
         "indentWidth": 4,
         "lineWidth": 110
@@ -41,11 +42,12 @@
         "exclude": ["libs/*"]
     },
     "imports": {
-        "preact": "https://esm.sh/preact@10.17.1",
         "@blowater/csp": "jsr:@blowater/csp@^1.0.0",
         "@blowater/nostr-sdk": "jsr:@blowater/nostr-sdk@0.0.1-rc3",
         "@std/assert": "jsr:@std/assert@^0.226.0",
         "@std/datetime": "jsr:@std/datetime@^0.224.1",
-        "@std/encoding": "jsr:@std/encoding@^0.224.3"
+        "@std/encoding": "jsr:@std/encoding@^0.224.3",
+        "@std/path": "jsr:@std/path@^0.225.2",
+        "preact": "https://esm.sh/preact@10.17.1"
     }
 }
