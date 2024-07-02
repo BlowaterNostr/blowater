@@ -66,7 +66,11 @@ dev: build
 	file_server -p $(port) build-pwa
 
 compile-all-ui-tests:
-	deno run --allow-read --allow-env --allow-write --allow-net app/UI/_compile-ui-tests.ts
+	deno run --allow-read --allow-env \
+		--allow-run \
+		--allow-write=--allow-write=/var/folders \
+		--allow-net \
+		_compile-ui-tests.ts
 
 # build the tauri application
 tauri-dev: build icon
