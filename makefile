@@ -55,7 +55,7 @@ build: fmt
 		--allow-env \
 		--allow-read \
 		--allow-run \
-		--allow-write=/var/folders \
+		--allow-write=/var/folders,/tmp \
 		_esbuild.ts
 
 test-ui: fmt
@@ -68,7 +68,7 @@ dev: build
 compile-all-ui-tests:
 	deno run --allow-read --allow-env \
 		--allow-run \
-		--allow-write=--allow-write=/var/folders \
+		--allow-write=--allow-write=/var/folders,/tmp \
 		--allow-net \
 		_compile-ui-tests.ts
 
