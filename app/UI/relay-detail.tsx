@@ -1,5 +1,5 @@
 /** @jsx h */
-import { Component, Fragment, h } from "https://esm.sh/preact@10.17.1";
+import { Component, Fragment, h } from "preact";
 import { CopyButton } from "./components/copy-button.tsx";
 import { CenterClass, InputClass } from "./components/tw.ts";
 import {

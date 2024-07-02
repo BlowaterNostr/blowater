@@ -1,8 +1,8 @@
 /** @jsx h */
-import { Fragment, h } from "https://esm.sh/preact@10.11.3";
+import { Fragment, h } from "preact";
 import { CenterClass, InputClass } from "./components/tw.ts";
 import { PrimaryTextColor, SecondaryBackgroundColor, TitleIconColor } from "./style/colors.ts";
-import { Component } from "https://esm.sh/preact@10.11.3";
+import { Component } from "preact";
 import { AboutIcon } from "./icons/about-icon.tsx";
 import { CopyButton } from "./components/copy-button.tsx";
 

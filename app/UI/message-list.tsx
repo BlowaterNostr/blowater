@@ -1,12 +1,5 @@
 /** @jsx h */
-import {
-    Component,
-    ComponentChildren,
-    createRef,
-    Fragment,
-    h,
-    RefObject,
-} from "https://esm.sh/preact@10.17.1";
+import { Component, ComponentChildren, createRef, Fragment, h, RefObject } from "preact";
 import { NoteID, PublicKey, robohash } from "@blowater/nostr-sdk";
 import { RelayRecordGetter } from "../database.ts";
 import { emitFunc } from "../event-bus.ts";

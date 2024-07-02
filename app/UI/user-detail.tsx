@@ -1,5 +1,5 @@
 /** @jsx h */
-import { h } from "https://esm.sh/preact@10.17.1";
+import { h } from "preact";
 import { Avatar } from "./components/avatar.tsx";
 import { PublicKey } from "@blowater/nostr-sdk";
 import { ProfileData } from "../features/profile.ts";

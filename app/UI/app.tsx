@@ -1,5 +1,5 @@
 /** @jsx h */
-import { h, render, VNode } from "https://esm.sh/preact@10.17.1";
+import { h, render, VNode } from "preact";
 import { Channel } from "@blowater/csp";
 
 import { Database_View } from "../database.ts";
@@ -21,7 +21,7 @@ import { getCurrentSignInCtx, getSignInState, setSignInState } from "./sign-in.t
 import { SecondaryBackgroundColor } from "./style/colors.ts";
 import { LamportTime } from "../time.ts";
 import { InstallPrompt, NavBar } from "./nav.tsx";
-import { Component } from "https://esm.sh/preact@10.17.1";
+import { Component } from "preact";
 import { PublicMessageContainer } from "./public-message-container.tsx";
 import { ChatMessage } from "./message.ts";
 import { filter, forever, map } from "./_helper.ts";

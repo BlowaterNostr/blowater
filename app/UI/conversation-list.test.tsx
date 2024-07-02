@@ -1,5 +1,5 @@
 /** @jsx h */
-import { h, render } from "https://esm.sh/preact@10.17.1";
+import { h, render } from "preact";
 import { InMemoryAccountContext, NostrEvent, NostrKind } from "@blowater/nostr-sdk";
 import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { Channel } from "@blowater/csp";

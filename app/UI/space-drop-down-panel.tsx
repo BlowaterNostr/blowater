@@ -1,5 +1,5 @@
 /** @jsx h */
-import { Component, h } from "https://esm.sh/preact@10.17.1";
+import { Component, h } from "preact";
 import { emitFunc } from "../event-bus.ts";
 import { RelayAvatar } from "./components/avatar.tsx";
 import { SelectSpace } from "./nav.tsx";

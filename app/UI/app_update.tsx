@@ -1,5 +1,5 @@
 /** @jsx h */
-import { h } from "https://esm.sh/preact@10.17.1";
+import { h } from "preact";
 import { Channel, closed, PutChannel, sleep } from "@blowater/csp";
 
 import { Database_View } from "../database.ts";

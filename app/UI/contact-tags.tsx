@@ -1,5 +1,5 @@
 /** @jsx h */
-import { Component, h } from "https://esm.sh/preact@10.17.1";
+import { Component, h } from "preact";
 import { HintTextColor, PrimaryTextColor, SecondaryTextColor } from "./style/colors.ts";
 import { emitFunc } from "../event-bus.ts";
 

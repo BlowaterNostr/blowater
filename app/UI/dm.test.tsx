@@ -1,11 +1,9 @@
 /** @jsx h */
 import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
-import { h, render } from "https://esm.sh/preact@10.17.1";
-import { Channel } from "@blowater/csp";
-import { prepareEncryptedNostrEvent } from "@blowater/nostr-sdkevent.ts";
+import { h, render } from "preact";
+import { prepareEncryptedNostrEvent } from "@blowater/nostr-sdk";
 import { InMemoryAccountContext, NostrEvent, NostrKind } from "@blowater/nostr-sdk";
-import { relays } from "@blowater/nostr-sdkrelay-list.test.ts";
-import { ConnectionPool } from "@blowater/nostr-sdkrelay-pool.ts";
+import { ConnectionPool } from "@blowater/nostr-sdk";
 import { Database_View } from "../database.ts";
 import { DirectedMessageController } from "../features/dm.ts";
 import { LamportTime } from "../time.ts";
@@ -16,9 +14,6 @@ import { NewIndexedDB } from "./dexie-db.ts";
 import { DirectMessageContainer } from "./dm.tsx";
 
 const ctx = InMemoryAccountContext.Generate();
-const pool = new ConnectionPool();
-pool.addRelayURL(relays[0]);
-
 const dmControl = new DirectedMessageController(ctx);
 
 const indexedDB = NewIndexedDB();
@@ -51,11 +46,14 @@ render(
             convoListRetriever: dm_list,
             messageGetter: dmControl,
             newMessageChecker: dm_list,
-            pinListGetter: OtherConfig.Empty(new Channel(), ctx, lamport),
-            profileGetter: database,
+            pinListGetter: OtherConfig.Empty(ctx, lamport),
             relayRecordGetter: database,
             isUserBlocked: dm_list.isUserBlocked,
             getEventByID: database.getEventByID,
+            getProfileByPublicKey: database.getProfileByPublicKey,
+            getProfilesByText: database.getProfilesByText,
+            getReactionsByEventID: database.getReactionEvents,
+            isAdmin: () => false,
         }}
         userBlocker={dm_list}
         currentConversation={ctx.publicKey}
@@ -68,6 +66,6 @@ render(
         if (event == null) {
             continue;
         }
-        dm_list.addEvents([event], true);
+        dm_list.addEvents([event.event], true);
     }
 })();

@@ -1,5 +1,5 @@
 /* @jsx h */
-import { Component, h } from "https://esm.sh/preact@10.17.1";
+import { Component, h } from "preact";
 import { emitFunc, EventBus } from "../event-bus.ts";
 import { ChatMessagesGetter, UI_Interaction_Event } from "./app_update.tsx";
 import { setState } from "./_helper.ts";

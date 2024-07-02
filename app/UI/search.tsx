@@ -1,5 +1,5 @@
 /** @jsx h */
-import { createRef, h } from "https://esm.sh/preact@10.17.1";
+import { createRef, h } from "preact";
 import { Avatar } from "./components/avatar.tsx";
 import {
     BackgroundColor_HoverButton,
@@ -9,7 +9,7 @@ import {
     SecondaryBackgroundColor,
     TextColor_Primary,
 } from "./style/colors.ts";
-import { Component } from "https://esm.sh/preact@10.17.1";
+import { Component } from "preact";
 import { Channel } from "@blowater/csp";
 import { emitFunc } from "../event-bus.ts";
 import { SearchUpdate } from "./search_model.ts";

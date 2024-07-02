@@ -1,5 +1,5 @@
 /** @jsx h */
-import { h } from "https://esm.sh/preact@10.17.1";
+import { h } from "preact";
 import { emitFunc } from "../event-bus.ts";
 import { ProfileData } from "../features/profile.ts";
 import { PublicKey } from "@blowater/nostr-sdk";

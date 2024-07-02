@@ -1,4 +1,4 @@
-import { Component, Fragment, h } from "https://esm.sh/preact@10.17.1";
+import { Component, Fragment, h } from "preact";
 import { InMemoryAccountContext } from "@blowater/nostr-sdk";
 
 import { emitFunc } from "../event-bus.ts";

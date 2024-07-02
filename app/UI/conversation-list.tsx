@@ -1,5 +1,5 @@
 /** @jsx h */
-import { Component, Fragment, h } from "https://esm.sh/preact@10.17.1";
+import { Component, Fragment, h } from "preact";
 import { PublicKey } from "@blowater/nostr-sdk";
 import { emitFunc, EventSubscriber } from "../event-bus.ts";
 import { ProfileData } from "../features/profile.ts";

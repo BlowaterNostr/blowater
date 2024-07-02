@@ -1,7 +1,7 @@
 /** @jsx h */
 import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
-import { h, render } from "https://esm.sh/preact@10.17.1";
-import { prepareEncryptedNostrEvent } from "@blowater/nostr-sdkevent.ts";
+import { h, render } from "preact";
+import { prepareEncryptedNostrEvent } from "@blowater/nostr-sdk";
 import { InMemoryAccountContext, NostrKind } from "@blowater/nostr-sdk";
 import { test_db_view, testEventBus } from "./_setup.test.ts";
 import { DirectedMessageController } from "../features/dm.ts";
@@ -41,9 +41,12 @@ for (let i = 1;; i++) {
             messages={messages}
             emit={testEventBus.emit}
             getters={{
-                profileGetter: database,
                 relayRecordGetter: database,
                 getEventByID: database.getEventByID,
+                getProfileByPublicKey: database.getProfileByPublicKey,
+                getReactionsByEventID: database.getReactionEvents,
+                isAdmin: () => false,
+                messageGetter: dmController,
             }}
         />,
         document.body,

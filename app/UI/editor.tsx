@@ -1,10 +1,10 @@
 /** @jsx h */
-import { createRef, h } from "https://esm.sh/preact@10.17.1";
+import { createRef, h } from "preact";
 import { emitFunc } from "../event-bus.ts";
 
 import { ImageIcon } from "./icons/image-icon.tsx";
 import { SendIcon } from "./icons/send-icon.tsx";
-import { Component } from "https://esm.sh/preact@10.17.1";
+import { Component } from "preact";
 import { RemoveIcon } from "./icons/remove-icon.tsx";
 import { setState } from "./_helper.ts";
 import { XCircleIcon } from "./icons/x-circle-icon.tsx";

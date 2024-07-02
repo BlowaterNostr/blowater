@@ -1,5 +1,5 @@
 /** @jsx h */
-import { h, render } from "https://esm.sh/preact@10.17.1";
+import { h, render } from "preact";
 import { InMemoryAccountContext } from "@blowater/nostr-sdk";
 import { test_db_view, testEventBus } from "./_setup.test.ts";
 import { EditProfile } from "./edit-profile.tsx";

@@ -1,5 +1,5 @@
 /** @jsx h */
-import { h, render } from "https://esm.sh/preact@10.17.1";
+import { h, render } from "preact";
 import { HideModal, Modal, ModalInputChannel } from "./modal.tsx";
 import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
 import { CenterClass } from "./tw.ts";

@@ -1,5 +1,5 @@
 /** @jsx h */
-import { Component, ComponentChildren, h } from "https://esm.sh/preact@10.17.1";
+import { Component, ComponentChildren, h } from "preact";
 import { SecondaryBackgroundColor } from "../style/colors.ts";
 import { Channel } from "@blowater/csp";
 

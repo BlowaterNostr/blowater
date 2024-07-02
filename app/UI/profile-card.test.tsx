@@ -1,5 +1,5 @@
 /** @jsx h */
-import { h, render } from "https://esm.sh/preact@10.17.1";
+import { h, render } from "preact";
 import { PrivateKey } from "@blowater/nostr-sdk";
 import { InMemoryAccountContext, NostrKind } from "@blowater/nostr-sdk";
 import { ProfileCard } from "./profile-card.tsx";

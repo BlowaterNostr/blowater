@@ -1,5 +1,5 @@
 /** @jsx h */
-import { h, render } from "https://esm.sh/preact@10.17.1";
+import { h, render } from "preact";
 import { Popover, PopOverInputChannel } from "./popover.tsx";
 import { Channel } from "@blowater/csp";
 import { CenterClass } from "./tw.ts";

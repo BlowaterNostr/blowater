@@ -1,5 +1,5 @@
 /** @jsx h */
-import { h } from "https://esm.sh/preact@10.17.1";
+import { h } from "preact";
 
 export function SendIcon(props: {
     class?: string | h.JSX.SignalLike<string | undefined> | undefined;

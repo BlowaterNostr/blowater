@@ -1,5 +1,5 @@
 /** @jsx h */
-import { ComponentChild, h } from "https://esm.sh/preact@10.17.1";
+import { ComponentChild, h } from "preact";
 
 import {
     PrimaryBackgroundColor,
@@ -10,7 +10,7 @@ import {
 import { ChatIcon } from "./icons/chat-icon.tsx";
 import { UserIcon } from "./icons/user-icon.tsx";
 import { SettingIcon } from "./icons/setting-icon.tsx";
-import { Component } from "https://esm.sh/preact@10.17.1";
+import { Component } from "preact";
 import { AboutIcon } from "./icons/about-icon.tsx";
 
 import { CenterClass, NoOutlineClass } from "./components/tw.ts";

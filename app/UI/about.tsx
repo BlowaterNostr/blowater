@@ -1,5 +1,5 @@
 /** @jsx h */
-import { h } from "https://esm.sh/preact@10.17.1";
+import { h } from "preact";
 import { PublicKey } from "@blowater/nostr-sdk";
 import { emitFunc } from "../event-bus.ts";
 import { DividerClass } from "./components/tw.ts";

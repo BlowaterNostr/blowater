@@ -1,17 +1,16 @@
 /* @jsx h */
 import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
-import { h, render } from "https://esm.sh/preact@10.17.1";
+import { h, render } from "preact";
 import { PublicMessageContainer } from "./public-message-container.tsx";
-import { relays } from "@blowater/nostr-sdkrelay-list.test.ts";
-import { ConnectionPool } from "@blowater/nostr-sdkrelay-pool.ts";
-import { testEventBus } from "./_setup.test.ts";
-import { SingleRelayConnection } from "@blowater/nostr-sdkrelay-single.ts";
+import { prepareEncryptedNostrEvent } from "https://jsr.io/@blowater/nostr-sdk/0.0.1-rc3/event.ts";
 import { InMemoryAccountContext, NostrEvent, NostrKind } from "@blowater/nostr-sdk";
-import { NewIndexedDB } from "./dexie-db.ts";
+import { ConnectionPool } from "https://jsr.io/@blowater/nostr-sdk/0.0.1-rc3/relay-pool.ts";
+import { SingleRelayConnection } from "https://jsr.io/@blowater/nostr-sdk/0.0.1-rc3/relay-single.ts";
 import { Database_View } from "../database.ts";
-import { prepareEncryptedNostrEvent } from "@blowater/nostr-sdkevent.ts";
-import { DM_List } from "./conversation-list.ts";
 import { DirectedMessageController } from "../features/dm.ts";
+import { testEventBus } from "./_setup.test.ts";
+import { DM_List } from "./conversation-list.ts";
+import { NewIndexedDB } from "./dexie-db.ts";
 
 const ctx = InMemoryAccountContext.Generate();
 
@@ -20,11 +19,6 @@ if (indexedDB instanceof Error) {
     fail(indexedDB.message);
 }
 const database = await Database_View.New(indexedDB, indexedDB, indexedDB);
-
-const pool = new ConnectionPool();
-pool.addRelayURL(relays[2]);
-
-const relay = pool.getRelay(relays[2]) as SingleRelayConnection;
 
 const e = await database.addEvent(
     await prepareEncryptedNostrEvent(ctx, {
@@ -44,7 +38,7 @@ dm_list.addEvents(Array.from(database.getAllEvents()), true);
 
 render(
     <PublicMessageContainer
-        relay_url={relay.url}
+        relay_url={"ws://localhost:8000"}
         ctx={ctx}
         bus={testEventBus}
         getters={{

@@ -1,8 +1,8 @@
 /** @jsx h */
-import { h, render } from "https://esm.sh/preact@10.17.1";
-import { prepareNormalNostrEvent } from "@blowater/nostr-sdkevent.ts";
+import { h, render } from "preact";
+import { prepareNormalNostrEvent } from "@blowater/nostr-sdk";
 import { PrivateKey, PublicKey } from "@blowater/nostr-sdk";
-import { NoteID } from "@blowater/nostr-sdknip19.ts";
+import { NoteID } from "@blowater/nostr-sdk";
 import { InMemoryAccountContext, NostrKind } from "@blowater/nostr-sdk";
 import { EventDetail, EventDetailItem } from "./event-detail.tsx";
 

@@ -1,4 +1,4 @@
-import { h, render } from "https://esm.sh/preact@10.17.1";
+import { h, render } from "preact";
 import { Search } from "./search.tsx";
 import { test_db_view } from "./_setup.test.ts";
 import { testEventBus } from "./_setup.test.ts";
