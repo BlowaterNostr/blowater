@@ -50,13 +50,13 @@ stats:
 # build the web application
 build: fmt
 	deno lint
-	cp -rv app/UI/assets/ build-pwa/
 	deno run \
 		--allow-env \
 		--allow-read \
 		--allow-run \
 		--allow-write=/var/folders \
 		_esbuild.ts
+	cp -rv app/UI/assets/ build-pwa/
 
 # in github action
 build-ci: fmt
