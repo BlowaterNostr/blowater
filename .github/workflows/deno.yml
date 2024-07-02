@@ -32,7 +32,7 @@ jobs:
       - name: Setup repo
         uses: actions/checkout@v3
         with:
-          submodules: 'true'
+          submodules: true
 
       - name: Setup Deno
         uses: denoland/setup-deno@v1
@@ -57,7 +57,6 @@ jobs:
       - name: Clone repository
         uses: actions/checkout@v3
         with:
-          token: ${{ secrets.PAT }}
           submodules: true
 
       - name: Setup Deno
