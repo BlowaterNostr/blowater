@@ -61,13 +61,13 @@ build: fmt
 # in github action
 build-ci: fmt
 	deno lint
-	cp -rv app/UI/assets/ build-pwa/
 	deno run \
 		--allow-env \
 		--allow-read \
 		--allow-run \
 		--allow-write \
 		_esbuild.ts
+	cp -rv app/UI/assets/ build-pwa/
 
 test-ui: fmt
 	deno bundle --config=./deno.json app/UI/$(page).test.tsx build-pwa/main.mjs
