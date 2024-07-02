@@ -1,3 +1,0 @@
-[submodule "libs/nostr.ts"]
-	path = libs/nostr.ts
-	url = https://git.blowater.app/blowater/nostr.ts
