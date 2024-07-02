@@ -55,7 +55,18 @@ build: fmt
 		--allow-env \
 		--allow-read \
 		--allow-run \
-		--allow-write=/var/folders,/tmp,~/.cache/deno/deno_esbuild_tmp \
+		--allow-write=/var/folders \
+		_esbuild.ts
+
+# in github action
+build-ci: fmt
+	deno lint
+	cp -rv app/UI/assets/ build-pwa/
+	deno run \
+		--allow-env \
+		--allow-read \
+		--allow-run \
+		--allow-write \
 		_esbuild.ts
 
 test-ui: fmt
@@ -68,7 +79,15 @@ dev: build
 compile-all-ui-tests:
 	deno run --allow-read --allow-env \
 		--allow-run \
-		--allow-write=--allow-write=/var/folders,/tmp,~/.cache/deno/deno_esbuild_tmp \
+		--allow-write=--allow-write=/var/folders \
+		--allow-net \
+		_compile-ui-tests.ts
+
+# in github aciton
+compile-all-ui-tests-ci:
+	deno run --allow-read --allow-env \
+		--allow-run \
+		--allow-write \
 		--allow-net \
 		_compile-ui-tests.ts
 

@@ -44,7 +44,7 @@ jobs:
         run: make test
 
       - name: UI test
-        run: make compile-all-ui-tests
+        run: make compile-all-ui-tests-ci
 
   deploy:
     timeout-minutes: 1
@@ -63,7 +63,7 @@ jobs:
         uses: denoland/setup-deno@v1
 
       - name: Bundle
-        run: make build
+        run: make build-ci
 
       - name: Upload to Deno Deploy
         uses: denoland/deployctl@v1
