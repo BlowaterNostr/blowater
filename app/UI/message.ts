@@ -1,7 +1,7 @@
-import { PublicKey } from "../../libs/nostr.ts/key.ts";
+import { PublicKey } from "@blowater/nostr-sdk";
 import { DirectedMessage_Event, Parsed_Event } from "../nostr.ts";
-import { NostrKind } from "../../libs/nostr.ts/nostr.ts";
-import { Nevent, NostrAddress, NostrProfile, NoteID } from "../../libs/nostr.ts/nip19.ts";
+import { NostrKind } from "@blowater/nostr-sdk";
+import { Nevent, NostrAddress, NostrProfile, NoteID } from "@blowater/nostr-sdk";
 
 type ItemType = "url" | "tag" | "note" | "npub" | "nprofile" | "naddr" | "nevent";
 export type ContentItem = {

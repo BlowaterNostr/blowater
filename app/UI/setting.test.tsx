@@ -1,10 +1,10 @@
-import { render } from "https://esm.sh/preact@10.17.1";
+import { render } from "preact";
 import { Setting } from "./setting.tsx";
 import { RelayConfig } from "./relay-config.ts";
-import { InMemoryAccountContext } from "../../libs/nostr.ts/nostr.ts";
-import { PrivateKey } from "../../libs/nostr.ts/key.ts";
+import { InMemoryAccountContext } from "@blowater/nostr-sdk";
+import { PrivateKey } from "@blowater/nostr-sdk";
 import { testEventBus } from "./_setup.test.ts";
-import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
+import { ConnectionPool } from "@blowater/nostr-sdk";
 
 const pool = new ConnectionPool();
 const ctx = InMemoryAccountContext.New(PrivateKey.Generate());

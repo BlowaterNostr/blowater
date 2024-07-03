@@ -1,5 +1,5 @@
 /** @jsx h */
-import { Component, Fragment, h } from "https://esm.sh/preact@10.17.1";
+import { Component, Fragment, h } from "preact";
 
 import {
     CenterClass,
@@ -23,11 +23,9 @@ import {
 import { RelayIcon } from "./icons/relay-icon.tsx";
 import { DeleteIcon } from "./icons/delete-icon.tsx";
 import { default_blowater_relay, RelayConfig } from "./relay-config.ts";
-import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
 import { emitFunc } from "../event-bus.ts";
-import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { InMemoryAccountContext, NostrAccountContext } from "../../libs/nostr.ts/nostr.ts";
-import { PrivateKey } from "../../libs/nostr.ts/key.ts";
+import { sleep } from "@blowater/csp";
+import { ConnectionPool, InMemoryAccountContext, NostrAccountContext, PrivateKey } from "@blowater/nostr-sdk";
 
 export interface SettingProps {
     logout: () => void;

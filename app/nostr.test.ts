@@ -1,9 +1,14 @@
-import { assertEquals, fail } from "https://deno.land/std@0.202.0/testing/asserts.ts";
-import { blobToBase64, InMemoryAccountContext, NostrEvent, NostrKind } from "../libs/nostr.ts/nostr.ts";
+import {
+    blobToBase64,
+    InMemoryAccountContext,
+    NostrEvent,
+    NostrKind,
+    prepareNormalNostrEvent,
+    PrivateKey,
+    utf8Decode,
+} from "@blowater/nostr-sdk";
 import { prepareNostrImageEvent, prepareReplyEvent } from "./nostr.ts";
-import { PrivateKey } from "../libs/nostr.ts/key.ts";
-import { utf8Decode } from "../libs/nostr.ts/nip4.ts";
-import { prepareNormalNostrEvent } from "../libs/nostr.ts/event.ts";
+import { assertEquals, fail } from "@std/assert";
 
 Deno.test("prepareNostrImageEvent", async (t) => {
     const pri = PrivateKey.Generate();

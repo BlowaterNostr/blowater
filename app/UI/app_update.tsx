@@ -1,24 +1,7 @@
 /** @jsx h */
-import { h } from "https://esm.sh/preact@10.17.1";
-import {
-    Channel,
-    closed,
-    PutChannel,
-    sleep,
-} from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { prepareDeletionEvent, prepareNormalNostrEvent } from "../../libs/nostr.ts/event.ts";
-import { prepareReactionEvent } from "../../libs/nostr.ts/nip25.ts";
-import { prepareReplyEvent } from "../nostr.ts";
-import { PublicKey } from "../../libs/nostr.ts/key.ts";
-import { NoteID } from "../../libs/nostr.ts/nip19.ts";
-import {
-    InMemoryAccountContext,
-    NostrAccountContext,
-    NostrEvent,
-    NostrKind,
-    SpaceMember,
-} from "../../libs/nostr.ts/nostr.ts";
-import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
+import { h } from "preact";
+import { Channel, closed, PutChannel, sleep } from "@blowater/csp";
+
 import { Database_View } from "../database.ts";
 import { emitFunc, EventBus } from "../event-bus.ts";
 import { DirectedMessageController, sendDirectMessages } from "../features/dm.ts";
@@ -28,6 +11,7 @@ import {
     getTags,
     Parsed_Event,
     PinConversation,
+    prepareReplyEvent,
     Profile_Nostr_Event,
     Tag,
     UnpinConversation,
@@ -60,7 +44,7 @@ import { HidePopOver } from "./components/popover.tsx";
 import { Public_Model } from "./public-message-container.tsx";
 import { SyncEvent } from "./message-panel.tsx";
 import { SendingEventRejection, ToastChannel } from "./components/toast.tsx";
-import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
+
 import { default_blowater_relay } from "./relay-config.ts";
 import { forever } from "./_helper.ts";
 import { DeleteEvent, func_GetEventByID } from "./message-list.tsx";
@@ -69,8 +53,22 @@ import { CloseRightPanel } from "./components/right-panel.tsx";
 import { RightPanelChannel } from "./components/right-panel.tsx";
 import { ReplyToMessage } from "./message-list.tsx";
 import { EditorSelectProfile } from "./editor.tsx";
-import { uploadFile } from "../../libs/nostr.ts/nip96.ts";
+
 import { HideModal, ModalInputChannel } from "./components/modal.tsx";
+import {
+    ConnectionPool,
+    InMemoryAccountContext,
+    NostrAccountContext,
+    NostrEvent,
+    NostrKind,
+    NoteID,
+    prepareDeletionEvent,
+    prepareNormalNostrEvent,
+    prepareReactionEvent,
+    PublicKey,
+    SingleRelayConnection,
+    uploadFile,
+} from "@blowater/nostr-sdk";
 
 export type UI_Interaction_Event =
     | SearchUpdate

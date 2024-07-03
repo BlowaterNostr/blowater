@@ -1,4 +1,5 @@
-import { Component, h } from "https://esm.sh/preact@10.17.1";
+/* jsx h */
+import { Component, h } from "preact";
 import { emitFunc } from "../event-bus.ts";
 import { Empty } from "./_helper.ts";
 

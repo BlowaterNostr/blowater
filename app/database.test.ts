@@ -1,6 +1,4 @@
-import { prepareNormalNostrEvent } from "../libs/nostr.ts/event.ts";
-import { PrivateKey } from "../libs/nostr.ts/key.ts";
-import { InMemoryAccountContext, NostrKind } from "../libs/nostr.ts/nostr.ts";
+import { InMemoryAccountContext, NostrKind, prepareNormalNostrEvent, PrivateKey } from "@blowater/nostr-sdk";
 import { test_db_view } from "./UI/_setup.test.ts";
 import { Parsed_Event } from "./nostr.ts";
 import { assertEquals } from "https://deno.land/std@0.202.0/assert/assert_equals.ts";

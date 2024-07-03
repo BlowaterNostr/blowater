@@ -1,5 +1,5 @@
 /** @jsx h */
-import { h, render } from "https://esm.sh/preact@10.17.1";
+import { h, render } from "preact";
 import { RelayInformationComponent } from "./relay-detail.tsx";
 import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
 import { Database_View } from "../database.ts";

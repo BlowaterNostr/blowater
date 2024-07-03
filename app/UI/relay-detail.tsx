@@ -1,5 +1,5 @@
 /** @jsx h */
-import { Component, Fragment, h } from "https://esm.sh/preact@10.17.1";
+import { Component, Fragment, h } from "preact";
 import { CopyButton } from "./components/copy-button.tsx";
 import { CenterClass, InputClass } from "./components/tw.ts";
 import {
@@ -15,10 +15,9 @@ import { Loading } from "./components/loading.tsx";
 import { Profile_Nostr_Event } from "../nostr.ts";
 import { emitFunc } from "../event-bus.ts";
 import { SelectConversation } from "./search_model.ts";
-import { RelayInformation, robohash } from "../../libs/nostr.ts/nip11.ts";
+import { PublicKey, RelayInformation, robohash } from "@blowater/nostr-sdk";
 import { setState } from "./_helper.ts";
-import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { PublicKey } from "../../libs/nostr.ts/key.ts";
+import { Channel } from "@blowater/csp";
 import { ViewUserDetail } from "./message-panel.tsx";
 
 type SpaceSettingProps = {

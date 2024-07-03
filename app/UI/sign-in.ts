@@ -1,6 +1,6 @@
 import { GetLocalStorageAccountContext, Nip7ExtensionContext } from "./account-context.ts";
-import { PrivateKey } from "../../libs/nostr.ts/key.ts";
-import { InMemoryAccountContext, NostrAccountContext } from "../../libs/nostr.ts/nostr.ts";
+import { PrivateKey } from "@blowater/nostr-sdk";
+import { InMemoryAccountContext, NostrAccountContext } from "@blowater/nostr-sdk";
 
 export type SignInEvent = {
     type: "SignInEvent";

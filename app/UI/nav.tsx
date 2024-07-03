@@ -1,6 +1,6 @@
 /** @jsx h */
-import { ComponentChild, h } from "https://esm.sh/preact@10.17.1";
-import { PublicKey } from "../../libs/nostr.ts/key.ts";
+import { ComponentChild, h } from "preact";
+
 import {
     PrimaryBackgroundColor,
     PrimaryTextColor,
@@ -10,20 +10,20 @@ import {
 import { ChatIcon } from "./icons/chat-icon.tsx";
 import { UserIcon } from "./icons/user-icon.tsx";
 import { SettingIcon } from "./icons/setting-icon.tsx";
-import { Component } from "https://esm.sh/preact@10.17.1";
+import { Component } from "preact";
 import { AboutIcon } from "./icons/about-icon.tsx";
 
 import { CenterClass, NoOutlineClass } from "./components/tw.ts";
 import { emitFunc } from "../event-bus.ts";
 import { DownloadIcon } from "./icons/download-icon.tsx";
 import { Profile_Nostr_Event } from "../nostr.ts";
-import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
-import { SingleRelayConnection } from "../../libs/nostr.ts/relay-single.ts";
+
 import { SpaceDropDownPanel } from "./space-drop-down-panel.tsx";
 import { SocialIcon } from "./icons/social-icon.tsx";
 import { SearchIcon } from "./icons/search-icon.tsx";
 import { StartSearch } from "./search_model.ts";
 import { ViewSpaceSettings } from "./setting.tsx";
+import { ConnectionPool, PublicKey } from "@blowater/nostr-sdk";
 
 export type InstallPrompt = {
     event: Event | undefined;

@@ -1,4 +1,4 @@
-import { Component } from "https://esm.sh/preact@10.17.1";
+import { Component } from "preact";
 
 export function isMobile() {
     return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);

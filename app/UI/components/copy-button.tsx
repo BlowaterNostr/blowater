@@ -1,11 +1,11 @@
 /** @jsx h */
-import { h } from "https://esm.sh/preact@10.17.1";
+import { h } from "preact";
 import { DividerBackgroundColor, PrimaryTextColor, SuccessColor } from "../style/colors.ts";
 import { CopyIcon } from "../icons/copy-icon.tsx";
 import { CenterClass, NoOutlineClass } from "./tw.ts";
 import { CheckIcon } from "../icons/check-icon.tsx";
-import { Component } from "https://esm.sh/preact@10.17.1";
-import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { Component } from "preact";
+import { sleep } from "@blowater/csp";
 
 type Props = {
     class?: string | h.JSX.SignalLike<string | undefined>;

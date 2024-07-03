@@ -1,8 +1,8 @@
 /** @jsx h */
-import { h, render } from "https://esm.sh/preact@10.17.1";
+import { h, render } from "preact";
 import { RightPanel } from "./right-panel.tsx";
-import { ComponentChildren } from "https://esm.sh/preact@10.17.1";
-import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { ComponentChildren } from "preact";
+import { Channel } from "@blowater/csp";
 import { CenterClass } from "./tw.ts";
 
 const rightPanelChan: Channel<() => ComponentChildren> = new Channel();

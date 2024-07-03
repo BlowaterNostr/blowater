@@ -1,6 +1,6 @@
 /** @jsx h */
-import { Component, Fragment, h } from "https://esm.sh/preact@10.17.1";
-import { PublicKey } from "../../libs/nostr.ts/key.ts";
+import { Component, Fragment, h } from "preact";
+import { PublicKey } from "@blowater/nostr-sdk";
 import { emitFunc, EventSubscriber } from "../event-bus.ts";
 import { ProfileData } from "../features/profile.ts";
 import { PinConversation, UnpinConversation } from "../nostr.ts";
@@ -18,7 +18,7 @@ import { SearchUpdate, SelectConversation } from "./search_model.ts";
 import { ErrorColor, PrimaryTextColor, SecondaryBackgroundColor } from "./style/colors.ts";
 import { ContactTag, ContactTags, TagSelected } from "./contact-tags.tsx";
 import { ViewUserDetail } from "./message-panel.tsx";
-import { robohash } from "../../libs/nostr.ts/nip11.ts";
+import { robohash } from "@blowater/nostr-sdk";
 
 export interface ConversationListRetriever {
     getContacts: () => Iterable<ConversationSummary>;

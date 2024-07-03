@@ -97,7 +97,7 @@
     "https://deno.land/x/wasmbuild@0.15.1/loader.ts": "8c2fc10e21678e42f84c5135d8ab6ab7dc92424c3f05d2354896a29ccfd02a63",
     "https://esm.sh/dexie@3.2.4": "c47d1a2d892e605fde24fd9900602b11808018d5fb11a1c6ad91cec6bb0bf828",
     "https://esm.sh/preact@10.11.3": "ad3c24796c4132c84b4b392f812228d53a0fd600fa64648f27aebd05ec09b24e",
-    "https://esm.sh/preact@10.17.1": "d9d10d95cd047fd2c26bb68e760a87d3747fafc64a1e54049095682c69c7491a",
+    "preact": "d9d10d95cd047fd2c26bb68e760a87d3747fafc64a1e54049095682c69c7491a",
     "https://esm.sh/stable/preact@10.11.3/denonext/preact.mjs": "c828d9020ea26f07ba07b2f0a3ef97fd7ceb1c2a772c380ca05e2647ac8d3923",
     "https://esm.sh/stable/preact@10.17.1/denonext/preact.mjs": "0f2f159289b4502eea839f4b57cef910ad03d63213ac5301e6767326b060d8f6",
     "https://esm.sh/twind@0.16.16": "638f6fedc496ecb6bb6280be885145ab9bab0eee23478bace6018c7b28a4cd76",
@@ -106,6 +106,6 @@
     "https://esm.sh/v135/twind@0.16.16/denonext/twind.mjs": "857319af660b8bae96d20737a4f9a9b4ce909fcb47e0552abd559216824fe795",
     "https://esm.sh/v135/zod@3.22.4/denonext/zod.mjs": "660128af5d1e921745c4d452472d103d9f2fc5afa508bbf233b83d35a272ad67",
     "https://esm.sh/zod@3.22.4": "f7bfaf7e78bc8fa39e67e07c0dacd651925e889f5a4ef02b3ef6bab3925a8384",
-    "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts": "4469313196bb1385ad38d13b72db0dbaf09a512c78d821144bc72b96c807417b"
+    "@blowater/csp": "4469313196bb1385ad38d13b72db0dbaf09a512c78d821144bc72b96c807417b"
   }
 }

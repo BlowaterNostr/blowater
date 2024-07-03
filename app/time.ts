@@ -1,4 +1,4 @@
-import { NostrEvent } from "../libs/nostr.ts/nostr.ts";
+import { NostrEvent } from "@blowater/nostr-sdk";
 import { getTags } from "./nostr.ts";
 
 export class LamportTime {

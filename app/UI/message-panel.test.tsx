@@ -1,18 +1,14 @@
 /** @jsx h */
 import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
-import { h, render } from "https://esm.sh/preact@10.17.1";
-import { prepareEncryptedNostrEvent } from "../../libs/nostr.ts/event.ts";
-import { InMemoryAccountContext, NostrKind } from "../../libs/nostr.ts/nostr.ts";
-import { relays } from "../../libs/nostr.ts/relay-list.test.ts";
-import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
+import { h, render } from "preact";
+import { InMemoryAccountContext, NostrKind, prepareEncryptedNostrEvent } from "@blowater/nostr-sdk";
+
 import { test_db_view, testEventBus } from "./_setup.test.ts";
 import { DirectedMessageController } from "../features/dm.ts";
 import { DM_List } from "./conversation-list.ts";
 import { MessagePanel } from "./message-panel.tsx";
-import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { sleep } from "@blowater/csp";
 
-const pool = new ConnectionPool();
-pool.addRelayURL(relays[2]);
 const database = await test_db_view();
 
 const ctx = InMemoryAccountContext.Generate();
@@ -45,10 +41,14 @@ for (let i = 10;; i++) {
         <div class="w-screen h-screen">
             <MessagePanel
                 getters={{
-                    profileGetter: database,
                     relayRecordGetter: database,
                     isUserBlocked: new DM_List(ctx).isUserBlocked,
                     getEventByID: database.getEventByID,
+                    getProfileByPublicKey: database.getProfileByPublicKey,
+                    getProfilesByText: database.getProfilesByText,
+                    getReactionsByEventID: database.getReactionEvents,
+                    isAdmin: () => false,
+                    messageGetter: dmController,
                 }}
                 myPublicKey={ctx.publicKey}
                 emit={testEventBus.emit}

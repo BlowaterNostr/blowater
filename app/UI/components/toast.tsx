@@ -1,8 +1,8 @@
 /** @jsx h */
-import { Component, ComponentChildren } from "https://esm.sh/preact@10.17.1";
-import { h } from "https://esm.sh/preact@10.17.1";
+import { Component, ComponentChildren } from "preact";
+import { h } from "preact";
 import { LinkColor, PrimaryBackgroundColor, PrimaryTextColor } from "../style/colors.ts";
-import { Channel, sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { Channel, sleep } from "@blowater/csp";
 import { setState } from "../_helper.ts";
 import { emitFunc } from "../../event-bus.ts";
 import { ViewSpaceSettings } from "../setting.tsx";

@@ -1,13 +1,6 @@
 /** @jsx h */
-import {
-    Component,
-    ComponentChildren,
-    createRef,
-    Fragment,
-    h,
-    RefObject,
-} from "https://esm.sh/preact@10.17.1";
-import { PublicKey } from "../../libs/nostr.ts/key.ts";
+import { Component, ComponentChildren, createRef, Fragment, h, RefObject } from "preact";
+import { NoteID, PublicKey, robohash } from "@blowater/nostr-sdk";
 import { RelayRecordGetter } from "../database.ts";
 import { emitFunc } from "../event-bus.ts";
 import { IconButtonClass } from "./components/tw.ts";
@@ -23,21 +16,19 @@ import {
 } from "./message-panel.tsx";
 import { ChatMessage, groupContinuousMessages, sortMessage } from "./message.ts";
 import { SelectConversation } from "./search_model.ts";
-import { sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { sleep } from "@blowater/csp";
 import { ProfileData } from "../features/profile.ts";
 import { isMobile, setState } from "./_helper.ts";
 import { Avatar } from "./components/avatar.tsx";
 import { AboutIcon } from "./icons/about-icon.tsx";
 import { BackgroundColor_MessagePanel } from "./style/colors.ts";
 import { Parsed_Event } from "../nostr.ts";
-import { NoteID } from "../../libs/nostr.ts/nip19.ts";
 import { ReplyIcon } from "./icons/reply-icon.tsx";
 import { ChatMessagesGetter } from "./app_update.tsx";
-import { NostrKind } from "../../libs/nostr.ts/nostr.ts";
+import { NostrKind } from "@blowater/nostr-sdk";
 import { func_GetProfileByPublicKey } from "./search.tsx";
 import { DeleteIcon } from "./icons/delete-icon.tsx";
 import { ThumbsUpIcon } from "./icons/thumbs-up-icon.tsx";
-import { robohash } from "../../libs/nostr.ts/nip11.ts";
 
 export type func_IsAdmin = (pubkey: string) => boolean;
 

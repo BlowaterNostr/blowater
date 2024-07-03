@@ -1,7 +1,7 @@
 /** @jsx h */
-import { Component, h, VNode } from "https://esm.sh/preact@10.17.1";
-import { PublicKey } from "../../libs/nostr.ts/key.ts";
-import { NostrAccountContext } from "../../libs/nostr.ts/nostr.ts";
+import { Component, h, VNode } from "preact";
+import { PublicKey } from "@blowater/nostr-sdk";
+import { NostrAccountContext } from "@blowater/nostr-sdk";
 import { RelayRecordGetter } from "../database.ts";
 import { EventBus } from "../event-bus.ts";
 import { ChatMessagesGetter, UI_Interaction_Event, UserBlocker } from "./app_update.tsx";

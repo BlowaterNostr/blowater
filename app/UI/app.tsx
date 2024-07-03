@@ -1,9 +1,7 @@
 /** @jsx h */
-import { h, render, VNode } from "https://esm.sh/preact@10.17.1";
-import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { InvalidKey, PublicKey } from "../../libs/nostr.ts/key.ts";
-import { NostrAccountContext, NostrEvent, NostrKind } from "../../libs/nostr.ts/nostr.ts";
-import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
+import { h, render, VNode } from "preact";
+import { Channel } from "@blowater/csp";
+
 import { Database_View } from "../database.ts";
 import { EventBus } from "../event-bus.ts";
 import { DirectedMessageController, getAllEncryptedMessagesOf, InvalidEvent } from "../features/dm.ts";
@@ -23,7 +21,7 @@ import { getCurrentSignInCtx, getSignInState, setSignInState } from "./sign-in.t
 import { SecondaryBackgroundColor } from "./style/colors.ts";
 import { LamportTime } from "../time.ts";
 import { InstallPrompt, NavBar } from "./nav.tsx";
-import { Component } from "https://esm.sh/preact@10.17.1";
+import { Component } from "preact";
 import { PublicMessageContainer } from "./public-message-container.tsx";
 import { ChatMessage } from "./message.ts";
 import { filter, forever, map } from "./_helper.ts";
@@ -35,7 +33,15 @@ import { ToastChannel } from "./components/toast.tsx";
 import { RightPanelChannel } from "./components/right-panel.tsx";
 import { Modal, ModalInputChannel } from "./components/modal.tsx";
 import { func_IsAdmin } from "./message-list.tsx";
-import { getRelayInformation } from "../../libs/nostr.ts/nip11.ts";
+import {
+    ConnectionPool,
+    getRelayInformation,
+    InvalidKey,
+    NostrAccountContext,
+    NostrEvent,
+    NostrKind,
+    PublicKey,
+} from "@blowater/nostr-sdk";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");

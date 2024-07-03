@@ -1,4 +1,6 @@
-import { assertEquals } from "https://deno.land/std@0.202.0/assert/assert_equals.ts";
+import { PrivateKey, PublicKey } from "@blowater/nostr-sdk";
+import { Nevent, NostrAddress, NostrProfile } from "@blowater/nostr-sdk";
+import { NostrKind } from "@blowater/nostr-sdk";
 import {
     ChatMessage,
     ContentItem,
@@ -6,10 +8,7 @@ import {
     groupContinuousMessages,
     parseContent,
 } from "./message.ts";
-import { PrivateKey, PublicKey } from "../../libs/nostr.ts/key.ts";
-
-import { NostrKind } from "../../libs/nostr.ts/nostr.ts";
-import { Nevent, NostrAddress, NostrProfile } from "../../libs/nostr.ts/nip19.ts";
+import { assertEquals } from "@std/assert";
 
 Deno.test("inline parse", async (t) => {
     const data: {

@@ -1,4 +1,4 @@
-import { createRef, h } from "https://esm.sh/preact@10.17.1";
+import { createRef, h } from "preact";
 import { ProfileData } from "../features/profile.ts";
 import {
     DividerBackgroundColor,
@@ -8,9 +8,9 @@ import {
     PrimaryTextColor,
     SecondaryBackgroundColor,
 } from "./style/colors.ts";
-import { Component } from "https://esm.sh/preact@10.11.3";
+import { Component } from "preact";
 import { emitFunc } from "../event-bus.ts";
-import { NostrAccountContext } from "../../libs/nostr.ts/nostr.ts";
+import { NostrAccountContext } from "@blowater/nostr-sdk";
 import { UserIcon } from "./icons/user-icon.tsx";
 
 export type SaveProfile = {

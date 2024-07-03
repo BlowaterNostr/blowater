@@ -1,7 +1,7 @@
 /** @jsx h */
-import { h, render } from "https://esm.sh/preact@10.17.1";
-import { PrivateKey } from "../../libs/nostr.ts/key.ts";
-import { InMemoryAccountContext, NostrKind } from "../../libs/nostr.ts/nostr.ts";
+import { h, render } from "preact";
+import { PrivateKey } from "@blowater/nostr-sdk";
+import { InMemoryAccountContext, NostrKind } from "@blowater/nostr-sdk";
 import { ProfileCard } from "./profile-card.tsx";
 import { testEventBus } from "./_setup.test.ts";
 

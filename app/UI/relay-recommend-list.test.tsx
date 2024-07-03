@@ -1,22 +1,20 @@
 /** @jsx h */
-import { h, render } from "https://esm.sh/preact@10.17.1";
+import { h, render } from "preact";
 import { RelayRecommendList } from "./relay-recommend-list.tsx";
 import { testEventBus } from "./_setup.test.ts";
-import { defaultRelays, RelayConfig } from "./relay-config.ts";
-import { InMemoryAccountContext } from "../../libs/nostr.ts/nostr.ts";
-import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
+import { RelayConfig } from "./relay-config.ts";
+import { InMemoryAccountContext } from "@blowater/nostr-sdk";
+import { ConnectionPool } from "@blowater/nostr-sdk";
 
 const pool = new ConnectionPool();
 const ctx = InMemoryAccountContext.Generate();
 const relayConfig = RelayConfig.Default({ ctx, relayPool: pool });
-for (const url of defaultRelays) {
-    relayConfig.add(url);
-}
 
 render(
     <RelayRecommendList
         relayConfig={relayConfig}
         emit={testEventBus.emit}
+        getRelayRecommendations={() => new Set()}
     />,
     document.body,
 );

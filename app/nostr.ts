@@ -1,11 +1,16 @@
 /*
     Extension to common Nostr types
 */
-import { PublicKey } from "../libs/nostr.ts/key.ts";
-import * as nostr from "../libs/nostr.ts/nostr.ts";
-import { NostrKind, TagPubKey } from "../libs/nostr.ts/nostr.ts";
+
+import {
+    NostrKind,
+    prepareEncryptedNostrEvent,
+    prepareNormalNostrEvent,
+    PublicKey,
+    TagPubKey,
+} from "@blowater/nostr-sdk";
 import { ProfileData } from "./features/profile.ts";
-import { prepareEncryptedNostrEvent, prepareNormalNostrEvent } from "../libs/nostr.ts/event.ts";
+import * as nostr from "@blowater/nostr-sdk";
 
 type TotolChunks = string;
 type ChunkIndex = string; // 0-indexed

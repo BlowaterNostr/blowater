@@ -1,10 +1,10 @@
 /** @jsx h */
-import { h } from "https://esm.sh/preact@10.17.1";
-import { render } from "https://esm.sh/preact@10.17.1";
+import { h } from "preact";
+import { render } from "preact";
 import { NavBar } from "./nav.tsx";
 import { testEventBus } from "./_setup.test.ts";
-import { PrivateKey } from "../../libs/nostr.ts/key.ts";
-import { ConnectionPool } from "../../libs/nostr.ts/relay-pool.ts";
+import { PrivateKey } from "@blowater/nostr-sdk";
+import { ConnectionPool } from "@blowater/nostr-sdk";
 
 const pool = new ConnectionPool();
 await pool.addRelayURLs(
@@ -43,6 +43,7 @@ render(
         publicKey={PrivateKey.Generate().toPublicKey()}
         activeNav="DM"
         pool={pool}
+        currentRelay="ws://localhost:8000"
     />,
     document.body,
 );

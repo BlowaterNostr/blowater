@@ -1,5 +1,5 @@
 /** @jsx h */
-import { h, render } from "https://esm.sh/preact@10.17.1";
+import { h, render } from "preact";
 import { ContactTags } from "./contact-tags.tsx";
 import { testEventBus } from "./_setup.test.ts";
 

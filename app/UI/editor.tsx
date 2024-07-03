@@ -1,22 +1,22 @@
 /** @jsx h */
-import { createRef, h } from "https://esm.sh/preact@10.17.1";
+import { createRef, h } from "preact";
 import { emitFunc } from "../event-bus.ts";
 
 import { ImageIcon } from "./icons/image-icon.tsx";
 import { SendIcon } from "./icons/send-icon.tsx";
-import { Component } from "https://esm.sh/preact@10.17.1";
+import { Component } from "preact";
 import { RemoveIcon } from "./icons/remove-icon.tsx";
 import { setState } from "./_helper.ts";
 import { XCircleIcon } from "./icons/x-circle-icon.tsx";
 import { func_GetProfileByPublicKey } from "./search.tsx";
-import { NoteID } from "../../libs/nostr.ts/nip19.ts";
+import { NoteID } from "@blowater/nostr-sdk";
 import { EventSubscriber } from "../event-bus.ts";
 import { UI_Interaction_Event } from "./app_update.tsx";
 import { Parsed_Event } from "../nostr.ts";
 import { Profile_Nostr_Event } from "../nostr.ts";
 import { Avatar } from "./components/avatar.tsx";
-import { UploadFileResponse } from "../../libs/nostr.ts/nip96.ts";
-import { robohash } from "../../libs/nostr.ts/nip11.ts";
+import { UploadFileResponse } from "@blowater/nostr-sdk";
+import { robohash } from "@blowater/nostr-sdk";
 
 export type EditorEvent = SendMessage | UploadImage | EditorSelectProfile;
 

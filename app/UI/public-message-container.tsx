@@ -1,5 +1,5 @@
 /* @jsx h */
-import { Component, h } from "https://esm.sh/preact@10.17.1";
+import { Component, h } from "preact";
 import { emitFunc, EventBus } from "../event-bus.ts";
 import { ChatMessagesGetter, UI_Interaction_Event } from "./app_update.tsx";
 import { setState } from "./_helper.ts";
@@ -8,14 +8,14 @@ import { func_GetProfileByPublicKey, func_GetProfilesByText } from "./search.tsx
 import { RelayRecordGetter } from "../database.ts";
 import { NewMessageChecker } from "./conversation-list.tsx";
 import { ConversationListRetriever } from "./conversation-list.tsx";
-import { NostrAccountContext } from "../../libs/nostr.ts/nostr.ts";
+import { NostrAccountContext } from "@blowater/nostr-sdk";
 
 import { MessagePanel } from "./message-panel.tsx";
-import { PublicKey } from "../../libs/nostr.ts/key.ts";
+import { PublicKey } from "@blowater/nostr-sdk";
 import { ChatMessage } from "./message.ts";
 import { func_GetEventByID, func_GetReactionsByEventID, func_IsAdmin } from "./message-list.tsx";
 import { Filter, FilterContent } from "./filter.tsx";
-import { NoteID } from "../../libs/nostr.ts/nip19.ts";
+import { NoteID } from "@blowater/nostr-sdk";
 
 export type Public_Model = {
     relaySelectedChannel: Map<string, /* relay url */ string /* channel name */>;

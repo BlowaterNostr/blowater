@@ -1,11 +1,11 @@
 /** @jsx h */
-import { Component, h } from "https://esm.sh/preact@10.17.1";
+import { Component, h } from "preact";
 import { emitFunc } from "../event-bus.ts";
 import { RelayAvatar } from "./components/avatar.tsx";
 import { SelectSpace } from "./nav.tsx";
 import { NavigationUpdate } from "./nav.tsx";
 import { setState } from "./_helper.ts";
-import { getRelayInformation, RelayInformation, robohash } from "../../libs/nostr.ts/nip11.ts";
+import { getRelayInformation, RelayInformation, robohash } from "@blowater/nostr-sdk";
 import { ViewSpaceSettings } from "./setting.tsx";
 
 type SpaceDropDownPanelProps = {

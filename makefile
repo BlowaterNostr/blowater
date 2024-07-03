@@ -50,8 +50,24 @@ stats:
 # build the web application
 build: fmt
 	deno lint
+	deno run \
+		--allow-env \
+		--allow-read \
+		--allow-run \
+		--allow-write=/var/folders \
+		_esbuild.ts
 	cp -rv app/UI/assets/ build-pwa/
-	deno bundle app/UI/_main.tsx build-pwa/main.mjs
+
+# in github action
+build-ci: fmt
+	deno lint
+	deno run \
+		--allow-env \
+		--allow-read \
+		--allow-run \
+		--allow-write \
+		_esbuild.ts
+	cp -rv app/UI/assets/ build-pwa/
 
 test-ui: fmt
 	deno bundle --config=./deno.json app/UI/$(page).test.tsx build-pwa/main.mjs
@@ -61,7 +77,19 @@ dev: build
 	file_server -p $(port) build-pwa
 
 compile-all-ui-tests:
-	deno run --allow-read --allow-env --allow-write --allow-net app/UI/_compile-ui-tests.ts
+	deno run --allow-read --allow-env \
+		--allow-run \
+		--allow-write=--allow-write=/var/folders \
+		--allow-net \
+		_compile-ui-tests.ts
+
+# in github aciton
+compile-all-ui-tests-ci:
+	deno run --allow-read --allow-env \
+		--allow-run \
+		--allow-write \
+		--allow-net \
+		_compile-ui-tests.ts
 
 # build the tauri application
 tauri-dev: build icon
