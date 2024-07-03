@@ -234,7 +234,7 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                 console.error(e);
                 continue;
             }
-            await app.popOverInputChan.put({
+            await app.modalInputChan.put({
                 children: (
                     <SpaceSetting
                         emit={app.eventBus.emit}

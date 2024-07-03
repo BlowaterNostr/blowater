@@ -142,6 +142,9 @@ export class SpaceDropDownPanel extends Component<SpaceDropDownPanelProps, Relay
                     type: "ViewSpaceSettings",
                     url: this.props.currentRelay,
                 });
+                setState(this, {
+                    showDropDown: false,
+                });
             }}
         >
             <svg
