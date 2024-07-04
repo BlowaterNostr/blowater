@@ -283,6 +283,7 @@ export class App {
 
         (async () => {
             await this.database.waitRelayRecordToLoad();
+            await this.database.loadNewProfile();
             render(
                 <AppComponent
                     eventBus={this.eventBus}
@@ -474,7 +475,10 @@ export class AppComponent extends Component<AppProps, {
                     >
                         <EditProfile
                             ctx={model.app.ctx}
-                            profile={app.database.getProfileByPublicKey(myAccountCtx.publicKey)?.profile ||
+                            profile={app.database.getNewProfileByPublicKey(
+                                model.currentRelay,
+                                myAccountCtx.publicKey,
+                            )?.profile ||
                                 {}}
                             emit={props.eventBus.emit}
                         />

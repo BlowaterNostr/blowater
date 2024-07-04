@@ -89,7 +89,11 @@ export class Database_View
         RelayRecommendationsGetter {
     private readonly sourceOfChange = csp.chan<{ event: Parsed_Event; relay?: string }>(buffer_size);
     private readonly caster = csp.multi<{ event: Parsed_Event; relay?: string }>(this.sourceOfChange);
-    private readonly profiles = new Map<string, Profile_Nostr_Event>();
+    private readonly profiles = new Map</* pubkey */ string, Profile_Nostr_Event>();
+    private readonly newProfiles = new Map<
+        /* spaceURL */ string,
+        Map</* pubkey */ string, Profile_Nostr_Event>
+    >();
     private readonly deletionEvents = new Map</* event id */ string, /* deletion event */ Parsed_Event>();
     private readonly reactionEvents = new Map<
         /* event id */ string,
@@ -289,6 +293,24 @@ export class Database_View
         }
     }
 
+    // Need to be after space record loaded
+    loadNewProfile = async () => {
+        for (const event of this.events.values()) {
+            if (event.kind == NostrKind.META_DATA) {
+                // @ts-ignore
+                const pEvent = parseProfileEvent(event);
+                if (pEvent instanceof Error) {
+                    console.error(pEvent);
+                    continue;
+                }
+                const records = this.getRelayRecord(pEvent.id);
+                for (const spaceURL of records) {
+                    this.setNewProfile(pEvent, spaceURL);
+                }
+            }
+        }
+    };
+
     getProfilesByText = (name: string): Profile_Nostr_Event[] => {
         const result = [];
         for (const event of this.profiles.values()) {
@@ -304,6 +326,25 @@ export class Database_View
         return result;
     };
 
+    getNewProfilesByText = (spaceURL: string, name: string): Profile_Nostr_Event[] => {
+        const result = [];
+        const spaceProfiels = this.newProfiles.get(spaceURL);
+        if (spaceProfiels) {
+            for (const event of spaceProfiels.values()) {
+                if (
+                    (event.profile.name &&
+                        event.profile.name?.toLocaleLowerCase().indexOf(name.toLowerCase()) != -1) ||
+                    (event.profile.display_name &&
+                        event.profile.display_name?.toLocaleLowerCase().indexOf(name.toLocaleLowerCase()) !=
+                            -1)
+                ) {
+                    result.push(event);
+                }
+            }
+        }
+        return result;
+    };
+
     getProfileByPublicKey = (pubkey: PublicKey | string): Profile_Nostr_Event | undefined => {
         if (!this.profiles) return;
         if (pubkey instanceof PublicKey) {
@@ -311,6 +352,15 @@ export class Database_View
         }
         const profile = this.profiles.get(pubkey);
         return profile;
+    };
+
+    getNewProfileByPublicKey = (
+        spaceURL: string,
+        pubkey: PublicKey | string,
+    ): Profile_Nostr_Event | undefined => {
+        if (!this.newProfiles) return;
+        if (pubkey instanceof PublicKey) pubkey = pubkey.hex;
+        return this.newProfiles.get(spaceURL)?.get(pubkey);
     };
 
     getUniqueProfileCount(): number {
@@ -325,6 +375,24 @@ export class Database_View
             }
         } else {
             this.profiles.set(profileEvent.pubkey, profileEvent);
+        }
+    }
+
+    setNewProfile(profileEvent: Profile_Nostr_Event, spaceURL: string) {
+        const spaceProfiles = this.newProfiles.get(spaceURL);
+        if (spaceProfiles) {
+            const profile = spaceProfiles.get(profileEvent.pubkey);
+            if (profile) {
+                if (profileEvent.created_at > profile.created_at) {
+                    spaceProfiles.set(profileEvent.pubkey, profileEvent);
+                }
+            } else {
+                spaceProfiles.set(profileEvent.pubkey, profileEvent);
+            }
+        } else {
+            const profile = new Map<string, Profile_Nostr_Event>();
+            profile.set(profileEvent.pubkey, profileEvent);
+            this.newProfiles.set(spaceURL, profile);
         }
     }
 
@@ -379,6 +447,7 @@ export class Database_View
                 return pEvent;
             }
             this.setProfile(pEvent);
+            if (url) this.setNewProfile(pEvent, url);
         } else if (parsedEvent.kind == NostrKind.DELETE) {
             parsedEvent.parsedTags.e.forEach((event_id) => {
                 this.deletionEvents.set(event_id, parsedEvent);
