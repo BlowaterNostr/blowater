@@ -509,7 +509,6 @@ export function parseProfileEvent(
     }
     return {
         ...event,
-        kind: event.kind,
         profile: profileData,
         parsedTags,
         publicKey,
