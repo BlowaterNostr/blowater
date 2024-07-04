@@ -282,8 +282,6 @@ export class App {
         }
 
         (async () => {
-            await this.database.waitRelayRecordToLoad();
-            await this.database.loadNewProfile();
             render(
                 <AppComponent
                     eventBus={this.eventBus}

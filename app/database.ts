@@ -191,7 +191,7 @@ export class Database_View
             new Set(all_removed_events.map((mark) => mark.event_id)),
         );
         console.log("Datebase_View:New time spent", Date.now() - t);
-
+        await db.waitRelayRecordToLoad();
         for (const event of db.events.values()) {
             if (event.kind == NostrKind.META_DATA) {
                 // @ts-ignore
@@ -201,6 +201,10 @@ export class Database_View
                     continue;
                 }
                 db.setProfile(pEvent);
+                const records = db.getRelayRecord(pEvent.id);
+                for (const spaceURL of records) {
+                    db.setNewProfile(pEvent, spaceURL);
+                }
             } else if (event.kind == NostrKind.DELETE) {
                 event.parsedTags.e.forEach((event_id) => {
                     db.deletionEvents.set(event_id, event);
@@ -292,24 +296,6 @@ export class Database_View
             return true;
         }
     }
-
-    // Need to be after space record loaded
-    loadNewProfile = async () => {
-        for (const event of this.events.values()) {
-            if (event.kind == NostrKind.META_DATA) {
-                // @ts-ignore
-                const pEvent = parseProfileEvent(event);
-                if (pEvent instanceof Error) {
-                    console.error(pEvent);
-                    continue;
-                }
-                const records = this.getRelayRecord(pEvent.id);
-                for (const spaceURL of records) {
-                    this.setNewProfile(pEvent, spaceURL);
-                }
-            }
-        }
-    };
 
     getProfilesByText = (name: string): Profile_Nostr_Event[] => {
         const result = [];
