@@ -48,6 +48,7 @@
         "@std/datetime": "jsr:@std/datetime@^0.224.1",
         "@std/encoding": "jsr:@std/encoding@^0.224.3",
         "@std/path": "jsr:@std/path@^0.225.2",
+        "@std/fs": "jsr:@std/fs@^0.229.3",
         "preact": "https://esm.sh/preact@10.17.1"
     }
 }

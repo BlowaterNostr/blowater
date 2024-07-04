@@ -1,21 +1,20 @@
 /** @jsx h */
-import { h, render } from "https://esm.sh/preact@10.17.1";
+import { ComponentChildren, h, render } from "preact";
 import { Modal, ModalInputChannel } from "./components/modal.tsx";
-import { Channel, sleep } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { chan, Channel, sleep } from "@blowater/csp";
 import { CenterClass } from "./components/tw.ts";
-import { test_db_view, testEventBus } from "./_setup.test.ts";
-import { emitFunc } from "../event-bus.ts";
+import { testEventBus } from "./_setup.test.ts";
 import { SpaceSetting } from "./relay-detail.tsx";
-import { UI_Interaction_Event } from "./app_update.tsx";
-import { InMemoryAccountContext } from "../../libs/nostr.ts/nostr.ts";
-import * as csp from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
-import { RelayInformation } from "../../libs/nostr.ts/nip11.ts";
+import { InMemoryAccountContext, RelayInformation } from "@blowater/nostr-sdk";
 
 const ctx = InMemoryAccountContext.Generate();
 const spaceUrl = new URL("ws://localhost:8080/");
-const modalChan: ModalInputChannel = new Channel();
+const modalChan: ModalInputChannel = new Channel<{
+    children: ComponentChildren;
+    onClose?: (() => void) | undefined;
+}>();
 const spaceInformationChan = () => {
-    const chan = csp.chan<Error | RelayInformation>();
+    const c = chan<Error | RelayInformation>();
     (async () => {
         const info: RelayInformation = {
             name: "space setting modal test",
@@ -29,24 +28,22 @@ const spaceInformationChan = () => {
                 "https://image.nostr.build/655007ae74f24ea1c611889f48b25cb485b83ab67408daddd98f95782f47e1b5.jpg",
         };
         for (;;) {
-            if (chan.closed()) return;
-            const err = await chan.put(info);
+            if (c.closed()) return;
+            const err = await c.put(info);
             if (err instanceof Error) {
                 return;
             }
             await sleep(3000); // every 3 sec
         }
     })();
-    return chan;
+    return c;
 };
 const memberSet = new Set<string>();
 for (let i = 0; i < 10; i++) {
     memberSet.add(InMemoryAccountContext.Generate().publicKey.hex);
 }
 
-function ModalTest(props: {
-    emit: emitFunc<UI_Interaction_Event>;
-}) {
+function ModalTest() {
     return (
         <div class={`${CenterClass} w-screen h-screen text-white`}>
             <button
@@ -55,7 +52,7 @@ function ModalTest(props: {
                     await modalChan.put({
                         children: (
                             <SpaceSetting
-                                emit={props.emit}
+                                emit={testEventBus.emit}
                                 getSpaceInformationChan={spaceInformationChan}
                                 getMemberSet={() => memberSet}
                                 spaceUrl={spaceUrl}
@@ -72,7 +69,7 @@ function ModalTest(props: {
     );
 }
 
-render(<ModalTest emit={testEventBus.emit} />, document.body);
+render(<ModalTest />, document.body);
 
 for await (const event of testEventBus.onChange()) {
     if (event.type === "HideModal") {

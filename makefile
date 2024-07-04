@@ -69,8 +69,18 @@ build-ci: fmt
 		_esbuild.ts
 	cp -rv app/UI/assets/ build-pwa/
 
-test-ui: fmt
-	deno bundle --config=./deno.json app/UI/$(page).test.tsx build-pwa/main.mjs
+build-ui-test: fmt
+	deno lint
+	deno run \
+	--allow-env \
+	--allow-read \
+	--allow-run \
+	--allow-write=/var/folders \
+	_compile-ui-test.ts $(page)
+	cp -rv app/UI/assets/ build-pwa/
+
+# deno bundle --config=./deno.json app/UI/$(page).test.tsx build-pwa/main.mjs
+test-ui: build-ui-test
 	file_server -p $(port) build-pwa
 
 dev: build

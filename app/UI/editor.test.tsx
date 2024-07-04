@@ -22,7 +22,7 @@ const parsedEvent: Parsed_Event = {
     publicKey: author.publicKey,
 };
 
-const prepareProfileEvent = async (profile: { name?: string; display_name?: string }) => {
+export const prepareProfileEvent = async (profile: { name?: string; display_name?: string }) => {
     const profileEvent = await prepareNormalNostrEvent(author, {
         kind: NostrKind.META_DATA,
         content: JSON.stringify(profile),

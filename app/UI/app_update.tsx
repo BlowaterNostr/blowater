@@ -30,7 +30,7 @@ import { EventDetail, EventDetailItem } from "./event-detail.tsx";
 
 import { DirectMessagePanelUpdate, SendReaction } from "./message-panel.tsx";
 import { ChatMessage, parseContent } from "./message.ts";
-import { InstallPrompt, NavigationModel, NavigationUpdate, SelectSpace } from "./nav.tsx";
+import { InstallPrompt, NavigationModel, NavigationUpdate, SelectSpace, ShowProfileSetting } from "./nav.tsx";
 import { notify } from "./notification.ts";
 import { SpaceSetting } from "./relay-detail.tsx";
 import { Search } from "./search.tsx";
@@ -97,7 +97,8 @@ export type UI_Interaction_Event =
     | ReplyToMessage
     | EditorSelectProfile
     | DeleteEvent
-    | SendReaction;
+    | SendReaction
+    | ShowProfileSetting;
 
 type BackToContactList = {
     type: "BackToContactList";

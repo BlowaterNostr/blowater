@@ -29,6 +29,10 @@ export type InstallPrompt = {
     event: Event | undefined;
 };
 
+export type ShowProfileSetting = {
+    type: "ShowProfileSetting";
+};
+
 export type NavigationUpdate = {
     type: "ChangeNavigation";
     id: NavTabID;
@@ -46,7 +50,7 @@ export type NavigationModel = {
 type Props = {
     publicKey: PublicKey;
     profile: Profile_Nostr_Event | undefined;
-    emit: emitFunc<NavigationUpdate | SelectSpace | StartSearch | ViewSpaceSettings>;
+    emit: emitFunc<NavigationUpdate | SelectSpace | StartSearch | ViewSpaceSettings | ShowProfileSetting>;
     installPrompt: InstallPrompt;
     pool: ConnectionPool;
     activeNav: NavTabID;
@@ -162,6 +166,10 @@ export class NavBar extends Component<Props, State> {
                                 if (id === "Search") {
                                     props.emit({
                                         type: "StartSearch",
+                                    });
+                                } else if (id === "Profile") {
+                                    props.emit({
+                                        type: "ShowProfileSetting",
                                     });
                                 } else {
                                     this.changeTab(id);
