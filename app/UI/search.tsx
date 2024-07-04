@@ -38,7 +38,8 @@ export interface ProfileGetter {
 
 type Props = {
     placeholder: string;
-    profileGetter: ProfileGetter;
+    getProfilesByText: func_GetProfilesByText;
+    getProfileByPublicKey: func_GetProfileByPublicKey;
     emit: emitFunc<SearchUpdate>;
 };
 
@@ -84,12 +85,12 @@ export class Search extends Component<Props, State> {
         const text = e.currentTarget.value;
         const pubkey = PublicKey.FromString(text);
         if (pubkey instanceof Error) {
-            const profiles = this.props.profileGetter.getProfilesByText(text);
+            const profiles = this.props.getProfilesByText(text);
             this.setState({
                 searchResults: profiles,
             });
         } else {
-            const profile_event = this.props.profileGetter.getProfileByPublicKey(pubkey);
+            const profile_event = this.props.getProfileByPublicKey(pubkey);
             this.setState({
                 searchResults: profile_event ? [profile_event] : pubkey,
             });
