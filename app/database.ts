@@ -297,22 +297,7 @@ export class Database_View
         }
     }
 
-    getProfilesByText = (name: string): Profile_Nostr_Event[] => {
-        const result = [];
-        for (const event of this.profiles.values()) {
-            if (
-                (event.profile.name &&
-                    event.profile.name?.toLocaleLowerCase().indexOf(name.toLowerCase()) != -1) ||
-                (event.profile.display_name &&
-                    event.profile.display_name?.toLocaleLowerCase().indexOf(name.toLocaleLowerCase()) != -1)
-            ) {
-                result.push(event);
-            }
-        }
-        return result;
-    };
-
-    getNewProfilesByText = (spaceURL: string) => (name: string): Profile_Nostr_Event[] => {
+    getProfilesByText = (spaceURL: string) => (name: string): Profile_Nostr_Event[] => {
         const result = [];
         const spaceProfiels = this.newProfiles.get(spaceURL);
         if (spaceProfiels) {
@@ -331,25 +316,16 @@ export class Database_View
         return result;
     };
 
-    getProfileByPublicKey = (pubkey: PublicKey | string): Profile_Nostr_Event | undefined => {
-        if (!this.profiles) return;
-        if (pubkey instanceof PublicKey) {
-            pubkey = pubkey.hex;
-        }
-        const profile = this.profiles.get(pubkey);
-        return profile;
-    };
-
-    getNewProfileByPublicKey =
+    getProfileByPublicKey =
         (spaceURL: string) => (pubkey: PublicKey | string): Profile_Nostr_Event | undefined => {
             if (!this.newProfiles) return;
             if (pubkey instanceof PublicKey) pubkey = pubkey.hex;
             return this.newProfiles.get(spaceURL)?.get(pubkey);
         };
 
-    getUniqueProfileCount(): number {
-        return this.profiles.size;
-    }
+    getUniqueProfileCount = (spaceURL: string): number => {
+        return this.newProfiles.get(spaceURL)?.size || 0;
+    };
 
     setProfile(profileEvent: Profile_Nostr_Event): void {
         const profile = this.profiles.get(profileEvent.pubkey);

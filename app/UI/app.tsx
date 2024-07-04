@@ -395,8 +395,8 @@ export class AppComponent extends Component<AppProps, {
                             newMessageChecker: app.conversationLists,
                             relayRecordGetter: app.database,
                             pinListGetter: app.otherConfig,
-                            getProfileByPublicKey: app.database.getNewProfileByPublicKey(model.currentRelay),
-                            getProfilesByText: app.database.getNewProfilesByText(model.currentRelay),
+                            getProfileByPublicKey: app.database.getProfileByPublicKey(model.currentRelay),
+                            getProfilesByText: app.database.getProfilesByText(model.currentRelay),
                             isUserBlocked: app.conversationLists.isUserBlocked,
                             getEventByID: app.database.getEventByID,
                             isAdmin: this.state.isAdmin,
@@ -423,8 +423,8 @@ export class AppComponent extends Component<AppProps, {
                         convoListRetriever: app.conversationLists,
                         newMessageChecker: app.conversationLists,
                         relayRecordGetter: app.database,
-                        getProfileByPublicKey: app.database.getNewProfileByPublicKey(model.currentRelay),
-                        getProfilesByText: app.database.getNewProfilesByText(model.currentRelay),
+                        getProfileByPublicKey: app.database.getProfileByPublicKey(model.currentRelay),
+                        getProfilesByText: app.database.getProfilesByText(model.currentRelay),
                         isUserBlocked: app.conversationLists.isUserBlocked,
                         getEventByID: app.database.getEventByID,
                         isAdmin: this.state.isAdmin,
@@ -473,7 +473,7 @@ export class AppComponent extends Component<AppProps, {
                     >
                         <EditProfile
                             ctx={model.app.ctx}
-                            profile={app.database.getNewProfileByPublicKey(
+                            profile={app.database.getProfileByPublicKey(
                                 model.currentRelay,
                             )(
                                 myAccountCtx.publicKey,
@@ -490,7 +490,7 @@ export class AppComponent extends Component<AppProps, {
             <div class={`h-screen w-full flex`}>
                 <NavBar
                     publicKey={app.ctx.publicKey}
-                    profile={app.database.getNewProfileByPublicKey(model.currentRelay)(
+                    profile={app.database.getProfileByPublicKey(model.currentRelay)(
                         myAccountCtx.publicKey,
                     )}
                     emit={app.eventBus.emit}
