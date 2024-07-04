@@ -24,7 +24,7 @@ import { OtherConfig } from "./config-other.ts";
 import { DM_List } from "./conversation-list.ts";
 import { ContactUpdate } from "./conversation-list.tsx";
 import { StartInvite } from "./dm.tsx";
-import { SaveProfile } from "./edit-profile.tsx";
+import { EditProfile, SaveProfile } from "./edit-profile.tsx";
 import { EditorEvent, SendMessage } from "./editor.tsx";
 import { EventDetail, EventDetailItem } from "./event-detail.tsx";
 
@@ -321,7 +321,21 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
         //
         // Profile
         //
-        else if (event.type == "SaveProfile") {
+        else if (event.type == "ShowProfileSetting") {
+            app.modalInputChan.put({
+                children: (
+                    <EditProfile
+                        ctx={app.ctx}
+                        profile={app.database.getNewProfileByPublicKey(
+                            model.currentRelay,
+                            app.ctx.publicKey,
+                        )?.profile ||
+                            {}}
+                        emit={app.eventBus.emit}
+                    />
+                ),
+            });
+        } else if (event.type == "SaveProfile") {
             if (event.profile == undefined) {
                 app.toastInputChan.put(() => "profile is empty");
             } else {
@@ -337,6 +351,7 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                         );
                     } else {
                         app.toastInputChan.put(() => "profile has been updated");
+                        app.modalInputChan.put({ children: undefined });
                     }
                 });
             }
