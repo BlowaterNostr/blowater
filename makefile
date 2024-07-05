@@ -5,7 +5,7 @@ port=4507
 file = *
 coverage_dir = cov_profile
 
-test: clear-coverage
+test: fmt clear-coverage
 	deno test --config=deno.json --coverage=$(coverage_dir) --allow-net --allow-read --allow-env --trace-ops *.test.ts **/*.test.ts
 
 test-core:
