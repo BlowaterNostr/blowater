@@ -28,11 +28,14 @@ export interface ProfileSetter {
     setProfile(profileEvent: Profile_Nostr_Event, relayURL: string): void;
 }
 
-export type func_GetProfileByPublicKey = (pubkey: PublicKey | string) => Profile_Nostr_Event | undefined;
-export type func_GetProfilesByText = (name: string) => Profile_Nostr_Event[];
+export type func_GetProfileByPublicKey = (
+    pubkey: PublicKey | string,
+    spaceURL: string | URL | undefined,
+) => Profile_Nostr_Event | undefined;
+export type func_GetProfilesByText = (name: string, spaceURL: string | undefined) => Profile_Nostr_Event[];
 export interface ProfileGetter {
-    getProfileByPublicKey: (spaceURL: string, pubkey: PublicKey | string) => Profile_Nostr_Event | undefined;
-    getProfilesByText: (spaceURL: string, name: string) => Profile_Nostr_Event[];
+    getProfileByPublicKey: func_GetProfileByPublicKey;
+    getProfilesByText: func_GetProfilesByText;
     getUniqueProfileCount: (spaceURL: string) => number;
 }
 
@@ -85,12 +88,14 @@ export class Search extends Component<Props, State> {
         const text = e.currentTarget.value;
         const pubkey = PublicKey.FromString(text);
         if (pubkey instanceof Error) {
-            const profiles = this.props.getProfilesByText(text);
+            // todo: decide if search is per space scoped
+            const profiles = this.props.getProfilesByText(text, undefined);
             this.setState({
                 searchResults: profiles,
             });
         } else {
-            const profile_event = this.props.getProfileByPublicKey(pubkey);
+            // todo: decide if search is per space scoped
+            const profile_event = this.props.getProfileByPublicKey(pubkey, undefined);
             this.setState({
                 searchResults: profile_event ? [profile_event] : pubkey,
             });

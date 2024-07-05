@@ -210,10 +210,8 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                     placeholder={`Search a user's public key or name (${
                         app.database.getUniqueProfileCount(model.currentRelay)
                     } profiles)`}
-                    getProfileByPublicKey={(publicKey) =>
-                        app.database.getProfileByPublicKey(model.currentRelay, publicKey)}
-                    getProfilesByText={(publicKey) =>
-                        app.database.getProfilesByText(model.currentRelay, publicKey)}
+                    getProfileByPublicKey={app.database.getProfileByPublicKey}
+                    getProfilesByText={app.database.getProfilesByText}
                     emit={eventBus.emit}
                 />
             );
@@ -247,8 +245,7 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                         getSpaceInformationChan={relay.getRelayInformationStream}
                         getMemberSet={app.database.getMemberSet}
                         spaceUrl={spaceUrl}
-                        getProfileByPublicKey={(publicKey) =>
-                            app.database.getProfileByPublicKey(model.currentRelay, publicKey)}
+                        getProfileByPublicKey={app.database.getProfileByPublicKey}
                     />
                 ),
             });
@@ -328,12 +325,12 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
         // Profile
         //
         else if (event.type == "ShowProfileSetting") {
+            const profile_event = app.database.getProfileByPublicKey(app.ctx.publicKey, model.currentRelay);
             app.modalInputChan.put({
                 children: (
                     <EditProfile
                         ctx={app.ctx}
-                        profile={app.database.getProfileByPublicKey(model.currentRelay, app.ctx.publicKey)
-                            ?.profile || {}}
+                        profile={profile_event?.profile || {}}
                         emit={app.eventBus.emit}
                     />
                 ),
@@ -394,16 +391,16 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
             sync_user_detail_data({ pool, pubkey: event.pubkey, database: app.database, profile_only: true });
             app.rightPanelInputChan.put(
                 () => {
+                    const profile_event = app.database.getProfileByPublicKey(
+                        event.pubkey,
+                        model.currentRelay,
+                    );
                     return (
                         <UserDetail
-                            targetUserProfile={app.database.getProfileByPublicKey(
-                                model.currentRelay,
-                                event.pubkey,
-                            )?.profile ||
+                            targetUserProfile={profile_event?.profile ||
                                 {}}
                             pubkey={event.pubkey}
                             emit={eventBus.emit}
-                            // dmList={app.conversationLists}
                             blocked={app.conversationLists.isUserBlocked(event.pubkey)}
                         />
                     );
@@ -627,8 +624,7 @@ export async function* Database_Update(
 
             // notification should be moved to after domain objects
             {
-                const author = database.getProfileByPublicKey(model.currentRelay, e.publicKey)
-                    ?.profile;
+                const author = database.getProfileByPublicKey(e.publicKey, model.currentRelay)?.profile;
                 if (e.pubkey != ctx.publicKey.hex && e.parsedTags.p.includes(ctx.publicKey.hex)) {
                     notify(
                         author?.name ? author.name : "",

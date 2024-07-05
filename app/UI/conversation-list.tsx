@@ -196,6 +196,7 @@ function ContactGroup(props: ConversationListProps) {
                 let profile;
                 const profileEvent = props.getters.getProfileByPublicKey(
                     contact.conversation.pubkey,
+                    undefined, // todo: scope DM to each space
                 );
                 if (profileEvent) {
                     profile = profileEvent.profile;
@@ -250,6 +251,7 @@ function ContactGroup(props: ConversationListProps) {
                 let profile;
                 const profileEvent = props.getters.getProfileByPublicKey(
                     contact.conversation.pubkey,
+                    undefined, // todo: scope DM to each space
                 );
                 if (profileEvent) {
                     profile = profileEvent.profile;

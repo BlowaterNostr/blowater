@@ -178,7 +178,7 @@ export class RelayInformationComponent extends Component<Props, State> {
                             <p class={this.styles.title}>Admin</p>
                             <AuthorField
                                 publicKey={pubkey}
-                                profileData={this.props.getProfileByPublicKey(pubkey)}
+                                profileData={this.props.getProfileByPublicKey(pubkey, this.props.info.url)}
                                 emit={this.props.emit}
                             />
                         </Fragment>,
@@ -277,7 +277,7 @@ export class MemberList extends Component<MemberListProps> {
         return (
             <>
                 {Array.from(members).map((member) => {
-                    const profile = props.getProfileByPublicKey(member);
+                    const profile = props.getProfileByPublicKey(member, props.space_url);
                     return (
                         <div
                             class="w-full flex items-center px-4 py-2 hover:bg-neutral-500 rounded-lg cursor-pointer"
