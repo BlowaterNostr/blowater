@@ -3,7 +3,6 @@ import { Component, h } from "preact";
 import { emitFunc, EventBus } from "../event-bus.ts";
 import { ChatMessagesGetter, UI_Interaction_Event } from "./app_update.tsx";
 import { setState } from "./_helper.ts";
-import { func_GetProfileByPublicKey, func_GetProfilesByText } from "./search.tsx";
 
 import { RelayRecordGetter } from "../database.ts";
 import { NewMessageChecker } from "./conversation-list.tsx";
@@ -16,6 +15,7 @@ import { ChatMessage } from "./message.ts";
 import { func_GetEventByID, func_GetReactionsByEventID, func_IsAdmin } from "./message-list.tsx";
 import { Filter, FilterContent } from "./filter.tsx";
 import { NoteID } from "@blowater/nostr-sdk";
+import { func_GetProfileByPublicKey, func_GetProfilesByText } from "./search.tsx";
 
 export type Public_Model = {
     relaySelectedChannel: Map<string, /* relay url */ string /* channel name */>;

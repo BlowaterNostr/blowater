@@ -1,7 +1,7 @@
 /** @jsx h */
 import { h, render } from "preact";
 import { HideModal, Modal, ModalInputChannel } from "./modal.tsx";
-import { Channel } from "https://raw.githubusercontent.com/BlowaterNostr/csp/master/csp.ts";
+import { Channel } from "@blowater/csp";
 import { CenterClass } from "./tw.ts";
 import { testEventBus } from "../_setup.test.ts";
 import { emitFunc } from "../../event-bus.ts";

@@ -1,12 +1,11 @@
 # https://stackoverflow.com/questions/3931741/why-does-make-think-the-target-is-up-to-date
 .PHONY: build-pwa build-extension
 
-page=app
 port=4507
 file = *
 coverage_dir = cov_profile
 
-test: clear-coverage
+test: fmt clear-coverage
 	deno test --config=deno.json --coverage=$(coverage_dir) --allow-net --allow-read --allow-env --trace-ops *.test.ts **/*.test.ts
 
 test-core:
@@ -70,7 +69,14 @@ build-ci: fmt
 	cp -rv app/UI/assets/ build-pwa/
 
 test-ui: fmt
-	deno bundle --config=./deno.json app/UI/$(page).test.tsx build-pwa/main.mjs
+	deno lint
+	deno run \
+	--allow-env \
+	--allow-read \
+	--allow-run \
+	--allow-write=/var/folders \
+	_compile-ui-tests.ts $(page)
+	cp -rv app/UI/assets/ build-pwa/
 	file_server -p $(port) build-pwa
 
 dev: build

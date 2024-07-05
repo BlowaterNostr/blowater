@@ -15,7 +15,6 @@ import { DexieDatabase } from "./dexie-db.ts";
 import { DirectMessageContainer } from "./dm.tsx";
 import { EditProfile } from "./edit-profile.tsx";
 import { RelayConfig } from "./relay-config.ts";
-import { ProfileGetter } from "./search.tsx";
 import { Setting } from "./setting.tsx";
 import { getCurrentSignInCtx, getSignInState, setSignInState } from "./sign-in.ts";
 import { SecondaryBackgroundColor } from "./style/colors.ts";
@@ -38,7 +37,6 @@ import {
     getRelayInformation,
     InvalidKey,
     NostrAccountContext,
-    NostrEvent,
     NostrKind,
     PublicKey,
 } from "@blowater/nostr-sdk";
@@ -282,7 +280,6 @@ export class App {
         }
 
         (async () => {
-            await this.database.waitRelayRecordToLoad();
             render(
                 <AppComponent
                     eventBus={this.eventBus}
@@ -474,7 +471,10 @@ export class AppComponent extends Component<AppProps, {
                     >
                         <EditProfile
                             ctx={model.app.ctx}
-                            profile={app.database.getProfileByPublicKey(myAccountCtx.publicKey)?.profile ||
+                            profile={app.database.getProfileByPublicKey(
+                                myAccountCtx.publicKey,
+                                model.currentRelay,
+                            )?.profile ||
                                 {}}
                             emit={props.eventBus.emit}
                         />
@@ -487,7 +487,7 @@ export class AppComponent extends Component<AppProps, {
             <div class={`h-screen w-full flex`}>
                 <NavBar
                     publicKey={app.ctx.publicKey}
-                    profile={app.database.getProfileByPublicKey(myAccountCtx.publicKey)}
+                    profile={app.database.getProfileByPublicKey(app.ctx.publicKey, model.currentRelay)}
                     emit={app.eventBus.emit}
                     installPrompt={props.installPrompt}
                     currentRelay={model.currentRelay}
@@ -536,24 +536,6 @@ export class AppComponent extends Component<AppProps, {
     isAdmin = (admin?: string) => (pubkey: string) => {
         return admin === pubkey;
     };
-}
-
-// todo: move to somewhere else
-export function getFocusedContent(
-    focusedContent: PublicKey | NostrEvent | undefined,
-    profileGetter: ProfileGetter,
-) {
-    if (focusedContent == undefined) {
-        return;
-    }
-    if (focusedContent instanceof PublicKey) {
-        const profileData = profileGetter.getProfileByPublicKey(focusedContent)?.profile;
-        return {
-            type: "ProfileData",
-            data: profileData,
-            pubkey: focusedContent,
-        };
-    }
 }
 
 async function sync_dm_events(

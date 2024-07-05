@@ -8,7 +8,7 @@ import { Component } from "preact";
 import { RemoveIcon } from "./icons/remove-icon.tsx";
 import { setState } from "./_helper.ts";
 import { XCircleIcon } from "./icons/x-circle-icon.tsx";
-import { func_GetProfileByPublicKey } from "./search.tsx";
+import { func_GetProfileByPublicKey, func_GetProfilesByText } from "./search.tsx";
 import { NoteID } from "@blowater/nostr-sdk";
 import { EventSubscriber } from "../event-bus.ts";
 import { UI_Interaction_Event } from "./app_update.tsx";
@@ -45,7 +45,7 @@ type EditorProps = {
     readonly sub: EventSubscriber<UI_Interaction_Event>;
     readonly getters: {
         getProfileByPublicKey: func_GetProfileByPublicKey;
-        getProfilesByText(input: string): Profile_Nostr_Event[];
+        getProfilesByText: func_GetProfilesByText;
     };
     readonly nip96?: boolean;
 };
@@ -251,7 +251,8 @@ export class Editor extends Component<EditorProps, EditorState> {
         const matching = matched ? matched[0].slice(1) : undefined;
 
         const searchResults = matched
-            ? this.props.getters.getProfilesByText(matched[0].slice(1)).splice(0, 10)
+            // todo: pass space url
+            ? this.props.getters.getProfilesByText(matched[0].slice(1), undefined).splice(0, 10)
             : [];
 
         const lines = text.split("\n");
@@ -405,7 +406,7 @@ function ReplyIndicator(props: {
     }
 
     const authorPubkey = props.replyTo.publicKey;
-    const profile = props.getters.getProfileByPublicKey(authorPubkey)?.profile;
+    const profile = props.getters.getProfileByPublicKey(authorPubkey, undefined)?.profile;
     let replyToAuthor = profile?.name || profile?.display_name;
     if (!replyToAuthor) {
         replyToAuthor = authorPubkey.bech32();

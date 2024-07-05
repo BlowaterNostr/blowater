@@ -244,7 +244,7 @@ export function ParseMessageContent(
             }
         } else if (item.type === "npub" || item.type === "nprofile") {
             const pubkey = item.type == "npub" ? item.pubkey : item.nprofile.pubkey;
-            const profile = getters.getProfileByPublicKey(pubkey);
+            const profile = getters.getProfileByPublicKey(pubkey, undefined);
             const name = profile?.profile.name || profile?.profile.display_name;
             vnode.push(
                 <span
@@ -267,7 +267,7 @@ export function ParseMessageContent(
                     eventID: item.noteID.hex,
                 });
             } else {
-                const profile = getters.getProfileByPublicKey(event.publicKey);
+                const profile = getters.getProfileByPublicKey(event.publicKey, undefined);
                 vnode.push(Card(event, profile?.profile, emit, event.publicKey));
             }
         } else if (item.type === "nevent") {
@@ -281,7 +281,7 @@ export function ParseMessageContent(
                     eventID: item.nevent.pointer.id,
                 });
             } else {
-                const profile = getters.getProfileByPublicKey(event.publicKey);
+                const profile = getters.getProfileByPublicKey(event.publicKey, undefined);
                 vnode.push(Card(event, profile ? profile.profile : undefined, emit, event.publicKey));
             }
         }

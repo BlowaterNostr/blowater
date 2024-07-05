@@ -24,13 +24,13 @@ import { OtherConfig } from "./config-other.ts";
 import { DM_List } from "./conversation-list.ts";
 import { ContactUpdate } from "./conversation-list.tsx";
 import { StartInvite } from "./dm.tsx";
-import { SaveProfile } from "./edit-profile.tsx";
+import { EditProfile, SaveProfile } from "./edit-profile.tsx";
 import { EditorEvent, SendMessage } from "./editor.tsx";
 import { EventDetail, EventDetailItem } from "./event-detail.tsx";
 
 import { DirectMessagePanelUpdate, SendReaction } from "./message-panel.tsx";
 import { ChatMessage, parseContent } from "./message.ts";
-import { InstallPrompt, NavigationModel, NavigationUpdate, SelectSpace } from "./nav.tsx";
+import { InstallPrompt, NavigationModel, NavigationUpdate, SelectSpace, ShowProfileSetting } from "./nav.tsx";
 import { notify } from "./notification.ts";
 import { SpaceSetting } from "./relay-detail.tsx";
 import { Search } from "./search.tsx";
@@ -97,7 +97,8 @@ export type UI_Interaction_Event =
     | ReplyToMessage
     | EditorSelectProfile
     | DeleteEvent
-    | SendReaction;
+    | SendReaction
+    | ShowProfileSetting;
 
 type BackToContactList = {
     type: "BackToContactList";
@@ -203,11 +204,13 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                 children: undefined,
             });
         } else if (event.type == "StartSearch") {
-            app.database.getProfilesByText;
             const search = (
                 <Search
-                    placeholder={`Search a user's public key or name (${app.database.getUniqueProfileCount()} profiles)`}
-                    profileGetter={app.database}
+                    placeholder={`Search a user's public key or name (${
+                        app.database.getUniqueProfileCount(model.currentRelay)
+                    } profiles)`}
+                    getProfileByPublicKey={app.database.getProfileByPublicKey}
+                    getProfilesByText={app.database.getProfilesByText}
                     emit={eventBus.emit}
                 />
             );
@@ -320,7 +323,18 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
         //
         // Profile
         //
-        else if (event.type == "SaveProfile") {
+        else if (event.type == "ShowProfileSetting") {
+            const profile_event = app.database.getProfileByPublicKey(app.ctx.publicKey, model.currentRelay);
+            app.modalInputChan.put({
+                children: (
+                    <EditProfile
+                        ctx={app.ctx}
+                        profile={profile_event?.profile || {}}
+                        emit={app.eventBus.emit}
+                    />
+                ),
+            });
+        } else if (event.type == "SaveProfile") {
             if (event.profile == undefined) {
                 app.toastInputChan.put(() => "profile is empty");
             } else {
@@ -336,6 +350,7 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                         );
                     } else {
                         app.toastInputChan.put(() => "profile has been updated");
+                        app.modalInputChan.put({ children: undefined });
                     }
                 });
             }
@@ -375,14 +390,16 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
             sync_user_detail_data({ pool, pubkey: event.pubkey, database: app.database, profile_only: true });
             app.rightPanelInputChan.put(
                 () => {
+                    const profile_event = app.database.getProfileByPublicKey(
+                        event.pubkey,
+                        model.currentRelay,
+                    );
                     return (
                         <UserDetail
-                            targetUserProfile={app.database.getProfileByPublicKey(event.pubkey)
-                                ?.profile ||
+                            targetUserProfile={profile_event?.profile ||
                                 {}}
                             pubkey={event.pubkey}
                             emit={eventBus.emit}
-                            // dmList={app.conversationLists}
                             blocked={app.conversationLists.isUserBlocked(event.pubkey)}
                         />
                     );
@@ -606,8 +623,7 @@ export async function* Database_Update(
 
             // notification should be moved to after domain objects
             {
-                const author = database.getProfileByPublicKey(e.publicKey)
-                    ?.profile;
+                const author = database.getProfileByPublicKey(e.publicKey, model.currentRelay)?.profile;
                 if (e.pubkey != ctx.publicKey.hex && e.parsedTags.p.includes(ctx.publicKey.hex)) {
                     notify(
                         author?.name ? author.name : "",

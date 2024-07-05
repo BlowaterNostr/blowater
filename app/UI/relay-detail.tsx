@@ -109,7 +109,7 @@ export class SpaceSetting extends Component<SpaceSettingProps, SpaceSettingState
                                         {...this.props}
                                         info={{
                                             ...this.state.info,
-                                            url: this.props.spaceUrl.toString(),
+                                            url: this.props.spaceUrl,
                                         }}
                                     />
                                 )
@@ -142,7 +142,7 @@ type State = {
 type Props = {
     getProfileByPublicKey: func_GetProfileByPublicKey;
     emit: emitFunc<SelectConversation>;
-    info: RelayInformation & { url: string };
+    info: RelayInformation & { url: URL };
 };
 
 export class RelayInformationComponent extends Component<Props, State> {
@@ -178,7 +178,7 @@ export class RelayInformationComponent extends Component<Props, State> {
                             <p class={this.styles.title}>Admin</p>
                             <AuthorField
                                 publicKey={pubkey}
-                                profileData={this.props.getProfileByPublicKey(pubkey)}
+                                profileData={this.props.getProfileByPublicKey(pubkey, this.props.info.url)}
                                 emit={this.props.emit}
                             />
                         </Fragment>,
@@ -277,7 +277,7 @@ export class MemberList extends Component<MemberListProps> {
         return (
             <>
                 {Array.from(members).map((member) => {
-                    const profile = props.getProfileByPublicKey(member);
+                    const profile = props.getProfileByPublicKey(member, props.space_url);
                     return (
                         <div
                             class="w-full flex items-center px-4 py-2 hover:bg-neutral-500 rounded-lg cursor-pointer"

@@ -89,7 +89,10 @@ export class Database_View
         RelayRecommendationsGetter {
     private readonly sourceOfChange = csp.chan<{ event: Parsed_Event; relay?: string }>(buffer_size);
     private readonly caster = csp.multi<{ event: Parsed_Event; relay?: string }>(this.sourceOfChange);
-    private readonly profiles = new Map<string, Profile_Nostr_Event>();
+    private readonly profile_events = new Map<
+        /* spaceURL */ string,
+        Map</* pubkey */ string, Profile_Nostr_Event>
+    >();
     private readonly deletionEvents = new Map</* event id */ string, /* deletion event */ Parsed_Event>();
     private readonly reactionEvents = new Map<
         /* event id */ string,
@@ -187,7 +190,7 @@ export class Database_View
             new Set(all_removed_events.map((mark) => mark.event_id)),
         );
         console.log("Datebase_View:New time spent", Date.now() - t);
-
+        await db.waitRelayRecordToLoad();
         for (const event of db.events.values()) {
             if (event.kind == NostrKind.META_DATA) {
                 // @ts-ignore
@@ -196,7 +199,10 @@ export class Database_View
                     console.error(pEvent);
                     continue;
                 }
-                db.setProfile(pEvent);
+                const records = db.getRelayRecord(pEvent.id);
+                for (const spaceURL of records) {
+                    db.setProfile(pEvent, spaceURL);
+                }
             } else if (event.kind == NostrKind.DELETE) {
                 event.parsedTags.e.forEach((event_id) => {
                     db.deletionEvents.set(event_id, event);
@@ -289,42 +295,79 @@ export class Database_View
         }
     }
 
-    getProfilesByText = (name: string): Profile_Nostr_Event[] => {
-        const result = [];
-        for (const event of this.profiles.values()) {
-            if (
-                (event.profile.name &&
-                    event.profile.name?.toLocaleLowerCase().indexOf(name.toLowerCase()) != -1) ||
-                (event.profile.display_name &&
-                    event.profile.display_name?.toLocaleLowerCase().indexOf(name.toLocaleLowerCase()) != -1)
-            ) {
-                result.push(event);
+    getProfilesByText = (
+        name: string,
+        spaceURL: URL | undefined,
+    ): Profile_Nostr_Event[] => {
+        const result: Profile_Nostr_Event[] = [];
+        if (spaceURL == undefined) {
+            for (const profile_events_of_space of this.profile_events.values()) {
+                for (const profile_event of profile_events_of_space.values()) {
+                    if (match_name(profile_event.profile, name)) {
+                        result.push(profile_event);
+                    }
+                }
+            }
+            return result;
+        }
+        const spaceProfiels = this.profile_events.get(spaceURL.toString());
+        if (spaceProfiels) {
+            for (const event of spaceProfiels.values()) {
+                if (match_name(event.profile, name)) {
+                    result.push(event);
+                }
             }
         }
         return result;
     };
 
-    getProfileByPublicKey = (pubkey: PublicKey | string): Profile_Nostr_Event | undefined => {
-        if (!this.profiles) return;
+    getProfileByPublicKey = (
+        pubkey: PublicKey | string,
+        spaceURL: string | URL | undefined,
+    ): Profile_Nostr_Event | undefined => {
+        console.log(pubkey, spaceURL);
         if (pubkey instanceof PublicKey) {
             pubkey = pubkey.hex;
         }
-        const profile = this.profiles.get(pubkey);
-        return profile;
+        if (spaceURL == undefined) {
+            let result: Profile_Nostr_Event | undefined = undefined;
+            for (const profile_events_of_space of this.profile_events.values()) {
+                const profile_event = profile_events_of_space.get(pubkey);
+                if (profile_event == undefined) continue;
+                if (result && profile_event.created_at > result.created_at) {
+                    result = profile_event;
+                } else {
+                    result = profile_event;
+                }
+            }
+            return result;
+        }
+        const profile_events_of_space = this.profile_events.get(spaceURL.toString());
+        if (profile_events_of_space == undefined) {
+            return undefined;
+        }
+        return profile_events_of_space.get(pubkey);
     };
 
-    getUniqueProfileCount(): number {
-        return this.profiles.size;
-    }
+    getUniqueProfileCount = (spaceURL: string): number => {
+        return this.profile_events.get(spaceURL)?.size || 0;
+    };
 
-    setProfile(profileEvent: Profile_Nostr_Event): void {
-        const profile = this.profiles.get(profileEvent.pubkey);
-        if (profile) {
-            if (profileEvent.created_at > profile.created_at) {
-                this.profiles.set(profileEvent.pubkey, profileEvent);
+    setProfile(profileEvent: Profile_Nostr_Event, spaceURL: string) {
+        const spaceProfiles = this.profile_events.get(spaceURL);
+        if (spaceProfiles) {
+            const profile = spaceProfiles.get(profileEvent.pubkey);
+            if (profile) {
+                if (profileEvent.created_at > profile.created_at) {
+                    spaceProfiles.set(profileEvent.pubkey, profileEvent);
+                }
+            } else {
+                spaceProfiles.set(profileEvent.pubkey, profileEvent);
             }
         } else {
-            this.profiles.set(profileEvent.pubkey, profileEvent);
+            const profile = new Map<string, Profile_Nostr_Event>();
+            profile.set(profileEvent.pubkey, profileEvent);
+            this.profile_events.set(spaceURL, profile);
         }
     }
 
@@ -378,7 +421,7 @@ export class Database_View
             if (pEvent instanceof Error) {
                 return pEvent;
             }
-            this.setProfile(pEvent);
+            if (url) this.setProfile(pEvent, url);
         } else if (parsedEvent.kind == NostrKind.DELETE) {
             parsedEvent.parsedTags.e.forEach((event_id) => {
                 this.deletionEvents.set(event_id, parsedEvent);
@@ -440,9 +483,16 @@ export function parseProfileEvent(
     }
     return {
         ...event,
-        kind: event.kind,
         profile: profileData,
         parsedTags,
         publicKey,
     };
+}
+
+function match_name(profile: ProfileData, search_name: string) {
+    return (profile.name &&
+        profile.name?.toLocaleLowerCase().indexOf(search_name.toLowerCase()) != -1) ||
+        (profile.display_name &&
+            profile.display_name?.toLocaleLowerCase().indexOf(search_name.toLocaleLowerCase()) !=
+                -1);
 }

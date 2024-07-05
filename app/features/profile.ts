@@ -4,7 +4,6 @@ import {
     prepareNormalNostrEvent,
     SingleRelayConnection,
 } from "@blowater/nostr-sdk";
-import { Parsed_Event, Profile_Nostr_Event } from "../nostr.ts";
 
 export async function saveProfile(
     profile: ProfileData,
@@ -27,28 +26,6 @@ export interface ProfileData {
     website?: string;
     banner?: string;
     [key: string]: string | undefined;
-}
-
-export function ProfileFromNostrEvent(
-    event: Parsed_Event<NostrKind.META_DATA>,
-) {
-    const profileData = parseJSON<ProfileData>(event.content);
-    if (profileData instanceof Error) {
-        return profileData;
-    }
-    const e: Profile_Nostr_Event = {
-        kind: event.kind,
-        id: event.id,
-        sig: event.sig,
-        created_at: event.created_at,
-        pubkey: event.pubkey,
-        tags: event.tags,
-        content: event.content,
-        parsedTags: event.parsedTags,
-        profile: profileData,
-        publicKey: event.publicKey,
-    };
-    return e;
 }
 
 export function parseJSON<T>(content: string): T | Error {
