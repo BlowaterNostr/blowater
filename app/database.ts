@@ -1,20 +1,13 @@
-import { getTags, Parsed_Event, Profile_Nostr_Event } from "./nostr.ts";
 import * as csp from "@blowater/csp";
+
+import { NostrEvent, NostrKind, NoteID, PublicKey, Tag, v2, verifyEvent } from "@blowater/nostr-sdk";
+
+import { getTags, Parsed_Event, Profile_Nostr_Event } from "./nostr.ts";
 import { parseJSON, ProfileData } from "./features/profile.ts";
 import { ProfileGetter, ProfileSetter } from "./UI/search.tsx";
 
 import { func_GetMemberSet } from "./UI/relay-detail.tsx";
 import { func_GetRelayRecommendations } from "./UI/relay-recommend-list.tsx";
-import {
-    Event_V2,
-    Kind_V2,
-    NostrEvent,
-    NostrKind,
-    NoteID,
-    PublicKey,
-    Tag,
-    verifyEvent,
-} from "@blowater/nostr-sdk";
 
 const buffer_size = 2000;
 export interface Indices {
@@ -99,7 +92,7 @@ export class Database_View
         /* reaction events */ Set<Parsed_Event>
     >();
     private readonly latestEvents = new Map<NostrKind, Parsed_Event>();
-    private readonly events_v2 = new Map<string, /* id */ Event_V2>();
+    private readonly events_v2 = new Map<string, /* id */ v2.Event_V2>();
 
     private constructor(
         private readonly eventsAdapter: EventsAdapter,
@@ -136,7 +129,7 @@ export class Database_View
         const members = new Set<string>();
         const urlString = relay.origin + (relay.pathname === "/" ? "" : relay.pathname);
         for (const event of this.events_v2.values()) {
-            if (event.kind == Kind_V2.SpaceMember) {
+            if (event.kind == v2.Kind_V2.SpaceMember) {
                 const records = this.getRelayRecord(event.id);
                 if (records.has(urlString)) {
                     members.add(event.pubkey);
@@ -438,7 +431,7 @@ export class Database_View
         return parsedEvent;
     }
 
-    async addEvent_v2(event: Event_V2, url: URL) {
+    async addEvent_v2(event: v2.Event_V2, url: URL) {
         this.events_v2.set(event.id, event);
         await this.recordRelay(event.id, url);
     }

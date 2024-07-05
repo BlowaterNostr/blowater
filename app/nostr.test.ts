@@ -1,5 +1,4 @@
 import {
-    blobToBase64,
     InMemoryAccountContext,
     NostrEvent,
     NostrKind,
@@ -7,7 +6,7 @@ import {
     PrivateKey,
     utf8Decode,
 } from "@blowater/nostr-sdk";
-import { prepareNostrImageEvent, prepareReplyEvent } from "./nostr.ts";
+import { blobToBase64, prepareNostrImageEvent, prepareReplyEvent } from "./nostr.ts";
 import { assertEquals, fail } from "@std/assert";
 
 Deno.test("prepareNostrImageEvent", async (t) => {
