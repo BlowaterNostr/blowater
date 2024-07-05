@@ -18,6 +18,7 @@ import {
     PinListGetter,
 } from "./conversation-list.tsx";
 import { func_GetEventByID, func_GetReactionsByEventID, func_IsAdmin } from "./message-list.tsx";
+import { Profile_Nostr_Event } from "../nostr.ts";
 
 export type DM_Model = {
     currentConversation: PublicKey | undefined;
@@ -103,13 +104,11 @@ function TopBar(props: {
     currentConversation: PublicKey;
     buttons: VNode[];
     getters: {
-        getProfilesByText: func_GetProfilesByText;
         getProfileByPublicKey: func_GetProfileByPublicKey;
+        getProfilesByText: func_GetProfilesByText;
     };
 }) {
-    const conversation_profile = props.getters.getProfileByPublicKey(
-        props.currentConversation,
-    );
+    const conversation_profile = props.getters.getProfileByPublicKey(props.currentConversation);
     let conversation_name = conversation_profile?.profile.name ||
         conversation_profile?.profile.display_name ||
         props.currentConversation.bech32();

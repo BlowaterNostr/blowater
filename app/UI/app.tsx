@@ -15,7 +15,6 @@ import { DexieDatabase } from "./dexie-db.ts";
 import { DirectMessageContainer } from "./dm.tsx";
 import { EditProfile } from "./edit-profile.tsx";
 import { RelayConfig } from "./relay-config.ts";
-import { func_GetProfileByPublicKey, ProfileGetter } from "./search.tsx";
 import { Setting } from "./setting.tsx";
 import { getCurrentSignInCtx, getSignInState, setSignInState } from "./sign-in.ts";
 import { SecondaryBackgroundColor } from "./style/colors.ts";
@@ -38,7 +37,6 @@ import {
     getRelayInformation,
     InvalidKey,
     NostrAccountContext,
-    NostrEvent,
     NostrKind,
     PublicKey,
 } from "@blowater/nostr-sdk";
@@ -395,8 +393,10 @@ export class AppComponent extends Component<AppProps, {
                             newMessageChecker: app.conversationLists,
                             relayRecordGetter: app.database,
                             pinListGetter: app.otherConfig,
-                            getProfileByPublicKey: app.database.getProfileByPublicKey(model.currentRelay),
-                            getProfilesByText: app.database.getProfilesByText(model.currentRelay),
+                            getProfileByPublicKey: (publicKey: string | PublicKey) =>
+                                app.database.getProfileByPublicKey(model.currentRelay, publicKey),
+                            getProfilesByText: (name: string) =>
+                                app.database.getProfilesByText(model.currentRelay, name),
                             isUserBlocked: app.conversationLists.isUserBlocked,
                             getEventByID: app.database.getEventByID,
                             isAdmin: this.state.isAdmin,
@@ -423,8 +423,10 @@ export class AppComponent extends Component<AppProps, {
                         convoListRetriever: app.conversationLists,
                         newMessageChecker: app.conversationLists,
                         relayRecordGetter: app.database,
-                        getProfileByPublicKey: app.database.getProfileByPublicKey(model.currentRelay),
-                        getProfilesByText: app.database.getProfilesByText(model.currentRelay),
+                        getProfileByPublicKey: (publicKey: string | PublicKey) =>
+                            app.database.getProfileByPublicKey(model.currentRelay, publicKey),
+                        getProfilesByText: (name: string) =>
+                            app.database.getProfilesByText(model.currentRelay, name),
                         isUserBlocked: app.conversationLists.isUserBlocked,
                         getEventByID: app.database.getEventByID,
                         isAdmin: this.state.isAdmin,
@@ -475,7 +477,6 @@ export class AppComponent extends Component<AppProps, {
                             ctx={model.app.ctx}
                             profile={app.database.getProfileByPublicKey(
                                 model.currentRelay,
-                            )(
                                 myAccountCtx.publicKey,
                             )?.profile ||
                                 {}}
@@ -490,9 +491,7 @@ export class AppComponent extends Component<AppProps, {
             <div class={`h-screen w-full flex`}>
                 <NavBar
                     publicKey={app.ctx.publicKey}
-                    profile={app.database.getProfileByPublicKey(model.currentRelay)(
-                        myAccountCtx.publicKey,
-                    )}
+                    profile={app.database.getProfileByPublicKey(model.currentRelay, app.ctx.publicKey)}
                     emit={app.eventBus.emit}
                     installPrompt={props.installPrompt}
                     currentRelay={model.currentRelay}

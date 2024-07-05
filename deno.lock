@@ -6,6 +6,7 @@
       "jsr:@blowater/csp@^1.0.0": "jsr:@blowater/csp@1.0.0",
       "jsr:@blowater/nostr-sdk@0.0.1-rc3": "jsr:@blowater/nostr-sdk@0.0.1-rc3",
       "jsr:@luca/esbuild-deno-loader@^0.10.3": "jsr:@luca/esbuild-deno-loader@0.10.3",
+      "jsr:@std/assert@0.226.0": "jsr:@std/assert@0.226.0",
       "jsr:@std/assert@^0.213.1": "jsr:@std/assert@0.213.1",
       "jsr:@std/assert@^0.226.0": "jsr:@std/assert@0.226.0",
       "jsr:@std/datetime@^0.224.1": "jsr:@std/datetime@0.224.2",
@@ -376,6 +377,10 @@
     }
   },
   "remote": {
+    "https://deno.land/std@0.176.0/fmt/colors.ts": "938c5d44d889fb82eff6c358bea8baa7e85950a16c9f6dae3ec3a7a729164471",
+    "https://deno.land/std@0.176.0/testing/_diff.ts": "1a3c044aedf77647d6cac86b798c6417603361b66b54c53331b312caeb447aea",
+    "https://deno.land/std@0.176.0/testing/_format.ts": "a69126e8a469009adf4cf2a50af889aca364c349797e63174884a52ff75cf4c7",
+    "https://deno.land/std@0.176.0/testing/asserts.ts": "984ab0bfb3faeed92ffaa3a6b06536c66811185328c5dd146257c702c41b01ab",
     "https://esm.sh/preact@10.22.1": "c82def411ae2b4030ca15b6b19743ce83b8edb749c1ebc6014faa76b84acface",
     "https://esm.sh/stable/preact@10.22.1/denonext/preact.mjs": "516caa8df1109e0b82becdb053e7d956802ee2f3e3fa7f6925291e4d4a527706",
     "https://esm.sh/v135/dexie@3.2.4/denonext/dist/dexie.js": "20d7fea3aad3a1b5d91b7d43590df26f3132c429b731d2dd77697d2a60f67a79",

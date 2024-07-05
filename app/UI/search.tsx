@@ -29,17 +29,17 @@ export interface ProfileSetter {
 }
 
 export type func_GetProfileByPublicKey = (pubkey: PublicKey | string) => Profile_Nostr_Event | undefined;
-export type func_GetProfilesByText = (input: string) => Profile_Nostr_Event[];
+export type func_GetProfilesByText = (name: string) => Profile_Nostr_Event[];
 export interface ProfileGetter {
-    getProfilesByText: (spaceURL: string) => func_GetProfilesByText;
-    getProfileByPublicKey: (spaceURL: string) => func_GetProfileByPublicKey;
+    getProfileByPublicKey: (spaceURL: string, pubkey: PublicKey | string) => Profile_Nostr_Event | undefined;
+    getProfilesByText: (spaceURL: string, name: string) => Profile_Nostr_Event[];
     getUniqueProfileCount: (spaceURL: string) => number;
 }
 
 type Props = {
     placeholder: string;
-    getProfilesByText: func_GetProfilesByText;
     getProfileByPublicKey: func_GetProfileByPublicKey;
+    getProfilesByText: func_GetProfilesByText;
     emit: emitFunc<SearchUpdate>;
 };
 

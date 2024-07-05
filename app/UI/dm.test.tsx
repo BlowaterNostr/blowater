@@ -50,8 +50,8 @@ render(
             relayRecordGetter: database,
             isUserBlocked: dm_list.isUserBlocked,
             getEventByID: database.getEventByID,
-            getProfileByPublicKey: database.getProfileByPublicKey(""),
-            getProfilesByText: database.getProfilesByText(""),
+            getProfileByPublicKey: (pubkey) => database.getProfileByPublicKey("", pubkey),
+            getProfilesByText: (name) => database.getProfilesByText("", name),
             getReactionsByEventID: database.getReactionEvents,
             isAdmin: () => false,
         }}

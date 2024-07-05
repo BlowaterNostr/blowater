@@ -295,7 +295,7 @@ export class Database_View
         }
     }
 
-    getProfilesByText = (spaceURL: string) => (name: string): Profile_Nostr_Event[] => {
+    getProfilesByText = (spaceURL: string, name: string): Profile_Nostr_Event[] => {
         const result = [];
         const spaceProfiels = this.newProfiles.get(spaceURL);
         if (spaceProfiels) {
@@ -314,12 +314,14 @@ export class Database_View
         return result;
     };
 
-    getProfileByPublicKey =
-        (spaceURL: string) => (pubkey: PublicKey | string): Profile_Nostr_Event | undefined => {
-            if (!this.newProfiles) return;
-            if (pubkey instanceof PublicKey) pubkey = pubkey.hex;
-            return this.newProfiles.get(spaceURL)?.get(pubkey);
-        };
+    getProfileByPublicKey = (
+        spaceURL: string,
+        pubkey: PublicKey | string,
+    ): Profile_Nostr_Event | undefined => {
+        if (!this.newProfiles) return;
+        if (pubkey instanceof PublicKey) pubkey = pubkey.hex;
+        return this.newProfiles.get(spaceURL)?.get(pubkey);
+    };
 
     getUniqueProfileCount = (spaceURL: string): number => {
         return this.newProfiles.get(spaceURL)?.size || 0;

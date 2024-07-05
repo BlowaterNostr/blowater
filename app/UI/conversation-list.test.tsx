@@ -46,8 +46,8 @@ const view = () =>
                 convoListRetriever: dm_list,
                 newMessageChecker: dm_list,
                 pinListGetter: otherConfig,
-                getProfileByPublicKey: database.getProfileByPublicKey(""),
-                getProfilesByText: database.getProfilesByText(""),
+                getProfileByPublicKey: (pubkey) => database.getProfileByPublicKey("", pubkey),
+                getProfilesByText: (name) => database.getProfilesByText("", name),
             }}
             eventSub={testEventBus}
             emit={testEventBus.emit}
