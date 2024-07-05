@@ -72,7 +72,7 @@ export class EditProfile extends Component<Props, State> {
                             <div class="flex flex-col justify-start relative">
                                 <img
                                     src={`${this.state.profileData?.picture || "/logo.webp"}`}
-                                    class="w-16 h-16 rounded-full border-[3px] border-white object-cover bg-white"
+                                    class="w-16 h-16 rounded-full object-cover bg-white"
                                 />
                                 <input
                                     ref={uploadFileInput}
@@ -103,7 +103,7 @@ export class EditProfile extends Component<Props, State> {
                                 name="name"
                                 onInput={(e) => this.onInput(e, "name")}
                                 type="text"
-                                class={`focus:outline-none  w-full px-4 py-3 rounded-lg bg-neutral-600`}
+                                class={`focus:outline-none w-full px-4 py-3 rounded-lg bg-neutral-600 text-white text-sm font-normal font-sans leading-5`}
                             />
                             <div class="text-neutral-300 text-sm font-medium leading-5 font-sans">
                                 Bio
@@ -113,7 +113,7 @@ export class EditProfile extends Component<Props, State> {
                                 name="about"
                                 onInput={(e) => this.onInput(e, "about")}
                                 type="text"
-                                class={`focus:outline-none  w-full px-4 py-3 rounded-lg bg-neutral-600`}
+                                class={`focus:outline-none w-full px-4 py-3 rounded-lg bg-neutral-600 text-white text-sm font-normal font-sans leading-5`}
                             />
                             <h3 class="text-neutral-300 text-sm font-medium leading-5 font-sans">
                                 Website
@@ -123,11 +123,11 @@ export class EditProfile extends Component<Props, State> {
                                 name="website"
                                 onInput={(e) => this.onInput(e, "website")}
                                 type="text"
-                                class={`focus:outline-none  w-full px-4 py-3 rounded-lg bg-neutral-600`}
+                                class={`focus:outline-none w-full px-4 py-3 rounded-lg bg-neutral-600 text-white text-sm font-normal font-sans leading-5`}
                             />
 
                             <button
-                                class={`flex items-center justify-center bg-blue-600 hover:bg-blue-700 w-full h-12 rounded-lg`}
+                                class={`flex items-center justify-center bg-blue-600 hover:bg-blue-700 w-full h-12 rounded-lg text-white text-sm font-semibold font-sans leading-5`}
                                 type="submit"
                             >
                                 Save
