@@ -1,7 +1,7 @@
 /** @jsx h */
 import { h, render } from "preact";
 import { Editor } from "./editor.tsx";
-import { testEventBus } from "./_setup.test.ts";
+import { prepareProfileEvent, testEventBus } from "./_setup.test.ts";
 import { InMemoryAccountContext, NostrKind } from "@blowater/nostr-sdk";
 import { prepareEncryptedNostrEvent, prepareNormalNostrEvent } from "@blowater/nostr-sdk";
 import { getTags, Parsed_Event, Profile_Nostr_Event } from "../nostr.ts";
@@ -22,25 +22,9 @@ const parsedEvent: Parsed_Event = {
     publicKey: author.publicKey,
 };
 
-export const prepareProfileEvent = async (profile: { name?: string; display_name?: string }) => {
-    const profileEvent = await prepareNormalNostrEvent(author, {
-        kind: NostrKind.META_DATA,
-        content: JSON.stringify(profile),
-    }) as NostrEvent<NostrKind.META_DATA>;
-    return {
-        ...profileEvent,
-        profile,
-        publicKey: author.publicKey,
-        parsedTags: {
-            p: [],
-            e: [],
-        },
-    } as Profile_Nostr_Event;
-};
-
-const onlyName = await prepareProfileEvent({ name: "test_name" });
-const onlyDisplayName = await prepareProfileEvent({ display_name: "test_display_name" });
-const empty = await prepareProfileEvent({});
+const onlyName = await prepareProfileEvent(author, { name: "test_name" });
+const onlyDisplayName = await prepareProfileEvent(author, { display_name: "test_display_name" });
+const empty = await prepareProfileEvent(author, {});
 
 function TextBook() {
     return (

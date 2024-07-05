@@ -3,10 +3,9 @@ import { ComponentChildren, h, render } from "preact";
 import { Modal, ModalInputChannel } from "./components/modal.tsx";
 import { Channel } from "@blowater/csp";
 import { CenterClass } from "./components/tw.ts";
-import { testEventBus } from "./_setup.test.ts";
+import { prepareProfileEvent, testEventBus } from "./_setup.test.ts";
 import { InMemoryAccountContext } from "@blowater/nostr-sdk";
 import { EditProfile } from "./edit-profile.tsx";
-import { prepareProfileEvent } from "./editor.test.tsx";
 
 const ctx = InMemoryAccountContext.Generate();
 const modalChan: ModalInputChannel = new Channel<{
@@ -14,7 +13,7 @@ const modalChan: ModalInputChannel = new Channel<{
     onClose?: (() => void) | undefined;
 }>();
 
-const profileEvent = await prepareProfileEvent({ name: "test_name" });
+const profileEvent = await prepareProfileEvent(ctx, { name: "test_name" });
 
 function ModalTest() {
     return (
