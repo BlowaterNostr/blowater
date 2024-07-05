@@ -96,7 +96,7 @@ export class MessageList extends Component<Props, MessageListState> {
         });
         const messageBoxGroups = [];
         for (const messages of groups) {
-            const profileEvent = this.props.getters.getProfileByPublicKey(messages[0].author);
+            const profileEvent = this.props.getters.getProfileByPublicKey(messages[0].author, undefined);
             messageBoxGroups.push(
                 MessageBoxGroup({
                     messages: messages,
@@ -227,7 +227,7 @@ export class MessageList_V0 extends Component<Props> {
         });
         const messageBoxGroups = [];
         for (const messages of groups) {
-            const profileEvent = this.props.getters.getProfileByPublicKey(messages[0].author);
+            const profileEvent = this.props.getters.getProfileByPublicKey(messages[0].author, undefined);
             messageBoxGroups.push(
                 MessageBoxGroup({
                     messages: messages,
@@ -521,7 +521,7 @@ function renderReply(event: Parsed_Event, getters: {
     let author = reply_to_event.publicKey.bech32();
     let picture = robohash(reply_to_event.publicKey.hex);
     if (reply_to_event.pubkey) {
-        const profile = getters.getProfileByPublicKey(reply_to_event.publicKey);
+        const profile = getters.getProfileByPublicKey(reply_to_event.publicKey, undefined);
         if (profile) {
             author = profile.profile.name || profile.profile.display_name ||
                 reply_to_event?.publicKey.bech32();
