@@ -124,7 +124,7 @@ export async function prepareNostrImageEvent(
     blob: Blob,
     kind: nostr.NostrKind,
 ): Promise<nostr.NostrEvent | Error> {
-    const binaryContent = await nostr.blobToBase64(blob);
+    const binaryContent = await blobToBase64(blob);
     const encrypted = await sender.encrypt(receiverPublicKey.hex, binaryContent, "nip44");
     if (encrypted instanceof Error) {
         return encrypted;
@@ -212,4 +212,12 @@ export function compare(a: parsedTagsEvent, b: parsedTagsEvent) {
         return a.parsedTags.lamport_timestamp - b.parsedTags.lamport_timestamp;
     }
     return a.created_at - b.created_at;
+}
+
+export function blobToBase64(blob: Blob): Promise<string> {
+    const reader = new FileReader();
+    return new Promise((resolve, _) => {
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(blob);
+    });
 }
