@@ -204,7 +204,6 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                 children: undefined,
             });
         } else if (event.type == "StartSearch") {
-            app.database.getProfilesByText(model.currentRelay, "");
             const search = (
                 <Search
                     placeholder={`Search a user's public key or name (${

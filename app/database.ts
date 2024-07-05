@@ -89,7 +89,7 @@ export class Database_View
         RelayRecommendationsGetter {
     private readonly sourceOfChange = csp.chan<{ event: Parsed_Event; relay?: string }>(buffer_size);
     private readonly caster = csp.multi<{ event: Parsed_Event; relay?: string }>(this.sourceOfChange);
-    private readonly newProfiles = new Map<
+    private readonly profile_events = new Map<
         /* spaceURL */ string,
         Map</* pubkey */ string, Profile_Nostr_Event>
     >();
@@ -295,19 +295,25 @@ export class Database_View
         }
     }
 
-    getProfilesByText = (name: string, spaceURL?: string): Profile_Nostr_Event[] => {
+    getProfilesByText = (
+        name: string,
+        spaceURL: URL | undefined,
+    ): Profile_Nostr_Event[] => {
         const result: Profile_Nostr_Event[] = [];
-        if (spaceURL == undefined) return result; // todo change
-        const spaceProfiels = this.newProfiles.get(spaceURL);
+        if (spaceURL == undefined) {
+            for (const profile_events_of_space of this.profile_events.values()) {
+                for (const profile_event of profile_events_of_space.values()) {
+                    if (match_name(profile_event.profile, name)) {
+                        result.push(profile_event);
+                    }
+                }
+            }
+            return result;
+        }
+        const spaceProfiels = this.profile_events.get(spaceURL.toString());
         if (spaceProfiels) {
             for (const event of spaceProfiels.values()) {
-                if (
-                    (event.profile.name &&
-                        event.profile.name?.toLocaleLowerCase().indexOf(name.toLowerCase()) != -1) ||
-                    (event.profile.display_name &&
-                        event.profile.display_name?.toLocaleLowerCase().indexOf(name.toLocaleLowerCase()) !=
-                            -1)
-                ) {
+                if (match_name(event.profile, name)) {
                     result.push(event);
                 }
             }
@@ -319,18 +325,36 @@ export class Database_View
         pubkey: PublicKey | string,
         spaceURL: string | URL | undefined,
     ): Profile_Nostr_Event | undefined => {
-        if (!this.newProfiles) return;
-        if (pubkey instanceof PublicKey) pubkey = pubkey.hex;
-        if (spaceURL == undefined) return; // todo change
-        return this.newProfiles.get(spaceURL.toString())?.get(pubkey);
+        console.log(pubkey, spaceURL);
+        if (pubkey instanceof PublicKey) {
+            pubkey = pubkey.hex;
+        }
+        if (spaceURL == undefined) {
+            let result: Profile_Nostr_Event | undefined = undefined;
+            for (const profile_events_of_space of this.profile_events.values()) {
+                const profile_event = profile_events_of_space.get(pubkey);
+                if (profile_event == undefined) continue;
+                if (result && profile_event.created_at > result.created_at) {
+                    result = profile_event;
+                } else {
+                    result = profile_event;
+                }
+            }
+            return result;
+        }
+        const profile_events_of_space = this.profile_events.get(spaceURL.toString());
+        if (profile_events_of_space == undefined) {
+            return undefined;
+        }
+        return profile_events_of_space.get(pubkey);
     };
 
     getUniqueProfileCount = (spaceURL: string): number => {
-        return this.newProfiles.get(spaceURL)?.size || 0;
+        return this.profile_events.get(spaceURL)?.size || 0;
     };
 
     setProfile(profileEvent: Profile_Nostr_Event, spaceURL: string) {
-        const spaceProfiles = this.newProfiles.get(spaceURL);
+        const spaceProfiles = this.profile_events.get(spaceURL);
         if (spaceProfiles) {
             const profile = spaceProfiles.get(profileEvent.pubkey);
             if (profile) {
@@ -343,7 +367,7 @@ export class Database_View
         } else {
             const profile = new Map<string, Profile_Nostr_Event>();
             profile.set(profileEvent.pubkey, profileEvent);
-            this.newProfiles.set(spaceURL, profile);
+            this.profile_events.set(spaceURL, profile);
         }
     }
 
@@ -463,4 +487,12 @@ export function parseProfileEvent(
         parsedTags,
         publicKey,
     };
+}
+
+function match_name(profile: ProfileData, search_name: string) {
+    return (profile.name &&
+        profile.name?.toLocaleLowerCase().indexOf(search_name.toLowerCase()) != -1) ||
+        (profile.display_name &&
+            profile.display_name?.toLocaleLowerCase().indexOf(search_name.toLocaleLowerCase()) !=
+                -1);
 }

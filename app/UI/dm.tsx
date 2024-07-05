@@ -108,7 +108,7 @@ function TopBar(props: {
         getProfilesByText: func_GetProfilesByText;
     };
 }) {
-    const conversation_profile = props.getters.getProfileByPublicKey(props.currentConversation);
+    const conversation_profile = props.getters.getProfileByPublicKey(props.currentConversation, undefined);
     let conversation_name = conversation_profile?.profile.name ||
         conversation_profile?.profile.display_name ||
         props.currentConversation.bech32();

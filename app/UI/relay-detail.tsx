@@ -109,7 +109,7 @@ export class SpaceSetting extends Component<SpaceSettingProps, SpaceSettingState
                                         {...this.props}
                                         info={{
                                             ...this.state.info,
-                                            url: this.props.spaceUrl.toString(),
+                                            url: this.props.spaceUrl,
                                         }}
                                     />
                                 )
@@ -142,7 +142,7 @@ type State = {
 type Props = {
     getProfileByPublicKey: func_GetProfileByPublicKey;
     emit: emitFunc<SelectConversation>;
-    info: RelayInformation & { url: string };
+    info: RelayInformation & { url: URL };
 };
 
 export class RelayInformationComponent extends Component<Props, State> {
