@@ -45,7 +45,7 @@ type EditorProps = {
     readonly sub: EventSubscriber<UI_Interaction_Event>;
     readonly getters: {
         getProfileByPublicKey: func_GetProfileByPublicKey;
-        getProfilesByText: func_GetProfilesByText
+        getProfilesByText: func_GetProfilesByText;
     };
     readonly nip96?: boolean;
 };
@@ -251,7 +251,7 @@ export class Editor extends Component<EditorProps, EditorState> {
         const matching = matched ? matched[0].slice(1) : undefined;
 
         const searchResults = matched
-        // todo: pass space url
+            // todo: pass space url
             ? this.props.getters.getProfilesByText(matched[0].slice(1), undefined).splice(0, 10)
             : [];
 
