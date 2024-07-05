@@ -89,7 +89,6 @@ export class Database_View
         RelayRecommendationsGetter {
     private readonly sourceOfChange = csp.chan<{ event: Parsed_Event; relay?: string }>(buffer_size);
     private readonly caster = csp.multi<{ event: Parsed_Event; relay?: string }>(this.sourceOfChange);
-    private readonly profiles = new Map</* pubkey */ string, Profile_Nostr_Event>();
     private readonly newProfiles = new Map<
         /* spaceURL */ string,
         Map</* pubkey */ string, Profile_Nostr_Event>
@@ -200,10 +199,9 @@ export class Database_View
                     console.error(pEvent);
                     continue;
                 }
-                db.setProfile(pEvent);
                 const records = db.getRelayRecord(pEvent.id);
                 for (const spaceURL of records) {
-                    db.setNewProfile(pEvent, spaceURL);
+                    db.setProfile(pEvent, spaceURL);
                 }
             } else if (event.kind == NostrKind.DELETE) {
                 event.parsedTags.e.forEach((event_id) => {
@@ -327,18 +325,7 @@ export class Database_View
         return this.newProfiles.get(spaceURL)?.size || 0;
     };
 
-    setProfile(profileEvent: Profile_Nostr_Event): void {
-        const profile = this.profiles.get(profileEvent.pubkey);
-        if (profile) {
-            if (profileEvent.created_at > profile.created_at) {
-                this.profiles.set(profileEvent.pubkey, profileEvent);
-            }
-        } else {
-            this.profiles.set(profileEvent.pubkey, profileEvent);
-        }
-    }
-
-    setNewProfile(profileEvent: Profile_Nostr_Event, spaceURL: string) {
+    setProfile(profileEvent: Profile_Nostr_Event, spaceURL: string) {
         const spaceProfiles = this.newProfiles.get(spaceURL);
         if (spaceProfiles) {
             const profile = spaceProfiles.get(profileEvent.pubkey);
@@ -406,8 +393,7 @@ export class Database_View
             if (pEvent instanceof Error) {
                 return pEvent;
             }
-            this.setProfile(pEvent);
-            if (url) this.setNewProfile(pEvent, url);
+            if (url) this.setProfile(pEvent, url);
         } else if (parsedEvent.kind == NostrKind.DELETE) {
             parsedEvent.parsedTags.e.forEach((event_id) => {
                 this.deletionEvents.set(event_id, parsedEvent);
