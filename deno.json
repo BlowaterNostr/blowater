@@ -49,6 +49,6 @@
         "@std/encoding": "jsr:@std/encoding@1.0.0",
         "@std/path": "jsr:@std/path@0.225.2",
         "@std/fs": "jsr:@std/fs@0.229.3",
-        "preact": "https://esm.sh/preact@10.17.1"
+        "preact": "https://esm.sh/preact@10.22.1"
     }
 }
