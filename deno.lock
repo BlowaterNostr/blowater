@@ -4,7 +4,7 @@
     "specifiers": {
       "jsr:@blowater/csp@1.0.0": "jsr:@blowater/csp@1.0.0",
       "jsr:@blowater/csp@^1.0.0": "jsr:@blowater/csp@1.0.0",
-      "jsr:@blowater/nostr-sdk@^0.0.1": "jsr:@blowater/nostr-sdk@0.0.1",
+      "jsr:@blowater/nostr-sdk@0.0.2": "jsr:@blowater/nostr-sdk@0.0.2",
       "jsr:@luca/esbuild-deno-loader@^0.10.3": "jsr:@luca/esbuild-deno-loader@0.10.3",
       "jsr:@noble/secp256k1@2.1.0": "jsr:@noble/secp256k1@2.1.0",
       "jsr:@std/assert@0.226.0": "jsr:@std/assert@0.226.0",
@@ -14,7 +14,7 @@
       "jsr:@std/encoding@0.213": "jsr:@std/encoding@0.213.1",
       "jsr:@std/encoding@0.224.3": "jsr:@std/encoding@0.224.3",
       "jsr:@std/fs@0.229.3": "jsr:@std/fs@0.229.3",
-      "jsr:@std/internal@^1.0.0": "jsr:@std/internal@1.0.0",
+      "jsr:@std/internal@^1.0.0": "jsr:@std/internal@1.0.1",
       "jsr:@std/jsonc@0.213": "jsr:@std/jsonc@0.213.1",
       "jsr:@std/path@0.213": "jsr:@std/path@0.213.1",
       "jsr:@std/path@0.225.2": "jsr:@std/path@0.225.2",
@@ -32,9 +32,10 @@
       "@blowater/csp@1.0.0": {
         "integrity": "415d4e8bf1656e4a508997fb8e725e9372e1e39b2b714afa76e86efd733f8c4c"
       },
-      "@blowater/nostr-sdk@0.0.1": {
-        "integrity": "61c070440e6c8e3dee63cf34a6da8b12f3680646e0616476bfd749d3f69b0a1e",
+      "@blowater/nostr-sdk@0.0.2": {
+        "integrity": "3ae55b98cd35785305f31433bf95ee92b16083640892ffeab7965f666072cf14",
         "dependencies": [
+          "jsr:@blowater/csp@1.0.0",
           "jsr:@noble/secp256k1@2.1.0",
           "jsr:@std/assert@0.226.0",
           "jsr:@std/datetime@0.224.1",
@@ -85,6 +86,9 @@
       },
       "@std/internal@1.0.0": {
         "integrity": "ac6a6dfebf838582c4b4f61a6907374e27e05bedb6ce276e0f1608fe84e7cd9a"
+      },
+      "@std/internal@1.0.1": {
+        "integrity": "6f8c7544d06a11dd256c8d6ba54b11ed870aac6c5aeafff499892662c57673e6"
       },
       "@std/jsonc@0.213.1": {
         "integrity": "5578f21aa583b7eb7317eed077ffcde47b294f1056bdbb9aacec407758637bfe",
@@ -404,7 +408,7 @@
   "workspace": {
     "dependencies": [
       "jsr:@blowater/csp@1.0.0",
-      "jsr:@blowater/nostr-sdk@^0.0.1",
+      "jsr:@blowater/nostr-sdk@0.0.2",
       "jsr:@std/assert@0.226.0",
       "jsr:@std/datetime@0.224.2",
       "jsr:@std/encoding@1.0.0",

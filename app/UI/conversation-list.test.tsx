@@ -2,7 +2,6 @@
 import { h, render } from "preact";
 import { InMemoryAccountContext, NostrEvent, NostrKind } from "@blowater/nostr-sdk";
 import { fail } from "https://deno.land/std@0.176.0/testing/asserts.ts";
-import { Channel } from "@blowater/csp";
 import { prepareEncryptedNostrEvent } from "@blowater/nostr-sdk";
 import { PrivateKey } from "@blowater/nostr-sdk";
 import { Database_View } from "../database.ts";
@@ -24,7 +23,7 @@ const dm_list = new DM_List(ctx);
 
 for (let i = 0; i < 20; i++) {
     const event = await prepareEncryptedNostrEvent(ctx, {
-        content: "",
+        content: `${i}`,
         encryptKey: ctx.publicKey,
         kind: NostrKind.DIRECT_MESSAGE,
         tags: [
@@ -46,8 +45,8 @@ const view = () =>
                 convoListRetriever: dm_list,
                 newMessageChecker: dm_list,
                 pinListGetter: otherConfig,
-                getProfileByPublicKey: (pubkey) => database.getProfileByPublicKey("", pubkey),
-                getProfilesByText: (name) => database.getProfilesByText("", name),
+                getProfileByPublicKey: database.getProfileByPublicKey,
+                getProfilesByText: database.getProfilesByText,
             }}
             eventSub={testEventBus}
             emit={testEventBus.emit}
