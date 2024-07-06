@@ -709,10 +709,15 @@ const sync_space_members = async (
     database: Database_View,
 ) => {
     for (const relay of pool.getRelays()) {
-        forever((async () => {
+        (async () => {
             const chan = relay.getSpaceMembersStream();
             for await (const spaceMembers of chan) {
                 if (spaceMembers instanceof Error) {
+                    if (spaceMembers instanceof TypeError) {
+                        console.error(spaceMembers);
+                        await chan.close()
+                        return;
+                    }
                     console.error(spaceMembers);
                 } else {
                     for (const spaceMember of spaceMembers) {
@@ -720,6 +725,6 @@ const sync_space_members = async (
                     }
                 }
             }
-        })());
+        })();
     }
 };
