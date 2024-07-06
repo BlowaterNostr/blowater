@@ -715,7 +715,7 @@ const sync_space_members = async (
                 if (spaceMembers instanceof Error) {
                     if (spaceMembers instanceof TypeError) {
                         console.error(spaceMembers);
-                        await chan.close()
+                        await chan.close();
                         return;
                     }
                     console.error(spaceMembers);
