@@ -4,7 +4,7 @@
     "specifiers": {
       "jsr:@blowater/csp@1.0.0": "jsr:@blowater/csp@1.0.0",
       "jsr:@blowater/csp@^1.0.0": "jsr:@blowater/csp@1.0.0",
-      "jsr:@blowater/nostr-sdk@0.0.1": "jsr:@blowater/nostr-sdk@0.0.1",
+      "jsr:@blowater/nostr-sdk@0.0.3": "jsr:@blowater/nostr-sdk@0.0.3",
       "jsr:@luca/esbuild-deno-loader@^0.10.3": "jsr:@luca/esbuild-deno-loader@0.10.3",
       "jsr:@noble/secp256k1@2.1.0": "jsr:@noble/secp256k1@2.1.0",
       "jsr:@std/assert@0.226.0": "jsr:@std/assert@0.226.0",
@@ -32,8 +32,8 @@
       "@blowater/csp@1.0.0": {
         "integrity": "415d4e8bf1656e4a508997fb8e725e9372e1e39b2b714afa76e86efd733f8c4c"
       },
-      "@blowater/nostr-sdk@0.0.1": {
-        "integrity": "61c070440e6c8e3dee63cf34a6da8b12f3680646e0616476bfd749d3f69b0a1e",
+      "@blowater/nostr-sdk@0.0.3": {
+        "integrity": "20686056fcdd9453f573d4d8a6027b030d6e0df5f5bf62fba05f844cb6c0db40",
         "dependencies": [
           "jsr:@noble/secp256k1@2.1.0",
           "jsr:@std/assert@0.226.0",
@@ -406,7 +406,7 @@
   "workspace": {
     "dependencies": [
       "jsr:@blowater/csp@1.0.0",
-      "jsr:@blowater/nostr-sdk@0.0.1",
+      "jsr:@blowater/nostr-sdk@0.0.3",
       "jsr:@std/assert@0.226.0",
       "jsr:@std/datetime@0.224.2",
       "jsr:@std/encoding@1.0.0",

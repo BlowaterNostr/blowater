@@ -1,7 +1,5 @@
 /** @jsx h */
 import { Component, h } from "preact";
-import { IconButtonClass } from "./tw.ts";
-import { CloseIcon } from "../icons/close-icon.tsx";
 import { ComponentChildren } from "preact";
 import { Channel } from "@blowater/csp";
 import { XIcon } from "../icons/x-icon.tsx";

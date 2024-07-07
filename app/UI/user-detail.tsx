@@ -73,6 +73,7 @@ export function UserDetail(props: UserDetailProps) {
                             class={`flex-1 break-words overflow-hidden text-sm font-normal font-sans leading-5`}
                             href={props.targetUserProfile.website}
                             target="_blank"
+                            rel="noopener noreferrer"
                         >
                             {props.targetUserProfile.website}
                         </a>
