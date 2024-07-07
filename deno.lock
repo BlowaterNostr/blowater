@@ -4,7 +4,7 @@
     "specifiers": {
       "jsr:@blowater/csp@1.0.0": "jsr:@blowater/csp@1.0.0",
       "jsr:@blowater/csp@^1.0.0": "jsr:@blowater/csp@1.0.0",
-      "jsr:@blowater/nostr-sdk@0.0.3": "jsr:@blowater/nostr-sdk@0.0.3",
+      "jsr:@blowater/nostr-sdk@0.0.1": "jsr:@blowater/nostr-sdk@0.0.1",
       "jsr:@luca/esbuild-deno-loader@^0.10.3": "jsr:@luca/esbuild-deno-loader@0.10.3",
       "jsr:@noble/secp256k1@2.1.0": "jsr:@noble/secp256k1@2.1.0",
       "jsr:@std/assert@0.226.0": "jsr:@std/assert@0.226.0",
@@ -14,7 +14,7 @@
       "jsr:@std/encoding@0.213": "jsr:@std/encoding@0.213.1",
       "jsr:@std/encoding@0.224.3": "jsr:@std/encoding@0.224.3",
       "jsr:@std/fs@0.229.3": "jsr:@std/fs@0.229.3",
-      "jsr:@std/internal@^1.0.0": "jsr:@std/internal@1.0.1",
+      "jsr:@std/internal@^1.0.0": "jsr:@std/internal@1.0.0",
       "jsr:@std/jsonc@0.213": "jsr:@std/jsonc@0.213.1",
       "jsr:@std/path@0.213": "jsr:@std/path@0.213.1",
       "jsr:@std/path@0.225.2": "jsr:@std/path@0.225.2",
@@ -32,8 +32,8 @@
       "@blowater/csp@1.0.0": {
         "integrity": "415d4e8bf1656e4a508997fb8e725e9372e1e39b2b714afa76e86efd733f8c4c"
       },
-      "@blowater/nostr-sdk@0.0.3": {
-        "integrity": "20686056fcdd9453f573d4d8a6027b030d6e0df5f5bf62fba05f844cb6c0db40",
+      "@blowater/nostr-sdk@0.0.1": {
+        "integrity": "61c070440e6c8e3dee63cf34a6da8b12f3680646e0616476bfd749d3f69b0a1e",
         "dependencies": [
           "jsr:@noble/secp256k1@2.1.0",
           "jsr:@std/assert@0.226.0",
@@ -85,9 +85,6 @@
       },
       "@std/internal@1.0.0": {
         "integrity": "ac6a6dfebf838582c4b4f61a6907374e27e05bedb6ce276e0f1608fe84e7cd9a"
-      },
-      "@std/internal@1.0.1": {
-        "integrity": "6f8c7544d06a11dd256c8d6ba54b11ed870aac6c5aeafff499892662c57673e6"
       },
       "@std/jsonc@0.213.1": {
         "integrity": "5578f21aa583b7eb7317eed077ffcde47b294f1056bdbb9aacec407758637bfe",
@@ -400,6 +397,8 @@
     "https://deno.land/std@0.202.0/assert/fail.ts": "c36353d7ae6e1f7933d45f8ea51e358c8c4b67d7e7502028598fe1fea062e278",
     "https://deno.land/std@0.202.0/fmt/colors.ts": "c51c4642678eb690dcf5ffee5918b675bf01a33fba82acf303701ae1a4f8c8d9",
     "https://esm.sh/preact@10.22.1": "c82def411ae2b4030ca15b6b19743ce83b8edb749c1ebc6014faa76b84acface",
+    "https://esm.sh/preact@10.22.1/hooks": "391c9f21c7d5f1a5725d96ba54bc903c0855c3c3727b54d6691fa9f8fa1ba488",
+    "https://esm.sh/stable/preact@10.22.1/denonext/hooks.js": "5c79b37c4b13be590576ba53bd4093beb6e95c10ee475cddf5af5051a6e040fa",
     "https://esm.sh/stable/preact@10.22.1/denonext/preact.mjs": "516caa8df1109e0b82becdb053e7d956802ee2f3e3fa7f6925291e4d4a527706",
     "https://esm.sh/v135/dexie@3.2.4/denonext/dist/dexie.js": "20d7fea3aad3a1b5d91b7d43590df26f3132c429b731d2dd77697d2a60f67a79",
     "https://esm.sh/v135/dexie@3.2.4/dist/dexie.js": "09d2f84b77cc12ac170004634c8560bc7d40a43920ff99166a269a034c48704b"
@@ -407,7 +406,7 @@
   "workspace": {
     "dependencies": [
       "jsr:@blowater/csp@1.0.0",
-      "jsr:@blowater/nostr-sdk@0.0.3",
+      "jsr:@blowater/nostr-sdk@0.0.1",
       "jsr:@std/assert@0.226.0",
       "jsr:@std/datetime@0.224.2",
       "jsr:@std/encoding@1.0.0",
