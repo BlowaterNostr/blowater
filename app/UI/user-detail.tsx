@@ -48,7 +48,7 @@ export function UserDetail(props: UserDetailProps) {
             <div>
                 <button
                     class="rounded-lg bg-white/5 hover:bg-white/10 flex gap-1 justify-center items-center p-1"
-                    onClick={async () => await navigator.clipboard.writeText(props.pubkey.bech32())}
+                    onClick={() => navigator.clipboard.writeText(props.pubkey.bech32())}
                 >
                     <CopyIconV2 class="w-4 h-4 text-white" />
                     <div class="text-sm font-semibold font-sans leading-5">

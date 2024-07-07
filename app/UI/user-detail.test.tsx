@@ -45,6 +45,8 @@ function UserDetailTest() {
 render(<UserDetailTest />, document.body);
 
 for await (const event of testEventBus.onChange()) {
+    console.log(event);
+
     if (event.type === "HideModal") {
         await rightPanelChan.put(() => undefined);
     }
