@@ -713,7 +713,7 @@ const sync_space_members = async (
             const chan = relay.getSpaceMembersStream();
             for await (const spaceMembers of chan) {
                 if (spaceMembers instanceof Error) {
-                    if (spaceMembers instanceof TypeError) {
+                    if (spaceMembers instanceof TypeError || spaceMembers instanceof SyntaxError) {
                         console.error(spaceMembers);
                         await chan.close();
                         return;
