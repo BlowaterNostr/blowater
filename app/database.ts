@@ -318,7 +318,6 @@ export class Database_View
         pubkey: PublicKey | string,
         spaceURL: string | URL | undefined,
     ): Profile_Nostr_Event | undefined => {
-        console.log(pubkey, spaceURL);
         if (pubkey instanceof PublicKey) {
             pubkey = pubkey.hex;
         }
