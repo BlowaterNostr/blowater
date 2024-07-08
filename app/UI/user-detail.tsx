@@ -96,7 +96,7 @@ export function UserDetail(props: UserDetailProps) {
                     Message
                 </button>
                 <button
-                    class="rounded-lg bg-white px-2 py-1 text-neutral-600 hover:text-neutral-800 text-sm font-semibold font-sans leading-5 hover:cursor-pointer flex items-center gap-1"
+                    class="rounded-lg bg-neutral-100 hover:bg-white px-2 py-1 text-neutral-600 hover:text-neutral-800 text-sm font-semibold font-sans leading-5 hover:cursor-pointer flex items-center gap-1"
                     onClick={() => {
                         if (props.blocked) {
                             props.emit({
