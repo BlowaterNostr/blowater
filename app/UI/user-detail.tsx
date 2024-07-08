@@ -13,6 +13,8 @@ import { robohash } from "@blowater/nostr-sdk";
 import { CopyIconV2 } from "./icons/copy-icon-v2.tsx";
 import { GlobeIcon } from "./icons/globe-icon.tsx";
 import { XCircleIconV2 } from "./icons/x-circle-icon-v2.tsx";
+import { useState } from "preact/hooks";
+import { sleep } from "@blowater/csp";
 
 export type BlockUser = {
     type: "BlockUser";
@@ -32,8 +34,20 @@ type UserDetailProps = {
 };
 
 export function UserDetail(props: UserDetailProps) {
+    const [copyState, setCopyState] = useState<"copy" | "check">("copy");
     const name = props.targetUserProfile.name || props.targetUserProfile.display_name ||
         props.pubkey.bech32();
+
+    const copyPublicKey = async () => {
+        if (copyState == "check") {
+            return;
+        }
+        navigator.clipboard.writeText(props.pubkey.bech32());
+        setCopyState("check");
+        await sleep(1500);
+        setCopyState("copy");
+    };
+
     return (
         <div class={`px-2 py-3 text-white flex flex-col justify-start gap-2`}>
             <Avatar
@@ -48,11 +62,11 @@ export function UserDetail(props: UserDetailProps) {
             <div>
                 <button
                     class="rounded-lg bg-white/5 hover:bg-white/10 flex gap-1 justify-center items-center p-1"
-                    onClick={() => navigator.clipboard.writeText(props.pubkey.bech32())}
+                    onClick={copyPublicKey}
                 >
                     <CopyIconV2 class="w-4 h-4 text-white" />
                     <div class="text-sm font-semibold font-sans leading-5">
-                        Public Key
+                        {copyState == "copy" ? "Public Key" : "Copied"}
                     </div>
                 </button>
             </div>
