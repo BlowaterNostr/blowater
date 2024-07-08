@@ -1,14 +1,9 @@
 import { Database_View, EventMark, EventMarker, EventsAdapter, Indices, RelayRecorder } from "../database.ts";
 import { EventBus } from "../event-bus.ts";
-import {
-    InMemoryAccountContext,
-    NostrAccountContext,
-    NostrEvent,
-    NostrKind,
-    prepareNormalNostrEvent,
-} from "@blowater/nostr-sdk";
+import { NostrAccountContext, NostrEvent, NostrKind, prepareNormalNostrEvent } from "@blowater/nostr-sdk";
 import { UI_Interaction_Event } from "./app_update.tsx";
 import { Profile_Nostr_Event } from "../nostr.ts";
+import { ProfileData } from "../features/profile.ts";
 
 export const testEventBus = new EventBus<UI_Interaction_Event>();
 
@@ -65,7 +60,7 @@ export async function test_db_view() {
 
 export const prepareProfileEvent = async (
     author: NostrAccountContext,
-    profile: { name?: string; display_name?: string },
+    profile: ProfileData,
 ) => {
     const profileEvent = await prepareNormalNostrEvent(author, {
         kind: NostrKind.META_DATA,

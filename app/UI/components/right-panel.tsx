@@ -1,9 +1,8 @@
 /** @jsx h */
 import { Component, h } from "preact";
-import { IconButtonClass } from "./tw.ts";
-import { CloseIcon } from "../icons/close-icon.tsx";
 import { ComponentChildren } from "preact";
 import { Channel } from "@blowater/csp";
+import { XIcon } from "../icons/x-icon.tsx";
 
 export type RightPanelChannel = Channel<(() => ComponentChildren) | undefined>;
 
@@ -29,24 +28,19 @@ export class RightPanel extends Component<RightPanelProps, RightPanelState> {
     render(_props: RightPanelProps, state: RightPanelState) {
         return (
             <div
-                class={`${state.children ? "" : "translate-x-full"} fixed top-0 right-0 border-l
-                    overflow-auto
-                    h-full bg-[#2F3136]
+                class={`${state.children ? "" : "translate-x-full"} fixed top-0 right-0
+                    overflow-auto p-4
+                    h-full bg-neutral-600
                     z-20 transition duration-150 ease-in-out w-96 max-w-full
                     `}
             >
                 <button
-                    class={`w-6 min-w-[1.5rem] h-6 ml-4 ${IconButtonClass} hover:bg-[#36393F] absolute right-2 top-3 z-10 border-2`}
+                    class={`h-8 w-8 hover:bg-neutral-500 absolute right-2 top-3 z-10 rounded-full flex justify-center items-center`}
                     onClick={() => {
                         this.setState({ children: undefined });
                     }}
                 >
-                    <CloseIcon
-                        class={`w-4 h-4`}
-                        style={{
-                            stroke: "rgb(185, 187, 190)",
-                        }}
-                    />
+                    <XIcon class="w-6 h-6 text-neutral-400" />
                 </button>
                 {state.children ? state.children() : undefined}
             </div>
