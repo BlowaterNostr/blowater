@@ -2,7 +2,7 @@
 import { h, render } from "preact";
 import { NewNav } from "./new-nav.tsx";
 import { prepareProfileEvent, testEventBus } from "./_setup.test.ts";
-import { ConnectionPool, InMemoryAccountContext } from "@blowater/nostr-sdk";
+import { ConnectionPool, InMemoryAccountContext, PublicKey } from "@blowater/nostr-sdk";
 
 const pool = new ConnectionPool();
 await pool.addRelayURLs(
@@ -14,22 +14,22 @@ await pool.addRelayURLs(
         "wss://relay.nostr.wirednet.jp",
         "wss://relay.nostr.moctane.com",
         "wss://remnant.cloud",
-        // "wss://nostr.cahlen.org",
-        // "wss://fog.dedyn.io",
-        // "wss://global-relay.cesc.trade",
-        // "wss://nostr.dakukitsune.ca",
-        // "wss://africa.nostr.joburg",
-        // "wss://nostr-relay.ktwo.io",
-        // "wss://bevo.nostr1.com",
-        // "wss://relay.corpum.com",
-        // "wss://relay.nostr.directory",
-        // "wss://nostr.1f52b.xyz",
-        // "wss://lnbits.eldamar.icu/nostrrelay/relay",
-        // "wss://relay.cosmicbolt.net",
-        // "wss://island.nostr1.com",
-        // "wss://nostr.codingarena.de",
-        // "wss://nostr.madco.me",
-        // "wss://nostr-relay.bitcoin.ninja",
+        "wss://nostr.cahlen.org",
+        "wss://fog.dedyn.io",
+        "wss://global-relay.cesc.trade",
+        "wss://nostr.dakukitsune.ca",
+        "wss://africa.nostr.joburg",
+        "wss://nostr-relay.ktwo.io",
+        "wss://bevo.nostr1.com",
+        "wss://relay.corpum.com",
+        "wss://relay.nostr.directory",
+        "wss://nostr.1f52b.xyz",
+        "wss://lnbits.eldamar.icu/nostrrelay/relay",
+        "wss://relay.cosmicbolt.net",
+        "wss://island.nostr1.com",
+        "wss://nostr.codingarena.de",
+        "wss://nostr.madco.me",
+        "wss://nostr-relay.bitcoin.ninja",
     ],
 );
 const ctx = InMemoryAccountContext.Generate();
@@ -42,13 +42,27 @@ const profileEvent = await prepareProfileEvent(ctx, {
     picture: "https://image.nostr.build/655007ae74f24ea1c611889f48b25cb485b83ab67408daddd98f95782f47e1b5.jpg",
 });
 
+let currentConversation: PublicKey | undefined;
+const convoList = new Set<PublicKey>();
+const pinList = new Set<PublicKey>();
+for (let i = 0; i < 50; i++) {
+    const pubkey = InMemoryAccountContext.Generate().publicKey;
+    if (i % 4 == 0) pinList.add(pubkey);
+    if (i == 5) currentConversation = pubkey;
+    convoList.add(pubkey);
+}
+
 render(
     <NewNav
         currentSpace="wss://blowater.nostr1.com"
         emit={testEventBus.emit}
         pool={pool}
-        activeNav="DM"
+        activeNav={"Public"}
         profile={profileEvent}
+        currentConversation={currentConversation}
+        getProfileByPublicKey={() => profileEvent}
+        getConversationList={() => convoList}
+        getPinList={() => pinList}
     />,
     document.body,
 );

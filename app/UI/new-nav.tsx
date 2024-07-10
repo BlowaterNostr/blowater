@@ -3,28 +3,25 @@ import { Component, Fragment, h } from "preact";
 import { emitFunc, EventSubscriber } from "../event-bus.ts";
 import { NavigationUpdate, NavTabID, SelectSpace, ShowProfileSetting } from "./nav.tsx";
 import { ViewSpaceSettings } from "./setting.tsx";
-import { ConnectionPool, getRelayInformation, RelayInformation, robohash } from "@blowater/nostr-sdk";
+import {
+    ConnectionPool,
+    getRelayInformation,
+    PublicKey,
+    RelayInformation,
+    robohash,
+} from "@blowater/nostr-sdk";
 import { setState } from "./_helper.ts";
 import { Avatar, RelayAvatar } from "./components/avatar.tsx";
 import { CaretDownIcon } from "./icons/caret-down-icon.tsx";
 import { PoundIcon } from "./icons/pound-icon.tsx";
 import { Profile_Nostr_Event } from "../nostr.ts";
-import { ConversationSummary } from "./conversation-list.ts";
-import { ProfileData } from "../features/profile.ts";
-import { PinIcon } from "./icons/pin-icon.tsx";
-import { PrimaryTextColor } from "./style/colors.ts";
-import {
-    ContactUpdate,
-    ConversationListRetriever,
-    ConversationType,
-    NewMessageChecker,
-    PinListGetter,
-} from "./conversation-list.tsx";
-import { SearchUpdate, SelectConversation } from "./search_model.ts";
+import { ContactUpdate, PinListGetter } from "./conversation-list.tsx";
 import { TagSelected } from "./contact-tags.tsx";
 import { ViewUserDetail } from "./message-panel.tsx";
-import { UI_Interaction_Event, UserBlocker } from "./app_update.tsx";
-import { func_GetProfileByPublicKey, func_GetProfilesByText } from "./search.tsx";
+import { UI_Interaction_Event } from "./app_update.tsx";
+import { func_GetProfileByPublicKey } from "./search.tsx";
+import { PinIcon } from "./icons/pin-icon.tsx";
+import { SelectConversation } from "./search_model.ts";
 
 type NewNavProps = {
     pool: ConnectionPool;
@@ -40,21 +37,32 @@ type NewNavProps = {
         | ViewUserDetail
     >;
     profile: Profile_Nostr_Event | undefined;
+    currentConversation: PublicKey | undefined;
+    getProfileByPublicKey: func_GetProfileByPublicKey;
+    getConversationList: func_GetConversationList;
+    getPinList: func_GetPinList;
 };
 
 export class NewNav extends Component<NewNavProps> {
     render(props: NewNavProps) {
         return (
-            <div class="h-screen w-64 flex flex-col gap-y-4 overflow-y-auto bg-neutral-900 p-2 items-center">
+            <div class="h-screen w-64 flex flex-col gap-y-4 overflow-y-auto bg-neutral-900 p-2 items-center select-none">
                 <SpaceDropDownPanel
                     currentSpace={props.currentSpace}
                     spaceList={new Set(Array.from(props.pool.getRelays()).map((r) => r.url))}
                     emit={props.emit}
                 />
                 {/* <GlobalSearch /> */}
-                <GroupChatList />
-                <DirectMessageList profile={props.profile} />
-                <ProfileMenu profile={props.profile} emit={props.emit} />
+                <GroupChatList emit={props.emit} activeNav={props.activeNav} />
+                <DirectMessageList
+                    emit={props.emit}
+                    currentSpace={props.currentSpace}
+                    currentConversation={props.currentConversation}
+                    getProfileByPublicKey={props.getProfileByPublicKey}
+                    getConversationList={props.getConversationList}
+                    getPinList={props.getPinList}
+                />
+                <UserIndicator profile={props.profile} emit={props.emit} />
             </div>
         );
     }
@@ -111,13 +119,13 @@ class SpaceDropDownPanel extends Component<SpaceDropDownPanelProps, SpaceDropDow
         }
         return (
             <div class="w-full">
-                {this.TopIconButton()}
+                {this.CurrentSpaceIndicator()}
                 {this.state.showDropDown ? this.DropDown(spaceList) : undefined}
             </div>
         );
     }
 
-    TopIconButton = () => {
+    CurrentSpaceIndicator = () => {
         return (
             <div
                 class="flex flex-row items-center gap-1 p-1 rounded cursor-pointer hover:bg-neutral-500"
@@ -139,7 +147,9 @@ class SpaceDropDownPanel extends Component<SpaceDropDownPanelProps, SpaceDropDow
                         : <div>current space url</div>}
                 </div>
                 <div class="w-8 h-8 flex justify-center items-center rounded">
-                    <CaretDownIcon class="w-6 h-6 text-neutral-600" />
+                    {this.state.showDropDown
+                        ? <CaretDownIcon class="w-6 h-6 text-neutral-600 transition-transform -rotate-180" />
+                        : <CaretDownIcon class="w-6 h-6 text-neutral-600 transition-transform" />}
                 </div>
             </div>
         );
@@ -147,7 +157,7 @@ class SpaceDropDownPanel extends Component<SpaceDropDownPanelProps, SpaceDropDow
 
     DropDown = (spaceList: h.JSX.Element[]) => {
         return (
-            <div class="absolute z-10 min-w-64 rounded-lg bg-neutral-700 text-white p-4">
+            <div class="absolute z-10 min-w-64 rounded-lg bg-neutral-700 text-white p-4 mt-1">
                 {this.SettingsButton()}
                 {/* {this.InviteButton()} */}
                 <div class="border border-neutral-600 my-3"></div>
@@ -296,67 +306,144 @@ function GlobalSearch() {
     return <div>Search</div>;
 }
 
-function GroupChatList() {
-    return (
-        <div class="flex items-center justify-start gap-1 w-full p-2">
-            <PoundIcon class="w-4 h-4 text-neutral-500" />
-            <div class="text-white text-sm font-medium font-sans leading-5">Public</div>
-        </div>
-    );
-}
-
-type DirectMessageListProps = {
-    //TODO: The list is based on private messages both received and sent, as well as other sources.
-    profile: Profile_Nostr_Event | undefined;
+type GroupChatListProps = {
+    activeNav: NavTabID;
+    emit: emitFunc<NavigationUpdate>;
 };
 
-// type DirectMessageListState = {};
+class GroupChatList extends Component<GroupChatListProps> {
+    render(props: GroupChatListProps) {
+        return (
+            <div
+                class={`flex items-center justify-start gap-1 w-full p-2 rounded-md px-2 py-1 hover:bg-neutral-950 cursor-pointer ${
+                    props.activeNav == "Public" ? "bg-neutral-800" : ""
+                }`}
+                onClick={() => {
+                    props.emit({
+                        type: "ChangeNavigation",
+                        id: "Public",
+                    });
+                }}
+            >
+                <PoundIcon class="w-4 h-4 text-neutral-500" />
+                <div class="text-white text-sm font-medium font-sans leading-5">Public</div>
+            </div>
+        );
+    }
+}
+
+type func_GetConversationList = () => Set<PublicKey>;
+type func_GetPinList = () => Set<PublicKey>;
+
+type DirectMessageListProps = {
+    emit: emitFunc<ContactUpdate>;
+    currentSpace: string;
+    currentConversation: PublicKey | undefined;
+    getProfileByPublicKey: func_GetProfileByPublicKey;
+    getConversationList: func_GetConversationList;
+    getPinList: func_GetPinList;
+};
 
 class DirectMessageList extends Component<DirectMessageListProps> {
     render(props: DirectMessageListProps) {
+        console.log(props.getConversationList());
+        const pinList = props.getPinList();
+        const pinned = [];
+        const unpinned = [];
+        for (const pubkey of props.getConversationList()) {
+            if (pinList.has(pubkey)) {
+                pinned.push(pubkey);
+            } else {
+                unpinned.push(pubkey);
+            }
+        }
         return (
-            <div class="flex-1 w-full">
-                <div class="flex flex-col gap-2 w-full justify-start items-center">
-                    <div class="flex gap-2 rounded-md px-2 py-1 bg-neutral-800 w-full">
-                        <div class="w-4 flex justify-center items-center">
-                            <Avatar picture={props.profile?.profile.picture || "./logo.webp"} />
-                        </div>
-                        <div class="text-white text-sm font-medium font-sans leading-5">
-                            {props.profile?.profile.name || props.profile?.profile.display_name ||
-                                props.profile?.pubkey}
-                        </div>
-                    </div>
-                    <div class="flex gap-2 rounded-md px-2 py-1 w-full">
-                        <div class="w-4 flex justify-center items-center">
-                            <Avatar picture={props.profile?.profile.picture || "./logo.webp"} />
-                        </div>
-                        <div class="text-white text-sm font-medium font-sans leading-5">
-                            {props.profile?.profile.name || props.profile?.profile.display_name ||
-                                props.profile?.pubkey}
-                        </div>
-                    </div>
-                    <div class="flex gap-2 rounded-md px-2 py-1 w-full">
-                        <div class="w-4 flex justify-center items-center">
-                            <Avatar picture={props.profile?.profile.picture || "./logo.webp"} />
-                        </div>
-                        <div class="text-white text-sm font-medium font-sans leading-5">
-                            {props.profile?.profile.name || props.profile?.profile.display_name ||
-                                props.profile?.pubkey}
-                        </div>
-                    </div>
+            <div class="flex-1 w-full overflow-y-auto">
+                <div class="flex flex-col gap-1 w-full justify-start items-center">
+                    {pinned.map((pubkey: PublicKey) => (
+                        <DireactMessageItem
+                            emit={props.emit}
+                            pubkey={pubkey}
+                            isPined={true}
+                            currentConversation={props.currentConversation}
+                            currentSpace={props.currentSpace}
+                            getProfileByPublicKey={props.getProfileByPublicKey}
+                        />
+                    ))}
+                    {unpinned.map((pubkey: PublicKey) => (
+                        <DireactMessageItem
+                            emit={props.emit}
+                            pubkey={pubkey}
+                            isPined={false}
+                            currentConversation={props.currentConversation}
+                            currentSpace={props.currentSpace}
+                            getProfileByPublicKey={props.getProfileByPublicKey}
+                        />
+                    ))}
                 </div>
             </div>
         );
     }
 }
 
-type ProfileMenuProps = {
+type DireactMessageItemProps = {
+    pubkey: PublicKey;
+    emit: emitFunc<SelectConversation>;
+    isPined: boolean;
+    currentSpace: string;
+    currentConversation: PublicKey | undefined;
+    getProfileByPublicKey: func_GetProfileByPublicKey;
+};
+
+class DireactMessageItem extends Component<DireactMessageItemProps> {
+    render(props: DireactMessageItemProps) {
+        const profile = props.getProfileByPublicKey(props.pubkey, new URL(props.currentSpace))?.profile;
+        const picture = profile?.picture || "./logo.webp";
+        const name = profile?.name || profile?.display_name || profile?.pubkey;
+        return (
+            <div
+                class={`flex gap-2 rounded-md px-2 py-1 w-full hover:bg-neutral-950 cursor-pointer ${
+                    props.pubkey.hex == props.currentConversation?.hex ? "bg-neutral-800" : ""
+                }`}
+                onClick={() => {
+                    props.emit({
+                        type: "SelectConversation",
+                        pubkey: props.pubkey,
+                    });
+                }}
+            >
+                <div class="w-4 flex justify-center items-center">
+                    <Avatar picture={picture} />
+                </div>
+                <div class="text-white text-sm font-medium font-sans leading-5 flex-1">
+                    {name}
+                </div>
+                {props.isPined
+                    ? (
+                        <div class="flex justify-center items-center">
+                            <PinIcon
+                                class={`w-3 h-3`}
+                                style={{
+                                    fill: "rgb(185, 187, 190)",
+                                    stroke: "rgb(185, 187, 190)",
+                                    strokeWidth: 2,
+                                }}
+                            />
+                        </div>
+                    )
+                    : undefined}
+            </div>
+        );
+    }
+}
+
+type UserIndicatorProps = {
     profile: Profile_Nostr_Event | undefined;
     emit: emitFunc<ShowProfileSetting>;
 };
 
-class ProfileMenu extends Component<ProfileMenuProps> {
-    render(props: ProfileMenuProps) {
+class UserIndicator extends Component<UserIndicatorProps> {
+    render(props: UserIndicatorProps) {
         return (
             <div class="w-full">
                 <div
