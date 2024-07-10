@@ -1,6 +1,6 @@
 /** @jsx h */
 import { Component, ComponentChildren, createRef, Fragment, h, RefObject } from "preact";
-import { NoteID, PublicKey, robohash } from "@blowater/nostr-sdk";
+import { NostrEvent, NoteID, PublicKey, robohash } from "@blowater/nostr-sdk";
 import { RelayRecordGetter } from "../database.ts";
 import { emitFunc } from "../event-bus.ts";
 import { IconButtonClass } from "./components/tw.ts";
@@ -274,9 +274,8 @@ class JitterPrevention {
     }
 }
 
-export type func_GetEventByID = (
-    id: string | NoteID,
-) => Parsed_Event | undefined;
+export type func_GetEventByID = (id: string | NoteID) => Parsed_Event | undefined;
+export type func_GetEventByID_async = (id: string | NoteID) => Promise<NostrEvent | undefined>;
 
 export type func_GetReactionsByEventID = (id: string) => Set<Parsed_Event>;
 

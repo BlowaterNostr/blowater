@@ -47,7 +47,7 @@ import { SendingEventRejection, ToastChannel } from "./components/toast.tsx";
 
 import { default_blowater_relay } from "./relay-config.ts";
 import { forever } from "./_helper.ts";
-import { DeleteEvent, func_GetEventByID } from "./message-list.tsx";
+import { DeleteEvent, func_GetEventByID, func_GetEventByID_async } from "./message-list.tsx";
 import { FilterContent } from "./filter.tsx";
 import { CloseRightPanel } from "./components/right-panel.tsx";
 import { RightPanelChannel } from "./components/right-panel.tsx";
@@ -301,7 +301,7 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                     ...model,
                     current_relay,
                     blowater_relay,
-                    getEventByID: app.database.getEventByID,
+                    getEventByID_async: app.database.getEventByID_async,
                 },
             ).then((res) => {
                 if (res instanceof Error) {
@@ -669,7 +669,7 @@ export async function handle_SendMessage(
         };
         blowater_relay: SingleRelayConnection;
         current_relay: SingleRelayConnection;
-        getEventByID: func_GetEventByID;
+        getEventByID_async: func_GetEventByID_async;
     },
 ) {
     if (ui_event.text.length == 0) {
@@ -678,7 +678,7 @@ export async function handle_SendMessage(
 
     let replyToEvent: NostrEvent | undefined;
     if (ui_event.reply_to_event_id) {
-        replyToEvent = args.getEventByID(ui_event.reply_to_event_id);
+        replyToEvent = await args.getEventByID_async(ui_event.reply_to_event_id);
     }
 
     let events: NostrEvent[];
@@ -697,9 +697,9 @@ export async function handle_SendMessage(
         }
         events = events_send;
     } else if (args.navigationModel.activeNav == "Public") {
-        const tags = generateTags({
+        const tags = await generateTags({
             content: ui_event.text,
-            getEventByID: args.getEventByID,
+            getEventByID_async: args.getEventByID_async,
             current_relay: args.current_relay.url,
         });
         const nostr_event = replyToEvent
@@ -737,11 +737,11 @@ export async function handle_SendMessage(
     }
 }
 
-export function generateTags(
+export async function generateTags(
     args: {
         content: string;
-        getEventByID: func_GetEventByID;
         current_relay: string;
+        getEventByID_async: func_GetEventByID_async;
     },
 ) {
     const eTags = new Map<string, [string, string]>();
@@ -757,7 +757,7 @@ export function generateTags(
             pTags.add(item.pubkey.hex);
         } else if (item.type === "note") {
             eTags.set(item.noteID.hex, [args.current_relay, "mention"]);
-            const event = args.getEventByID(item.noteID);
+            const event = await args.getEventByID_async(item.noteID);
             if (event) {
                 pTags.add(event.pubkey);
             }
