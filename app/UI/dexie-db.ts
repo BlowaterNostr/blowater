@@ -25,7 +25,7 @@ export class DexieDatabase extends Dexie implements EventsAdapter, RelayRecorder
     }
 
     filter() {
-        return this.events.orderBy("created_at").limit(10000).toArray();
+        return this.events.orderBy("created_at").reverse().limit(10000).toArray();
     }
     async get(keys: Indices) {
         const e = await this.events.get(keys);
