@@ -60,9 +60,11 @@ render(
         activeNav={"Public"}
         profile={profileEvent}
         currentConversation={currentConversation}
-        getProfileByPublicKey={() => profileEvent}
-        getConversationList={() => convoList}
-        getPinList={() => pinList}
+        getters={{
+            getProfileByPublicKey: () => profileEvent,
+            getConversationList: () => convoList,
+            getPinList: () => pinList,
+        }}
     />,
     document.body,
 );
