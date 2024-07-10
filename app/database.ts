@@ -22,12 +22,16 @@ export interface EventsFilter {
     filter(f?: (e: NostrEvent) => boolean): Promise<NostrEvent[]>;
 }
 
+export interface EventsLoop {
+    loop(): AsyncIterable<NostrEvent>;
+}
+
 export interface EventRemover {
     remove(id: string): Promise<void>;
 }
 
 export interface EventGetter {
-    get(keys: Indices): Promise<NostrEvent | undefined> | NostrEvent | undefined;
+    get(keys: Indices): Promise<NostrEvent | undefined>;
 }
 
 export interface EventPutter {
@@ -56,9 +60,9 @@ export interface EventMarker {
 export type RelayRecorder = RelayRecordSetter & AllRelayRecordGetter;
 
 export type EventsAdapter =
-    & EventsFilter
     & EventGetter
-    & EventPutter;
+    & EventPutter
+    & EventsLoop;
 
 export interface RelayRecordGetter {
     getRelayRecord: (eventID: string) => Set<string>;
@@ -94,66 +98,13 @@ export class Database_View
     private readonly latestEvents = new Map<NostrKind, Parsed_Event>();
     private readonly events_v2 = new Map<string, /* id */ v2.Event_V2>();
 
-    private constructor(
-        private readonly eventsAdapter: EventsAdapter,
-        private readonly relayRecorder: RelayRecorder,
-        private readonly eventMarker: EventMarker,
-        private readonly events: Map<string, Parsed_Event>,
-        private readonly removedEvents: Set<string>,
-    ) {
-        this.relay_record_loaded = new Promise(async (resolve) => {
-            const all_records = await relayRecorder.getAllRelayRecords();
-            for (const [event_id, relays] of all_records.entries()) {
-                const set = this.relayRecords.get(event_id);
-                if (set) {
-                    for (const relay of relays) {
-                        set.add(relay);
-                    }
-                } else {
-                    this.relayRecords.set(event_id, relays);
-                }
-            }
-            resolve(undefined);
-        });
-    }
-
-    getRelayRecommendations: func_GetRelayRecommendations = () => {
-        let set = new Set<string>();
-        for (const s of this.relayRecords.values()) {
-            set = set.union(s);
-        }
-        return set;
-    };
-
-    getMemberSet: func_GetMemberSet = (relay: URL) => {
-        const members = new Set<string>();
-        const urlString = relay.origin + (relay.pathname === "/" ? "" : relay.pathname);
-        for (const event of this.events_v2.values()) {
-            if (event.kind == v2.Kind_V2.SpaceMember) {
-                const records = this.getRelayRecord(event.id);
-                if (records.has(urlString)) {
-                    members.add(event.pubkey);
-                }
-            }
-        }
-        if (members.size === 0) {
-            for (const event of this.events.values()) {
-                const records = this.getRelayRecord(event.id);
-                if (records.has(urlString)) {
-                    members.add(event.pubkey);
-                }
-            }
-        }
-        return members;
-    };
-
     static async New(
         eventsAdapter: EventsAdapter,
         relayAdapter: RelayRecorder,
         eventMarker: EventMarker,
     ) {
         const t = Date.now();
-        const allEvents = await eventsAdapter.filter();
+        const allEvents: NostrEvent[] = await Array.fromAsync(eventsAdapter.loop());
         console.log("Datebase_View:onload", Date.now() - t, allEvents.length);
 
         const initialEvents = new Map<string, Parsed_Event>();
@@ -218,6 +169,59 @@ export class Database_View
         return db;
     }
 
+    private constructor(
+        private readonly eventsAdapter: EventsAdapter,
+        private readonly relayRecorder: RelayRecorder,
+        private readonly eventMarker: EventMarker,
+        private readonly events: Map<string, Parsed_Event>,
+        private readonly removedEvents: Set<string>,
+    ) {
+        this.relay_record_loaded = new Promise(async (resolve) => {
+            const all_records = await relayRecorder.getAllRelayRecords();
+            for (const [event_id, relays] of all_records.entries()) {
+                const set = this.relayRecords.get(event_id);
+                if (set) {
+                    for (const relay of relays) {
+                        set.add(relay);
+                    }
+                } else {
+                    this.relayRecords.set(event_id, relays);
+                }
+            }
+            resolve(undefined);
+        });
+    }
+
+    getRelayRecommendations: func_GetRelayRecommendations = () => {
+        let set = new Set<string>();
+        for (const s of this.relayRecords.values()) {
+            set = set.union(s);
+        }
+        return set;
+    };
+
+    getMemberSet: func_GetMemberSet = (relay: URL) => {
+        const members = new Set<string>();
+        const urlString = relay.origin + (relay.pathname === "/" ? "" : relay.pathname);
+        for (const event of this.events_v2.values()) {
+            if (event.kind == v2.Kind_V2.SpaceMember) {
+                const records = this.getRelayRecord(event.id);
+                if (records.has(urlString)) {
+                    members.add(event.pubkey);
+                }
+            }
+        }
+        if (members.size === 0) {
+            for (const event of this.events.values()) {
+                const records = this.getRelayRecord(event.id);
+                if (records.has(urlString)) {
+                    members.add(event.pubkey);
+                }
+            }
+        }
+        return members;
+    };
+
     getEventByID = (id: string | NoteID) => {
         if (id instanceof NoteID) {
             id = id.hex;
@@ -226,6 +230,17 @@ export class Database_View
             return;
         }
         return this.events.get(id);
+    };
+
+    getEventByID_async = async (id: string | NoteID) => {
+        if (id instanceof NoteID) {
+            id = id.hex;
+        }
+        if (this.removedEvents.has(id)) {
+            return;
+        }
+        const event = this.eventsAdapter.get({ id: id });
+        return event;
     };
 
     *getAllEvents() {
@@ -237,11 +252,28 @@ export class Database_View
         }
     }
 
+    // get kind 1 and 30023
+    async *getPublicEvents(
+        spaceURL: URL,
+    ): AsyncIterable<Parsed_Event<NostrKind.TEXT_NOTE | NostrKind.Long_Form>> {
+        for await (const event of this.eventsAdapter.loop()) {
+            if (event.kind != NostrKind.TEXT_NOTE && event.kind != NostrKind.Long_Form) {
+                continue;
+            }
+            yield {
+                ...event,
+                kind: event.kind,
+                parsedTags: getTags(event),
+                publicKey: PublicKey.FromHex(event.pubkey) as PublicKey,
+            };
+        }
+    }
+
     getLatestEvent = (kind: NostrKind) => {
         return this.latestEvents.get(kind);
     };
 
-    isDeleted(id: string, admin?: string) {
+    async isDeleted(id: string, admin?: string) {
         const deletionEvent = this.deletionEvents.get(id);
         if (deletionEvent == undefined) {
             return false;
@@ -394,8 +426,9 @@ export class Database_View
 
         // check if the event exists
         {
-            const storedEvent = this.getEventByID(event.id);
-            if (storedEvent) { // event exist
+            const storedEvent = await this.eventsAdapter.get({ id: event.id });
+            if (storedEvent != undefined) { // event exist
+                console.log("event exists");
                 if (new_relay_record) {
                     this.sourceOfChange.put({ event: parsedEvent, relay: url });
                 }

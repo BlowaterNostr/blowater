@@ -23,7 +23,7 @@ import { InstallPrompt, NavBar } from "./nav.tsx";
 import { Component } from "preact";
 import { PublicMessageContainer } from "./public-message-container.tsx";
 import { ChatMessage } from "./message.ts";
-import { filter, forever, map } from "./_helper.ts";
+import { filter, forever, map, setState } from "./_helper.ts";
 import { RightPanel } from "./components/right-panel.tsx";
 import { SignIn } from "./sign-in.tsx";
 import { getTags, Parsed_Event } from "../nostr.ts";
@@ -37,11 +37,12 @@ import {
     getRelayInformation,
     InvalidKey,
     NostrAccountContext,
+    NostrEvent,
     NostrKind,
     PublicKey,
 } from "@blowater/nostr-sdk";
 
-export async function Start(database: DexieDatabase) {
+export async function Start(dexie_db: DexieDatabase) {
     console.log("Start the application");
 
     const installPrompt: InstallPrompt = {
@@ -59,7 +60,7 @@ export async function Start(database: DexieDatabase) {
     const rightPanelInputChan: RightPanelChannel = new Channel();
     const modalInputChan: ModalInputChannel = new Channel();
     const toastInputChan: ToastChannel = new Channel();
-    const dbView = await Database_View.New(database, database, database);
+    const dbView = await Database_View.New(dexie_db, dexie_db, dexie_db);
 
     {
         for (;;) {
@@ -345,13 +346,17 @@ type AppProps = {
     installPrompt: InstallPrompt;
 };
 
-export class AppComponent extends Component<AppProps, {
+type AppState = {
     isAdmin: func_IsAdmin | undefined;
     admin: string | undefined;
-}> {
-    state = {
+    publicEvents: Parsed_Event<NostrKind.TEXT_NOTE | NostrKind.Long_Form>[];
+};
+
+export class AppComponent extends Component<AppProps, AppState> {
+    state: AppState = {
         isAdmin: undefined,
         admin: undefined,
+        publicEvents: [],
     };
 
     async componentDidMount() {
@@ -361,6 +366,20 @@ export class AppComponent extends Component<AppProps, {
                 this.updateAdminState();
             }
         }
+    }
+
+    async componentWillUpdate() {
+        console.log("componentWillUpdate");
+        const t = Date.now();
+        const events = this.props.model.app?.database.getPublicEvents(
+            new URL(this.props.model.currentRelay),
+        );
+        if (events != undefined) {
+            await setState(this, {
+                publicEvents: await Array.fromAsync(events),
+            });
+        }
+        console.log(Date.now() - t);
     }
 
     render(props: AppProps) {
@@ -430,23 +449,13 @@ export class AppComponent extends Component<AppProps, {
                     }}
                     messages={Array.from(
                         map(
-                            filter(
-                                app.database.getAllEvents(),
-                                (e) => {
-                                    if (e.kind != NostrKind.TEXT_NOTE && e.kind != NostrKind.Long_Form) {
-                                        return false;
-                                    }
-                                    const relays = app.database.getRelayRecord(e.id);
-                                    return relays.has(model.currentRelay) &&
-                                        !app.database.isDeleted(e.id, this.state.admin);
-                                },
-                            ),
+                            this.state.publicEvents,
                             (e) => {
                                 const msg: ChatMessage = {
                                     author: e.publicKey,
                                     content: e.content,
                                     created_at: new Date(e.created_at * 1000),
-                                    event: e as Parsed_Event<NostrKind.TEXT_NOTE | NostrKind.Long_Form>,
+                                    event: e,
                                     lamport: getTags(e).lamport_timestamp,
                                     type: "text",
                                 };
@@ -596,6 +605,7 @@ const sync_public_notes = async (
     const { pool, database, since } = args;
     const stream = await pool.newSub("sync_public_notes", {
         kinds: [NostrKind.TEXT_NOTE, NostrKind.Long_Form],
+        limit: 200,
         since,
     });
     if (stream instanceof Error) {
