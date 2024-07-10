@@ -27,7 +27,7 @@ export interface EventRemover {
 }
 
 export interface EventGetter {
-    get(keys: Indices): Promise<NostrEvent | undefined> | NostrEvent | undefined;
+    get(keys: Indices): Promise<NostrEvent | undefined>;
 }
 
 export interface EventPutter {
@@ -394,7 +394,7 @@ export class Database_View
 
         // check if the event exists
         {
-            const storedEvent = this.getEventByID(event.id);
+            const storedEvent = await this.eventsAdapter.get({ id: event.id });
             if (storedEvent) { // event exist
                 if (new_relay_record) {
                     this.sourceOfChange.put({ event: parsedEvent, relay: url });
