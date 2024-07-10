@@ -1,6 +1,6 @@
 /** @jsx h */
-import { Component, Fragment, h } from "preact";
-import { emitFunc, EventSubscriber } from "../event-bus.ts";
+import { Component, h } from "preact";
+import { emitFunc } from "../event-bus.ts";
 import { NavigationUpdate, NavTabID, SelectSpace, ShowProfileSetting } from "./nav.tsx";
 import { ViewSpaceSettings } from "./setting.tsx";
 import {
@@ -15,10 +15,9 @@ import { Avatar, RelayAvatar } from "./components/avatar.tsx";
 import { CaretDownIcon } from "./icons/caret-down-icon.tsx";
 import { PoundIcon } from "./icons/pound-icon.tsx";
 import { Profile_Nostr_Event } from "../nostr.ts";
-import { ContactUpdate, PinListGetter } from "./conversation-list.tsx";
+import { ContactUpdate } from "./conversation-list.tsx";
 import { TagSelected } from "./contact-tags.tsx";
 import { ViewUserDetail } from "./message-panel.tsx";
-import { UI_Interaction_Event } from "./app_update.tsx";
 import { func_GetProfileByPublicKey } from "./search.tsx";
 import { PinIcon } from "./icons/pin-icon.tsx";
 import { SelectConversation } from "./search_model.ts";
@@ -27,6 +26,13 @@ type NewNavProps = {
     pool: ConnectionPool;
     activeNav: NavTabID;
     currentSpace: string;
+    profile: Profile_Nostr_Event | undefined;
+    currentConversation: PublicKey | undefined;
+    getters: {
+        getProfileByPublicKey: func_GetProfileByPublicKey;
+        getConversationList: func_GetConversationList;
+        getPinList: func_GetPinList;
+    };
     emit: emitFunc<
         | SelectSpace
         | NavigationUpdate
@@ -36,11 +42,6 @@ type NewNavProps = {
         | TagSelected
         | ViewUserDetail
     >;
-    profile: Profile_Nostr_Event | undefined;
-    currentConversation: PublicKey | undefined;
-    getProfileByPublicKey: func_GetProfileByPublicKey;
-    getConversationList: func_GetConversationList;
-    getPinList: func_GetPinList;
 };
 
 export class NewNav extends Component<NewNavProps> {
@@ -58,9 +59,7 @@ export class NewNav extends Component<NewNavProps> {
                     emit={props.emit}
                     currentSpace={props.currentSpace}
                     currentConversation={props.currentConversation}
-                    getProfileByPublicKey={props.getProfileByPublicKey}
-                    getConversationList={props.getConversationList}
-                    getPinList={props.getPinList}
+                    getters={props.getters}
                 />
                 <UserIndicator profile={props.profile} emit={props.emit} />
             </div>
@@ -339,18 +338,19 @@ type DirectMessageListProps = {
     emit: emitFunc<ContactUpdate>;
     currentSpace: string;
     currentConversation: PublicKey | undefined;
-    getProfileByPublicKey: func_GetProfileByPublicKey;
-    getConversationList: func_GetConversationList;
-    getPinList: func_GetPinList;
+    getters: {
+        getProfileByPublicKey: func_GetProfileByPublicKey;
+        getConversationList: func_GetConversationList;
+        getPinList: func_GetPinList;
+    };
 };
 
 class DirectMessageList extends Component<DirectMessageListProps> {
     render(props: DirectMessageListProps) {
-        console.log(props.getConversationList());
-        const pinList = props.getPinList();
+        const pinList = props.getters.getPinList();
         const pinned = [];
         const unpinned = [];
-        for (const pubkey of props.getConversationList()) {
+        for (const pubkey of props.getters.getConversationList()) {
             if (pinList.has(pubkey)) {
                 pinned.push(pubkey);
             } else {
@@ -367,7 +367,7 @@ class DirectMessageList extends Component<DirectMessageListProps> {
                             isPined={true}
                             currentConversation={props.currentConversation}
                             currentSpace={props.currentSpace}
-                            getProfileByPublicKey={props.getProfileByPublicKey}
+                            getters={props.getters}
                         />
                     ))}
                     {unpinned.map((pubkey: PublicKey) => (
@@ -377,7 +377,7 @@ class DirectMessageList extends Component<DirectMessageListProps> {
                             isPined={false}
                             currentConversation={props.currentConversation}
                             currentSpace={props.currentSpace}
-                            getProfileByPublicKey={props.getProfileByPublicKey}
+                            getters={props.getters}
                         />
                     ))}
                 </div>
@@ -392,12 +392,15 @@ type DireactMessageItemProps = {
     isPined: boolean;
     currentSpace: string;
     currentConversation: PublicKey | undefined;
-    getProfileByPublicKey: func_GetProfileByPublicKey;
+    getters: {
+        getProfileByPublicKey: func_GetProfileByPublicKey;
+    };
 };
 
 class DireactMessageItem extends Component<DireactMessageItemProps> {
     render(props: DireactMessageItemProps) {
-        const profile = props.getProfileByPublicKey(props.pubkey, new URL(props.currentSpace))?.profile;
+        const profile = props.getters.getProfileByPublicKey(props.pubkey, new URL(props.currentSpace))
+            ?.profile;
         const picture = profile?.picture || "./logo.webp";
         const name = profile?.name || profile?.display_name || profile?.pubkey;
         return (
