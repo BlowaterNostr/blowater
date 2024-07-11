@@ -40,6 +40,7 @@ import {
     NostrKind,
     PublicKey,
 } from "@blowater/nostr-sdk";
+import { NewNav } from "./new-nav.tsx";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
@@ -485,6 +486,19 @@ export class AppComponent extends Component<AppProps, {
 
         const final = (
             <div class={`h-screen w-full flex`}>
+                <NewNav
+                    currentSpace={model.currentRelay}
+                    emit={app.eventBus.emit}
+                    pool={app.pool}
+                    activeNav={model.navigationModel.activeNav}
+                    profile={app.database.getProfileByPublicKey(app.ctx.publicKey, model.currentRelay)}
+                    currentConversation={model.dm.currentConversation}
+                    getters={{
+                        getProfileByPublicKey: app.database.getProfileByPublicKey,
+                        getConversationList: app.conversationLists.getConversationList,
+                        getPinList: () => new Set<PublicKey>(),
+                    }}
+                />
                 <NavBar
                     publicKey={app.ctx.publicKey}
                     profile={app.database.getProfileByPublicKey(app.ctx.publicKey, model.currentRelay)}

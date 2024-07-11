@@ -331,7 +331,7 @@ class GroupChatList extends Component<GroupChatListProps> {
     }
 }
 
-type func_GetConversationList = () => Set<PublicKey>;
+export type func_GetConversationList = () => Iterable<PublicKey>;
 type func_GetPinList = () => Set<PublicKey>;
 
 type DirectMessageListProps = {
@@ -350,7 +350,7 @@ class DirectMessageList extends Component<DirectMessageListProps> {
         const pinList = props.getters.getPinList();
         const pinned = [];
         const unpinned = [];
-        for (const pubkey of props.getters.getConversationList()) {
+        for (const pubkey of Array.from(props.getters.getConversationList())) {
             if (pinList.has(pubkey)) {
                 pinned.push(pubkey);
             } else {

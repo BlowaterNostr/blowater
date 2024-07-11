@@ -18,7 +18,9 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker, Us
 
     constructor(
         public readonly ctx: NostrAccountContext,
-    ) {}
+    ) {
+        console.log("init DM_List");
+    }
 
     newNessageCount(pubkey: PublicKey): number {
         return this.newMessages.get(pubkey.bech32()) || 0;
@@ -26,6 +28,19 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker, Us
 
     markRead(pubkey: PublicKey): void {
         this.newMessages.set(pubkey.bech32(), 0);
+    }
+
+    *getConversationList() {
+        console.log("getNewConversationList", this.convoSummaries);
+
+        for (const convo of this.convoSummaries.values()) {
+            if (
+                convo.newestEventReceivedByMe != undefined &&
+                convo.newestEventSendByMe != undefined
+            ) {
+                yield convo.pubkey;
+            }
+        }
     }
 
     *getStrangers() {
@@ -131,6 +146,7 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker, Us
                 return err;
             }
         }
+        console.log("DM_List addEvents", this.convoSummaries.size);
     }
 
     private addEvent(event: NostrEvent<NostrKind.DIRECT_MESSAGE>, newEvent: boolean) {
