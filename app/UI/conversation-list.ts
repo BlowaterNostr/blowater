@@ -19,7 +19,7 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker, Us
     constructor(
         public readonly ctx: NostrAccountContext,
     ) {
-        console.log("init DM_List");
+        this.getConversationList = this.getConversationList.bind(this);
     }
 
     newNessageCount(pubkey: PublicKey): number {
@@ -30,15 +30,18 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker, Us
         this.newMessages.set(pubkey.bech32(), 0);
     }
 
-    *getConversationList() {
-        console.log("getNewConversationList", this.convoSummaries);
-
+    *getConversationList(space?: string): Iterable<PublicKey> {
         for (const convo of this.convoSummaries.values()) {
             if (
                 convo.newestEventReceivedByMe != undefined &&
                 convo.newestEventSendByMe != undefined
             ) {
-                yield convo.pubkey;
+                if (!space) {
+                    yield convo.pubkey;
+                }
+                if (space && convo.relays?.includes(space)) {
+                    yield convo.pubkey;
+                }
             }
         }
     }

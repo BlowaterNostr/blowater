@@ -55,7 +55,7 @@ export class NewNav extends Component<NewNavProps> {
                 />
                 {/* <GlobalSearch /> */}
                 <GroupChatList emit={props.emit} activeNav={props.activeNav} />
-                <DirectMessageList
+                <ConversationList
                     emit={props.emit}
                     currentSpace={props.currentSpace}
                     currentConversation={props.currentConversation}
@@ -331,10 +331,10 @@ class GroupChatList extends Component<GroupChatListProps> {
     }
 }
 
-export type func_GetConversationList = () => Iterable<PublicKey>;
+export type func_GetConversationList = (space?: string) => Iterable<PublicKey>;
 type func_GetPinList = () => Set<PublicKey>;
 
-type DirectMessageListProps = {
+type ConversationListProps = {
     emit: emitFunc<ContactUpdate>;
     currentSpace: string;
     currentConversation: PublicKey | undefined;
@@ -345,12 +345,14 @@ type DirectMessageListProps = {
     };
 };
 
-class DirectMessageList extends Component<DirectMessageListProps> {
-    render(props: DirectMessageListProps) {
+class ConversationList extends Component<ConversationListProps> {
+    render(props: ConversationListProps) {
         const pinList = props.getters.getPinList();
         const pinned = [];
         const unpinned = [];
-        for (const pubkey of Array.from(props.getters.getConversationList())) {
+        console.log("ConversationList getConversationList", Array.from(props.getters.getConversationList()));
+        const conversationList = Array.from(props.getters.getConversationList());
+        for (const pubkey of conversationList) {
             if (pinList.has(pubkey)) {
                 pinned.push(pubkey);
             } else {
@@ -399,10 +401,10 @@ type DireactMessageItemProps = {
 
 class DireactMessageItem extends Component<DireactMessageItemProps> {
     render(props: DireactMessageItemProps) {
-        const profile = props.getters.getProfileByPublicKey(props.pubkey, new URL(props.currentSpace))
+        const profile = props.getters.getProfileByPublicKey(props.pubkey, undefined)
             ?.profile;
-        const picture = profile?.picture || "./logo.webp";
-        const name = profile?.name || profile?.display_name || profile?.pubkey;
+        const picture = profile?.picture || robohash(props.pubkey.hex);
+        const name = profile?.name || profile?.display_name || props.pubkey;
         return (
             <div
                 class={`flex gap-2 rounded-md px-2 py-1 w-full hover:bg-neutral-950 cursor-pointer ${
