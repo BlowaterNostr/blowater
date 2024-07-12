@@ -30,17 +30,17 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker, Us
         this.newMessages.set(pubkey.bech32(), 0);
     }
 
-    *getConversationList(space?: string): Iterable<PublicKey> {
+    *getConversationList(space?: string): Iterable<ConversationSummary> {
         for (const convo of this.convoSummaries.values()) {
             if (
                 convo.newestEventReceivedByMe != undefined &&
                 convo.newestEventSendByMe != undefined
             ) {
                 if (!space) {
-                    yield convo.pubkey;
+                    yield convo;
                 }
                 if (space && convo.relays?.includes(space)) {
-                    yield convo.pubkey;
+                    yield convo;
                 }
             }
         }

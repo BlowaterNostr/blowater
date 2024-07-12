@@ -55,7 +55,7 @@ export class OtherConfig implements PinListGetter, NostrEventAdder {
 
     private pinList = new Map<string, PinConversationRelay | UnpinConversationRelay>(); // set of pubkeys in npub format
 
-    getPinList(): Set<string> {
+    getPinList = (): Set<string> => {
         const set = new Set<string>();
         for (const event of this.pinList.values()) {
             if (event.type == "PinConversation") {
@@ -63,7 +63,7 @@ export class OtherConfig implements PinListGetter, NostrEventAdder {
             }
         }
         return set;
-    }
+    };
 
     async addPin(pubkey: string) {
         const currentPin = this.pinList.get(pubkey);

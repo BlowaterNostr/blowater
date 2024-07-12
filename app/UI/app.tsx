@@ -38,7 +38,6 @@ import {
     InvalidKey,
     NostrAccountContext,
     NostrKind,
-    PublicKey,
 } from "@blowater/nostr-sdk";
 import { NewNav } from "./new-nav.tsx";
 
@@ -496,17 +495,8 @@ export class AppComponent extends Component<AppProps, {
                     getters={{
                         getProfileByPublicKey: app.database.getProfileByPublicKey,
                         getConversationList: app.conversationLists.getConversationList,
-                        getPinList: () => new Set<PublicKey>(),
+                        getPinList: app.otherConfig.getPinList,
                     }}
-                />
-                <NavBar
-                    publicKey={app.ctx.publicKey}
-                    profile={app.database.getProfileByPublicKey(app.ctx.publicKey, model.currentRelay)}
-                    emit={app.eventBus.emit}
-                    installPrompt={props.installPrompt}
-                    currentRelay={model.currentRelay}
-                    activeNav={model.navigationModel.activeNav}
-                    pool={app.pool}
                 />
                 {profileEditorNode}
                 {publicNode}

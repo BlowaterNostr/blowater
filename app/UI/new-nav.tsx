@@ -21,6 +21,7 @@ import { ViewUserDetail } from "./message-panel.tsx";
 import { func_GetProfileByPublicKey } from "./search.tsx";
 import { PinIcon } from "./icons/pin-icon.tsx";
 import { SelectConversation } from "./search_model.ts";
+import { ConversationSummary, sortUserInfo } from "./conversation-list.ts";
 
 type NewNavProps = {
     pool: ConnectionPool;
@@ -47,7 +48,11 @@ type NewNavProps = {
 export class NewNav extends Component<NewNavProps> {
     render(props: NewNavProps) {
         return (
-            <div class="h-screen w-64 flex flex-col gap-y-4 overflow-y-auto bg-neutral-900 p-2 items-center select-none">
+            <div
+                class={`h-screen w-64 flex flex-col gap-y-4 overflow-y-auto bg-neutral-900 p-2 items-center select-none
+                ${props.currentConversation ? "max-sm:hidden" : ""}
+            `}
+            >
                 <SpaceDropDownPanel
                     currentSpace={props.currentSpace}
                     spaceList={new Set(Array.from(props.pool.getRelays()).map((r) => r.url))}
@@ -331,8 +336,8 @@ class GroupChatList extends Component<GroupChatListProps> {
     }
 }
 
-export type func_GetConversationList = (space?: string) => Iterable<PublicKey>;
-type func_GetPinList = () => Set<PublicKey>;
+export type func_GetConversationList = (space?: string) => Iterable<ConversationSummary>;
+type func_GetPinList = () => Set<string>;
 
 type ConversationListProps = {
     emit: emitFunc<ContactUpdate>;
@@ -350,38 +355,40 @@ class ConversationList extends Component<ConversationListProps> {
         const pinList = props.getters.getPinList();
         const pinned = [];
         const unpinned = [];
-        console.log("ConversationList getConversationList", Array.from(props.getters.getConversationList()));
         const conversationList = Array.from(props.getters.getConversationList());
-        for (const pubkey of conversationList) {
-            if (pinList.has(pubkey)) {
-                pinned.push(pubkey);
+        const sortedConversationList = conversationList.sort((a, b) => {
+            return sortUserInfo(a, b);
+        });
+        for (const convo of sortedConversationList) {
+            if (pinList.has(convo.pubkey.hex)) {
+                pinned.push(
+                    <DireactMessageItem
+                        emit={props.emit}
+                        pubkey={convo.pubkey}
+                        isPined={true}
+                        currentConversation={props.currentConversation}
+                        currentSpace={props.currentSpace}
+                        getters={props.getters}
+                    />,
+                );
             } else {
-                unpinned.push(pubkey);
+                unpinned.push(
+                    <DireactMessageItem
+                        emit={props.emit}
+                        pubkey={convo.pubkey}
+                        isPined={false}
+                        currentConversation={props.currentConversation}
+                        currentSpace={props.currentSpace}
+                        getters={props.getters}
+                    />,
+                );
             }
         }
         return (
             <div class="flex-1 w-full overflow-y-auto">
                 <div class="flex flex-col gap-1 w-full justify-start items-center">
-                    {pinned.map((pubkey: PublicKey) => (
-                        <DireactMessageItem
-                            emit={props.emit}
-                            pubkey={pubkey}
-                            isPined={true}
-                            currentConversation={props.currentConversation}
-                            currentSpace={props.currentSpace}
-                            getters={props.getters}
-                        />
-                    ))}
-                    {unpinned.map((pubkey: PublicKey) => (
-                        <DireactMessageItem
-                            emit={props.emit}
-                            pubkey={pubkey}
-                            isPined={false}
-                            currentConversation={props.currentConversation}
-                            currentSpace={props.currentSpace}
-                            getters={props.getters}
-                        />
-                    ))}
+                    {pinned}
+                    {unpinned}
                 </div>
             </div>
         );
