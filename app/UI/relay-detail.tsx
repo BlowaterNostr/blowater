@@ -173,6 +173,8 @@ export class RelayInformationComponent extends Component<Props, State> {
                     console.log(info);
                     console.error(pubkey);
                 } else {
+                    console.log("RelayInfomationComponent", pubkey, this.props.info.url);
+
                     nodes.push(
                         <Fragment>
                             <p class={this.styles.title}>Admin</p>
