@@ -33,7 +33,7 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker, Us
     *getConversationList(space?: string): Iterable<ConversationSummary> {
         for (const convo of this.convoSummaries.values()) {
             if (
-                convo.newestEventReceivedByMe != undefined &&
+                convo.newestEventReceivedByMe != undefined ||
                 convo.newestEventSendByMe != undefined
             ) {
                 if (!space) {
