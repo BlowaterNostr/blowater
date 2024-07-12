@@ -411,7 +411,7 @@ class ConversationItem extends Component<ConversationItemProps> {
         const profile = props.getters.getProfileByPublicKey(props.pubkey, undefined)
             ?.profile;
         const picture = profile?.picture || robohash(props.pubkey.hex);
-        const name = profile?.name || profile?.display_name || props.pubkey.hex;
+        const name = profile?.name || profile?.display_name || props.pubkey.bech32();
         return (
             <div
                 class={`flex gap-2 rounded-md px-2 py-1 w-full hover:bg-neutral-950 cursor-pointer ${
