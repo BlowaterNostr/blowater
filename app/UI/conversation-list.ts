@@ -149,7 +149,6 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker, Us
                 return err;
             }
         }
-        console.log("DM_List addEvents", this.convoSummaries.size);
     }
 
     private addEvent(event: NostrEvent<NostrKind.DIRECT_MESSAGE>, newEvent: boolean) {

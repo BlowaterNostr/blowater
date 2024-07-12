@@ -19,12 +19,10 @@ import { ErrorColor, PrimaryTextColor, SecondaryBackgroundColor } from "./style/
 import { ContactTag, ContactTags, TagSelected } from "./contact-tags.tsx";
 import { ViewUserDetail } from "./message-panel.tsx";
 import { robohash } from "@blowater/nostr-sdk";
-import { func_GetConversationList } from "./new-nav.tsx";
 
 export interface ConversationListRetriever {
     getContacts: () => Iterable<ConversationSummary>;
     getStrangers: () => Iterable<ConversationSummary>;
-    getConversationList: func_GetConversationList;
     getConversations: (keys: Iterable<string>) => Iterable<ConversationSummary>;
     getConversationType(pubkey: PublicKey): ConversationType;
 }
