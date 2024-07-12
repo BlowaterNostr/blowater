@@ -362,7 +362,7 @@ class ConversationList extends Component<ConversationListProps> {
         for (const convo of sortedConversationList) {
             if (pinList.has(convo.pubkey.hex)) {
                 pinned.push(
-                    <DireactMessageItem
+                    <ConversationItem
                         emit={props.emit}
                         pubkey={convo.pubkey}
                         isPined={true}
@@ -373,7 +373,7 @@ class ConversationList extends Component<ConversationListProps> {
                 );
             } else {
                 unpinned.push(
-                    <DireactMessageItem
+                    <ConversationItem
                         emit={props.emit}
                         pubkey={convo.pubkey}
                         isPined={false}
@@ -395,7 +395,7 @@ class ConversationList extends Component<ConversationListProps> {
     }
 }
 
-type DireactMessageItemProps = {
+type ConversationItemProps = {
     pubkey: PublicKey;
     emit: emitFunc<SelectConversation>;
     isPined: boolean;
@@ -406,12 +406,12 @@ type DireactMessageItemProps = {
     };
 };
 
-class DireactMessageItem extends Component<DireactMessageItemProps> {
-    render(props: DireactMessageItemProps) {
+class ConversationItem extends Component<ConversationItemProps> {
+    render(props: ConversationItemProps) {
         const profile = props.getters.getProfileByPublicKey(props.pubkey, undefined)
             ?.profile;
         const picture = profile?.picture || robohash(props.pubkey.hex);
-        const name = profile?.name || profile?.display_name || props.pubkey;
+        const name = profile?.name || profile?.display_name || props.pubkey.hex;
         return (
             <div
                 class={`flex gap-2 rounded-md px-2 py-1 w-full hover:bg-neutral-950 cursor-pointer ${
@@ -427,7 +427,7 @@ class DireactMessageItem extends Component<DireactMessageItemProps> {
                 <div class="w-4 flex justify-center items-center">
                     <Avatar picture={picture} />
                 </div>
-                <div class="text-white text-sm font-medium font-sans leading-5 flex-1">
+                <div class="text-white text-sm font-medium font-sans leading-5 flex-1 truncate">
                     {name}
                 </div>
                 {props.isPined
