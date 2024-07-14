@@ -91,7 +91,17 @@ class SpaceDropDownPanel extends Component<SpaceDropDownPanelProps, SpaceDropDow
         searchSpaceValue: "",
     };
 
-    async componentDidMount() {
+    componentDidUpdate(previousProps: Readonly<SpaceDropDownPanelProps>): void {
+        if (this.props.spaceList !== previousProps.spaceList) {
+            this.updateSpaceListInformation();
+        }
+    }
+
+    componentDidMount() {
+        this.updateSpaceListInformation();
+    }
+
+    updateSpaceListInformation() {
         for (const url of this.props.spaceList) {
             getRelayInformation(url).then((info) => {
                 if (info instanceof Error) {
