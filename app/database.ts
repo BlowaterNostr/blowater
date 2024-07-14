@@ -303,8 +303,7 @@ export class Database_View
             }
             return result;
         }
-        const space = new URL(spaceURL);
-        const urlString = space.origin + (space.pathname === "/" ? "" : space.pathname);
+        const urlString = spaceURL.origin + (spaceURL.pathname === "/" ? "" : spaceURL.pathname);
         const spaceProfiels = this.profile_events.get(urlString);
         if (spaceProfiels) {
             for (const event of spaceProfiels.values()) {

@@ -388,8 +388,6 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
         //
         else if (event.type == "ViewUserDetail") {
             sync_user_detail_data({ pool, pubkey: event.pubkey, database: app.database, profile_only: true });
-            console.log("ViewUserDetail", event.pubkey, model.currentRelay);
-
             app.rightPanelInputChan.put(
                 () => {
                     const profile_event = app.database.getProfileByPublicKey(
@@ -795,7 +793,6 @@ async function sync_user_detail_data(
         if (msg.res.type == "EOSE") {
             break;
         } else if (msg.res.type == "EVENT") {
-            console.log("msg.url", msg.url);
             await args.database.addEvent(msg.res.event, msg.url);
         }
     }
