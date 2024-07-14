@@ -140,25 +140,19 @@ class SpaceDropDownPanel extends Component<SpaceDropDownPanelProps, SpaceDropDow
     }
 
     CurrentSpaceIndicator = () => {
+        const currentSpaceInformation = this.state.spaceInformation.get(this.props.currentSpace);
+        const icon = currentSpaceInformation?.icon || robohash(this.props.currentSpace);
+        const name = currentSpaceInformation?.name || new URL(this.props.currentSpace).hostname;
         return (
             <div
                 class="flex flex-row items-center gap-1 p-1 rounded cursor-pointer hover:bg-neutral-500"
                 onClick={this.toggleRelayList}
             >
                 <div class="w-10 h-10 rounded-md bg-neutral-700">
-                    {this.props.currentSpace
-                        ? (
-                            <RelayAvatar
-                                icon={this.state.spaceInformation.get(this.props.currentSpace)?.icon ||
-                                    robohash(this.props.currentSpace)}
-                            />
-                        )
-                        : <RelayAvatar icon="logo.webp" />}
+                    <RelayAvatar icon={icon} />
                 </div>
                 <div class="flex-1 text-sm font-medium font-sans leading-5 text-neutral-100 truncate">
-                    {this.props.currentSpace
-                        ? <div>{this.state.spaceInformation.get(this.props.currentSpace)?.name}</div>
-                        : <div>current space url</div>}
+                    {name}
                 </div>
                 <div class="w-8 h-8 flex justify-center items-center rounded">
                     {this.state.showDropDown
