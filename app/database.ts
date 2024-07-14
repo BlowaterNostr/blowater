@@ -336,7 +336,6 @@ export class Database_View
             }
             return result;
         }
-        console.log("getProfileByPublicKey", pubkey, spaceURL.toString());
         const space = new URL(spaceURL);
         const urlString = space.origin + (space.pathname === "/" ? "" : space.pathname);
         const profile_events_of_space = this.profile_events.get(urlString);

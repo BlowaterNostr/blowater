@@ -4,6 +4,7 @@ import { InvalidEvent } from "../features/dm.ts";
 import { getTags } from "../nostr.ts";
 import { UserBlocker } from "./app_update.tsx";
 import { ConversationListRetriever, ConversationType, NewMessageChecker } from "./conversation-list.tsx";
+import { RelayRecordGetter } from "../database.ts";
 
 export interface ConversationSummary {
     pubkey: PublicKey;
@@ -18,6 +19,7 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker, Us
 
     constructor(
         public readonly ctx: NostrAccountContext,
+        private readonly relayRecordGetter: RelayRecordGetter,
     ) {
         this.getConversationList = this.getConversationList.bind(this);
     }
@@ -182,7 +184,9 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker, Us
         }
 
         const userInfo = this.convoSummaries.get(pubkey_I_TalkingTo.bech32());
+        const spaces = this.relayRecordGetter.getRelayRecord(event.id);
         if (userInfo) {
+            if (spaces.size > 0) userInfo.relays = Array.from(spaces);
             if (pubkey_I_TalkingTo.hex == this.ctx.publicKey.hex) {
                 // talking to myself
                 if (userInfo.newestEventSendByMe) {
@@ -221,6 +225,7 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker, Us
                 newestEventReceivedByMe: undefined,
                 newestEventSendByMe: undefined,
             };
+            if (spaces.size > 0) newUserInfo.relays = Array.from(spaces);
             if (pubkey_I_TalkingTo.hex == this.ctx.publicKey.hex) {
                 // talking to myself
                 newUserInfo.newestEventSendByMe = event;

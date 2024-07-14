@@ -180,7 +180,7 @@ export class App {
         console.log(relayConfig.getRelayURLs());
 
         // init conversation list
-        const conversationLists = new DM_List(args.ctx);
+        const conversationLists = new DM_List(args.ctx, args.database);
         const err = conversationLists.addEvents(all_events, false);
         if (err instanceof InvalidEvent) {
             console.error(err);
