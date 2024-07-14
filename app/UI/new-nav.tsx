@@ -473,7 +473,7 @@ class UserIndicator extends Component<UserIndicatorProps> {
                         class={`w-8 h-8`}
                         picture={props.profile?.profile.picture || "./logo.webp"}
                     />
-                    <div class="text-neutral-100 text-sm font-medium leading-5">
+                    <div class="text-neutral-100 flex-1 text-sm font-medium leading-5 truncate">
                         {props.profile?.profile.name || props.profile?.profile.display_name ||
                             props.profile?.pubkey}
                     </div>
