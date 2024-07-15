@@ -54,7 +54,7 @@ export class SpaceDropDownPanel extends Component<SpaceDropDownPanelProps, Relay
                 continue;
             }
             relayList.push(
-                this.SpaceListItem(url, this.props.currentRelay == url),
+                this.SpaceListItem(new URL(url), this.props.currentRelay == url),
             );
         }
         return (
@@ -109,7 +109,7 @@ export class SpaceDropDownPanel extends Component<SpaceDropDownPanelProps, Relay
         );
     };
 
-    SpaceListItem(spaceURL: string, isCurrentRelay: boolean) {
+    SpaceListItem(spaceURL: URL, isCurrentRelay: boolean) {
         const selected = isCurrentRelay ? " border-[#000] border" : "";
         return (
             <div
@@ -120,13 +120,13 @@ export class SpaceDropDownPanel extends Component<SpaceDropDownPanelProps, Relay
                 <div class={`flex justify-center items-center w-12 h-12 rounded-md ${selected}`}>
                     <div class={`w-10 h-10 bg-neutral-600 rounded-md `}>
                         <RelayAvatar
-                            icon={this.state.relayInformation.get(spaceURL)?.icon ||
+                            icon={this.state.relayInformation.get(spaceURL.toString())?.icon ||
                                 robohash(spaceURL)}
                         />
                     </div>
                 </div>
                 <div class="px-2">
-                    <div>{this.state.relayInformation.get(spaceURL)?.name}</div>
+                    <div>{this.state.relayInformation.get(spaceURL.toString())?.name}</div>
                     <div class="text-sm font-light">{new URL(spaceURL).hostname}</div>
                 </div>
             </div>
@@ -209,7 +209,7 @@ export class SpaceDropDownPanel extends Component<SpaceDropDownPanelProps, Relay
         });
     };
 
-    onSpaceSelected = (spaceURL: string) => async () => {
+    onSpaceSelected = (spaceURL: URL) => async () => {
         await setState(this, {
             showDropDown: false,
         });

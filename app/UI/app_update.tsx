@@ -194,8 +194,8 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
 
         // All events below are only valid after signning in
         if (event.type == "SelectSpace") {
-            rememberCurrentRelay(event.spaceURL);
-            model.currentRelay = event.spaceURL;
+            rememberCurrentRelay(event.spaceURL.toString());
+            model.currentRelay = event.spaceURL.toString();
         } //
         // Searchx
         //
@@ -207,7 +207,7 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
             const search = (
                 <Search
                     placeholder={`Search a user's public key or name (${
-                        app.database.getUniqueProfileCount(model.currentRelay)
+                        app.database.getUniqueProfileCount(model.currentRelay.toString())
                     } profiles)`}
                     getProfileByPublicKey={app.database.getProfileByPublicKey}
                     getProfilesByText={app.database.getProfilesByText}

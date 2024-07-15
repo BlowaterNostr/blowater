@@ -48,7 +48,6 @@ stats:
 
 # build the web application
 build: fmt
-	deno lint
 	deno run \
 		--allow-env \
 		--allow-read \

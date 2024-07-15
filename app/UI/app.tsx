@@ -454,7 +454,7 @@ export class AppComponent extends Component<AppProps, {
                             },
                         ),
                     )}
-                    relay_url={model.currentRelay}
+                    relay_url={model.currentRelay.toString()}
                     bus={app.eventBus}
                 />
             );
@@ -486,9 +486,8 @@ export class AppComponent extends Component<AppProps, {
         const final = (
             <div class={`h-screen w-full flex`}>
                 <NewNav
-                    currentSpace={new URL(model.currentRelay)}
-                    emit={app.eventBus.emit}
-                    pool={app.pool}
+                    currentSpaceURL={new URL(model.currentRelay)}
+                    spaceList={Array.from(app.pool.getRelays()).map((r) => r.url)}
                     activeNav={model.navigationModel.activeNav}
                     profile={app.database.getProfileByPublicKey(app.ctx.publicKey, model.currentRelay)}
                     currentConversation={model.dm.currentConversation}
@@ -497,6 +496,8 @@ export class AppComponent extends Component<AppProps, {
                         getConversationList: app.conversationLists.getConversationList,
                         getPinList: app.otherConfig.getPinList,
                     }}
+                    emit={app.eventBus.emit}
+                    update={app.eventBus}
                 />
                 {profileEditorNode}
                 {publicNode}

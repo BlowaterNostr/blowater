@@ -54,7 +54,7 @@ for (let i = 0; i < 50; i++) {
 
 render(
     <NewNav
-        currentSpace="wss://blowater.nostr1.com"
+        currentSpaceURL="wss://blowater.nostr1.com"
         emit={testEventBus.emit}
         pool={pool}
         activeNav={"Public"}

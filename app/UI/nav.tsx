@@ -40,7 +40,7 @@ export type NavigationUpdate = {
 
 export type SelectSpace = {
     type: "SelectSpace";
-    spaceURL: string;
+    spaceURL: URL;
 };
 
 export type NavigationModel = {

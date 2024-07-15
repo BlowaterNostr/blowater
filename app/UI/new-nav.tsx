@@ -1,15 +1,9 @@
 /** @jsx h */
 import { Component, h } from "preact";
-import { emitFunc } from "../event-bus.ts";
+import { emitFunc, EventSubscriber } from "../event-bus.ts";
 import { NavigationUpdate, NavTabID, SelectSpace, ShowProfileSetting } from "./nav.tsx";
 import { ViewSpaceSettings } from "./setting.tsx";
-import {
-    ConnectionPool,
-    getRelayInformation,
-    PublicKey,
-    RelayInformation,
-    robohash,
-} from "@blowater/nostr-sdk";
+import { getRelayInformation, PublicKey, RelayInformation, robohash } from "@blowater/nostr-sdk";
 import { setState } from "./_helper.ts";
 import { Avatar, RelayAvatar } from "./components/avatar.tsx";
 import { CaretDownIcon } from "./icons/caret-down-icon.tsx";
@@ -22,11 +16,12 @@ import { func_GetProfileByPublicKey } from "./search.tsx";
 import { PinIcon } from "./icons/pin-icon.tsx";
 import { SelectConversation } from "./search_model.ts";
 import { ConversationSummary, sortUserInfo } from "./conversation-list.ts";
+import { UI_Interaction_Event } from "./app_update.tsx";
 
 type NewNavProps = {
     activeNav: NavTabID;
-    currentSpace: RelayInformation & { url: URL };
-    spaceList: Set<RelayInformation & { url: URL }>;
+    currentSpaceURL: URL;
+    spaceList: Array<string>;
     profile: Profile_Nostr_Event | undefined;
     currentConversation: PublicKey | undefined;
     getters: {
@@ -43,9 +38,37 @@ type NewNavProps = {
         | TagSelected
         | ViewUserDetail
     >;
+    update: EventSubscriber<UI_Interaction_Event>;
 };
 
-export class NewNav extends Component<NewNavProps> {
+type NewNavState = {
+    spaceInformation: RelayInformation & { url: URL };
+    spaceInformationList: Map<string, RelayInformation & { url: URL }>;
+};
+
+export class NewNav extends Component<NewNavProps, NewNavState> {
+    state: Readonly<NewNavState> = {
+        spaceInformation: { url: this.props.currentSpaceURL },
+        spaceInformationList: new Map(),
+    };
+
+    async componentDidMount() {
+        console.log("componentDidMount");
+        for await (const state of updateInformation(this.props.currentSpaceURL, this.props.spaceList)) {
+            console.log("componentDidMount", state);
+            await setState(this, state);
+        }
+        for await (const change of this.props.update.onChange()) {
+            console.log("new nav", change);
+            if (change.type == "SelectSpace") {
+                const info = this.state.spaceInformationList.get(change.spaceURL.toString());
+                await setState(this, {
+                    spaceInformation: info,
+                });
+            }
+        }
+    }
+
     render(props: NewNavProps) {
         return (
             <div
@@ -54,15 +77,16 @@ export class NewNav extends Component<NewNavProps> {
             `}
             >
                 <SpaceDropDownPanel
-                    currentSpace={props.currentSpace}
-                    spaceList={props.spaceList}
+                    currentSpace={this.state.spaceInformation}
+                    spaceList={this.state.spaceInformationList}
                     emit={props.emit}
                 />
+
                 {/* <GlobalSearch /> */}
                 <GroupChatList emit={props.emit} activeNav={props.activeNav} />
                 <ConversationList
                     emit={props.emit}
-                    currentSpace={props.currentSpace.url}
+                    currentSpace={this.props.currentSpaceURL}
                     currentConversation={props.currentConversation}
                     getters={props.getters}
                 />
@@ -74,7 +98,7 @@ export class NewNav extends Component<NewNavProps> {
 
 type SpaceDropDownPanelProps = {
     currentSpace: RelayInformation & { url: URL };
-    spaceList: Set<RelayInformation & { url: URL }>;
+    spaceList: Map<string, RelayInformation & { url: URL }>;
     emit: emitFunc<SelectSpace | NavigationUpdate | ViewSpaceSettings>;
 };
 
@@ -97,7 +121,7 @@ class SpaceDropDownPanel extends Component<SpaceDropDownPanelProps, SpaceDropDow
 
     render() {
         const spaceList = [];
-        for (const space of this.props.spaceList) {
+        for (const space of this.props.spaceList.values()) {
             if (!space.url.toString().includes(this.state.searchSpaceValue)) {
                 continue;
             }
@@ -169,12 +193,12 @@ class SpaceDropDownPanel extends Component<SpaceDropDownPanelProps, SpaceDropDow
             <div
                 class={"flex flex-row mb-2 hover:bg-neutral-500" +
                     " hover:cursor-pointer items-center rounded"}
-                onClick={this.onSpaceSelected(spaceInfo.url.toString())}
+                onClick={this.onSpaceSelected(spaceInfo.url)}
             >
                 <div class={`flex justify-center items-center w-12 h-12 rounded-md ${selected}`}>
                     <div class={`w-10 h-10 bg-neutral-600 rounded-md `}>
                         <RelayAvatar
-                            icon={this.props.currentSpace.icon ||
+                            icon={spaceInfo.icon ||
                                 robohash(spaceInfo.url)}
                         />
                     </div>
@@ -263,7 +287,7 @@ class SpaceDropDownPanel extends Component<SpaceDropDownPanelProps, SpaceDropDow
         });
     };
 
-    onSpaceSelected = (spaceURL: string) => async () => {
+    onSpaceSelected = (spaceURL: URL) => async () => {
         await setState(this, {
             showDropDown: false,
         });
@@ -458,5 +482,42 @@ class UserIndicator extends Component<UserIndicatorProps> {
                 </div>
             </div>
         );
+    }
+}
+
+async function* updateInformation(currentSpaceURL: URL, spaceList: string[]) {
+    const currentInfo = await getRelayInformation(currentSpaceURL);
+    if (currentInfo instanceof Error) {
+        console.error(currentInfo);
+        return;
+    }
+    yield {
+        spaceInformation: {
+            url: currentSpaceURL,
+            ...currentInfo,
+        },
+    };
+    const infoList = new Map<string, RelayInformation & { url: URL }>();
+    for (const space of spaceList) {
+        if (new URL(space).toString() == currentSpaceURL.toString()) {
+            infoList.set(currentSpaceURL.toString(), {
+                url: currentSpaceURL,
+                ...currentInfo,
+            });
+            continue;
+        }
+        const info = await getRelayInformation(space);
+        if (info instanceof Error) {
+            console.error(info);
+            continue;
+        }
+        const url = new URL(space);
+        infoList.set(url.toString(), {
+            url: url,
+            ...info,
+        });
+        yield {
+            spaceInformationList: infoList,
+        };
     }
 }
