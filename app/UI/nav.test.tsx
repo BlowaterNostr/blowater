@@ -3,6 +3,7 @@ import { h, render } from "preact";
 import { NewNav } from "./nav.tsx";
 import { prepareProfileEvent, testEventBus } from "./_setup.test.ts";
 import { ConnectionPool, InMemoryAccountContext, PublicKey } from "@blowater/nostr-sdk";
+import { ConversationSummary } from "./conversation-list.ts";
 
 const pool = new ConnectionPool();
 await pool.addRelayURLs(
@@ -43,20 +44,22 @@ const profileEvent = await prepareProfileEvent(ctx, {
 });
 
 let currentConversation: PublicKey | undefined;
-const convoList = new Set<PublicKey>();
-const pinList = new Set<PublicKey>();
+const convoList = new Array<ConversationSummary>();
+const pinList = new Set<string>();
 for (let i = 0; i < 50; i++) {
     const pubkey = InMemoryAccountContext.Generate().publicKey;
-    if (i % 4 == 0) pinList.add(pubkey);
+    if (i % 4 == 0) pinList.add(pubkey.hex);
     if (i == 5) currentConversation = pubkey;
-    convoList.add(pubkey);
+    convoList.push({
+        pubkey: pubkey,
+        relays: [],
+    });
 }
 
 render(
     <NewNav
-        currentSpaceURL={new URL("wss://blowater.nostr1.com")},
-        emit={testEventBus.emit}
-        pool={pool}
+        currentSpaceURL={new URL("wss://blowater.nostr1.com")}
+        spaceList={[]}
         activeNav={"Public"}
         profile={profileEvent}
         currentConversation={currentConversation}
@@ -65,6 +68,8 @@ render(
             getConversationList: () => convoList,
             getPinList: () => pinList,
         }}
+        update={testEventBus}
+        emit={testEventBus.emit}
     />,
     document.body,
 );
