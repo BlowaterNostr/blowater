@@ -19,7 +19,7 @@ import { Setting } from "./setting.tsx";
 import { getCurrentSignInCtx, getSignInState, setSignInState } from "./sign-in.ts";
 import { SecondaryBackgroundColor } from "./style/colors.ts";
 import { LamportTime } from "../time.ts";
-import { InstallPrompt, NavBar } from "./nav.tsx";
+import { InstallPrompt } from "./nav.tsx";
 import { Component } from "preact";
 import { PublicMessageContainer } from "./public-message-container.tsx";
 import { ChatMessage } from "./message.ts";
@@ -38,8 +38,8 @@ import {
     InvalidKey,
     NostrAccountContext,
     NostrKind,
-    PublicKey,
 } from "@blowater/nostr-sdk";
+import { NewNav } from "./nav.tsx";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
@@ -180,7 +180,7 @@ export class App {
         console.log(relayConfig.getRelayURLs());
 
         // init conversation list
-        const conversationLists = new DM_List(args.ctx);
+        const conversationLists = new DM_List(args.ctx, args.database);
         const err = conversationLists.addEvents(all_events, false);
         if (err instanceof InvalidEvent) {
             console.error(err);
@@ -437,7 +437,13 @@ export class AppComponent extends Component<AppProps, {
                                         return false;
                                     }
                                     const relays = app.database.getRelayRecord(e.id);
-                                    return relays.has(model.currentRelay) &&
+                                    let has = relays.has(model.currentRelay);
+                                    if (model.currentRelay[model.currentRelay.length - 1] == "/") {
+                                        has = relays.has(
+                                            model.currentRelay.slice(0, model.currentRelay.length - 1),
+                                        );
+                                    }
+                                    return has &&
                                         !app.database.isDeleted(e.id, this.state.admin);
                                 },
                             ),
@@ -454,7 +460,7 @@ export class AppComponent extends Component<AppProps, {
                             },
                         ),
                     )}
-                    relay_url={model.currentRelay}
+                    relay_url={model.currentRelay.toString()}
                     bus={app.eventBus}
                 />
             );
@@ -485,14 +491,19 @@ export class AppComponent extends Component<AppProps, {
 
         const final = (
             <div class={`h-screen w-full flex`}>
-                <NavBar
-                    publicKey={app.ctx.publicKey}
-                    profile={app.database.getProfileByPublicKey(app.ctx.publicKey, model.currentRelay)}
-                    emit={app.eventBus.emit}
-                    installPrompt={props.installPrompt}
-                    currentRelay={model.currentRelay}
+                <NewNav
+                    currentSpaceURL={new URL(model.currentRelay)}
+                    spaceList={Array.from(app.pool.getRelays()).map((r) => r.url)}
                     activeNav={model.navigationModel.activeNav}
-                    pool={app.pool}
+                    profile={app.database.getProfileByPublicKey(app.ctx.publicKey, model.currentRelay)}
+                    currentConversation={model.dm.currentConversation}
+                    getters={{
+                        getProfileByPublicKey: app.database.getProfileByPublicKey,
+                        getConversationList: app.conversationLists.getConversationList,
+                        getPinList: app.otherConfig.getPinList,
+                    }}
+                    emit={app.eventBus.emit}
+                    update={app.eventBus}
                 />
                 {profileEditorNode}
                 {publicNode}

@@ -11,12 +11,6 @@ export type Model = {
 
     public: Public_Model;
 
-    // profile
-    newProfileField: {
-        key: string;
-        value: string;
-    };
-
     // UI
     navigationModel: NavigationModel;
 };
@@ -30,10 +24,6 @@ export function initialModel(): Model {
         },
         public: {
             relaySelectedChannel: new Map(),
-        },
-        newProfileField: {
-            key: "",
-            value: "",
         },
         navigationModel: {
             activeNav: awakenActiveNav(),

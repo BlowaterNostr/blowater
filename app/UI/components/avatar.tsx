@@ -20,7 +20,7 @@ export function Avatar(props: {
             }
             <img
                 onClick={props.onClick}
-                class={`w-full h-full rounded-full ${props.onClick ? "cursor-pointer" : ""}`}
+                class={`w-full h-full rounded-full aspect-square ${props.onClick ? "cursor-pointer" : ""}`}
                 src={props.picture}
                 alt="avatar"
                 onError={(e) => {

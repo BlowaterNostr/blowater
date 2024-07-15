@@ -27,10 +27,6 @@ export interface ConversationListRetriever {
     getConversationType(pubkey: PublicKey): ConversationType;
 }
 
-export interface GroupMessageListGetter {
-    getConversationList: () => Iterable<ConversationSummary>;
-}
-
 export type ConversationType = ContactTag;
 
 export type ContactUpdate =

@@ -189,13 +189,13 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
         let current_relay = pool.getRelay(model.currentRelay);
         if (current_relay == undefined) {
             current_relay = blowater_relay;
-            rememberCurrentRelay(default_blowater_relay);
+            rememberCurrentRelay(default_blowater_relay.toString());
         }
 
         // All events below are only valid after signning in
         if (event.type == "SelectSpace") {
-            rememberCurrentRelay(event.spaceURL);
-            model.currentRelay = event.spaceURL;
+            rememberCurrentRelay(event.spaceURL.toString());
+            model.currentRelay = event.spaceURL.toString();
         } //
         // Searchx
         //
@@ -207,7 +207,7 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
             const search = (
                 <Search
                     placeholder={`Search a user's public key or name (${
-                        app.database.getUniqueProfileCount(model.currentRelay)
+                        app.database.getUniqueProfileCount(model.currentRelay.toString())
                     } profiles)`}
                     getProfileByPublicKey={app.database.getProfileByPublicKey}
                     getProfilesByText={app.database.getProfilesByText}
@@ -426,8 +426,8 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                         app.toastInputChan.put(() => err.message);
                         return;
                     }
-                    if (current_relay.url == event.url) {
-                        model.currentRelay = default_blowater_relay;
+                    if (new URL(current_relay.url).toString() == event.url.toString()) {
+                        model.currentRelay = default_blowater_relay.toString();
                     }
                 }
             })();
@@ -689,7 +689,7 @@ export async function handle_SendMessage(
             message: ui_event.text,
             files: ui_event.files,
             lamport_timestamp: lamport.now(),
-            eventSender: args.blowater_relay,
+            eventSender: args.current_relay,
             targetEvent: replyToEvent,
         });
         if (events_send instanceof Error) {

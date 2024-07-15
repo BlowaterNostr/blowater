@@ -303,7 +303,8 @@ export class Database_View
             }
             return result;
         }
-        const spaceProfiels = this.profile_events.get(spaceURL.toString());
+        const urlString = spaceURL.origin + (spaceURL.pathname === "/" ? "" : spaceURL.pathname);
+        const spaceProfiels = this.profile_events.get(urlString);
         if (spaceProfiels) {
             for (const event of spaceProfiels.values()) {
                 if (match_name(event.profile, name)) {
@@ -334,7 +335,9 @@ export class Database_View
             }
             return result;
         }
-        const profile_events_of_space = this.profile_events.get(spaceURL.toString());
+        const space = new URL(spaceURL);
+        const urlString = space.origin + (space.pathname === "/" ? "" : space.pathname);
+        const profile_events_of_space = this.profile_events.get(urlString);
         if (profile_events_of_space == undefined) {
             return undefined;
         }

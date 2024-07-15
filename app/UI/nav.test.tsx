@@ -1,15 +1,14 @@
 /** @jsx h */
-import { h } from "preact";
-import { render } from "preact";
-import { NavBar } from "./nav.tsx";
-import { testEventBus } from "./_setup.test.ts";
-import { PrivateKey } from "@blowater/nostr-sdk";
-import { ConnectionPool } from "@blowater/nostr-sdk";
+import { h, render } from "preact";
+import { NewNav } from "./nav.tsx";
+import { prepareProfileEvent, testEventBus } from "./_setup.test.ts";
+import { ConnectionPool, InMemoryAccountContext, PublicKey } from "@blowater/nostr-sdk";
+import { ConversationSummary } from "./conversation-list.ts";
 
 const pool = new ConnectionPool();
 await pool.addRelayURLs(
     [
-        "relay.blowater.app",
+        "blowater.nostr1.com",
         "nos.lol",
         "relay.damus.io",
         "nostr.wine",
@@ -34,16 +33,47 @@ await pool.addRelayURLs(
         "wss://nostr-relay.bitcoin.ninja",
     ],
 );
+const ctx = InMemoryAccountContext.Generate();
+const profileEvent = await prepareProfileEvent(ctx, {
+    name: "test_name",
+    display_name: "Orionna Lumis",
+    about:
+        "Celestial bodies move in a harmonious dance, bound by the tether of gravity. Their ballet paints stories in the sky.",
+    website: "https://github.com",
+    picture: "https://image.nostr.build/655007ae74f24ea1c611889f48b25cb485b83ab67408daddd98f95782f47e1b5.jpg",
+});
+
+let currentConversation: PublicKey | undefined;
+const convoList = new Array<ConversationSummary>();
+const pinList = new Set<string>();
+for (let i = 0; i < 50; i++) {
+    const pubkey = InMemoryAccountContext.Generate().publicKey;
+    if (i % 4 == 0) pinList.add(pubkey.hex);
+    if (i == 5) currentConversation = pubkey;
+    convoList.push({
+        pubkey: pubkey,
+        relays: [],
+    });
+}
 
 render(
-    <NavBar
+    <NewNav
+        currentSpaceURL={new URL("wss://blowater.nostr1.com")}
+        spaceList={[]}
+        activeNav={"Public"}
+        profile={profileEvent}
+        currentConversation={currentConversation}
+        getters={{
+            getProfileByPublicKey: () => profileEvent,
+            getConversationList: () => convoList,
+            getPinList: () => pinList,
+        }}
+        update={testEventBus}
         emit={testEventBus.emit}
-        profile={undefined}
-        installPrompt={{ event: undefined }}
-        publicKey={PrivateKey.Generate().toPublicKey()}
-        activeNav="DM"
-        pool={pool}
-        currentRelay="ws://localhost:8000"
     />,
     document.body,
 );
+
+for await (const event of testEventBus.onChange()) {
+    console.log(event);
+}

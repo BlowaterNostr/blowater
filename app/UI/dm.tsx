@@ -56,18 +56,6 @@ export class DirectMessageContainer extends Component<DirectMessageContainerProp
             <div
                 class={`h-full flex-1 flex bg-[#36393F] overflow-hidden`}
             >
-                <div
-                    class={`w-fit max-sm:w-full
-                    ${props.currentConversation ? "max-sm:hidden" : ""}`}
-                >
-                    <ConversationList
-                        eventSub={props.bus}
-                        emit={props.bus.emit}
-                        getters={props.getters}
-                        userBlocker={props.userBlocker}
-                    />
-                </div>
-
                 {this.props.currentConversation
                     ? (
                         <div class={`flex flex-col flex-1 overflow-hidden`}>
