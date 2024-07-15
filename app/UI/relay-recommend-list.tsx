@@ -11,20 +11,26 @@ import {
 import { emitFunc } from "../event-bus.ts";
 import { RelayConfig } from "./relay-config.ts";
 import { HidePopOver } from "./components/popover.tsx";
+import { RelayConfigChange } from "./setting.tsx";
 
 export type func_GetRelayRecommendations = () => Set<string>;
 
 type RelayRecommendListProps = {
     relayConfig: RelayConfig;
-    emit: emitFunc<HidePopOver>;
+    emit: emitFunc<HidePopOver | RelayConfigChange>;
     getRelayRecommendations: func_GetRelayRecommendations;
 };
 
 export class RelayRecommendList extends Component<RelayRecommendListProps> {
-    handleAddRelay = async (relayUrl: string) => {
+    handleAddRelay = async (relayUrl: URL) => {
         const p = this.props.relayConfig.add(relayUrl);
         this.props.emit({
             type: "HidePopOver",
+        });
+        this.props.emit({
+            type: "RelayConfigChange",
+            kind: "add",
+            url: relayUrl,
         });
         const relay = await p;
         if (relay instanceof Error) {
@@ -57,7 +63,7 @@ export class RelayRecommendList extends Component<RelayRecommendListProps> {
                                 </div>
                                 <button
                                     class={`w-[2rem] h-[2rem] rounded-lg bg-transparent hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
-                                    onClick={() => this.handleAddRelay(r)}
+                                    onClick={() => this.handleAddRelay(new URL(r))}
                                 >
                                     <AddIcon
                                         class={`w-[1rem] h-[1rem]`}

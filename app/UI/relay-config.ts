@@ -19,7 +19,7 @@ export class RelayConfig {
 
     static Default(args: { ctx: NostrAccountContext; relayPool: ConnectionPool }) {
         const config = new RelayConfig(args);
-        config.add(default_blowater_relay).then((res) => {
+        config.add(new URL(default_blowater_relay)).then((res) => {
             if (res instanceof Error) {
                 console.error(res);
             }
@@ -43,7 +43,7 @@ export class RelayConfig {
         }
         const relayConfig = new RelayConfig(args);
         for (const relay of relayArray) {
-            const err = await relayConfig.add(relay);
+            const err = await relayConfig.add(new URL(relay));
             if (err instanceof Error) {
                 console.error(err);
             }
@@ -66,9 +66,9 @@ export class RelayConfig {
         );
     }
 
-    async add(url: string): Promise<Error | SingleRelayConnection> {
+    async add(url: URL): Promise<Error | SingleRelayConnection> {
         console.log(RelayConfig.name, ":: add relay config", url);
-        const relay = await this.relayPool.addRelayURL(url);
+        const relay = await this.relayPool.addRelayURL(url.toString());
         if (relay instanceof Error) {
             return relay;
         }
@@ -76,18 +76,18 @@ export class RelayConfig {
         return relay;
     }
 
-    async remove(url: string) {
-        if (url == default_blowater_relay) {
+    async remove(url: URL) {
+        if (url.toString() == default_blowater_relay.toString()) {
             return new RemoveBlowaterRelay();
         }
-        await this.relayPool.removeRelay(url);
+        await this.relayPool.removeRelay(url.toString());
         this.saveToLocalStorage();
     }
 }
 
 export function applyPoolToRelayConfig(pool: ConnectionPool, relayConfig: RelayConfig) {
     for (const relay of pool.getRelays()) {
-        relayConfig.add(relay.url);
+        relayConfig.add(new URL(relay.url));
     }
 }
 

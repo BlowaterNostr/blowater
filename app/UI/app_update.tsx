@@ -189,7 +189,7 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
         let current_relay = pool.getRelay(model.currentRelay);
         if (current_relay == undefined) {
             current_relay = blowater_relay;
-            rememberCurrentRelay(default_blowater_relay);
+            rememberCurrentRelay(default_blowater_relay.toString());
         }
 
         // All events below are only valid after signning in
@@ -426,8 +426,8 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                         app.toastInputChan.put(() => err.message);
                         return;
                     }
-                    if (current_relay.url == event.url) {
-                        model.currentRelay = default_blowater_relay;
+                    if (new URL(current_relay.url).toString() == event.url.toString()) {
+                        model.currentRelay = default_blowater_relay.toString();
                     }
                 }
             })();

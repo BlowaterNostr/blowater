@@ -78,16 +78,36 @@ export class NewNav extends Component<NewNavProps, NewNavState> {
     async componentDidMount() {
         console.log("componentDidMount");
         for await (const state of updateInformation(this.props.currentSpaceURL, this.props.spaceList)) {
-            console.log("componentDidMount", state);
             await setState(this, state);
         }
         for await (const change of this.props.update.onChange()) {
-            console.log("new nav", change);
             if (change.type == "SelectSpace") {
                 const info = this.state.spaceInformationList.get(change.spaceURL.toString());
                 await setState(this, {
                     spaceInformation: info,
                 });
+            } else if (change.type == "RelayConfigChange") {
+                console.log("add", change);
+                if (change.kind == "remove") {
+                    this.state.spaceInformationList.delete(new URL(change.url).toString());
+                    await setState(this, {
+                        spaceInformationList: this.state.spaceInformationList,
+                    });
+                } else if (change.kind == "add") {
+                    const info = await getRelayInformation(change.url);
+                    if (info instanceof Error) {
+                        console.error(info);
+                        continue;
+                    }
+                    this.state.spaceInformationList.set(new URL(change.url).toString(), {
+                        ...info,
+                        url: new URL(change.url),
+                    });
+                    await setState(this, {
+                        spaceInformationList: this.state.spaceInformationList,
+                    });
+                    console.log("add", this.state.spaceInformationList);
+                }
             }
         }
     }

@@ -90,7 +90,7 @@ export const Setting = (props: SettingProps) => {
 export type RelayConfigChange = {
     type: "RelayConfigChange";
     kind: "add" | "remove";
-    url: string;
+    url: URL;
 };
 
 export type ViewSpaceSettings = {
@@ -168,7 +168,7 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
     };
 
     render(props: RelaySettingProp) {
-        const addRelayInput = this.state.addRelayInput;
+        let addRelayInput = this.state.addRelayInput;
 
         const relayStatus = this.computeRelayStatus(props);
 
@@ -181,10 +181,13 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
                 addRelayInput: "",
                 relayStatus: this.computeRelayStatus(props),
             });
+            if (!addRelayInput.startsWith("wss://") || !addRelayInput.startsWith("ws://")) {
+                addRelayInput = "wss://" + addRelayInput;
+            }
             props.emit({
                 type: "RelayConfigChange",
                 kind: "add",
-                url: addRelayInput,
+                url: new URL(addRelayInput),
             });
         };
 
@@ -239,11 +242,11 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
                                     </span>
                                     <span class={`truncate`}>{r.url}</span>
                                 </div>
-                                {r.url != default_blowater_relay
+                                {r.url != default_blowater_relay.toString()
                                     ? (
                                         <button
                                             class={`w-[2rem] h-[2rem] rounded-lg bg-transparent hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
-                                            onClick={this.removeRelay(props, r.url)}
+                                            onClick={this.removeRelay(props, new URL(r.url))}
                                         >
                                             <DeleteIcon
                                                 class={`w-[1rem] h-[1rem] text-[${ErrorColor}]`}
@@ -265,7 +268,7 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
         );
     }
 
-    removeRelay = (props: RelaySettingProp, url: string) => async (e: Event) => {
+    removeRelay = (props: RelaySettingProp, url: URL) => async (e: Event) => {
         e.stopPropagation();
         this.setState({
             relayStatus: this.computeRelayStatus(props),
