@@ -361,7 +361,7 @@ class ConversationList extends Component<ConversationListProps> {
         const unpinned = [];
         const conversationList = Array.from(props.getters.getConversationList());
         const currentSpaceConversationList = conversationList.filter((conv) =>
-            conv.relays?.includes(props.currentSpace)
+            conv.relays.has(props.currentSpace)
         );
         const sortedConversationList = currentSpaceConversationList.sort((a, b) => {
             return sortUserInfo(a, b);

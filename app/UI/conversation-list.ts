@@ -7,10 +7,10 @@ import { ConversationListRetriever, ConversationType, NewMessageChecker } from "
 import { RelayRecordGetter } from "../database.ts";
 
 export interface ConversationSummary {
-    pubkey: PublicKey;
+    readonly pubkey: PublicKey;
     newestEventSendByMe?: NostrEvent;
     newestEventReceivedByMe?: NostrEvent;
-    relays?: string[];
+    relays: Set<string>;
 }
 
 export class DM_List implements ConversationListRetriever, NewMessageChecker, UserBlocker {
@@ -41,7 +41,7 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker, Us
                 if (!space) {
                     yield convo;
                 }
-                if (space && convo.relays?.includes(space)) {
+                if (space && convo.relays.has(space)) {
                     yield convo;
                 }
             }
@@ -184,9 +184,11 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker, Us
         }
 
         const userInfo = this.convoSummaries.get(pubkey_I_TalkingTo.bech32());
-        const spaces = this.relayRecordGetter.getRelayRecord(event.id);
         if (userInfo) {
-            if (spaces.size > 0) userInfo.relays = Array.from(spaces);
+            const spaces = this.relayRecordGetter.getRelayRecord(event.id);
+            if (spaces.size > 0) {
+                userInfo.relays = userInfo.relays.union(spaces);
+            }
             if (pubkey_I_TalkingTo.hex == this.ctx.publicKey.hex) {
                 // talking to myself
                 if (userInfo.newestEventSendByMe) {
@@ -224,8 +226,12 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker, Us
                 pubkey: pubkey_I_TalkingTo,
                 newestEventReceivedByMe: undefined,
                 newestEventSendByMe: undefined,
+                relays: new Set(),
             };
-            if (spaces.size > 0) newUserInfo.relays = Array.from(spaces);
+            const spaces = this.relayRecordGetter.getRelayRecord(event.id);
+            if (spaces.size > 0) {
+                newUserInfo.relays = newUserInfo.relays.union(spaces);
+            }
             if (pubkey_I_TalkingTo.hex == this.ctx.publicKey.hex) {
                 // talking to myself
                 newUserInfo.newestEventSendByMe = event;
