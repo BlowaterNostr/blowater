@@ -5,41 +5,25 @@ import { RelayAvatar } from "./components/avatar.tsx";
 import { SelectSpace } from "./nav.tsx";
 import { NavigationUpdate } from "./nav.tsx";
 import { setState } from "./_helper.ts";
-import { getRelayInformation, RelayInformation, robohash } from "@blowater/nostr-sdk";
+import { RelayInformation, robohash } from "@blowater/nostr-sdk";
 import { ViewSpaceSettings } from "./setting.tsx";
 
 type SpaceDropDownPanelProps = {
-    spaceList: Set<string>;
+    currentRelay: URL;
+    spaceList: Map<string, RelayInformation & { url: URL }>;
     emit: emitFunc<SelectSpace | NavigationUpdate | ViewSpaceSettings>;
-    currentRelay: string;
 };
 
 type RelaySwitchListState = {
     showDropDown: boolean;
-    relayInformation: Map<string, RelayInformation>;
     searchRelayValue: string;
 };
 
 export class SpaceDropDownPanel extends Component<SpaceDropDownPanelProps, RelaySwitchListState> {
     state: Readonly<RelaySwitchListState> = {
-        relayInformation: new Map(),
         showDropDown: false,
         searchRelayValue: "",
     };
-
-    async componentDidMount() {
-        for (const url of this.props.spaceList) {
-            getRelayInformation(url).then((info) => {
-                if (info instanceof Error) {
-                    console.error(info);
-                    return;
-                }
-                setState(this, {
-                    relayInformation: this.state.relayInformation.set(url, info),
-                });
-            });
-        }
-    }
 
     handleSearchRelayInput = async (e: Event) => {
         await setState(this, {
@@ -49,12 +33,12 @@ export class SpaceDropDownPanel extends Component<SpaceDropDownPanelProps, Relay
 
     render() {
         const relayList = [];
-        for (const url of this.props.spaceList) {
-            if (!url.includes(this.state.searchRelayValue)) {
+        for (const info of this.props.spaceList.values()) {
+            if (!info.url.toString().includes(this.state.searchRelayValue)) {
                 continue;
             }
             relayList.push(
-                this.SpaceListItem(new URL(url), this.props.currentRelay == url),
+                this.SpaceListItem(info.url, this.props.currentRelay.toString() == info.url.toString()),
             );
         }
         return (
@@ -74,7 +58,7 @@ export class SpaceDropDownPanel extends Component<SpaceDropDownPanelProps, Relay
                 {this.props.currentRelay
                     ? (
                         <RelayAvatar
-                            icon={this.state.relayInformation.get(this.props.currentRelay)?.icon ||
+                            icon={this.props.spaceList.get(this.props.currentRelay.toString())?.icon ||
                                 robohash(this.props.currentRelay)}
                         />
                     )
@@ -120,13 +104,13 @@ export class SpaceDropDownPanel extends Component<SpaceDropDownPanelProps, Relay
                 <div class={`flex justify-center items-center w-12 h-12 rounded-md ${selected}`}>
                     <div class={`w-10 h-10 bg-neutral-600 rounded-md `}>
                         <RelayAvatar
-                            icon={this.state.relayInformation.get(spaceURL.toString())?.icon ||
+                            icon={this.props.spaceList.get(spaceURL.toString())?.icon ||
                                 robohash(spaceURL)}
                         />
                     </div>
                 </div>
                 <div class="px-2">
-                    <div>{this.state.relayInformation.get(spaceURL.toString())?.name}</div>
+                    <div>{this.props.spaceList.get(spaceURL.toString())?.name}</div>
                     <div class="text-sm font-light">{new URL(spaceURL).hostname}</div>
                 </div>
             </div>

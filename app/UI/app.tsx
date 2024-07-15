@@ -19,7 +19,7 @@ import { Setting } from "./setting.tsx";
 import { getCurrentSignInCtx, getSignInState, setSignInState } from "./sign-in.ts";
 import { SecondaryBackgroundColor } from "./style/colors.ts";
 import { LamportTime } from "../time.ts";
-import { InstallPrompt, NavBar } from "./nav.tsx";
+import { InstallPrompt } from "./nav.tsx";
 import { Component } from "preact";
 import { PublicMessageContainer } from "./public-message-container.tsx";
 import { ChatMessage } from "./message.ts";
@@ -39,7 +39,7 @@ import {
     NostrAccountContext,
     NostrKind,
 } from "@blowater/nostr-sdk";
-import { NewNav } from "./new-nav.tsx";
+import { NewNav } from "./nav.tsx";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
@@ -437,7 +437,13 @@ export class AppComponent extends Component<AppProps, {
                                         return false;
                                     }
                                     const relays = app.database.getRelayRecord(e.id);
-                                    return relays.has(model.currentRelay) &&
+                                    let has = relays.has(model.currentRelay);
+                                    if (model.currentRelay[model.currentRelay.length - 1] == "/") {
+                                        has = relays.has(
+                                            model.currentRelay.slice(0, model.currentRelay.length - 1),
+                                        );
+                                    }
+                                    return has &&
                                         !app.database.isDeleted(e.id, this.state.admin);
                                 },
                             ),

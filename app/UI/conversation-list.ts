@@ -10,7 +10,7 @@ export interface ConversationSummary {
     readonly pubkey: PublicKey;
     newestEventSendByMe?: NostrEvent;
     newestEventReceivedByMe?: NostrEvent;
-    relays: Set<string>;
+    relays: Array<URL>;
 }
 
 export class DM_List implements ConversationListRetriever, NewMessageChecker, UserBlocker {
@@ -20,9 +20,7 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker, Us
     constructor(
         public readonly ctx: NostrAccountContext,
         private readonly relayRecordGetter: RelayRecordGetter,
-    ) {
-        this.getConversationList = this.getConversationList.bind(this);
-    }
+    ) {}
 
     newNessageCount(pubkey: PublicKey): number {
         return this.newMessages.get(pubkey.bech32()) || 0;
@@ -32,21 +30,23 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker, Us
         this.newMessages.set(pubkey.bech32(), 0);
     }
 
-    *getConversationList(space?: string): Iterable<ConversationSummary> {
+    getConversationList = (space?: URL) => {
+        const convs = [];
         for (const convo of this.convoSummaries.values()) {
             if (
                 convo.newestEventReceivedByMe != undefined ||
                 convo.newestEventSendByMe != undefined
             ) {
                 if (!space) {
-                    yield convo;
+                    convs.push(convo);
                 }
-                if (space && convo.relays.has(space)) {
-                    yield convo;
+                if (space && hasSpace(space, convo.relays)) {
+                    convs.push(convo);
                 }
             }
         }
-    }
+        return convs;
+    };
 
     *getStrangers() {
         for (const convoSummary of this.convoSummaries.values()) {
@@ -185,9 +185,11 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker, Us
 
         const userInfo = this.convoSummaries.get(pubkey_I_TalkingTo.bech32());
         if (userInfo) {
-            const spaces = this.relayRecordGetter.getRelayRecord(event.id);
-            if (spaces.size > 0) {
-                userInfo.relays = userInfo.relays.union(spaces);
+            const spaceURLs = this.relayRecordGetter.getRelayRecord(event.id);
+            if (spaceURLs.size > 0) {
+                for (const url of spaceURLs) {
+                    userInfo.relays.push(new URL(url));
+                }
             }
             if (pubkey_I_TalkingTo.hex == this.ctx.publicKey.hex) {
                 // talking to myself
@@ -226,11 +228,13 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker, Us
                 pubkey: pubkey_I_TalkingTo,
                 newestEventReceivedByMe: undefined,
                 newestEventSendByMe: undefined,
-                relays: new Set(),
+                relays: [],
             };
-            const spaces = this.relayRecordGetter.getRelayRecord(event.id);
-            if (spaces.size > 0) {
-                newUserInfo.relays = newUserInfo.relays.union(spaces);
+            const spaceURLs = this.relayRecordGetter.getRelayRecord(event.id);
+            if (spaceURLs.size > 0) {
+                for (const url of spaceURLs) {
+                    newUserInfo.relays.push(new URL(url));
+                }
             }
             if (pubkey_I_TalkingTo.hex == this.ctx.publicKey.hex) {
                 // talking to myself
@@ -263,4 +267,13 @@ function sortScore(contact: ConversationSummary) {
         score += contact.newestEventReceivedByMe.created_at;
     }
     return score;
+}
+
+function hasSpace(url: URL, list: URL[]) {
+    for (const u of list) {
+        if (u.toString() == url.toString()) {
+            return true;
+        }
+    }
+    return false;
 }
