@@ -95,7 +95,7 @@ export type RelayConfigChange = {
 
 export type ViewSpaceSettings = {
     type: "ViewSpaceSettings";
-    url: string;
+    url: string | URL;
 };
 
 export type ViewRecommendedRelaysList = {

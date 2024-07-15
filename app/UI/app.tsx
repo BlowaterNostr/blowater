@@ -486,7 +486,7 @@ export class AppComponent extends Component<AppProps, {
         const final = (
             <div class={`h-screen w-full flex`}>
                 <NewNav
-                    currentSpace={model.currentRelay}
+                    currentSpace={new URL(model.currentRelay)}
                     emit={app.eventBus.emit}
                     pool={app.pool}
                     activeNav={model.navigationModel.activeNav}

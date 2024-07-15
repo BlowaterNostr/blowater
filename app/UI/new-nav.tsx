@@ -24,9 +24,9 @@ import { SelectConversation } from "./search_model.ts";
 import { ConversationSummary, sortUserInfo } from "./conversation-list.ts";
 
 type NewNavProps = {
-    pool: ConnectionPool;
     activeNav: NavTabID;
-    currentSpace: string;
+    currentSpace: RelayInformation & { url: URL };
+    spaceList: Set<RelayInformation & { url: URL }>;
     profile: Profile_Nostr_Event | undefined;
     currentConversation: PublicKey | undefined;
     getters: {
@@ -55,14 +55,14 @@ export class NewNav extends Component<NewNavProps> {
             >
                 <SpaceDropDownPanel
                     currentSpace={props.currentSpace}
-                    spaceList={new Set(Array.from(props.pool.getRelays()).map((r) => r.url))}
+                    spaceList={props.spaceList}
                     emit={props.emit}
                 />
                 {/* <GlobalSearch /> */}
                 <GroupChatList emit={props.emit} activeNav={props.activeNav} />
                 <ConversationList
                     emit={props.emit}
-                    currentSpace={props.currentSpace}
+                    currentSpace={props.currentSpace.url}
                     currentConversation={props.currentConversation}
                     getters={props.getters}
                 />
@@ -73,47 +73,21 @@ export class NewNav extends Component<NewNavProps> {
 }
 
 type SpaceDropDownPanelProps = {
-    spaceList: Set<string>;
+    currentSpace: RelayInformation & { url: URL };
+    spaceList: Set<RelayInformation & { url: URL }>;
     emit: emitFunc<SelectSpace | NavigationUpdate | ViewSpaceSettings>;
-    currentSpace: string;
 };
 
 type SpaceDropDownState = {
     showDropDown: boolean;
-    spaceInformation: Map<string, RelayInformation>;
     searchSpaceValue: string;
 };
 
 class SpaceDropDownPanel extends Component<SpaceDropDownPanelProps, SpaceDropDownState> {
     state: Readonly<SpaceDropDownState> = {
-        spaceInformation: new Map(),
         showDropDown: false,
         searchSpaceValue: "",
     };
-
-    componentDidUpdate(previousProps: Readonly<SpaceDropDownPanelProps>): void {
-        if (this.props.spaceList !== previousProps.spaceList) {
-            this.updateSpaceListInformation();
-        }
-    }
-
-    componentDidMount() {
-        this.updateSpaceListInformation();
-    }
-
-    updateSpaceListInformation() {
-        for (const url of this.props.spaceList) {
-            getRelayInformation(url).then((info) => {
-                if (info instanceof Error) {
-                    console.error(info);
-                    return;
-                }
-                setState(this, {
-                    spaceInformation: this.state.spaceInformation.set(url, info),
-                });
-            });
-        }
-    }
 
     handleSearchRelayInput = async (e: Event) => {
         await setState(this, {
@@ -123,12 +97,12 @@ class SpaceDropDownPanel extends Component<SpaceDropDownPanelProps, SpaceDropDow
 
     render() {
         const spaceList = [];
-        for (const url of this.props.spaceList) {
-            if (!url.includes(this.state.searchSpaceValue)) {
+        for (const space of this.props.spaceList) {
+            if (!space.url.toString().includes(this.state.searchSpaceValue)) {
                 continue;
             }
             spaceList.push(
-                this.SpaceListItem(url, this.props.currentSpace == url),
+                this.SpaceListItem(space, this.props.currentSpace.toString() == space.url.toString()),
             );
         }
         return (
@@ -140,9 +114,9 @@ class SpaceDropDownPanel extends Component<SpaceDropDownPanelProps, SpaceDropDow
     }
 
     CurrentSpaceIndicator = () => {
-        const currentSpaceInformation = this.state.spaceInformation.get(this.props.currentSpace);
-        const icon = currentSpaceInformation?.icon || robohash(this.props.currentSpace);
-        const name = currentSpaceInformation?.name || new URL(this.props.currentSpace).hostname;
+        const currentSpaceInformation = this.props.currentSpace;
+        const icon = currentSpaceInformation.icon || robohash(this.props.currentSpace.url);
+        const name = currentSpaceInformation.name || this.props.currentSpace.url.hostname;
         return (
             <div
                 class="flex flex-row items-center gap-1 p-1 rounded cursor-pointer hover:bg-neutral-500"
@@ -189,25 +163,25 @@ class SpaceDropDownPanel extends Component<SpaceDropDownPanelProps, SpaceDropDow
         );
     };
 
-    SpaceListItem(spaceURL: string, isCurrentRelay: boolean) {
+    SpaceListItem(spaceInfo: RelayInformation & { url: URL }, isCurrentRelay: boolean) {
         const selected = isCurrentRelay ? " border-[#000] border" : "";
         return (
             <div
                 class={"flex flex-row mb-2 hover:bg-neutral-500" +
                     " hover:cursor-pointer items-center rounded"}
-                onClick={this.onSpaceSelected(spaceURL)}
+                onClick={this.onSpaceSelected(spaceInfo.url.toString())}
             >
                 <div class={`flex justify-center items-center w-12 h-12 rounded-md ${selected}`}>
                     <div class={`w-10 h-10 bg-neutral-600 rounded-md `}>
                         <RelayAvatar
-                            icon={this.state.spaceInformation.get(spaceURL)?.icon ||
-                                robohash(spaceURL)}
+                            icon={this.props.currentSpace.icon ||
+                                robohash(spaceInfo.url)}
                         />
                     </div>
                 </div>
                 <div class="px-2">
-                    <div>{this.state.spaceInformation.get(spaceURL)?.name}</div>
-                    <div class="text-sm font-light">{new URL(spaceURL).hostname}</div>
+                    <div>{spaceInfo.name}</div>
+                    <div class="text-sm font-light">{spaceInfo.url.hostname}</div>
                 </div>
             </div>
         );
@@ -220,7 +194,7 @@ class SpaceDropDownPanel extends Component<SpaceDropDownPanelProps, SpaceDropDow
             onClick={() => {
                 this.props.emit({
                     type: "ViewSpaceSettings",
-                    url: this.props.currentSpace,
+                    url: this.props.currentSpace.url,
                 });
                 setState(this, {
                     showDropDown: false,
@@ -345,7 +319,7 @@ type func_GetPinList = () => Set<string>;
 
 type ConversationListProps = {
     emit: emitFunc<ContactUpdate>;
-    currentSpace: string;
+    currentSpace: URL;
     currentConversation: PublicKey | undefined;
     getters: {
         getProfileByPublicKey: func_GetProfileByPublicKey;
@@ -361,7 +335,7 @@ class ConversationList extends Component<ConversationListProps> {
         const unpinned = [];
         const conversationList = Array.from(props.getters.getConversationList());
         const currentSpaceConversationList = conversationList.filter((conv) =>
-            conv.relays.has(props.currentSpace)
+            conv.relays.has(props.currentSpace.toString())
         );
         const sortedConversationList = currentSpaceConversationList.sort((a, b) => {
             return sortUserInfo(a, b);
@@ -374,7 +348,7 @@ class ConversationList extends Component<ConversationListProps> {
                         pubkey={convo.pubkey}
                         isPined={true}
                         currentConversation={props.currentConversation}
-                        currentSpace={props.currentSpace}
+                        currentSpace={props.currentSpace.toString()}
                         getters={props.getters}
                     />,
                 );
@@ -385,7 +359,7 @@ class ConversationList extends Component<ConversationListProps> {
                         pubkey={convo.pubkey}
                         isPined={false}
                         currentConversation={props.currentConversation}
-                        currentSpace={props.currentSpace}
+                        currentSpace={props.currentSpace.toString()}
                         getters={props.getters}
                     />,
                 );
