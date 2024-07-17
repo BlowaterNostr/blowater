@@ -242,7 +242,7 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
                                     >
                                         {r.status}
                                     </span>
-                                    <span class={`truncate`}>{r.url.host}</span>
+                                    <span class={`truncate`}>{url_identity(r.url)}</span>
                                 </div>
                                 {url_identity(r.url) != url_identity(default_blowater_relay)
                                     ? (
