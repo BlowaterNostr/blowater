@@ -4,6 +4,7 @@ import { Public_Model } from "./public-message-container.tsx";
 import { App } from "./app.tsx";
 import { default_blowater_relay } from "./relay-config.ts";
 import { newURL } from "@blowater/nostr-sdk";
+import { url_identity } from "./_helper.ts";
 
 export type Model = {
     app?: App; // app is only available after sign-in
@@ -33,7 +34,7 @@ export function initialModel(): Model {
 }
 
 export function rememberCurrentRelay(relay: URL) {
-    localStorage.setItem("currentRelay", relay.toString());
+    localStorage.setItem("currentRelay", url_identity(relay));
 }
 
 export function rememberActiveNav(nav: NavTabID) {

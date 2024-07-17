@@ -271,12 +271,3 @@ function sortScore(contact: ConversationSummary) {
     }
     return score;
 }
-
-function hasSpace(url: URL, list: URL[]) {
-    for (const u of list) {
-        if (u.toString() == url.toString()) {
-            return true;
-        }
-    }
-    return false;
-}

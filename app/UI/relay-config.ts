@@ -1,5 +1,6 @@
-import { ConnectionPool, NostrAccountContext, SingleRelayConnection } from "@blowater/nostr-sdk";
+import { ConnectionPool, newURL, NostrAccountContext, SingleRelayConnection } from "@blowater/nostr-sdk";
 import { parseJSON } from "../features/profile.ts";
+import { url_identity } from "./_helper.ts";
 
 export const default_blowater_relay = new URL("wss://blowater.nostr1.com");
 
@@ -43,7 +44,12 @@ export class RelayConfig {
         }
         const relayConfig = new RelayConfig(args);
         for (const relay of relayArray) {
-            const err = await relayConfig.add(new URL(relay));
+            const url = newURL(relay);
+            if (url instanceof Error) {
+                console.error(relay, url);
+                continue;
+            }
+            const err = await relayConfig.add(url);
             if (err instanceof Error) {
                 console.error(err);
             }
@@ -67,13 +73,13 @@ export class RelayConfig {
         console.log(RelayConfig.name, ":: saveToLocalStorage");
         localStorage.setItem(
             RelayConfig.localStorageKey(this.ctx),
-            JSON.stringify(Array.from(this.relayPool.getRelays()).map((r) => r.url)),
+            JSON.stringify(Array.from(this.relayPool.getRelays()).map((r) => url_identity(r.url))),
         );
     }
 
     async add(url: URL): Promise<Error | SingleRelayConnection> {
         console.log(RelayConfig.name, ":: add relay config", url);
-        const relay = await this.relayPool.addRelayURL(url.toString());
+        const relay = await this.relayPool.addRelayURL(url);
         if (relay instanceof Error) {
             return relay;
         }
@@ -82,17 +88,17 @@ export class RelayConfig {
     }
 
     async remove(url: URL) {
-        if (url.toString() == default_blowater_relay.toString()) {
+        if (url_identity(url) == url_identity(default_blowater_relay)) {
             return new RemoveBlowaterRelay();
         }
-        await this.relayPool.removeRelay(url.toString());
+        await this.relayPool.removeRelay(url);
         this.saveToLocalStorage();
     }
 }
 
 export function applyPoolToRelayConfig(pool: ConnectionPool, relayConfig: RelayConfig) {
     for (const relay of pool.getRelays()) {
-        relayConfig.add(new URL(relay.url));
+        relayConfig.add(relay.url);
     }
 }
 

@@ -180,10 +180,14 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
             continue;
         }
         const pool = app.pool;
-        const blowater_relay = pool.getRelay(default_blowater_relay);
+        let blowater_relay = pool.getRelay(default_blowater_relay);
         if (blowater_relay == undefined) {
-            console.error(Array.from(pool.getRelays()));
-            continue;
+            const relay = await pool.addRelayURL(default_blowater_relay);
+            if (relay instanceof Error) {
+                console.error(relay);
+                continue;
+            }
+            blowater_relay = relay;
         }
 
         let current_relay = pool.getRelay(model.currentRelay);

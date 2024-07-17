@@ -7,10 +7,11 @@ import { NavigationUpdate } from "./nav.tsx";
 import { setState } from "./_helper.ts";
 import { RelayInformation, robohash } from "@blowater/nostr-sdk";
 import { ViewSpaceSettings } from "./setting.tsx";
+import { ValueMap } from "@blowater/collections";
 
 type SpaceDropDownPanelProps = {
     currentRelay: URL;
-    spaceList: Map<string, RelayInformation & { url: URL }>;
+    spaceList: ValueMap<URL, RelayInformation & { url: URL }>;
     emit: emitFunc<SelectSpace | NavigationUpdate | ViewSpaceSettings>;
 };
 
@@ -58,7 +59,7 @@ export class SpaceDropDownPanel extends Component<SpaceDropDownPanelProps, Relay
                 {this.props.currentRelay
                     ? (
                         <RelayAvatar
-                            icon={this.props.spaceList.get(this.props.currentRelay.toString())?.icon ||
+                            icon={this.props.spaceList.get(this.props.currentRelay)?.icon ||
                                 robohash(this.props.currentRelay)}
                         />
                     )
@@ -104,13 +105,13 @@ export class SpaceDropDownPanel extends Component<SpaceDropDownPanelProps, Relay
                 <div class={`flex justify-center items-center w-12 h-12 rounded-md ${selected}`}>
                     <div class={`w-10 h-10 bg-neutral-600 rounded-md `}>
                         <RelayAvatar
-                            icon={this.props.spaceList.get(spaceURL.toString())?.icon ||
+                            icon={this.props.spaceList.get(spaceURL)?.icon ||
                                 robohash(spaceURL)}
                         />
                     </div>
                 </div>
                 <div class="px-2">
-                    <div>{this.props.spaceList.get(spaceURL.toString())?.name}</div>
+                    <div>{this.props.spaceList.get(spaceURL)?.name}</div>
                     <div class="text-sm font-light">{new URL(spaceURL).hostname}</div>
                 </div>
             </div>

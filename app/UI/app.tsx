@@ -456,7 +456,7 @@ export class AppComponent extends Component<AppProps, {
                             },
                         ),
                     )}
-                    relay_url={model.currentRelay.toString()}
+                    relay_url={model.currentRelay}
                     bus={app.eventBus}
                 />
             );
