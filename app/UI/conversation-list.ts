@@ -6,6 +6,7 @@ import { UserBlocker } from "./app_update.tsx";
 import { ConversationListRetriever, ConversationType, NewMessageChecker } from "./conversation-list.tsx";
 import { RelayRecordGetter } from "../database.ts";
 import { ValueSet } from "@blowater/collections";
+import { url_identity } from "./_helper.ts";
 
 export interface ConversationSummary {
     readonly pubkey: PublicKey;
@@ -231,12 +232,12 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker, Us
                 pubkey: pubkey_I_TalkingTo,
                 newestEventReceivedByMe: undefined,
                 newestEventSendByMe: undefined,
-                relays: new ValueSet((url) => url.host + url.pathname),
+                relays: new ValueSet(url_identity),
             };
             const spaceURLs = this.relayRecordGetter.getRelayRecord(event.id);
             if (spaceURLs.size > 0) {
                 for (const url of spaceURLs) {
-                    newUserInfo.relays.add(new URL(url));
+                    newUserInfo.relays.add(url);
                 }
             }
             if (pubkey_I_TalkingTo.hex == this.ctx.publicKey.hex) {
