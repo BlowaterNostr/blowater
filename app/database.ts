@@ -269,7 +269,7 @@ export class Database_View
     private relay_record_loaded: Promise<void>;
 
     getRelayRecord(eventID: string) {
-        const set = new ValueSet<URL>((url) => url.toString());
+        const set = new ValueSet<URL>((url) => url.hostname + url.pathname);
         const relays = this.relayRecords.get(eventID) || [];
         for (const urlString of relays) {
             const url = newURL(urlString);
