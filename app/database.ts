@@ -9,7 +9,7 @@ import { ProfileGetter, ProfileSetter } from "./UI/search.tsx";
 import { func_GetMemberSet } from "./UI/relay-detail.tsx";
 import { func_GetRelayRecommendations } from "./UI/relay-recommend-list.tsx";
 import { ValueMap, ValueSet } from "@blowater/collections";
-import { newURL } from "https://jsr.io/@blowater/nostr-sdk/0.0.6-rc1/_helper.ts";
+import { newURL } from "@blowater/nostr-sdk";
 import { url_identity } from "./UI/_helper.ts";
 
 const buffer_size = 2000;

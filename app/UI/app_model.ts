@@ -3,7 +3,7 @@ import { DM_Model } from "./dm.tsx";
 import { Public_Model } from "./public-message-container.tsx";
 import { App } from "./app.tsx";
 import { default_blowater_relay } from "./relay-config.ts";
-import { newURL } from "https://jsr.io/@blowater/nostr-sdk/0.0.6-rc1/_helper.ts";
+import { newURL } from "@blowater/nostr-sdk";
 
 export type Model = {
     app?: App; // app is only available after sign-in

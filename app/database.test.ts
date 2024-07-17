@@ -3,6 +3,8 @@ import { test_db_view } from "./UI/_setup.test.ts";
 import { Parsed_Event } from "./nostr.ts";
 import { assertEquals } from "https://deno.land/std@0.202.0/assert/assert_equals.ts";
 import { fail } from "https://deno.land/std@0.202.0/assert/fail.ts";
+import { ValueSet } from "@blowater/collections";
+import { url_identity } from "./UI/_helper.ts";
 
 Deno.test("Database", async () => {
     const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
@@ -83,21 +85,30 @@ Deno.test("Relay Record", async () => {
     const event_to_add = await prepareNormalNostrEvent(ctx, { kind: NostrKind.TEXT_NOTE, content: "1" });
     const event_to_add_2 = await prepareNormalNostrEvent(ctx, { kind: NostrKind.TEXT_NOTE, content: "2" });
     await db.addEvent(event_to_add); // send by client
-    assertEquals(db.getRelayRecord(event_to_add.id), new Set<string>());
 
-    await db.addEvent(event_to_add_2, "wss://relay.blowater.app"); // receiver from relay
-    assertEquals(db.getRelayRecord(event_to_add_2.id), new Set(["wss://relay.blowater.app"]));
+    {
+        const set = new ValueSet<URL>(url_identity);
+        assertEquals(db.getRelayRecord(event_to_add.id), set);
+    }
 
-    await db.addEvent(event_to_add_2, "wss://relay.test.app/nostr/space");
-    assertEquals(
-        db.getRelayRecord(event_to_add_2.id),
-        new Set(
-            [
-                "wss://relay.blowater.app",
-                "wss://relay.test.app/nostr/space",
-            ],
-        ),
-    );
+    await db.addEvent(event_to_add_2, new URL("wss://relay.blowater.app")); // receiver from relay
+
+    {
+        const set = new ValueSet<URL>(url_identity);
+        set.add(new URL("wss://relay.blowater.app"));
+        assertEquals(db.getRelayRecord(event_to_add_2.id), set);
+    }
+
+    {
+        await db.addEvent(event_to_add_2, new URL("wss://relay.test.app/nostr/space"));
+        const set = new ValueSet<URL>(url_identity);
+        set.add(new URL("wss://relay.blowater.app"));
+        set.add(new URL("wss://relay.test.app/nostr/space"));
+        assertEquals(
+            db.getRelayRecord(event_to_add_2.id),
+            set,
+        );
+    }
 
     await stream.pop();
     await stream.pop();
