@@ -87,7 +87,7 @@ export class Database_View
     private readonly profile_events = new ValueMap<
         URL,
         ValueMap<PublicKey, Profile_Nostr_Event>
-    >((url) => url.toString());
+    >((url) => url.host + url.pathname);
     private readonly deletionEvents = new Map</* event id */ string, /* deletion event */ Parsed_Event>();
     private readonly reactionEvents = new Map<
         /* event id */ string,

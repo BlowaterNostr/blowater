@@ -42,7 +42,6 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker, Us
                     convs.push(convo);
                 } else {
                     const recordedByRelay = convo.relays.has(space);
-                    console.log(space.origin, recordedByRelay, convo.relays);
                     if (recordedByRelay) {
                         convs.push(convo);
                     }
