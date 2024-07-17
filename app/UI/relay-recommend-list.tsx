@@ -12,6 +12,7 @@ import { emitFunc } from "../event-bus.ts";
 import { RelayConfig } from "./relay-config.ts";
 import { HidePopOver } from "./components/popover.tsx";
 import { RelayConfigChange } from "./setting.tsx";
+import { url_identity } from "./_helper.ts";
 
 export type func_GetRelayRecommendations = () => Set<string>;
 
@@ -51,7 +52,7 @@ export class RelayRecommendList extends Component<RelayRecommendListProps> {
                 >
                     {Array.from(
                         this.props.getRelayRecommendations().difference(
-                            this.props.relayConfig.getRelayURLs(),
+                            new Set(this.props.relayConfig.getRelayURLs().map(url_identity)),
                         ),
                     ).map((r) => {
                         return (
