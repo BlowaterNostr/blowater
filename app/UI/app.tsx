@@ -23,7 +23,7 @@ import { InstallPrompt } from "./nav.tsx";
 import { Component } from "preact";
 import { PublicMessageContainer } from "./public-message-container.tsx";
 import { ChatMessage } from "./message.ts";
-import { filter, forever, map } from "./_helper.ts";
+import { filter, forever, map, url_identity } from "./_helper.ts";
 import { RightPanel } from "./components/right-panel.tsx";
 import { SignIn } from "./sign-in.tsx";
 import { getTags, Parsed_Event } from "../nostr.ts";
@@ -40,6 +40,7 @@ import {
     NostrKind,
 } from "@blowater/nostr-sdk";
 import { NewNav } from "./nav.tsx";
+import { ValueSet } from "@blowater/collections";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
@@ -438,11 +439,6 @@ export class AppComponent extends Component<AppProps, {
                                     }
                                     const relays = app.database.getRelayRecord(e.id);
                                     let has = relays.has(model.currentRelay);
-                                    if (model.currentRelay[model.currentRelay.length - 1] == "/") {
-                                        has = relays.has(
-                                            model.currentRelay.slice(0, model.currentRelay.length - 1),
-                                        );
-                                    }
                                     return has &&
                                         !app.database.isDeleted(e.id, this.state.admin);
                                 },
@@ -460,7 +456,7 @@ export class AppComponent extends Component<AppProps, {
                             },
                         ),
                     )}
-                    relay_url={model.currentRelay.toString()}
+                    relay_url={model.currentRelay}
                     bus={app.eventBus}
                 />
             );
@@ -489,11 +485,15 @@ export class AppComponent extends Component<AppProps, {
             );
         }
 
+        const spaceList = new ValueSet<URL>(url_identity);
+        for (const conn of app.pool.getRelays()) {
+            spaceList.add(conn.url);
+        }
         const final = (
             <div class={`h-screen w-full flex`}>
                 <NewNav
                     currentSpaceURL={new URL(model.currentRelay)}
-                    spaceList={Array.from(app.pool.getRelays()).map((r) => r.url)}
+                    spaceList={spaceList}
                     activeNav={model.navigationModel.activeNav}
                     profile={app.database.getProfileByPublicKey(app.ctx.publicKey, model.currentRelay)}
                     currentConversation={model.dm.currentConversation}

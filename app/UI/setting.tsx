@@ -26,6 +26,8 @@ import { default_blowater_relay, RelayConfig } from "./relay-config.ts";
 import { emitFunc } from "../event-bus.ts";
 import { sleep } from "@blowater/csp";
 import { ConnectionPool, InMemoryAccountContext, NostrAccountContext, PrivateKey } from "@blowater/nostr-sdk";
+import { ValueSet } from "@blowater/collections";
+import { url_identity } from "./_helper.ts";
 
 export interface SettingProps {
     logout: () => void;
@@ -102,7 +104,7 @@ export type ViewRecommendedRelaysList = {
     type: "ViewRecommendedRelaysList";
 };
 
-export type func_GetRelayURLs = () => Set<string>;
+export type func_GetRelayURLs = () => Array<URL>;
 
 type RelaySettingProp = {
     getRelayURLs: func_GetRelayURLs;
@@ -113,7 +115,7 @@ type RelaySettingProp = {
 type RelaySettingState = {
     error: string;
     addRelayInput: string;
-    relayStatus: { url: string; status: keyof typeof colors }[];
+    relayStatus: { url: URL; status: keyof typeof colors }[];
 };
 
 export class RelaySetting extends Component<RelaySettingProp, RelaySettingState> {
@@ -139,7 +141,7 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
     }
 
     computeRelayStatus(props: RelaySettingProp) {
-        const _relayStatus: { url: string; status: keyof typeof colors }[] = [];
+        const _relayStatus: { url: URL; status: keyof typeof colors }[] = [];
         for (const url of props.getRelayURLs()) {
             const relay = props.relayPool.getRelay(url);
             let status: keyof typeof colors = "Closed";
@@ -154,7 +156,7 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
         return _relayStatus;
     }
 
-    viewSpaceSettings = (url: string) => {
+    viewSpaceSettings = (url: URL) => {
         this.props.emit({
             type: "ViewSpaceSettings",
             url: url,
@@ -240,13 +242,13 @@ export class RelaySetting extends Component<RelaySettingProp, RelaySettingState>
                                     >
                                         {r.status}
                                     </span>
-                                    <span class={`truncate`}>{r.url}</span>
+                                    <span class={`truncate`}>{url_identity(r.url)}</span>
                                 </div>
-                                {r.url != default_blowater_relay.toString()
+                                {url_identity(r.url) != url_identity(default_blowater_relay)
                                     ? (
                                         <button
                                             class={`w-[2rem] h-[2rem] rounded-lg bg-transparent hover:bg-[${DividerBackgroundColor}] ${CenterClass} ${NoOutlineClass}`}
-                                            onClick={this.removeRelay(props, new URL(r.url))}
+                                            onClick={this.removeRelay(props, r.url)}
                                         >
                                             <DeleteIcon
                                                 class={`w-[1rem] h-[1rem] text-[${ErrorColor}]`}

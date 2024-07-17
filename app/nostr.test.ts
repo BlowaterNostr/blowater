@@ -60,7 +60,7 @@ Deno.test("Generate reply event", async () => {
             targetEvent: message1,
             tags: [],
             content: "aaaa",
-            currentRelay: "wss://relay-url",
+            currentRelay: new URL("wss://relay-url"),
         },
     ) as NostrEvent;
 
@@ -69,7 +69,7 @@ Deno.test("Generate reply event", async () => {
     assertEquals(replyMessage1WithText.tags, [[
         "e",
         message1.id,
-        "wss://relay-url",
+        "wss://relay-url/",
         "reply",
     ]]);
 });

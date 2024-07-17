@@ -3,10 +3,12 @@ import { DM_Model } from "./dm.tsx";
 import { Public_Model } from "./public-message-container.tsx";
 import { App } from "./app.tsx";
 import { default_blowater_relay } from "./relay-config.ts";
+import { newURL } from "@blowater/nostr-sdk";
+import { url_identity } from "./_helper.ts";
 
 export type Model = {
     app?: App; // app is only available after sign-in
-    currentRelay: string;
+    currentRelay: URL;
     dm: DM_Model;
 
     public: Public_Model;
@@ -18,7 +20,7 @@ export type Model = {
 export function initialModel(): Model {
     return {
         app: undefined,
-        currentRelay: awakenCurrentRelay(),
+        currentRelay: loadCurrentRelay(),
         dm: {
             currentConversation: undefined,
         },
@@ -31,16 +33,27 @@ export function initialModel(): Model {
     };
 }
 
-export function rememberCurrentRelay(relay: string) {
-    localStorage.setItem("currentRelay", relay);
+export function rememberCurrentRelay(relay: URL) {
+    localStorage.setItem("currentRelay", url_identity(relay));
 }
 
 export function rememberActiveNav(nav: NavTabID) {
     localStorage.setItem("activeNav", nav);
 }
 
-function awakenCurrentRelay() {
-    return localStorage.getItem("currentRelay") || default_blowater_relay;
+function loadCurrentRelay() {
+    const item = "currentRelay";
+    const stored = localStorage.getItem(item);
+    if (stored == null) {
+        return default_blowater_relay;
+    }
+    const url = newURL(stored);
+    if (url instanceof TypeError) {
+        console.error(url);
+        localStorage.removeItem(item);
+        return default_blowater_relay;
+    }
+    return url;
 }
 
 function awakenActiveNav(): NavTabID {

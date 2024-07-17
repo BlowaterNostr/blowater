@@ -2,7 +2,7 @@
 import { Component, h } from "preact";
 import { emitFunc, EventBus } from "../event-bus.ts";
 import { ChatMessagesGetter, UI_Interaction_Event } from "./app_update.tsx";
-import { setState } from "./_helper.ts";
+import { setState, url_identity } from "./_helper.ts";
 
 import { RelayRecordGetter } from "../database.ts";
 import { NewMessageChecker } from "./conversation-list.tsx";
@@ -25,7 +25,7 @@ export type func_IsUserBlocked = (pubkey: PublicKey) => boolean;
 
 type Props = {
     ctx: NostrAccountContext;
-    relay_url: string;
+    relay_url: URL;
     bus: EventBus<UI_Interaction_Event>;
     messages: ChatMessage[];
     getters: {
@@ -87,7 +87,7 @@ export class PublicMessageContainer extends Component<Props, State> {
                             <div class={`flex-1 overflow-auto`}>
                                 {
                                     <MessagePanel
-                                        key={props.relay_url}
+                                        key={url_identity(props.relay_url)}
                                         myPublicKey={props.ctx.publicKey}
                                         emit={props.bus.emit}
                                         eventSub={props.bus}

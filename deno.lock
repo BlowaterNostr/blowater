@@ -2,9 +2,11 @@
   "version": "3",
   "packages": {
     "specifiers": {
+      "jsr:@blowater/collections@^0.0.0-rc1": "jsr:@blowater/collections@0.0.0-rc1",
+      "jsr:@blowater/collections@^0.0.0-rc3": "jsr:@blowater/collections@0.0.0-rc3",
       "jsr:@blowater/csp@1.0.0": "jsr:@blowater/csp@1.0.0",
       "jsr:@blowater/csp@^1.0.0": "jsr:@blowater/csp@1.0.0",
-      "jsr:@blowater/nostr-sdk@0.0.5": "jsr:@blowater/nostr-sdk@0.0.5",
+      "jsr:@blowater/nostr-sdk@0.0.7": "jsr:@blowater/nostr-sdk@0.0.7",
       "jsr:@luca/esbuild-deno-loader@^0.10.3": "jsr:@luca/esbuild-deno-loader@0.10.3",
       "jsr:@noble/secp256k1@2.1.0": "jsr:@noble/secp256k1@2.1.0",
       "jsr:@std/assert@0.226.0": "jsr:@std/assert@0.226.0",
@@ -29,12 +31,22 @@
       "npm:zod@3.23.8": "npm:zod@3.23.8"
     },
     "jsr": {
+      "@blowater/collections@0.0.0-rc1": {
+        "integrity": "a18c92ccf7b55f45cbf000304703a344624a22f84b11b970024546a012a450a9"
+      },
+      "@blowater/collections@0.0.0-rc3": {
+        "integrity": "54cdc175266e16d50aaf780885b6e6eb3009f99c66641ff9b0c6c60f5b6e629d"
+      },
       "@blowater/csp@1.0.0": {
         "integrity": "415d4e8bf1656e4a508997fb8e725e9372e1e39b2b714afa76e86efd733f8c4c"
       },
-      "@blowater/nostr-sdk@0.0.5": {
-        "integrity": "5b6eec035f8f7f0206a2f64c07ac315b33fc5fb25d6a774430705a6cec768092",
+      "@blowater/nostr-sdk@0.0.6-rc1": {
+        "integrity": "026a209063d6cd1ab3d9b585735fef15a736f644520b92807e61ea35cf99387d"
+      },
+      "@blowater/nostr-sdk@0.0.7": {
+        "integrity": "4571f637dd0cfbad14a53873adbc4b62bc89ecd1426bab99e4fe73c1447dbbe6",
         "dependencies": [
+          "jsr:@blowater/collections@^0.0.0-rc1",
           "jsr:@blowater/csp@1.0.0",
           "jsr:@noble/secp256k1@2.1.0",
           "jsr:@std/assert@0.226.0",
@@ -409,8 +421,9 @@
   },
   "workspace": {
     "dependencies": [
+      "jsr:@blowater/collections@^0.0.0-rc3",
       "jsr:@blowater/csp@1.0.0",
-      "jsr:@blowater/nostr-sdk@0.0.5",
+      "jsr:@blowater/nostr-sdk@0.0.7",
       "jsr:@std/assert@0.226.0",
       "jsr:@std/datetime@0.224.2",
       "jsr:@std/encoding@1.0.0",

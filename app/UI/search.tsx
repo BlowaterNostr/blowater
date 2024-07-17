@@ -25,7 +25,7 @@ type SearchResult = {
 };
 
 export interface ProfileSetter {
-    setProfile(profileEvent: Profile_Nostr_Event, relayURL: string): void;
+    setProfile(profileEvent: Profile_Nostr_Event, relayURL: URL): void;
 }
 
 export type func_GetProfileByPublicKey = (
@@ -36,7 +36,7 @@ export type func_GetProfilesByText = (name: string, spaceURL: URL | undefined) =
 export interface ProfileGetter {
     getProfileByPublicKey: func_GetProfileByPublicKey;
     getProfilesByText: func_GetProfilesByText;
-    getUniqueProfileCount: (spaceURL: string) => number;
+    getUniqueProfileCount: (spaceURL: URL) => number;
 }
 
 type Props = {

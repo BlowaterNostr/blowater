@@ -5,12 +5,14 @@ import { getTags } from "../nostr.ts";
 import { UserBlocker } from "./app_update.tsx";
 import { ConversationListRetriever, ConversationType, NewMessageChecker } from "./conversation-list.tsx";
 import { RelayRecordGetter } from "../database.ts";
+import { ValueSet } from "@blowater/collections";
+import { url_identity } from "./_helper.ts";
 
 export interface ConversationSummary {
     readonly pubkey: PublicKey;
     newestEventSendByMe?: NostrEvent;
     newestEventReceivedByMe?: NostrEvent;
-    relays: Array<URL>;
+    relays: ValueSet<URL>;
 }
 
 export class DM_List implements ConversationListRetriever, NewMessageChecker, UserBlocker {
@@ -39,9 +41,11 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker, Us
             ) {
                 if (!space) {
                     convs.push(convo);
-                }
-                if (space && hasSpace(space, convo.relays)) {
-                    convs.push(convo);
+                } else {
+                    const recordedByRelay = convo.relays.has(space);
+                    if (recordedByRelay) {
+                        convs.push(convo);
+                    }
                 }
             }
         }
@@ -188,7 +192,7 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker, Us
             const spaceURLs = this.relayRecordGetter.getRelayRecord(event.id);
             if (spaceURLs.size > 0) {
                 for (const url of spaceURLs) {
-                    userInfo.relays.push(new URL(url));
+                    userInfo.relays.add(url);
                 }
             }
             if (pubkey_I_TalkingTo.hex == this.ctx.publicKey.hex) {
@@ -228,12 +232,12 @@ export class DM_List implements ConversationListRetriever, NewMessageChecker, Us
                 pubkey: pubkey_I_TalkingTo,
                 newestEventReceivedByMe: undefined,
                 newestEventSendByMe: undefined,
-                relays: [],
+                relays: new ValueSet(url_identity),
             };
             const spaceURLs = this.relayRecordGetter.getRelayRecord(event.id);
             if (spaceURLs.size > 0) {
                 for (const url of spaceURLs) {
-                    newUserInfo.relays.push(new URL(url));
+                    newUserInfo.relays.add(url);
                 }
             }
             if (pubkey_I_TalkingTo.hex == this.ctx.publicKey.hex) {
@@ -267,13 +271,4 @@ function sortScore(contact: ConversationSummary) {
         score += contact.newestEventReceivedByMe.created_at;
     }
     return score;
-}
-
-function hasSpace(url: URL, list: URL[]) {
-    for (const u of list) {
-        if (u.toString() == url.toString()) {
-            return true;
-        }
-    }
-    return false;
 }

@@ -3,7 +3,7 @@ import { Component, h } from "preact";
 import { emitFunc, EventSubscriber } from "../event-bus.ts";
 import { ViewSpaceSettings } from "./setting.tsx";
 import { getRelayInformation, PublicKey, RelayInformation, robohash } from "@blowater/nostr-sdk";
-import { setState } from "./_helper.ts";
+import { setState, url_identity } from "./_helper.ts";
 import { Avatar, RelayAvatar } from "./components/avatar.tsx";
 import { CaretDownIcon } from "./icons/caret-down-icon.tsx";
 import { PoundIcon } from "./icons/pound-icon.tsx";
@@ -16,6 +16,7 @@ import { PinIcon } from "./icons/pin-icon.tsx";
 import { SelectConversation } from "./search_model.ts";
 import { ConversationSummary, sortUserInfo } from "./conversation-list.ts";
 import { UI_Interaction_Event } from "./app_update.tsx";
+import { ValueMap, ValueSet } from "@blowater/collections";
 
 export type InstallPrompt = {
     event: Event | undefined;
@@ -44,7 +45,7 @@ export type NavTabID = "Public" | "DM" | "Search" | "Profile" | "About" | "Setti
 type NewNavProps = {
     activeNav: NavTabID;
     currentSpaceURL: URL;
-    spaceList: Array<string>;
+    spaceList: ValueSet<URL>;
     profile: Profile_Nostr_Event | undefined;
     currentConversation: PublicKey | undefined;
     getters: {
@@ -66,13 +67,13 @@ type NewNavProps = {
 
 type NewNavState = {
     spaceInformation: RelayInformation & { url: URL };
-    spaceInformationList: Map<string, RelayInformation & { url: URL }>;
+    spaceInformationList: ValueMap<URL, RelayInformation & { url: URL }>;
 };
 
 export class NewNav extends Component<NewNavProps, NewNavState> {
     state: Readonly<NewNavState> = {
         spaceInformation: { url: this.props.currentSpaceURL },
-        spaceInformationList: new Map(),
+        spaceInformationList: new ValueMap(url_identity),
     };
 
     async componentDidMount() {
@@ -82,14 +83,14 @@ export class NewNav extends Component<NewNavProps, NewNavState> {
         }
         for await (const change of this.props.update.onChange()) {
             if (change.type == "SelectSpace") {
-                const info = this.state.spaceInformationList.get(change.spaceURL.toString());
+                const info = this.state.spaceInformationList.get(change.spaceURL);
                 await setState(this, {
                     spaceInformation: info,
                 });
             } else if (change.type == "RelayConfigChange") {
                 console.log("add", change);
                 if (change.kind == "remove") {
-                    this.state.spaceInformationList.delete(new URL(change.url).toString());
+                    this.state.spaceInformationList.delete(new URL(change.url));
                     await setState(this, {
                         spaceInformationList: this.state.spaceInformationList,
                     });
@@ -99,7 +100,7 @@ export class NewNav extends Component<NewNavProps, NewNavState> {
                         console.error(info);
                         continue;
                     }
-                    this.state.spaceInformationList.set(new URL(change.url).toString(), {
+                    this.state.spaceInformationList.set(change.url, {
                         ...info,
                         url: new URL(change.url),
                     });
@@ -141,7 +142,7 @@ export class NewNav extends Component<NewNavProps, NewNavState> {
 
 type SpaceDropDownPanelProps = {
     currentSpace: RelayInformation & { url: URL };
-    spaceList: Map<string, RelayInformation & { url: URL }>;
+    spaceList: ValueMap<URL, RelayInformation & { url: URL }>;
     emit: emitFunc<SelectSpace | NavigationUpdate | ViewSpaceSettings>;
 };
 
@@ -412,7 +413,7 @@ class ConversationList extends Component<ConversationListProps> {
                         pubkey={convo.pubkey}
                         isPined={true}
                         currentConversation={props.currentConversation}
-                        currentSpace={props.currentSpace.toString()}
+                        currentSpace={props.currentSpace}
                         getters={props.getters}
                     />,
                 );
@@ -423,7 +424,7 @@ class ConversationList extends Component<ConversationListProps> {
                         pubkey={convo.pubkey}
                         isPined={false}
                         currentConversation={props.currentConversation}
-                        currentSpace={props.currentSpace.toString()}
+                        currentSpace={props.currentSpace}
                         getters={props.getters}
                     />,
                 );
@@ -444,7 +445,7 @@ type ConversationItemProps = {
     pubkey: PublicKey;
     emit: emitFunc<SelectConversation>;
     isPined: boolean;
-    currentSpace: string;
+    currentSpace: URL;
     currentConversation: PublicKey | undefined;
     getters: {
         getProfileByPublicKey: func_GetProfileByPublicKey;
@@ -525,7 +526,7 @@ class UserIndicator extends Component<UserIndicatorProps> {
     }
 }
 
-async function* updateInformation(currentSpaceURL: URL, spaceList: string[]) {
+async function* updateInformation(currentSpaceURL: URL, spaceList: ValueSet<URL>) {
     const currentInfo = await getRelayInformation(currentSpaceURL);
     if (currentInfo instanceof Error) {
         console.error(currentInfo);
@@ -537,10 +538,10 @@ async function* updateInformation(currentSpaceURL: URL, spaceList: string[]) {
             ...currentInfo,
         },
     };
-    const infoList = new Map<string, RelayInformation & { url: URL }>();
+    const infoList = new ValueMap<URL, RelayInformation & { url: URL }>(url_identity);
     for (const space of spaceList) {
         if (new URL(space).toString() == currentSpaceURL.toString()) {
-            infoList.set(currentSpaceURL.toString(), {
+            infoList.set(currentSpaceURL, {
                 url: currentSpaceURL,
                 ...currentInfo,
             });
@@ -552,7 +553,7 @@ async function* updateInformation(currentSpaceURL: URL, spaceList: string[]) {
             continue;
         }
         const url = new URL(space);
-        infoList.set(url.toString(), {
+        infoList.set(url, {
             url: url,
             ...info,
         });

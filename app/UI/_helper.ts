@@ -36,3 +36,5 @@ export async function forever(f: Promise<Error | undefined | void>) {
 }
 
 export type Empty = Record<string | number | symbol, never>;
+
+export const url_identity = (url: URL) => url.protocol + "//" + url.hostname + url.pathname;

@@ -8,6 +8,9 @@ import { ProfileGetter, ProfileSetter } from "./UI/search.tsx";
 
 import { func_GetMemberSet } from "./UI/relay-detail.tsx";
 import { func_GetRelayRecommendations } from "./UI/relay-recommend-list.tsx";
+import { ValueMap, ValueSet } from "@blowater/collections";
+import { newURL } from "@blowater/nostr-sdk";
+import { url_identity } from "./UI/_helper.ts";
 
 const buffer_size = 2000;
 export interface Indices {
@@ -61,7 +64,7 @@ export type EventsAdapter =
     & EventPutter;
 
 export interface RelayRecordGetter {
-    getRelayRecord: (eventID: string) => Set<string>;
+    getRelayRecord: (eventID: string) => ValueSet<URL>;
 }
 
 interface MemberListGetter {
@@ -80,16 +83,16 @@ export class Database_View
         RelayRecordGetter,
         MemberListGetter,
         RelayRecommendationsGetter {
-    private readonly sourceOfChange = csp.chan<{ event: Parsed_Event; relay?: string }>(buffer_size);
-    private readonly caster = csp.multi<{ event: Parsed_Event; relay?: string }>(this.sourceOfChange);
-    private readonly profile_events = new Map<
-        /* spaceURL */ string,
-        Map</* pubkey */ string, Profile_Nostr_Event>
-    >();
+    private readonly sourceOfChange = csp.chan<{ event: Parsed_Event; relay?: URL }>(buffer_size);
+    private readonly caster = csp.multi<{ event: Parsed_Event; relay?: URL }>(this.sourceOfChange);
+    private readonly profile_events = new ValueMap<
+        URL,
+        ValueMap<PublicKey, Profile_Nostr_Event>
+    >(url_identity);
     private readonly deletionEvents = new Map</* event id */ string, /* deletion event */ Parsed_Event>();
     private readonly reactionEvents = new Map<
         /* event id */ string,
-        /* reaction events */ Set<Parsed_Event>
+        /* reaction events */ ValueSet<Parsed_Event>
     >();
     private readonly latestEvents = new Map<NostrKind, Parsed_Event>();
     private readonly events_v2 = new Map<string, /* id */ v2.Event_V2>();
@@ -98,7 +101,7 @@ export class Database_View
         private readonly eventsAdapter: EventsAdapter,
         private readonly relayRecorder: RelayRecorder,
         private readonly eventMarker: EventMarker,
-        private readonly events: Map<string, Parsed_Event>,
+        private readonly events: ValueSet<Parsed_Event>,
         private readonly removedEvents: Set<string>,
     ) {
         this.relay_record_loaded = new Promise(async (resolve) => {
@@ -127,11 +130,10 @@ export class Database_View
 
     getMemberSet: func_GetMemberSet = (relay: URL) => {
         const members = new Set<string>();
-        const urlString = relay.origin + (relay.pathname === "/" ? "" : relay.pathname);
         for (const event of this.events_v2.values()) {
             if (event.kind == v2.Kind_V2.SpaceMember) {
                 const records = this.getRelayRecord(event.id);
-                if (records.has(urlString)) {
+                if (records.has(relay)) {
                     members.add(event.pubkey);
                 }
             }
@@ -139,7 +141,7 @@ export class Database_View
         if (members.size === 0) {
             for (const event of this.events.values()) {
                 const records = this.getRelayRecord(event.id);
-                if (records.has(urlString)) {
+                if (records.has(relay)) {
                     members.add(event.pubkey);
                 }
             }
@@ -156,7 +158,7 @@ export class Database_View
         const allEvents = await eventsAdapter.filter();
         console.log("Datebase_View:onload", Date.now() - t, allEvents.length);
 
-        const initialEvents = new Map<string, Parsed_Event>();
+        const initialEvents = new ValueSet<Parsed_Event>((e) => e.id);
         for (const e of allEvents) {
             const pubkey = PublicKey.FromHex(e.pubkey);
             if (pubkey instanceof Error) {
@@ -169,7 +171,7 @@ export class Database_View
                 parsedTags: getTags(e),
                 publicKey: pubkey,
             };
-            initialEvents.set(p.id, p);
+            initialEvents.add(p);
         }
 
         console.log("Datebase_View:parsed", Date.now() - t);
@@ -202,7 +204,8 @@ export class Database_View
                 });
             } else if (event.kind == NostrKind.REACTION) {
                 const eventId = event.parsedTags.e[0];
-                const events = db.reactionEvents.get(event.parsedTags.e[0]) || new Set<Parsed_Event>();
+                const events = db.reactionEvents.get(event.parsedTags.e[0]) ||
+                    new ValueSet<Parsed_Event>((e) => e.id);
                 events.add(event);
                 db.reactionEvents.set(eventId, events);
             }
@@ -255,7 +258,7 @@ export class Database_View
     }
 
     getReactionEvents = (id: string) => {
-        return this.reactionEvents.get(id) || new Set<Parsed_Event>();
+        return this.reactionEvents.get(id) || new ValueSet<Parsed_Event>((e) => e.id);
     };
 
     async remove(id: string): Promise<void> {
@@ -265,12 +268,19 @@ export class Database_View
 
     private relayRecords = new Map<string, Set<string>>();
     private relay_record_loaded: Promise<void>;
+
     getRelayRecord(eventID: string) {
-        const relays = this.relayRecords.get(eventID);
-        if (relays == undefined) {
-            return new Set<string>();
+        const set = new ValueSet<URL>(url_identity);
+        const relays = this.relayRecords.get(eventID) || [];
+        for (const urlString of relays) {
+            const url = newURL(urlString);
+            if (url instanceof TypeError) {
+                console.error(url);
+                continue;
+            }
+            set.add(url);
         }
-        return relays;
+        return set;
     }
 
     private async recordRelay(eventID: string, url: URL) {
@@ -303,8 +313,7 @@ export class Database_View
             }
             return result;
         }
-        const urlString = spaceURL.origin + (spaceURL.pathname === "/" ? "" : spaceURL.pathname);
-        const spaceProfiels = this.profile_events.get(urlString);
+        const spaceProfiels = this.profile_events.get(spaceURL);
         if (spaceProfiels) {
             for (const event of spaceProfiels.values()) {
                 if (match_name(event.profile, name)) {
@@ -319,8 +328,13 @@ export class Database_View
         pubkey: PublicKey | string,
         spaceURL: string | URL | undefined,
     ): Profile_Nostr_Event | undefined => {
-        if (pubkey instanceof PublicKey) {
-            pubkey = pubkey.hex;
+        if (typeof pubkey == "string") {
+            const pub = PublicKey.FromString(pubkey);
+            if (pub instanceof Error) {
+                console.error(pub);
+                return undefined;
+            }
+            pubkey = pub;
         }
         if (spaceURL == undefined) {
             let result: Profile_Nostr_Event | undefined = undefined;
@@ -336,38 +350,37 @@ export class Database_View
             return result;
         }
         const space = new URL(spaceURL);
-        const urlString = space.origin + (space.pathname === "/" ? "" : space.pathname);
-        const profile_events_of_space = this.profile_events.get(urlString);
+        const profile_events_of_space = this.profile_events.get(space);
         if (profile_events_of_space == undefined) {
             return undefined;
         }
         return profile_events_of_space.get(pubkey);
     };
 
-    getUniqueProfileCount = (spaceURL: string): number => {
+    getUniqueProfileCount = (spaceURL: URL): number => {
         return this.profile_events.get(spaceURL)?.size || 0;
     };
 
-    setProfile(profileEvent: Profile_Nostr_Event, spaceURL: string) {
+    setProfile(profileEvent: Profile_Nostr_Event, spaceURL: URL) {
         const spaceProfiles = this.profile_events.get(spaceURL);
         if (spaceProfiles) {
-            const profile = spaceProfiles.get(profileEvent.pubkey);
+            const profile = spaceProfiles.get(profileEvent.publicKey);
             if (profile) {
                 if (profileEvent.created_at > profile.created_at) {
-                    spaceProfiles.set(profileEvent.pubkey, profileEvent);
+                    spaceProfiles.set(profileEvent.publicKey, profileEvent);
                 }
             } else {
-                spaceProfiles.set(profileEvent.pubkey, profileEvent);
+                spaceProfiles.set(profileEvent.publicKey, profileEvent);
             }
         } else {
-            const profile = new Map<string, Profile_Nostr_Event>();
-            profile.set(profileEvent.pubkey, profileEvent);
+            const profile = new ValueMap<PublicKey, Profile_Nostr_Event>((p) => p.hex);
+            profile.set(profileEvent.publicKey, profileEvent);
             this.profile_events.set(spaceURL, profile);
         }
     }
 
     // If url is undefined, it's a locally created event that's not confirmed by relays yet.
-    async addEvent(event: NostrEvent, url?: string | undefined) {
+    async addEvent(event: NostrEvent, url?: URL) {
         const ok = await verifyEvent(event);
         if (!ok) {
             return ok;
@@ -409,7 +422,7 @@ export class Database_View
         // add event to database and notify subscribers
         console.log("Database.addEvent", event);
 
-        this.events.set(parsedEvent.id, parsedEvent);
+        this.events.add(parsedEvent);
 
         if (parsedEvent.kind == NostrKind.META_DATA) {
             const pEvent = parseProfileEvent(parsedEvent as NostrEvent<NostrKind.META_DATA>);
@@ -423,7 +436,7 @@ export class Database_View
             });
         } else if (parsedEvent.kind == NostrKind.REACTION) {
             const eventId = parsedEvent.parsedTags.e[0];
-            const events = this.reactionEvents.get(eventId) || new Set<Parsed_Event>();
+            const events = this.reactionEvents.get(eventId) || new ValueSet<Parsed_Event>((e) => e.id);
             events.add(parsedEvent);
             this.reactionEvents.set(eventId, events);
         }
@@ -443,7 +456,7 @@ export class Database_View
     //////////////////
     subscribe() {
         const c = this.caster.copy();
-        const res = csp.chan<{ event: Parsed_Event; relay?: string }>(buffer_size);
+        const res = csp.chan<{ event: Parsed_Event; relay?: URL }>(buffer_size);
         (async () => {
             for await (const newE of c) {
                 const err = await res.put(newE);
