@@ -10,6 +10,7 @@ import { func_GetMemberSet } from "./UI/relay-detail.tsx";
 import { func_GetRelayRecommendations } from "./UI/relay-recommend-list.tsx";
 import { ValueMap, ValueSet } from "@blowater/collections";
 import { newURL } from "https://jsr.io/@blowater/nostr-sdk/0.0.6-rc1/_helper.ts";
+import { url_identity } from "./UI/_helper.ts";
 
 const buffer_size = 2000;
 export interface Indices {
@@ -87,7 +88,7 @@ export class Database_View
     private readonly profile_events = new ValueMap<
         URL,
         ValueMap<PublicKey, Profile_Nostr_Event>
-    >((url) => url.host + url.pathname);
+    >(url_identity);
     private readonly deletionEvents = new Map</* event id */ string, /* deletion event */ Parsed_Event>();
     private readonly reactionEvents = new Map<
         /* event id */ string,
@@ -269,7 +270,7 @@ export class Database_View
     private relay_record_loaded: Promise<void>;
 
     getRelayRecord(eventID: string) {
-        const set = new ValueSet<URL>((url) => url.hostname + url.pathname);
+        const set = new ValueSet<URL>(url_identity);
         const relays = this.relayRecords.get(eventID) || [];
         for (const urlString of relays) {
             const url = newURL(urlString);

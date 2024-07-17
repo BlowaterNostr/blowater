@@ -23,7 +23,7 @@ import { InstallPrompt } from "./nav.tsx";
 import { Component } from "preact";
 import { PublicMessageContainer } from "./public-message-container.tsx";
 import { ChatMessage } from "./message.ts";
-import { filter, forever, map } from "./_helper.ts";
+import { filter, forever, map, url_identity } from "./_helper.ts";
 import { RightPanel } from "./components/right-panel.tsx";
 import { SignIn } from "./sign-in.tsx";
 import { getTags, Parsed_Event } from "../nostr.ts";
@@ -485,7 +485,7 @@ export class AppComponent extends Component<AppProps, {
             );
         }
 
-        const spaceList = new ValueSet<URL>((url) => url.toString());
+        const spaceList = new ValueSet<URL>(url_identity);
         for (const conn of app.pool.getRelays()) {
             spaceList.add(conn.url);
         }
