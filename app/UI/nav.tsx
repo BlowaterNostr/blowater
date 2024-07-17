@@ -16,6 +16,7 @@ import { PinIcon } from "./icons/pin-icon.tsx";
 import { SelectConversation } from "./search_model.ts";
 import { ConversationSummary, sortUserInfo } from "./conversation-list.ts";
 import { UI_Interaction_Event } from "./app_update.tsx";
+import { ValueSet } from "@blowater/collections";
 
 export type InstallPrompt = {
     event: Event | undefined;
@@ -44,7 +45,7 @@ export type NavTabID = "Public" | "DM" | "Search" | "Profile" | "About" | "Setti
 type NewNavProps = {
     activeNav: NavTabID;
     currentSpaceURL: URL;
-    spaceList: Array<string>;
+    spaceList: ValueSet<URL>;
     profile: Profile_Nostr_Event | undefined;
     currentConversation: PublicKey | undefined;
     getters: {
@@ -525,7 +526,7 @@ class UserIndicator extends Component<UserIndicatorProps> {
     }
 }
 
-async function* updateInformation(currentSpaceURL: URL, spaceList: string[]) {
+async function* updateInformation(currentSpaceURL: URL, spaceList: ValueSet<URL>) {
     const currentInfo = await getRelayInformation(currentSpaceURL);
     if (currentInfo instanceof Error) {
         console.error(currentInfo);

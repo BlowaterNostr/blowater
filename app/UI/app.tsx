@@ -40,6 +40,7 @@ import {
     NostrKind,
 } from "@blowater/nostr-sdk";
 import { NewNav } from "./nav.tsx";
+import { ValueSet } from "@blowater/collections";
 
 export async function Start(database: DexieDatabase) {
     console.log("Start the application");
@@ -438,11 +439,6 @@ export class AppComponent extends Component<AppProps, {
                                     }
                                     const relays = app.database.getRelayRecord(e.id);
                                     let has = relays.has(model.currentRelay);
-                                    if (model.currentRelay[model.currentRelay.length - 1] == "/") {
-                                        has = relays.has(
-                                            model.currentRelay.slice(0, model.currentRelay.length - 1),
-                                        );
-                                    }
                                     return has &&
                                         !app.database.isDeleted(e.id, this.state.admin);
                                 },
@@ -489,11 +485,15 @@ export class AppComponent extends Component<AppProps, {
             );
         }
 
+        const spaceList = new ValueSet<URL>((url) => url.toString());
+        for (const conn of app.pool.getRelays()) {
+            spaceList.add(conn.url);
+        }
         const final = (
             <div class={`h-screen w-full flex`}>
                 <NewNav
                     currentSpaceURL={new URL(model.currentRelay)}
-                    spaceList={Array.from(app.pool.getRelays()).map((r) => r.url)}
+                    spaceList={spaceList}
                     activeNav={model.navigationModel.activeNav}
                     profile={app.database.getProfileByPublicKey(app.ctx.publicKey, model.currentRelay)}
                     currentConversation={model.dm.currentConversation}

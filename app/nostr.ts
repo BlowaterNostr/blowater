@@ -179,7 +179,7 @@ export async function prepareReplyEvent(
         targetEvent: nostr.NostrEvent;
         tags: Tag[];
         content: string;
-        currentRelay: string;
+        currentRelay: URL;
     },
 ): Promise<nostr.NostrEvent | Error> {
     const ps = getTags(args.targetEvent).p;
@@ -191,7 +191,7 @@ export async function prepareReplyEvent(
                 [
                     "e",
                     args.targetEvent.id,
-                    args.currentRelay,
+                    args.currentRelay.toString(),
                     "reply",
                 ],
                 ...ps.map((p) =>

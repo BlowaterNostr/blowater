@@ -180,6 +180,7 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
             continue;
         }
         const pool = app.pool;
+        console.log("get relay", default_blowater_relay);
         const blowater_relay = pool.getRelay(default_blowater_relay);
         if (blowater_relay == undefined) {
             console.error(Array.from(pool.getRelays()));
@@ -189,13 +190,13 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
         let current_relay = pool.getRelay(model.currentRelay);
         if (current_relay == undefined) {
             current_relay = blowater_relay;
-            rememberCurrentRelay(default_blowater_relay.toString());
+            rememberCurrentRelay(default_blowater_relay);
         }
 
         // All events below are only valid after signning in
         if (event.type == "SelectSpace") {
-            rememberCurrentRelay(event.spaceURL.toString());
-            model.currentRelay = event.spaceURL.toString();
+            rememberCurrentRelay(event.spaceURL);
+            model.currentRelay = event.spaceURL;
         } //
         // Searchx
         //
@@ -207,7 +208,7 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
             const search = (
                 <Search
                     placeholder={`Search a user's public key or name (${
-                        app.database.getUniqueProfileCount(model.currentRelay.toString())
+                        app.database.getUniqueProfileCount(model.currentRelay)
                     } profiles)`}
                     getProfileByPublicKey={app.database.getProfileByPublicKey}
                     getProfilesByText={app.database.getProfilesByText}
@@ -426,8 +427,8 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                         app.toastInputChan.put(() => err.message);
                         return;
                     }
-                    if (new URL(current_relay.url).toString() == event.url.toString()) {
-                        model.currentRelay = default_blowater_relay.toString();
+                    if (current_relay.url.toString() == event.url.toString()) {
+                        model.currentRelay = default_blowater_relay;
                     }
                 }
             })();
@@ -482,7 +483,7 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                 },
                 {
                     title: "Relays",
-                    fields: Array.from(app.database.getRelayRecord(nostrEvent.id)),
+                    fields: Array.from(app.database.getRelayRecord(nostrEvent.id)).map((r) => r.toString()),
                 },
             ];
             if (nostrEvent.kind == NostrKind.DIRECT_MESSAGE) {
@@ -741,7 +742,7 @@ export function generateTags(
     args: {
         content: string;
         getEventByID: func_GetEventByID;
-        current_relay: string;
+        current_relay: URL;
     },
 ) {
     const eTags = new Map<string, [string, string]>();
@@ -756,7 +757,7 @@ export function generateTags(
         } else if (item.type === "npub") {
             pTags.add(item.pubkey.hex);
         } else if (item.type === "note") {
-            eTags.set(item.noteID.hex, [args.current_relay, "mention"]);
+            eTags.set(item.noteID.hex, [args.current_relay.toString(), "mention"]);
             const event = args.getEventByID(item.noteID);
             if (event) {
                 pTags.add(event.pubkey);

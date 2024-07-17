@@ -29,6 +29,7 @@ import { NostrKind } from "@blowater/nostr-sdk";
 import { func_GetProfileByPublicKey } from "./search.tsx";
 import { DeleteIcon } from "./icons/delete-icon.tsx";
 import { ThumbsUpIcon } from "./icons/thumbs-up-icon.tsx";
+import { ValueSet } from "@blowater/collections";
 
 export type func_IsAdmin = (pubkey: string) => boolean;
 
@@ -278,7 +279,7 @@ export type func_GetEventByID = (
     id: string | NoteID,
 ) => Parsed_Event | undefined;
 
-export type func_GetReactionsByEventID = (id: string) => Set<Parsed_Event>;
+export type func_GetReactionsByEventID = (id: string) => ValueSet<Parsed_Event>;
 
 function MessageBoxGroup(props: {
     authorProfile: ProfileData | undefined;
@@ -604,7 +605,7 @@ function ReplyTo(
 function Reactions(
     props: {
         myPublicKey: PublicKey;
-        events: Set<Parsed_Event>;
+        events: ValueSet<Parsed_Event>;
     },
 ) {
     const reactions: Map<string, {

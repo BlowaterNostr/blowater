@@ -47,24 +47,23 @@ export class Toast extends Component<Props, State> {
     }
 }
 
-export const SendingEventRejection =
-    (emit: emitFunc<ViewSpaceSettings>, url: string, reason: string) => () => (
+export const SendingEventRejection = (emit: emitFunc<ViewSpaceSettings>, url: URL, reason: string) => () => (
+    <div
+        class="hover:cursor-pointer"
+        onClick={() => {
+            emit({
+                type: "ViewSpaceSettings",
+                url: url,
+            });
+        }}
+    >
+        sending message is rejected
+        <div>reason: {reason}</div>
+        <div>please contact the admin of relay</div>
         <div
-            class="hover:cursor-pointer"
-            onClick={() => {
-                emit({
-                    type: "ViewSpaceSettings",
-                    url: url,
-                });
-            }}
+            class={`text-[${LinkColor}] hover:underline`}
         >
-            sending message is rejected
-            <div>reason: {reason}</div>
-            <div>please contact the admin of relay</div>
-            <div
-                class={`text-[${LinkColor}] hover:underline`}
-            >
-                {url}
-            </div>
+            {url}
         </div>
-    );
+    </div>
+);

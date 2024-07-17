@@ -1,7 +1,7 @@
 import { ConnectionPool, NostrAccountContext, SingleRelayConnection } from "@blowater/nostr-sdk";
 import { parseJSON } from "../features/profile.ts";
 
-export const default_blowater_relay = "wss://blowater.nostr1.com";
+export const default_blowater_relay = new URL("wss://blowater.nostr1.com");
 
 export class RelayConfig {
     private readonly ctx: NostrAccountContext;
