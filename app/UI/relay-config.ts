@@ -55,7 +55,12 @@ export class RelayConfig {
     }
 
     getRelayURLs() {
-        return new Set(Array.from(this.relayPool.getRelays()).map((r) => r.url));
+        const relays = this.relayPool.getRelays();
+        const result = [];
+        for (const relay of relays) {
+            result.push(relay.url);
+        }
+        return result;
     }
 
     saveToLocalStorage() {
