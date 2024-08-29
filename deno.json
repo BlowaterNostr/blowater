@@ -44,7 +44,7 @@
     "imports": {
         "@blowater/collections": "jsr:@blowater/collections@^0.0.0-rc3",
         "@blowater/csp": "jsr:@blowater/csp@1.0.0",
-        "@blowater/nostr-sdk": "jsr:@blowater/nostr-sdk@0.0.7",
+        "@blowater/nostr-sdk": "jsr:@blowater/nostr-sdk@^0.0.16",
         "@std/assert": "jsr:@std/assert@0.226.0",
         "@std/datetime": "jsr:@std/datetime@0.224.2",
         "@std/encoding": "jsr:@std/encoding@1.0.0",
