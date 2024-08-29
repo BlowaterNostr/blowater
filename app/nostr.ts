@@ -5,7 +5,7 @@
 import {
     NostrKind,
     prepareEncryptedNostrEvent,
-    prepareNormalNostrEvent,
+    prepareNostrEvent,
     PublicKey,
     TagPubKey,
 } from "@blowater/nostr-sdk";
@@ -183,7 +183,7 @@ export async function prepareReplyEvent(
     },
 ): Promise<nostr.NostrEvent | Error> {
     const ps = getTags(args.targetEvent).p;
-    return prepareNormalNostrEvent(
+    return prepareNostrEvent(
         sender,
         {
             kind: args.targetEvent.kind,

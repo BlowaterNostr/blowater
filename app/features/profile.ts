@@ -1,7 +1,7 @@
 import {
     NostrAccountContext,
     NostrKind,
-    prepareNormalNostrEvent,
+    prepareNostrEvent,
     SingleRelayConnection,
 } from "@blowater/nostr-sdk";
 
@@ -10,10 +10,13 @@ export async function saveProfile(
     sender: NostrAccountContext,
     relay: SingleRelayConnection,
 ) {
-    const event = await prepareNormalNostrEvent(
+    const event = await prepareNostrEvent(
         sender,
         { kind: NostrKind.META_DATA, content: JSON.stringify(profile) },
     );
+    if (event instanceof Error) {
+        return event;
+    }
     return relay.sendEvent(event);
 }
 

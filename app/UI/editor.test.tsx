@@ -3,7 +3,7 @@ import { h, render } from "preact";
 import { Editor } from "./editor.tsx";
 import { prepareProfileEvent, testEventBus } from "./_setup.test.ts";
 import { InMemoryAccountContext, NostrKind } from "@blowater/nostr-sdk";
-import { prepareEncryptedNostrEvent, prepareNormalNostrEvent } from "@blowater/nostr-sdk";
+import { prepareEncryptedNostrEvent, prepareNostrEvent } from "@blowater/nostr-sdk";
 import { getTags, Parsed_Event, Profile_Nostr_Event } from "../nostr.ts";
 import { NostrEvent } from "@blowater/nostr-sdk";
 
