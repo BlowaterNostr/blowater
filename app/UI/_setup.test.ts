@@ -1,6 +1,6 @@
 import { Database_View, EventMark, EventMarker, EventsAdapter, Indices, RelayRecorder } from "../database.ts";
 import { EventBus } from "../event-bus.ts";
-import { NostrAccountContext, NostrEvent, NostrKind, prepareNormalNostrEvent } from "@blowater/nostr-sdk";
+import { NostrAccountContext, NostrEvent, NostrKind, prepareNostrEvent } from "@blowater/nostr-sdk";
 import { UI_Interaction_Event } from "./app_update.tsx";
 import { Profile_Nostr_Event } from "../nostr.ts";
 import { ProfileData } from "../features/profile.ts";
@@ -62,7 +62,7 @@ export const prepareProfileEvent = async (
     author: NostrAccountContext,
     profile: ProfileData,
 ) => {
-    const profileEvent = await prepareNormalNostrEvent(author, {
+    const profileEvent = await prepareNostrEvent(author, {
         kind: NostrKind.META_DATA,
         content: JSON.stringify(profile),
     }) as NostrEvent<NostrKind.META_DATA>;

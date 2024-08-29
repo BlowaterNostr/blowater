@@ -2,7 +2,7 @@ import {
     InMemoryAccountContext,
     NostrEvent,
     NostrKind,
-    prepareNormalNostrEvent,
+    prepareNostrEvent,
     PrivateKey,
     utf8Decode,
 } from "@blowater/nostr-sdk";
@@ -45,14 +45,14 @@ Deno.test("Generate reply event", async () => {
     const userAPrivateKey = PrivateKey.Generate();
     const userAContext = InMemoryAccountContext.New(userAPrivateKey);
 
-    const message1 = await prepareNormalNostrEvent(
+    const message1 = await prepareNostrEvent(
         userAContext,
         {
             kind: NostrKind.DIRECT_MESSAGE,
 
             content: "text message 1",
         },
-    );
+    ) as NostrEvent;
 
     const replyMessage1WithText = await prepareReplyEvent(
         userAContext,

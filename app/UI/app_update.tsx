@@ -63,7 +63,7 @@ import {
     NostrKind,
     NoteID,
     prepareDeletionEvent,
-    prepareNormalNostrEvent,
+    prepareNostrEvent,
     prepareReactionEvent,
     PublicKey,
     SingleRelayConnection,
@@ -245,7 +245,7 @@ const handle_update_event = async (chan: PutChannel<true>, args: {
                 children: (
                     <SpaceSetting
                         emit={app.eventBus.emit}
-                        getSpaceInformationChan={relay.getRelayInformationStream}
+                        getSpaceInformationChan={relay.unstable.getRelayInformationStream}
                         getMemberSet={app.database.getMemberSet}
                         spaceUrl={spaceUrl}
                         getProfileByPublicKey={app.database.getProfileByPublicKey}
@@ -716,7 +716,7 @@ export async function handle_SendMessage(
                     currentRelay: args.current_relay.url,
                 },
             )
-            : await prepareNormalNostrEvent(ctx, {
+            : await prepareNostrEvent(ctx, {
                 content: ui_event.text,
                 kind: NostrKind.TEXT_NOTE,
                 tags: [...tags, ["client", "https://blowater.app"]],

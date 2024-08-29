@@ -1,4 +1,10 @@
-import { InMemoryAccountContext, NostrKind, prepareNormalNostrEvent, PrivateKey } from "@blowater/nostr-sdk";
+import {
+    InMemoryAccountContext,
+    NostrEvent,
+    NostrKind,
+    prepareNostrEvent,
+    PrivateKey,
+} from "@blowater/nostr-sdk";
 import { test_db_view } from "./UI/_setup.test.ts";
 import { Parsed_Event } from "./nostr.ts";
 import { assertEquals } from "https://deno.land/std@0.202.0/assert/assert_equals.ts";
@@ -11,7 +17,10 @@ Deno.test("Database", async () => {
     const db = await test_db_view();
 
     const stream = db.subscribe();
-    const event_to_add = await prepareNormalNostrEvent(ctx, { kind: NostrKind.TEXT_NOTE, content: "1" });
+    const event_to_add = await prepareNostrEvent(ctx, {
+        kind: NostrKind.TEXT_NOTE,
+        content: "1",
+    }) as NostrEvent;
     await db.addEvent(event_to_add);
     const e1 = db.getEventByID(event_to_add.id);
     if (!e1) {
@@ -51,7 +60,10 @@ Deno.test("Database", async () => {
     const stream2 = db.subscribe();
 
     await db.addEvent(event_to_add); //   add a duplicated event
-    const event_to_add2 = await prepareNormalNostrEvent(ctx, { kind: NostrKind.TEXT_NOTE, content: "2" });
+    const event_to_add2 = await prepareNostrEvent(ctx, {
+        kind: NostrKind.TEXT_NOTE,
+        content: "2",
+    }) as NostrEvent;
     // console.log(event_to_add2.id, event_to_add.id)
     await db.addEvent(event_to_add2);
     const res_2 = await stream.pop() as {
@@ -82,8 +94,14 @@ Deno.test("Relay Record", async () => {
     const db = await test_db_view();
 
     const stream = db.subscribe();
-    const event_to_add = await prepareNormalNostrEvent(ctx, { kind: NostrKind.TEXT_NOTE, content: "1" });
-    const event_to_add_2 = await prepareNormalNostrEvent(ctx, { kind: NostrKind.TEXT_NOTE, content: "2" });
+    const event_to_add = await prepareNostrEvent(ctx, {
+        kind: NostrKind.TEXT_NOTE,
+        content: "1",
+    }) as NostrEvent;
+    const event_to_add_2 = await prepareNostrEvent(ctx, {
+        kind: NostrKind.TEXT_NOTE,
+        content: "2",
+    }) as NostrEvent;
     await db.addEvent(event_to_add); // send by client
 
     {
@@ -118,7 +136,10 @@ Deno.test("Relay Record", async () => {
 Deno.test("mark removed event", async () => {
     const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
     const db = await test_db_view();
-    const event_to_add = await prepareNormalNostrEvent(ctx, { kind: NostrKind.TEXT_NOTE, content: "1" });
+    const event_to_add = await prepareNostrEvent(ctx, {
+        kind: NostrKind.TEXT_NOTE,
+        content: "1",
+    }) as NostrEvent;
 
     const parsed_event = await db.addEvent(event_to_add);
     const retrieved_event = db.getEventByID(event_to_add.id);
@@ -141,7 +162,10 @@ Deno.test("mark removed event", async () => {
 Deno.test("getAllEvents", async () => {
     const ctx = InMemoryAccountContext.New(PrivateKey.Generate());
     const db = await test_db_view();
-    const event_to_add = await prepareNormalNostrEvent(ctx, { kind: NostrKind.TEXT_NOTE, content: "1" });
+    const event_to_add = await prepareNostrEvent(ctx, {
+        kind: NostrKind.TEXT_NOTE,
+        content: "1",
+    }) as NostrEvent;
 
     assertEquals(Array.from(db.getAllEvents()), []);
 

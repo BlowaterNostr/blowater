@@ -721,7 +721,7 @@ const sync_space_members = async (
 ) => {
     for (const relay of pool.getRelays()) {
         (async () => {
-            const chan = relay.getSpaceMembersStream();
+            const chan = relay.unstable.getSpaceMembersStream();
             for await (const spaceMembers of chan) {
                 if (spaceMembers instanceof Error) {
                     if (spaceMembers instanceof TypeError || spaceMembers instanceof SyntaxError) {

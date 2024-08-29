@@ -205,11 +205,11 @@ export class DirectedMessageController implements DirectMessageGetter {
         );
 
         if (result.type == "Other") {
-            return result;
+            return result.error;
         } else if (result.type == "NotMyMessage") {
-            return result;
+            return result.error;
         } else if (result.type == "error") {
-            return result;
+            return result.error;
         }
 
         const dm_event = result.event;
@@ -237,9 +237,7 @@ export class DirectedMessageController implements DirectMessageGetter {
         }
         this.directed_messages.set(event.id, chatMessage);
         /* do not await */ this.new_message_chan.put(chatMessage);
-        return {
-            type: true,
-        };
+        return;
     }
 
     onChange() {
